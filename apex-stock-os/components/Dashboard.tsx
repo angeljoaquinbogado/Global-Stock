@@ -379,17 +379,17 @@ export function Dashboard({
   return (
     <main className="min-h-screen bg-[var(--apex-bg)] text-[var(--apex-text)]">
       <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)] backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:flex-nowrap lg:px-8">
           <Logo withWordmark />
 
-          <div className="flex flex-wrap items-center justify-end gap-2">
-            <InstallAppButton />
-            <GlobalPreferences
+          <div className="flex items-center justify-end gap-2">
+            <div className="hidden lg:block"><InstallAppButton /></div>
+            <div className="hidden lg:block"><GlobalPreferences
               language={language}
               currency={currency}
               onLanguageChange={setLanguage}
               onCurrencyChange={setCurrency}
-            />
+            /></div>
 
             <button
               onClick={onToggleTheme}
@@ -406,6 +406,16 @@ export function Dashboard({
             >
               <LogOut size={16} />
             </button>
+          </div>
+
+          <div className="flex w-full items-center justify-between gap-2 lg:hidden">
+            <GlobalPreferences
+              language={language}
+              currency={currency}
+              onLanguageChange={setLanguage}
+              onCurrencyChange={setCurrency}
+            />
+            <InstallAppButton />
           </div>
         </div>
       </header>
@@ -452,7 +462,7 @@ export function Dashboard({
           </div>
         </section>
 
-        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
           <MetricCard
             icon={<CircleDollarSign size={19} />}
             label={labels.revenue}
@@ -463,7 +473,7 @@ export function Dashboard({
             icon={<WalletCards size={19} />}
             label={labels.inventoryCost}
             value={money(metrics.inventoryCost)}
-            detail={`${metrics.inventoryUnits} unidades`}
+            detail={`${metrics.inventoryUnits} ${labels.units}`}
           />
           <MetricCard
             icon={<TrendingUp size={19} />}
@@ -475,7 +485,7 @@ export function Dashboard({
             icon={<AlertTriangle size={19} />}
             label={labels.inventory}
             value={String(metrics.lowStockCount + metrics.outOfStockCount)}
-            detail={`${metrics.lowStockCount} bajos · ${metrics.outOfStockCount} agotados`}
+            detail={`${metrics.lowStockCount} ${labels.low.toLowerCase()} · ${metrics.outOfStockCount} ${labels.out.toLowerCase()}`}
           />
         </section>
 
@@ -759,9 +769,18 @@ function MetricCard({
       <p className="mt-5 text-xs font-semibold text-[var(--apex-muted)]">
         {label}
       </p>
-      <div className="mt-2 text-2xl font-semibold tracking-[-0.04em]">
-        {value}
-      </div>
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={value}
+          initial={{ opacity: 0, y: 7, filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: -7, filter: "blur(4px)" }}
+          transition={{ duration: 0.2 }}
+          className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl"
+        >
+          {value}
+        </motion.div>
+      </AnimatePresence>
       <p className="mt-2 text-[11px] text-[var(--apex-muted)]">{detail}</p>
     </motion.article>
   );
