@@ -17,9 +17,6 @@ export function Logo({
           <div className="text-[15px] font-semibold tracking-[-0.03em]">
             Global Stock
           </div>
-          <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--apex-muted)]">
-            OS
-          </div>
         </div>
       </div>
     );
