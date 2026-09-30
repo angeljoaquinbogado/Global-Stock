@@ -1,6 +1,6 @@
 {
-  "name": "Apex Stock OS",
-  "short_name": "Apex Stock",
+  "name": "Global Stock",
+  "short_name": "Global Stock",
   "description": "Sistema empresarial de stock, ventas, analítica e inteligencia operacional.",
   "start_url": "/",
   "scope": "/",
