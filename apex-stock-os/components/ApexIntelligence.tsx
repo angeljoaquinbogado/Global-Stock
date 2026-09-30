@@ -49,7 +49,8 @@ const uiCopy: Record<
   es: {
     title: "Global Intelligence",
     subtitle: "Analista conectado a tu negocio",
-    welcome:\n      "Listo. Preguntame lo que quieras: puedo conversar normalmente y, cuando haga falta, usar los datos reales de Global Stock para analizar tu negocio.",
+    welcome:
+      "Listo. Preguntame lo que quieras: puedo conversar normalmente y, cuando haga falta, usar los datos reales de Global Stock para analizar tu negocio.",
     placeholder: "Preguntá algo sobre tu negocio…",
     analyzing: "Cruzando stock, ventas, costos y márgenes…",
     alerts: "alertas",
@@ -62,7 +63,8 @@ const uiCopy: Record<
   en: {
     title: "Global Intelligence",
     subtitle: "Analyst connected to your business",
-    welcome:\n      "Ready. Ask me anything: I can chat normally and, when useful, use Global Stock’s live business data for analysis.",
+    welcome:
+      "Ready. Ask me anything: I can chat normally and, when useful, use Global Stock’s live business data for analysis.",
     placeholder: "Ask about your business…",
     analyzing: "Crossing stock, sales, costs and margins…",
     alerts: "alerts",
@@ -75,7 +77,8 @@ const uiCopy: Record<
   pt: {
     title: "Global Intelligence",
     subtitle: "Analista conectado ao seu negócio",
-    welcome:\n      "Pronto. Pergunte o que quiser: posso conversar normalmente e usar os dados reais do Global Stock quando for útil.",
+    welcome:
+      "Pronto. Pergunte o que quiser: posso conversar normalmente e usar os dados reais do Global Stock quando for útil.",
     placeholder: "Pergunte sobre seu negócio…",
     analyzing: "Cruzando estoque, vendas, custos e margens…",
     alerts: "alertas",
@@ -88,7 +91,8 @@ const uiCopy: Record<
   fr: {
     title: "Global Intelligence",
     subtitle: "Analyste connecté à votre activité",
-    welcome:\n      "Prêt. Posez-moi n’importe quelle question : je peux discuter normalement et utiliser les données réelles de Global Stock lorsque c’est utile.",
+    welcome:
+      "Prêt. Posez-moi n’importe quelle question : je peux discuter normalement et utiliser les données réelles de Global Stock lorsque c’est utile.",
     placeholder: "Posez une question sur votre activité…",
     analyzing: "Analyse du stock, des ventes, coûts et marges…",
     alerts: "alertes",
@@ -101,7 +105,8 @@ const uiCopy: Record<
   de: {
     title: "Global Intelligence",
     subtitle: "Analyst für deinen Betrieb",
-    welcome:\n      "Bereit. Frag mich alles: Ich kann normal antworten und bei Bedarf die echten Global-Stock-Daten für Analysen verwenden.",
+    welcome:
+      "Bereit. Frag mich alles: Ich kann normal antworten und bei Bedarf die echten Global-Stock-Daten für Analysen verwenden.",
     placeholder: "Frag etwas über deinen Betrieb…",
     analyzing: "Bestand, Verkäufe, Kosten und Margen werden analysiert…",
     alerts: "Warnungen",
