@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   generateIntelligenceAnswer,
   IntelligenceNotConfiguredError,
+  isIntelligenceConfigured,
   type IntelligenceHistoryMessage,
   type IntelligenceRuntimeContext
 } from "@/lib/ai-provider";
@@ -16,6 +17,20 @@ type IntelligenceRequest = {
 };
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+export async function GET() {
+  return NextResponse.json(
+    {
+      configured: isIntelligenceConfigured()
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
+}
 
 export async function POST(request: Request) {
   let body: IntelligenceRequest;
@@ -24,7 +39,7 @@ export async function POST(request: Request) {
     body = (await request.json()) as IntelligenceRequest;
   } catch {
     return NextResponse.json(
-      { error: "Invalid JSON body" },
+      { code: "INVALID_REQUEST", error: "Invalid request body." },
       { status: 400 }
     );
   }
@@ -34,14 +49,20 @@ export async function POST(request: Request) {
 
   if (!message || !snapshot) {
     return NextResponse.json(
-      { error: "message and snapshot are required" },
+      {
+        code: "MISSING_INPUT",
+        error: "The message and business context are required."
+      },
       { status: 400 }
     );
   }
 
   if (message.length > 4000) {
     return NextResponse.json(
-      { error: "message is too long" },
+      {
+        code: "MESSAGE_TOO_LONG",
+        error: "The message is too long."
+      },
       { status: 413 }
     );
   }
@@ -54,25 +75,31 @@ export async function POST(request: Request) {
       runtime: body.runtime ?? {}
     });
 
-    return NextResponse.json({ answer });
+    return NextResponse.json(
+      { answer, configured: true },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   } catch (error) {
     if (error instanceof IntelligenceNotConfiguredError) {
       return NextResponse.json(
         {
-          error:
-            "Global Intelligence todavía no tiene un modelo real conectado. Configurá AI_API_URL y AI_MODEL en el servidor; AI_API_KEY es opcional para proveedores locales."
+          code: "AI_NOT_CONNECTED",
+          configured: false
         },
         { status: 503 }
       );
     }
 
-    const message =
-      error instanceof Error
-        ? error.name === "AbortError"
-          ? "El modelo tardó demasiado en responder."
-          : error.message
-        : "No se pudo consultar el modelo de IA.";
-
-    return NextResponse.json({ error: message }, { status: 502 });
+    return NextResponse.json(
+      {
+        code: "AI_PROVIDER_ERROR",
+        configured: true
+      },
+      { status: 502 }
+    );
   }
 }
