@@ -1618,7 +1618,16 @@ export function BusinessWorkspace({
         )}
       </AnimatePresence>
 
-      <ApexIntelligence snapshot={snapshot} />
+      <ApexIntelligence
+        snapshot={snapshot}
+        appContext={{
+          businessName,
+          recentActivities: activities.slice(0, 80),
+          notes: notes.slice(0, 80),
+          fxHistory: fxHistory.slice(0, 60),
+          activeModule
+        }}
+      />
     </main>
   );
 }
