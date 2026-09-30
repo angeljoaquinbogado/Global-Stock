@@ -1,9 +1,10 @@
-name: Apex Stock OS CI
+name: Global Stock Web CI
 
 on:
   push:
     branches:
       - apex-stock-os-nextjs
+      - main
   pull_request:
     paths:
       - "apex-stock-os/**"
