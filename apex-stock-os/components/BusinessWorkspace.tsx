@@ -2940,6 +2940,47 @@ function NotesModule({
   );
 }
 
+const fxSettingsCopy: Record<
+  LanguageCode,
+  {
+    buy: string;
+    sell: string;
+    sourceTime: string;
+    conversion: string;
+  }
+> = {
+  es: {
+    buy: "Compra",
+    sell: "Venta",
+    sourceTime: "Hora informada por DolarHoy",
+    conversion: "Conversión aplicada"
+  },
+  en: {
+    buy: "Buy",
+    sell: "Sell",
+    sourceTime: "Time reported by DolarHoy",
+    conversion: "Applied conversion"
+  },
+  pt: {
+    buy: "Compra",
+    sell: "Venda",
+    sourceTime: "Horário informado pelo DolarHoy",
+    conversion: "Conversão aplicada"
+  },
+  fr: {
+    buy: "Achat",
+    sell: "Vente",
+    sourceTime: "Heure indiquée par DolarHoy",
+    conversion: "Conversion appliquée"
+  },
+  de: {
+    buy: "Kauf",
+    sell: "Verkauf",
+    sourceTime: "Von DolarHoy gemeldete Zeit",
+    conversion: "Angewandte Umrechnung"
+  }
+};
+
 function SettingsModule({
   labels,
   language,
@@ -2985,6 +3026,16 @@ function SettingsModule({
   fxQuote: FxQuote;
   setFxMarket: (market: FxMarket) => void;
 }) {
+  const fxLabels = fxSettingsCopy[language];
+  const ars = (value: number | null) =>
+    value === null
+      ? "—"
+      : new Intl.NumberFormat(locale, {
+          style: "currency",
+          currency: "ARS",
+          maximumFractionDigits: 2
+        }).format(value);
+
   return (
     <div className="space-y-5">
       <PageIntro
@@ -3077,16 +3128,43 @@ function SettingsModule({
               <option value="tarjeta">Tarjeta</option>
             </select>
           </div>
-          <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
-            {currency === "ARS"
-              ? "1 ARS"
-              : `1 ARS = ${currencyRate.toLocaleString(locale, {
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {fxLabels.buy}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {ars(fxQuote.buy)}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {fxLabels.sell}
+              </p>
+              <p className="mt-1 text-lg font-semibold">
+                {ars(fxQuote.sell)}
+              </p>
+            </div>
+          </div>
+
+          {currency !== "ARS" && (
+            <div className="mt-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {fxLabels.conversion}
+              </p>
+              <p className="mt-1 text-sm font-semibold">
+                1 ARS ={" "}
+                {currencyRate.toLocaleString(locale, {
                   maximumFractionDigits: 8
-                })} ${currency}`}
-          </p>
+                })}{" "}
+                {currency}
+              </p>
+            </div>
+          )}
+
           <p
             className={
-              "mt-2 text-xs " +
+              "mt-3 text-xs " +
               (fxStatus === "live"
                 ? "text-emerald-600"
                 : "text-red-500")
@@ -3096,6 +3174,13 @@ function SettingsModule({
               ? labels.liveRate
               : labels.rateUnavailable}
           </p>
+
+          {fxQuote.sourceUpdatedAt && (
+            <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+              {fxLabels.sourceTime}: {fxQuote.sourceUpdatedAt}
+            </p>
+          )}
+
           {fxUpdatedAt && (
             <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
               {labels.updated}:{" "}
@@ -3112,11 +3197,15 @@ function SettingsModule({
             </p>
             <div className="mt-3 space-y-2">
               {fxHistory
-                .filter((item) => item.currency === currency)
+                .filter(
+                  (item) =>
+                    item.currency === currency &&
+                    item.market === fxMarket
+                )
                 .slice(0, 7)
                 .map((item) => (
                   <div
-                    key={item.date + item.currency}
+                    key={item.date + item.currency + item.market}
                     className="flex items-center justify-between gap-3 text-xs"
                   >
                     <span className="text-[var(--apex-muted)]">
