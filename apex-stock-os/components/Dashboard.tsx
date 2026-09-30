@@ -462,12 +462,22 @@ export function Dashboard({
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
               Global Stock
             </p>
-            <h1 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-              {labels.overview}
-            </h1>
-            <p className="mt-2 text-sm text-[var(--apex-muted)]">
-              {labels.subtitle}
-            </p>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={language}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+              >
+                <h1 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
+                  {labels.overview}
+                </h1>
+                <p className="mt-2 text-sm text-[var(--apex-muted)]">
+                  {labels.subtitle}
+                </p>
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           <div className="inline-flex self-start rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1 sm:self-auto">
@@ -533,7 +543,7 @@ export function Dashboard({
                   {labels.analytics}
                 </p>
                 <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em]">
-                  Flujo operativo
+                  {labels.flow}
                 </h2>
               </div>
               <span className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]">
@@ -601,10 +611,10 @@ export function Dashboard({
           <div className="apex-card p-5 sm:p-6">
             <div className="mb-5">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8F0000]">
-                Revenue vs cost
+                {labels.comparison}
               </p>
               <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em]">
-                Ingresos y costos
+                {labels.comparisonTitle}
               </h2>
             </div>
 
@@ -658,7 +668,7 @@ export function Dashboard({
                 {labels.stock}
               </p>
               <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em]">
-                Inventario en vivo
+                {labels.liveInventory}
               </h2>
             </div>
 
@@ -753,7 +763,7 @@ export function Dashboard({
                         />
                       </td>
                       <td className="px-4 py-4">
-                        <StockBadge status={status} />
+                        <StockBadge status={status} labels={labels} />
                       </td>
                     </tr>
                   );
@@ -822,18 +832,24 @@ function MetricCard({
   );
 }
 
-function StockBadge({ status }: { status: StockStatus }) {
+function StockBadge({
+  status,
+  labels
+}: {
+  status: StockStatus;
+  labels: (typeof copy)[Language];
+}) {
   const config = {
     normal: {
-      label: "Normal",
+      label: labels.normal,
       className: "bg-emerald-500/10 text-emerald-600"
     },
     low: {
-      label: "Bajo",
+      label: labels.low,
       className: "bg-amber-500/10 text-amber-600"
     },
     out: {
-      label: "Agotado",
+      label: labels.out,
       className: "bg-red-500/10 text-red-600"
     }
   }[status];
