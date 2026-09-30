@@ -57,10 +57,24 @@ function parseArsNumber(value: string) {
 
 function findSegment(text: string, labels: readonly string[]) {
   const lower = text.toLocaleLowerCase("es");
+
   for (const label of labels) {
-    const index = lower.indexOf(label.toLocaleLowerCase("es"));
-    if (index >= 0) return text.slice(index, index + 900);
+    const needle = label.toLocaleLowerCase("es");
+    let from = 0;
+
+    while (from < lower.length) {
+      const index = lower.indexOf(needle, from);
+      if (index < 0) break;
+
+      const segment = text.slice(index, index + 1100);
+      if (/\$\s*[0-9]/.test(segment)) {
+        return segment;
+      }
+
+      from = index + needle.length;
+    }
   }
+
   return "";
 }
 
