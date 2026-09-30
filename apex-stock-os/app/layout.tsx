@@ -2,14 +2,14 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Apex Stock OS",
+  title: "Global Stock",
   description:
     "Gestión global de stock, ventas, rentabilidad e inteligencia operacional.",
-  applicationName: "Apex Stock OS",
+  applicationName: "Global Stock",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    title: "Apex Stock OS",
+    title: "Global Stock",
     statusBarStyle: "black-translucent"
   },
   icons: {
