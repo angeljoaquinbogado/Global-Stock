@@ -311,10 +311,10 @@ export function Dashboard({
   return (
     <main className="min-h-screen bg-[var(--apex-bg)] text-[var(--apex-text)]">
       <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)] backdrop-blur-2xl">
-        <div className="mx-auto flex max-w-[1500px] items-center justify-between gap-4 px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <Logo withWordmark />
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-2">
             <InstallAppButton />
 
             <select
