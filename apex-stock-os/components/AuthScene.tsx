@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Environment, Stars } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 import ThreeGlobe from "three-globe";
 import { feature } from "topojson-client";
 import countriesTopology from "world-atlas/countries-110m.json";
@@ -257,7 +257,6 @@ export function AuthScene() {
 
         <GlobalGlobe />
 
-        <Environment preset="city" environmentIntensity={0.16} />
       </Canvas>
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_48%,rgba(0,0,0,0)_0%,rgba(0,0,0,.08)_34%,rgba(0,0,0,.74)_100%)]" />
