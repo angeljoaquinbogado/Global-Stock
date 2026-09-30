@@ -27,7 +27,7 @@ import {
   Truck,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Area,
   AreaChart,
@@ -57,7 +57,7 @@ import type {
 } from "@/lib/types";
 
 import { ApexIntelligence } from "./ApexIntelligence";
-import { BarcodeScanner } from "./BarcodeScanner";
+import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import {
   GlobalPreferences,
   type LanguageCode
@@ -791,6 +791,7 @@ export function BusinessWorkspace({
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const scannerRef = useRef<BarcodeScannerHandle>(null);
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
   const [notes, setNotes] = useState<BusinessNote[]>([]);
   const [selectedDate, setSelectedDate] = useState(localDateKey(new Date()));
@@ -1464,7 +1465,10 @@ export function BusinessWorkspace({
 
           <button
             type="button"
-            onClick={() => setScannerOpen(true)}
+            onClick={() => {
+              setScannerOpen(true);
+              scannerRef.current?.openCamera();
+            }}
             className="-mt-8 flex min-h-[72px] flex-col items-center justify-end gap-1 text-[10px] font-semibold text-[#8F0000]"
             aria-label={labels.scan}
           >
@@ -1563,14 +1567,13 @@ export function BusinessWorkspace({
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {scannerOpen && (
-          <motion.div
-            className="fixed inset-0 z-[130] overflow-y-auto bg-[var(--apex-bg)] p-3 pb-24 sm:p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
+      <div
+        className={
+          scannerOpen
+            ? "fixed inset-0 z-[130] overflow-y-auto bg-[var(--apex-bg)] p-3 pb-24 sm:p-6"
+            : "hidden"
+        }
+      >
             <div className="mx-auto max-w-5xl">
               <div className="mb-4 flex items-center justify-between">
                 <div>
@@ -1583,7 +1586,10 @@ export function BusinessWorkspace({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setScannerOpen(false)}
+                  onClick={() => {
+                    scannerRef.current?.stop();
+                    setScannerOpen(false);
+                  }}
                   className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
                   aria-label={labels.close}
                 >
@@ -1592,14 +1598,12 @@ export function BusinessWorkspace({
               </div>
 
               <BarcodeScanner
+                ref={scannerRef}
                 language={language}
-                autoStart
                 onProduct={integrateScannedProduct}
               />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      </div>
 
       <AnimatePresence>
         {notice && (
