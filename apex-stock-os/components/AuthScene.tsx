@@ -113,9 +113,9 @@ export function AuthScene() {
           : Math.min(window.devicePixelRatio || 1, 1.15);
 
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
-        viewer.scene.skyAtmosphere.show = true;
-        viewer.scene.sun.show = true;
-        viewer.scene.moon.show = true;
+        if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = true;
+        if (viewer.scene.sun) viewer.scene.sun.show = true;
+        if (viewer.scene.moon) viewer.scene.moon.show = true;
         viewer.scene.globe.show = true;
         viewer.scene.globe.enableLighting = true;
         viewer.scene.globe.showGroundAtmosphere = true;
