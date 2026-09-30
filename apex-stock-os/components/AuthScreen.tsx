@@ -18,6 +18,7 @@ import {
 import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
+import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
 import { Logo } from "./Logo";
 
 const AuthScene = dynamic(
@@ -27,7 +28,11 @@ const AuthScene = dynamic(
 
 type AuthScreenProps = {
   dark: boolean;
+  language: LanguageCode;
+  currency: string;
   onToggleTheme: () => void;
+  onLanguageChange: (language: LanguageCode) => void;
+  onCurrencyChange: (currency: string) => void;
   onAuthenticated: () => void;
 };
 
@@ -35,11 +40,227 @@ type Mode = "signin" | "signup";
 
 const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
 
+const copy: Record<
+  LanguageCode,
+  {
+    intro: string;
+    network: string;
+    signIn: string;
+    signUp: string;
+    ready: string;
+    signInTitle: string;
+    signUpTitle: string;
+    signInDescription: string;
+    signUpDescription: string;
+    name: string;
+    namePlaceholder: string;
+    email: string;
+    emailPlaceholder: string;
+    password: string;
+    passwordPlaceholder: string;
+    enter: string;
+    create: string;
+    google: string;
+    configured: string;
+    demo: string;
+    invalidEmail: string;
+    invalidPassword: string;
+    invalidName: string;
+    accountCreated: string;
+    authError: string;
+    oauthSetup: string;
+    showPassword: string;
+    hidePassword: string;
+    theme: string;
+  }
+> = {
+  es: {
+    intro:
+      "Tu negocio conectado al mundo. Stock, ventas, rentabilidad e inteligencia en una sola plataforma.",
+    network: "Red global activa",
+    signIn: "Iniciar sesión",
+    signUp: "Crear cuenta",
+    ready: "Global Intelligence lista",
+    signInTitle: "Volvé al control.",
+    signUpTitle: "Creá tu cuenta.",
+    signInDescription:
+      "Entrá a tu operación global desde cualquier dispositivo.",
+    signUpDescription:
+      "Empezá gratis y configurá tu negocio, moneda y stock en pocos pasos.",
+    name: "Nombre",
+    namePlaceholder: "Tu nombre",
+    email: "Correo electrónico",
+    emailPlaceholder: "nombre@empresa.com",
+    password: "Contraseña",
+    passwordPlaceholder: "Mínimo 8 caracteres",
+    enter: "Entrar a Global Stock",
+    create: "Crear cuenta gratis",
+    google: "Continuar con Google",
+    configured: "Autenticación protegida por Supabase Auth.",
+    demo: "Modo demo para pruebas. Supabase habilita cuentas y datos reales.",
+    invalidEmail: "Ingresá un correo electrónico válido.",
+    invalidPassword: "La contraseña debe tener al menos 8 caracteres.",
+    invalidName: "Ingresá tu nombre.",
+    accountCreated:
+      "Cuenta creada. Revisá tu correo para confirmar el acceso antes de iniciar sesión.",
+    authError: "No se pudo completar la autenticación.",
+    oauthSetup: "Google requiere configurar Supabase antes de usar OAuth.",
+    showPassword: "Mostrar contraseña",
+    hidePassword: "Ocultar contraseña",
+    theme: "Cambiar tema"
+  },
+  en: {
+    intro:
+      "Your business connected to the world. Inventory, sales, profitability and intelligence in one platform.",
+    network: "Global network online",
+    signIn: "Sign in",
+    signUp: "Create account",
+    ready: "Global Intelligence ready",
+    signInTitle: "Back in control.",
+    signUpTitle: "Create your account.",
+    signInDescription:
+      "Access your global operation from any device.",
+    signUpDescription:
+      "Start free and configure your business, currency and inventory in a few steps.",
+    name: "Name",
+    namePlaceholder: "Your name",
+    email: "Email",
+    emailPlaceholder: "name@company.com",
+    password: "Password",
+    passwordPlaceholder: "At least 8 characters",
+    enter: "Enter Global Stock",
+    create: "Create free account",
+    google: "Continue with Google",
+    configured: "Authentication protected by Supabase Auth.",
+    demo: "Demo mode for testing. Supabase enables real accounts and data.",
+    invalidEmail: "Enter a valid email address.",
+    invalidPassword: "Password must contain at least 8 characters.",
+    invalidName: "Enter your name.",
+    accountCreated:
+      "Account created. Check your email to confirm access before signing in.",
+    authError: "Authentication could not be completed.",
+    oauthSetup: "Google sign-in requires Supabase configuration first.",
+    showPassword: "Show password",
+    hidePassword: "Hide password",
+    theme: "Change theme"
+  },
+  pt: {
+    intro:
+      "Seu negócio conectado ao mundo. Estoque, vendas, rentabilidade e inteligência em uma só plataforma.",
+    network: "Rede global ativa",
+    signIn: "Entrar",
+    signUp: "Criar conta",
+    ready: "Global Intelligence pronta",
+    signInTitle: "Volte ao controle.",
+    signUpTitle: "Crie sua conta.",
+    signInDescription:
+      "Acesse sua operação global de qualquer dispositivo.",
+    signUpDescription:
+      "Comece grátis e configure seu negócio, moeda e estoque em poucos passos.",
+    name: "Nome",
+    namePlaceholder: "Seu nome",
+    email: "E-mail",
+    emailPlaceholder: "nome@empresa.com",
+    password: "Senha",
+    passwordPlaceholder: "Mínimo de 8 caracteres",
+    enter: "Entrar no Global Stock",
+    create: "Criar conta grátis",
+    google: "Continuar com Google",
+    configured: "Autenticação protegida pelo Supabase Auth.",
+    demo: "Modo demo para testes. Supabase habilita contas e dados reais.",
+    invalidEmail: "Digite um e-mail válido.",
+    invalidPassword: "A senha deve ter pelo menos 8 caracteres.",
+    invalidName: "Digite seu nome.",
+    accountCreated:
+      "Conta criada. Verifique seu e-mail para confirmar o acesso antes de entrar.",
+    authError: "Não foi possível concluir a autenticação.",
+    oauthSetup: "O login com Google requer configurar o Supabase primeiro.",
+    showPassword: "Mostrar senha",
+    hidePassword: "Ocultar senha",
+    theme: "Alterar tema"
+  },
+  fr: {
+    intro:
+      "Votre activité connectée au monde. Stock, ventes, rentabilité et intelligence sur une seule plateforme.",
+    network: "Réseau mondial actif",
+    signIn: "Se connecter",
+    signUp: "Créer un compte",
+    ready: "Global Intelligence prête",
+    signInTitle: "Reprenez le contrôle.",
+    signUpTitle: "Créez votre compte.",
+    signInDescription:
+      "Accédez à votre activité mondiale depuis n’importe quel appareil.",
+    signUpDescription:
+      "Commencez gratuitement et configurez votre activité, devise et stock en quelques étapes.",
+    name: "Nom",
+    namePlaceholder: "Votre nom",
+    email: "E-mail",
+    emailPlaceholder: "nom@entreprise.com",
+    password: "Mot de passe",
+    passwordPlaceholder: "8 caractères minimum",
+    enter: "Entrer dans Global Stock",
+    create: "Créer un compte gratuit",
+    google: "Continuer avec Google",
+    configured: "Authentification protégée par Supabase Auth.",
+    demo: "Mode démo. Supabase active les comptes et données réels.",
+    invalidEmail: "Saisissez une adresse e-mail valide.",
+    invalidPassword: "Le mot de passe doit contenir au moins 8 caractères.",
+    invalidName: "Saisissez votre nom.",
+    accountCreated:
+      "Compte créé. Consultez votre e-mail pour confirmer l’accès avant de vous connecter.",
+    authError: "Impossible de terminer l’authentification.",
+    oauthSetup: "Google nécessite d’abord la configuration de Supabase.",
+    showPassword: "Afficher le mot de passe",
+    hidePassword: "Masquer le mot de passe",
+    theme: "Changer de thème"
+  },
+  de: {
+    intro:
+      "Dein Unternehmen mit der Welt verbunden. Bestand, Verkäufe, Rentabilität und Intelligenz auf einer Plattform.",
+    network: "Globales Netzwerk aktiv",
+    signIn: "Anmelden",
+    signUp: "Konto erstellen",
+    ready: "Global Intelligence bereit",
+    signInTitle: "Zurück zur Kontrolle.",
+    signUpTitle: "Erstelle dein Konto.",
+    signInDescription:
+      "Greife von jedem Gerät auf deinen globalen Betrieb zu.",
+    signUpDescription:
+      "Starte kostenlos und richte Unternehmen, Währung und Bestand in wenigen Schritten ein.",
+    name: "Name",
+    namePlaceholder: "Dein Name",
+    email: "E-Mail",
+    emailPlaceholder: "name@unternehmen.de",
+    password: "Passwort",
+    passwordPlaceholder: "Mindestens 8 Zeichen",
+    enter: "Global Stock öffnen",
+    create: "Kostenloses Konto erstellen",
+    google: "Mit Google fortfahren",
+    configured: "Authentifizierung durch Supabase Auth geschützt.",
+    demo: "Demo-Modus zum Testen. Supabase aktiviert echte Konten und Daten.",
+    invalidEmail: "Gib eine gültige E-Mail-Adresse ein.",
+    invalidPassword: "Das Passwort muss mindestens 8 Zeichen lang sein.",
+    invalidName: "Gib deinen Namen ein.",
+    accountCreated:
+      "Konto erstellt. Bestätige den Zugang per E-Mail, bevor du dich anmeldest.",
+    authError: "Die Authentifizierung konnte nicht abgeschlossen werden.",
+    oauthSetup: "Google-Anmeldung erfordert zuerst die Supabase-Konfiguration.",
+    showPassword: "Passwort anzeigen",
+    hidePassword: "Passwort ausblenden",
+    theme: "Design ändern"
+  }
+};
+
 export function AuthScreen({
   dark,
+  language,
+  currency,
   onToggleTheme,
+  onLanguageChange,
+  onCurrencyChange,
   onAuthenticated
 }: AuthScreenProps) {
+  const labels = copy[language];
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("demo@globalstock.local");
@@ -53,29 +274,17 @@ export function AuthScreen({
   const configured = useMemo(() => isSupabaseConfigured(), []);
 
   useEffect(() => {
-    const reducedMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
-
-    if (reducedMotion) {
-      setBrandVisible(true);
-      setIntroComplete(true);
-      return;
-    }
-
     const brandTimer = window.setTimeout(() => setBrandVisible(true), 1050);
-    const completeTimer = window.setTimeout(() => setIntroComplete(true), 5200);
+    const completeTimer = window.setTimeout(
+      () => setIntroComplete(true),
+      5200
+    );
 
     return () => {
       window.clearTimeout(brandTimer);
       window.clearTimeout(completeTimer);
     };
   }, []);
-
-  function finishIntro() {
-    setBrandVisible(true);
-    setIntroComplete(true);
-  }
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
@@ -90,17 +299,17 @@ export function AuthScreen({
     const normalizedEmail = email.trim().toLowerCase();
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
-      setError("Ingresá un correo electrónico válido.");
+      setError(labels.invalidEmail);
       return;
     }
 
     if (password.length < 8) {
-      setError("La contraseña debe tener al menos 8 caracteres.");
+      setError(labels.invalidPassword);
       return;
     }
 
     if (mode === "signup" && name.trim().length < 2) {
-      setError("Ingresá tu nombre.");
+      setError(labels.invalidName);
       return;
     }
 
@@ -140,16 +349,10 @@ export function AuthScreen({
         onAuthenticated();
       } else {
         setMode("signin");
-        setError(
-          "Cuenta creada. Revisá tu correo para confirmar el acceso antes de iniciar sesión."
-        );
+        setError(labels.accountCreated);
       }
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "No se pudo completar la autenticación."
-      );
+    } catch {
+      setError(labels.authError);
     } finally {
       setPending(false);
     }
@@ -160,9 +363,7 @@ export function AuthScreen({
     const supabase = getSupabaseBrowserClient();
 
     if (!supabase) {
-      setError(
-        "OAuth requiere configurar NEXT_PUBLIC_SUPABASE_URL y NEXT_PUBLIC_SUPABASE_ANON_KEY."
-      );
+      setError(labels.oauthSetup);
       return;
     }
 
@@ -171,34 +372,28 @@ export function AuthScreen({
       options: { redirectTo: window.location.origin }
     });
 
-    if (authError) setError(authError.message);
+    if (authError) setError(labels.authError);
   }
 
-  return (
-    <main className="relative min-h-screen overflow-hidden bg-black text-white">
-      <AuthScene />
+  const surfaceClass = dark
+    ? "border-white/10 bg-black/52 text-white"
+    : "border-white/55 bg-white/82 text-[#1D1D1F]";
 
-      <AnimatePresence>
-        {!introComplete && (
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ delay: 1.2, duration: 0.45 }}
-            type="button"
-            onClick={finishIntro}
-            className="fixed right-5 top-5 z-40 rounded-full border border-white/10 bg-black/30 px-4 py-2 text-[11px] font-semibold text-white/60 backdrop-blur-xl transition hover:bg-black/50 hover:text-white"
-          >
-            Saltar intro
-          </motion.button>
-        )}
-      </AnimatePresence>
+  const mutedClass = dark ? "text-white/52" : "text-[#6E6E73]";
+  const fieldClass = dark
+    ? "border-white/10 bg-white/[0.06] text-white placeholder:text-white/30"
+    : "border-black/10 bg-white/80 text-[#1D1D1F] placeholder:text-black/30";
+  const iconMutedClass = dark ? "text-white/40" : "text-black/35";
+
+  return (
+    <main className="relative min-h-screen overflow-hidden bg-black">
+      <AuthScene />
 
       <AnimatePresence mode="wait">
         {!introComplete ? (
           <motion.section
             key="brand-intro"
-            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6"
+            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-white"
             exit={{ opacity: 0, scale: 1.04 }}
             transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
           >
@@ -229,13 +424,13 @@ export function AuthScreen({
                   </motion.div>
 
                   <motion.p
+                    key={language}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.7, delay: 0.55 }}
                     className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/58 sm:text-base"
                   >
-                    Tu negocio conectado al mundo. Stock, ventas, rentabilidad e
-                    inteligencia en una sola plataforma.
+                    {labels.intro}
                   </motion.p>
 
                   <motion.div
@@ -245,7 +440,7 @@ export function AuthScreen({
                     className="mt-6 inline-flex items-center gap-2 rounded-full border border-red-500/15 bg-red-950/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-red-200/75"
                   >
                     <Zap size={12} />
-                    Global network online
+                    {labels.network}
                   </motion.div>
                 </motion.div>
               )}
@@ -260,24 +455,46 @@ export function AuthScreen({
             className="relative z-20 flex min-h-screen items-center justify-center px-4 py-5 lg:justify-end lg:px-10 xl:px-16"
           >
             <motion.div
+              key={dark ? "dark-auth" : "light-auth"}
               initial={{ opacity: 0, x: 44, scale: 0.985 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               transition={spring}
-              className="apex-glass w-full max-w-[510px] rounded-[34px] border-white/10 bg-black/50 p-5 shadow-[0_38px_120px_rgba(0,0,0,.58)] sm:p-7"
+              className={`w-full max-w-[510px] rounded-[34px] border p-5 shadow-[0_38px_120px_rgba(0,0,0,.58)] backdrop-blur-[30px] sm:p-7 ${surfaceClass}`}
             >
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-4 flex items-center justify-between gap-3">
                 <Logo withWordmark />
                 <button
                   type="button"
                   onClick={onToggleTheme}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-white/10 bg-white/[0.06] text-white transition hover:scale-[1.02] hover:bg-white/10"
-                  aria-label="Cambiar tema"
+                  className={
+                    "grid h-10 w-10 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
+                    (dark
+                      ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10"
+                      : "border-black/10 bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.07]")
+                  }
+                  aria-label={labels.theme}
                 >
                   {dark ? <Sun size={17} /> : <Moon size={17} />}
                 </button>
               </div>
 
-              <div className="mb-6 grid grid-cols-2 rounded-2xl border border-white/10 bg-white/[0.05] p-1">
+              <div className="mb-5">
+                <GlobalPreferences
+                  language={language}
+                  currency={currency}
+                  onLanguageChange={onLanguageChange}
+                  onCurrencyChange={onCurrencyChange}
+                />
+              </div>
+
+              <div
+                className={
+                  "mb-6 grid grid-cols-2 rounded-2xl border p-1 " +
+                  (dark
+                    ? "border-white/10 bg-white/[0.05]"
+                    : "border-black/10 bg-black/[0.035]")
+                }
+              >
                 {(["signin", "signup"] as const).map((item) => {
                   const active = mode === item;
                   return (
@@ -290,7 +507,9 @@ export function AuthScreen({
                         "relative min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors " +
                         (active
                           ? "text-white"
-                          : "text-white/50 hover:text-white/90")
+                          : dark
+                            ? "text-white/50 hover:text-white/90"
+                            : "text-black/50 hover:text-black/85")
                       }
                     >
                       {active && (
@@ -301,7 +520,7 @@ export function AuthScreen({
                         />
                       )}
                       <span className="relative z-10">
-                        {item === "signin" ? "Iniciar sesión" : "Crear cuenta"}
+                        {item === "signin" ? labels.signIn : labels.signUp}
                       </span>
                     </button>
                   );
@@ -310,45 +529,45 @@ export function AuthScreen({
 
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  key={mode}
+                  key={`${mode}-${language}`}
                   initial={{ opacity: 0, x: mode === "signup" ? 18 : -18 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: mode === "signup" ? -12 : 12 }}
                   transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="mb-6">
-                    <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] text-[#dca8a8]">
+                    <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] text-[#b94c4c]">
                       <Sparkles size={13} />
-                      Global Intelligence ready
+                      {labels.ready}
                     </div>
                     <h1 className="text-3xl font-semibold tracking-[-0.045em]">
                       {mode === "signin"
-                        ? "Volvé al control."
-                        : "Creá tu cuenta."}
+                        ? labels.signInTitle
+                        : labels.signUpTitle}
                     </h1>
-                    <p className="mt-2 text-sm leading-6 text-white/50">
+                    <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
                       {mode === "signin"
-                        ? "Entrá a tu operación global desde cualquier dispositivo."
-                        : "Empezá gratis y configurá tu negocio, moneda y stock en pocos pasos."}
+                        ? labels.signInDescription
+                        : labels.signUpDescription}
                     </p>
                   </div>
 
                   <form onSubmit={submit} className="space-y-4">
                     {mode === "signup" && (
                       <label className="block">
-                        <span className="mb-2 block text-xs font-semibold text-white/70">
-                          Nombre
+                        <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                          {labels.name}
                         </span>
                         <div className="relative">
                           <UserRound
                             size={17}
-                            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                            className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
                           />
                           <input
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className="apex-input bg-white/[0.06] py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30"
-                            placeholder="Tu nombre"
+                            className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            placeholder={labels.namePlaceholder}
                             autoComplete="name"
                           />
                         </div>
@@ -356,19 +575,19 @@ export function AuthScreen({
                     )}
 
                     <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-white/70">
-                        Correo electrónico
+                      <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                        {labels.email}
                       </span>
                       <div className="relative">
                         <Mail
                           size={17}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                          className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
                         />
                         <input
                           value={email}
                           onChange={(event) => setEmail(event.target.value)}
-                          className="apex-input bg-white/[0.06] py-3.5 pl-11 pr-4 text-sm text-white placeholder:text-white/30"
-                          placeholder="nombre@empresa.com"
+                          className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          placeholder={labels.emailPlaceholder}
                           type="email"
                           autoComplete="email"
                           inputMode="email"
@@ -377,32 +596,34 @@ export function AuthScreen({
                     </label>
 
                     <label className="block">
-                      <span className="mb-2 block text-xs font-semibold text-white/70">
-                        Contraseña
+                      <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                        {labels.password}
                       </span>
                       <div className="relative">
                         <LockKeyhole
                           size={17}
-                          className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-white/40"
+                          className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
                         />
                         <input
                           value={password}
                           onChange={(event) => setPassword(event.target.value)}
-                          className="apex-input bg-white/[0.06] py-3.5 pl-11 pr-12 text-sm text-white placeholder:text-white/30"
-                          placeholder="Mínimo 8 caracteres"
+                          className={`w-full rounded-2xl border py-3.5 pl-11 pr-12 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          placeholder={labels.passwordPlaceholder}
                           type={showPassword ? "text" : "password"}
                           autoComplete={
-                            mode === "signin" ? "current-password" : "new-password"
+                            mode === "signin"
+                              ? "current-password"
+                              : "new-password"
                           }
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword((value) => !value)}
-                          className="absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full text-white/45 hover:bg-white/10 hover:text-white"
+                          className={`absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full transition ${mutedClass}`}
                           aria-label={
                             showPassword
-                              ? "Ocultar contraseña"
-                              : "Mostrar contraseña"
+                              ? labels.hidePassword
+                              : labels.showPassword
                           }
                         >
                           {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
@@ -413,44 +634,46 @@ export function AuthScreen({
                     {error && (
                       <div
                         role="alert"
-                        className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-xs leading-5 text-red-100"
+                        className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-xs leading-5 text-red-600 dark:text-red-100"
                       >
                         {error}
                       </div>
                     )}
 
                     <motion.button
+                      type="submit"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.985 }}
                       transition={spring}
                       disabled={pending}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-crimson transition hover:bg-[#a40000] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition hover:bg-[#a40000] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {pending ? (
                         <Loader2 size={17} className="animate-spin" />
                       ) : (
                         <ArrowRight size={17} />
                       )}
-                      {mode === "signin"
-                        ? "Entrar a Global Stock"
-                        : "Crear cuenta gratis"}
+                      {mode === "signin" ? labels.enter : labels.create}
                     </motion.button>
 
                     <button
                       type="button"
                       onClick={signInWithGoogle}
-                      className="w-full rounded-2xl border border-white/10 bg-white/[0.05] px-5 py-3.5 text-sm font-semibold text-white transition hover:scale-[1.01] hover:bg-white/10"
+                      className={
+                        "w-full rounded-2xl border px-5 py-3.5 text-sm font-semibold transition active:scale-[.99] " +
+                        (dark
+                          ? "border-white/10 bg-white/[0.05] text-white hover:bg-white/10"
+                          : "border-black/10 bg-white/65 text-[#1D1D1F] hover:bg-white")
+                      }
                     >
-                      Continuar con Google
+                      {labels.google}
                     </button>
                   </form>
                 </motion.div>
               </AnimatePresence>
 
-              <p className="mt-5 text-center text-[10px] leading-5 text-white/30">
-                {configured
-                  ? "Autenticación protegida por Supabase Auth."
-                  : "Modo demo para pruebas. Supabase habilita cuentas y datos reales."}
+              <p className={`mt-5 text-center text-[10px] leading-5 ${mutedClass}`}>
+                {configured ? labels.configured : labels.demo}
               </p>
             </motion.div>
           </motion.section>
