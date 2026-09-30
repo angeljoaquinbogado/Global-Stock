@@ -97,6 +97,19 @@ type BusinessWorkspaceProps = {
 };
 
 type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
+
+type FxQuote = {
+  buy: number | null;
+  sell: number | null;
+  sourceUpdatedAt: string | null;
+};
+
+type FxHistoryEntry = {
+  date: string;
+  currency: string;
+  market: FxMarket;
+  rate: number;
+};
 type BusinessType =
   | "retail"
   | "restaurant"
@@ -814,9 +827,13 @@ export function BusinessWorkspace({
   const [fxUpdatedAt, setFxUpdatedAt] = useState("");
   const [fxStatus, setFxStatus] = useState<"live" | "error">("live");
   const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
-  const [fxHistory, setFxHistory] = useState<
-    Array<{ date: string; currency: string; rate: number }>
-  >([]);
+  const [fxQuote, setFxQuote] = useState<FxQuote>({
+    buy: null,
+    sell: null,
+    sourceUpdatedAt: null
+  });
+  const [fxHistory, setFxHistory] = useState<FxHistoryEntry[]>([]);
+  const [storageReady, setStorageReady] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
   const [businessName, setBusinessName] = useState("Global Stock Demo");
@@ -880,12 +897,32 @@ export function BusinessWorkspace({
         if (Array.isArray(parsed)) setNotes(parsed);
       }
       if (savedFxHistory) {
-        const parsed = JSON.parse(savedFxHistory) as Array<{
-          date: string;
-          currency: string;
-          rate: number;
-        }>;
-        if (Array.isArray(parsed)) setFxHistory(parsed);
+        const parsed = JSON.parse(savedFxHistory) as Array<
+          Partial<FxHistoryEntry>
+        >;
+        if (Array.isArray(parsed)) {
+          setFxHistory(
+            parsed
+              .filter(
+                (item) =>
+                  typeof item.date === "string" &&
+                  typeof item.currency === "string" &&
+                  Number.isFinite(Number(item.rate))
+              )
+              .map((item) => ({
+                date: String(item.date),
+                currency: String(item.currency),
+                market:
+                  item.market &&
+                  ["oficial", "blue", "mep", "ccl", "tarjeta"].includes(
+                    item.market
+                  )
+                    ? item.market
+                    : "oficial",
+                rate: Number(item.rate)
+              }))
+          );
+        }
       }
       if (
         savedFxMarket &&
@@ -897,42 +934,46 @@ export function BusinessWorkspace({
       }
     } catch {
       // Keep bundled demo data if a local value is invalid.
+    } finally {
+      setStorageReady(true);
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("global-stock-demo-products-v2", JSON.stringify(products));
-  }, [products]);
+    if (!storageReady) return;
+    localStorage.setItem(
+      "global-stock-demo-products-v2",
+      JSON.stringify(products)
+    );
+  }, [products, storageReady]);
 
   useEffect(() => {
+    if (!storageReady) return;
     localStorage.setItem("global-stock-trend-v1", JSON.stringify(trend));
-  }, [trend]);
+  }, [trend, storageReady]);
 
   useEffect(() => {
-    localStorage.setItem("global-stock-activities-v1", JSON.stringify(activities));
-  }, [activities]);
+    if (!storageReady) return;
+    localStorage.setItem(
+      "global-stock-activities-v1",
+      JSON.stringify(activities)
+    );
+  }, [activities, storageReady]);
 
   useEffect(() => {
+    if (!storageReady) return;
     localStorage.setItem("global-stock-notes-v1", JSON.stringify(notes));
-  }, [notes]);
+  }, [notes, storageReady]);
 
   useEffect(() => {
+    if (!storageReady) return;
     localStorage.setItem("global-stock-fx-market-v1", fxMarket);
-  }, [fxMarket]);
+  }, [fxMarket, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadRate() {
-      if (currency === "ARS") {
-        if (!cancelled) {
-          setCurrencyRate(1);
-          setFxStatus("live");
-          setFxUpdatedAt(new Date().toISOString());
-        }
-        return;
-      }
-
       try {
         const response = await fetch(
           `/api/fx?target=${encodeURIComponent(currency)}&market=${encodeURIComponent(fxMarket)}&t=${Date.now()}`,
@@ -943,6 +984,11 @@ export function BusinessWorkspace({
         const payload = (await response.json()) as {
           rate?: number;
           checkedAt?: string;
+          sourceUpdatedAt?: string | null;
+          quote?: {
+            buy?: number | null;
+            sell?: number | null;
+          };
         };
         const nextRate = Number(payload.rate);
 
@@ -950,21 +996,45 @@ export function BusinessWorkspace({
           setCurrencyRate(nextRate);
           setFxStatus("live");
           setFxUpdatedAt(payload.checkedAt ?? new Date().toISOString());
+          setFxQuote({
+            buy:
+              payload.quote?.buy === null ||
+              Number.isFinite(Number(payload.quote?.buy))
+                ? payload.quote?.buy ?? null
+                : null,
+            sell: Number.isFinite(Number(payload.quote?.sell))
+              ? Number(payload.quote?.sell)
+              : null,
+            sourceUpdatedAt: payload.sourceUpdatedAt ?? null
+          });
 
           const today = localDateKey(new Date());
           setFxHistory((current) => {
             const withoutToday = current.filter(
               (item) =>
-                !(item.date === today && item.currency === currency)
+                !(
+                  item.date === today &&
+                  item.currency === currency &&
+                  item.market === fxMarket
+                )
             );
             const next = [
-              { date: today, currency, rate: nextRate },
+              {
+                date: today,
+                currency,
+                market: fxMarket,
+                rate: nextRate
+              },
               ...withoutToday
-            ].slice(0, 120);
-            localStorage.setItem(
-              "global-stock-fx-history-v1",
-              JSON.stringify(next)
-            );
+            ].slice(0, 180);
+
+            if (storageReady) {
+              localStorage.setItem(
+                "global-stock-fx-history-v1",
+                JSON.stringify(next)
+              );
+            }
+
             return next;
           });
         }
@@ -985,7 +1055,7 @@ export function BusinessWorkspace({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [currency, fxMarket]);
+  }, [currency, fxMarket, storageReady]);
 
   const localizedTrend = useMemo(
     () =>
@@ -1530,6 +1600,7 @@ export function BusinessWorkspace({
                 locale={locale}
                 fxHistory={fxHistory}
                 fxMarket={fxMarket}
+                fxQuote={fxQuote}
                 setFxMarket={setFxMarket}
               />
             )}
@@ -1597,7 +1668,7 @@ export function BusinessWorkspace({
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: 30, opacity: 0 }}
-              className="w-full rounded-t-[30px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))]"
+              className="apex-scrollbar max-h-[88dvh] w-full overflow-y-auto rounded-t-[30px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))]"
             >
               <div className="mb-4 flex items-center justify-between">
                 <Logo withWordmark />
@@ -2889,6 +2960,7 @@ function SettingsModule({
   locale,
   fxHistory,
   fxMarket,
+  fxQuote,
   setFxMarket
 }: {
   labels: (typeof copy)[LanguageCode];
@@ -2908,8 +2980,9 @@ function SettingsModule({
   fxUpdatedAt: string;
   currencyRate: number;
   locale: string;
-  fxHistory: Array<{ date: string; currency: string; rate: number }>;
+  fxHistory: FxHistoryEntry[];
   fxMarket: FxMarket;
+  fxQuote: FxQuote;
   setFxMarket: (market: FxMarket) => void;
 }) {
   return (
