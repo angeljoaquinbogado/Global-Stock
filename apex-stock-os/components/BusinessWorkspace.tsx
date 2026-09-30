@@ -218,6 +218,7 @@ const copy: Record<
     liveRate: string;
     rateUnavailable: string;
     updated: string;
+    rateHistory: string;
     recentActivity: string;
     todayNotes: string;
   }
@@ -322,6 +323,7 @@ const copy: Record<
     liveRate: "Cotización actual",
     rateUnavailable: "Cotización en vivo no disponible",
     updated: "Actualizado",
+    rateHistory: "Registro diario",
     recentActivity: "Actividad reciente",
     todayNotes: "Notas de hoy"
   },
@@ -425,6 +427,7 @@ const copy: Record<
     liveRate: "Current quote",
     rateUnavailable: "Live exchange rate unavailable",
     updated: "Updated",
+    rateHistory: "Daily rate history",
     recentActivity: "Recent activity",
     todayNotes: "Today's notes"
   },
@@ -528,6 +531,7 @@ const copy: Record<
     liveRate: "Cotação atual",
     rateUnavailable: "Cotação ao vivo indisponível",
     updated: "Atualizado",
+    rateHistory: "Histórico diário",
     recentActivity: "Atividade recente",
     todayNotes: "Notas de hoje"
   },
@@ -631,6 +635,7 @@ const copy: Record<
     liveRate: "Cours actuel",
     rateUnavailable: "Cours en direct indisponible",
     updated: "Mis à jour",
+    rateHistory: "Historique quotidien",
     recentActivity: "Activité récente",
     todayNotes: "Notes du jour"
   },
@@ -734,6 +739,7 @@ const copy: Record<
     liveRate: "Aktueller Kurs",
     rateUnavailable: "Live-Wechselkurs nicht verfügbar",
     updated: "Aktualisiert",
+    rateHistory: "Täglicher Kursverlauf",
     recentActivity: "Letzte Aktivität",
     todayNotes: "Heutige Notizen"
   }
@@ -776,6 +782,9 @@ export function BusinessWorkspace({
   const [currencyRate, setCurrencyRate] = useState(1);
   const [fxUpdatedAt, setFxUpdatedAt] = useState("");
   const [fxStatus, setFxStatus] = useState<"live" | "error">("live");
+  const [fxHistory, setFxHistory] = useState<
+    Array<{ date: string; currency: string; rate: number }>
+  >([]);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
   const [businessName, setBusinessName] = useState("Global Stock Demo");
@@ -797,6 +806,7 @@ export function BusinessWorkspace({
       const savedName = localStorage.getItem("global-stock-business-name");
       const savedActivities = localStorage.getItem("global-stock-activities-v1");
       const savedNotes = localStorage.getItem("global-stock-notes-v1");
+      const savedFxHistory = localStorage.getItem("global-stock-fx-history-v1");
 
       if (savedProducts) {
         const parsed = JSON.parse(savedProducts) as Product[];
@@ -814,6 +824,14 @@ export function BusinessWorkspace({
       if (savedNotes) {
         const parsed = JSON.parse(savedNotes) as BusinessNote[];
         if (Array.isArray(parsed)) setNotes(parsed);
+      }
+      if (savedFxHistory) {
+        const parsed = JSON.parse(savedFxHistory) as Array<{
+          date: string;
+          currency: string;
+          rate: number;
+        }>;
+        if (Array.isArray(parsed)) setFxHistory(parsed);
       }
     } catch {
       // Keep bundled demo data if a local value is invalid.
@@ -866,6 +884,23 @@ export function BusinessWorkspace({
           setCurrencyRate(nextRate);
           setFxStatus("live");
           setFxUpdatedAt(payload.checkedAt ?? new Date().toISOString());
+
+          const today = localDateKey(new Date());
+          setFxHistory((current) => {
+            const withoutToday = current.filter(
+              (item) =>
+                !(item.date === today && item.currency === currency)
+            );
+            const next = [
+              { date: today, currency, rate: nextRate },
+              ...withoutToday
+            ].slice(0, 120);
+            localStorage.setItem(
+              "global-stock-fx-history-v1",
+              JSON.stringify(next)
+            );
+            return next;
+          });
         }
       } catch {
         if (!cancelled) setFxStatus("error");
@@ -1405,6 +1440,7 @@ export function BusinessWorkspace({
                 fxUpdatedAt={fxUpdatedAt}
                 currencyRate={currencyRate}
                 locale={locale}
+                fxHistory={fxHistory}
               />
             )}
           </motion.div>
@@ -2743,7 +2779,8 @@ function SettingsModule({
   fxStatus,
   fxUpdatedAt,
   currencyRate,
-  locale
+  locale,
+  fxHistory
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -2760,6 +2797,7 @@ function SettingsModule({
   fxUpdatedAt: string;
   currencyRate: number;
   locale: string;
+  fxHistory: Array<{ date: string; currency: string; rate: number }>;
 }) {
   return (
     <div className="space-y-5">
@@ -2835,6 +2873,34 @@ function SettingsModule({
               }).format(new Date(fxUpdatedAt))}
             </p>
           )}
+
+          <div className="mt-5 border-t border-[var(--apex-border)] pt-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
+              {labels.rateHistory}
+            </p>
+            <div className="mt-3 space-y-2">
+              {fxHistory
+                .filter((item) => item.currency === currency)
+                .slice(0, 7)
+                .map((item) => (
+                  <div
+                    key={item.date + item.currency}
+                    className="flex items-center justify-between gap-3 text-xs"
+                  >
+                    <span className="text-[var(--apex-muted)]">
+                      {new Intl.DateTimeFormat(locale, {
+                        dateStyle: "medium"
+                      }).format(new Date(item.date + "T12:00:00"))}
+                    </span>
+                    <strong>
+                      {item.rate.toLocaleString(locale, {
+                        maximumFractionDigits: 8
+                      })} {item.currency}
+                    </strong>
+                  </div>
+                ))}
+            </div>
+          </div>
         </section>
 
         <section className="apex-card p-5">
