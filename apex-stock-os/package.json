@@ -9,7 +9,13 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "dev:lan": "next dev -H 0.0.0.0",
-    "start:lan": "next start -H 0.0.0.0"
+    "start:lan": "next start -H 0.0.0.0",
+    "prepare:cesium": "node scripts/copy-cesium.mjs",
+    "predev": "npm run prepare:cesium",
+    "predev:lan": "npm run prepare:cesium",
+    "prebuild": "npm run prepare:cesium",
+    "prestart": "npm run prepare:cesium",
+    "prestart:lan": "npm run prepare:cesium"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.3",
@@ -25,7 +31,8 @@
     "three": "^0.169.0",
     "three-globe": "^2.45.0",
     "topojson-client": "^3.1.0",
-    "world-atlas": "^2.0.2"
+    "world-atlas": "^2.0.2",
+    "cesium": "^1.132.0"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
