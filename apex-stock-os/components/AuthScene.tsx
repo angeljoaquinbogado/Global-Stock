@@ -645,16 +645,46 @@ function HubPoints() {
         return (
           <group key={index} position={position}>
             <mesh>
-              <sphereGeometry
-                args={[index === 0 ? 0.026 : 0.016, 9, 9]}
-              />
-              <meshBasicMaterial
-                color={index === 0 ? "#ff3838" : "#b50909"}
-              />
+              <sphereGeometry args={[0.016, 9, 9]} />
+              <meshBasicMaterial color="#b50909" />
             </mesh>
           </group>
         );
       })}
+    </group>
+  );
+}
+
+function ViewerMarker({ viewer }: { viewer: ViewerLocation }) {
+  const pulse = useRef<THREE.Group>(null);
+  const position = useMemo(
+    () => latLngToVector3(viewer.lat, viewer.lng, 1.418),
+    [viewer.lat, viewer.lng]
+  );
+
+  useFrame(({ clock }) => {
+    if (!pulse.current) return;
+    const scale = 1 + Math.sin(clock.elapsedTime * 2.4) * 0.18;
+    pulse.current.scale.setScalar(scale);
+  });
+
+  return (
+    <group position={position}>
+      <mesh>
+        <sphereGeometry args={[0.031, 12, 12]} />
+        <meshBasicMaterial color="#ff3434" />
+      </mesh>
+      <group ref={pulse}>
+        <mesh>
+          <sphereGeometry args={[0.055, 12, 12]} />
+          <meshBasicMaterial
+            color="#ff2020"
+            transparent
+            opacity={0.12}
+            depthWrite={false}
+          />
+        </mesh>
+      </group>
     </group>
   );
 }
@@ -778,11 +808,11 @@ function Earth({
         },
         vertexShader: `
           varying vec2 vUv;
-          varying vec3 vNormalWorld;
+          varying vec3 vNormalObject;
 
           void main() {
             vUv = uv;
-            vNormalWorld = normalize(mat3(modelMatrix) * normal);
+            vNormalObject = normalize(normal);
             gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
           }
         `,
@@ -791,11 +821,11 @@ function Earth({
           uniform sampler2D nightMap;
           uniform vec3 sunDirection;
           varying vec2 vUv;
-          varying vec3 vNormalWorld;
+          varying vec3 vNormalObject;
 
           void main() {
-            vec3 normalW = normalize(vNormalWorld);
-            float sunDot = dot(normalW, normalize(sunDirection));
+            vec3 normalO = normalize(vNormalObject);
+            float sunDot = dot(normalO, normalize(sunDirection));
             float daylight = smoothstep(-0.14, 0.22, sunDot);
             float twilight = 1.0 - smoothstep(-0.08, 0.18, abs(sunDot));
 
@@ -931,6 +961,7 @@ function Earth({
       ))}
 
       <HubPoints />
+      <ViewerMarker viewer={viewer} />
     </group>
   );
 }
