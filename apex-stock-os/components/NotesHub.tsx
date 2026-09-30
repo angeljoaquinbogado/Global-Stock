@@ -243,6 +243,7 @@ export function NotesHub({
   const t = copy[language];
   const [tab, setTab] = useState<Tab>("bloc");
   const [freeNotes, setFreeNotes] = useState<FreeNote[]>([]);
+  const [freeNotesReady, setFreeNotesReady] = useState(false);
   const [freeTitle, setFreeTitle] = useState("");
   const [freeBody, setFreeBody] = useState("");
 
@@ -254,15 +255,18 @@ export function NotesHub({
       if (Array.isArray(parsed)) setFreeNotes(parsed);
     } catch {
       // Ignore invalid local note data.
+    } finally {
+      setFreeNotesReady(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!freeNotesReady) return;
     localStorage.setItem(
       "global-stock-free-notes-v1",
       JSON.stringify(freeNotes)
     );
-  }, [freeNotes]);
+  }, [freeNotes, freeNotesReady]);
 
   const sortedFreeNotes = useMemo(
     () =>
