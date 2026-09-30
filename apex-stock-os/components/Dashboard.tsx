@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   Boxes,
@@ -38,6 +38,7 @@ import { ApexIntelligence } from "./ApexIntelligence";
 import { InstallAppButton } from "./InstallAppButton";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { Logo } from "./Logo";
+import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
 
 type DashboardProps = {
   dark: boolean;
@@ -45,7 +46,7 @@ type DashboardProps = {
   onSignOut: () => void;
 };
 
-type Language = "es" | "en" | "pt" | "fr" | "de";
+type Language = LanguageCode;
 type Period = "daily" | "weekly" | "monthly" | "annual";
 type StatusFilter = "all" | StockStatus;
 
@@ -316,30 +317,12 @@ export function Dashboard({
 
           <div className="flex flex-wrap items-center justify-end gap-2">
             <InstallAppButton />
-
-            <select
-              aria-label="Idioma"
-              value={language}
-              onChange={(event) => setLanguage(event.target.value as Language)}
-              className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-semibold outline-none"
-            >
-              <option value="es">ES</option>
-              <option value="en">EN</option>
-              <option value="pt">PT</option>
-              <option value="fr">FR</option>
-              <option value="de">DE</option>
-            </select>
-
-            <select
-              aria-label="Moneda"
-              value={currency}
-              onChange={(event) => setCurrency(event.target.value)}
-              className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-semibold outline-none"
-            >
-              {currencies.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
+            <GlobalPreferences
+              language={language}
+              currency={currency}
+              onLanguageChange={setLanguage}
+              onCurrencyChange={setCurrency}
+            />
 
             <button
               onClick={onToggleTheme}
