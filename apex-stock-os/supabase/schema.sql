@@ -154,7 +154,7 @@ returns trigger
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 begin
   insert into public.business_members(business_id, user_id, role)
   values (new.id, new.owner_id, 'owner')
@@ -162,7 +162,7 @@ begin
   do update set role = 'owner';
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists on_business_created on public.businesses;
 create trigger on_business_created
@@ -175,7 +175,7 @@ language sql
 stable
 security definer
 set search_path = public
-as $
+as $$
   select exists (
     select 1
     from public.business_members bm
@@ -183,7 +183,7 @@ as $
       and bm.user_id = auth.uid()
       and bm.role in ('owner','admin')
   );
-$;
+$$;
 
 alter table public.profiles enable row level security;
 alter table public.businesses enable row level security;
@@ -284,7 +284,7 @@ returns integer
 language plpgsql
 security definer
 set search_path = public
-as $
+as $$
 declare
   target_product_id uuid;
   current_stock integer;
@@ -334,17 +334,17 @@ begin
 
   return next_stock;
 end;
-$;
+$$;
 
 revoke all on function public.apply_stock_sync(uuid, text, integer, text) from public;
 grant execute on function public.apply_stock_sync(uuid, text, integer, text) to service_role;
 
-do $
+do $$
 begin
   alter publication supabase_realtime add table public.products;
 exception
   when duplicate_object then null;
-end $;
+end $$;
 
 do $$
 begin
