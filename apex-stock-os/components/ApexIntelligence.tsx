@@ -382,7 +382,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
         type="button"
         onClick={() => setOpen(true)}
         whileTap={{ scale: 0.97 }}
-        className="fixed bottom-[max(16px,env(safe-area-inset-bottom))] right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)] sm:bottom-6 sm:right-6"
+        className="fixed bottom-[calc(88px+env(safe-area-inset-bottom))] right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)] lg:bottom-6 lg:right-6"
       >
         <span className="grid h-9 w-9 place-items-center rounded-full bg-[#8F0000]">
           <Sparkles size={16} />
