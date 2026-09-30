@@ -189,24 +189,32 @@ export async function GET(request: NextRequest) {
 
   const checkedAt = new Date().toISOString();
 
-  if (target === "ARS") {
-    return NextResponse.json(
-      {
-        base: "ARS",
-        target,
-        rate: 1,
-        market,
-        source: "identity",
-        checkedAt
-      },
-      {
-        headers: { "Cache-Control": "no-store" }
-      }
-    );
-  }
-
   try {
     const quote = await getDolarHoyQuote(market);
+
+    if (target === "ARS") {
+      return NextResponse.json(
+        {
+          base: "ARS",
+          target,
+          rate: 1,
+          market,
+          source: quote.source,
+          provider: "dolarhoy.com",
+          quote: {
+            buy: quote.buy,
+            sell: quote.sell,
+            currency: "ARS"
+          },
+          sourceUpdatedAt: quote.sourceUpdatedAt,
+          checkedAt
+        },
+        {
+          headers: { "Cache-Control": "no-store" }
+        }
+      );
+    }
+
     const usdPerArs = 1 / quote.sell;
     const crossRate = await getUsdCrossRate(target);
     const rate = usdPerArs * crossRate;
