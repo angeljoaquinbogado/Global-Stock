@@ -127,7 +127,7 @@ class _AuthScreenState extends State<AuthScreen> {
               right: 18,
               top: 16,
               child: ThemeToggleButton(
-                isDark: widget.isDark,
+                isDark: dark,
                 onPressed: widget.onThemeChanged,
               ),
             ),
