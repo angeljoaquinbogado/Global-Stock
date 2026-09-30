@@ -1,270 +1,217 @@
 "use client";
 
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Edges, Float } from "@react-three/drei";
-import { useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { Environment, Stars } from "@react-three/drei";
+import ThreeGlobe from "three-globe";
+import { feature } from "topojson-client";
+import countriesTopology from "world-atlas/countries-110m.json";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 
-type CrateProps = {
-  position: [number, number, number];
-  scale: number;
-  speed: number;
-  phase: number;
-  tone?: "dark" | "red";
+type GlobeArc = {
+  startLat: number;
+  startLng: number;
+  endLat: number;
+  endLng: number;
+  color: string[];
 };
 
-function Crate({ position, scale, speed, phase, tone = "dark" }: CrateProps) {
-  const ref = useRef<THREE.Mesh>(null);
+type GlobePoint = {
+  lat: number;
+  lng: number;
+  size: number;
+  color: string;
+};
 
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = clock.elapsedTime * speed + phase;
-    ref.current.rotation.x = Math.sin(t * 0.7) * 0.18;
-    ref.current.rotation.y = t * 0.26;
-    ref.current.position.y = position[1] + Math.sin(t) * 0.16;
+const HUBS: Array<{ name: string; lat: number; lng: number }> = [
+  { name: "Buenos Aires", lat: -34.6037, lng: -58.3816 },
+  { name: "São Paulo", lat: -23.5505, lng: -46.6333 },
+  { name: "New York", lat: 40.7128, lng: -74.006 },
+  { name: "Mexico City", lat: 19.4326, lng: -99.1332 },
+  { name: "London", lat: 51.5072, lng: -0.1276 },
+  { name: "Madrid", lat: 40.4168, lng: -3.7038 },
+  { name: "Lagos", lat: 6.5244, lng: 3.3792 },
+  { name: "Dubai", lat: 25.2048, lng: 55.2708 },
+  { name: "Mumbai", lat: 19.076, lng: 72.8777 },
+  { name: "Singapore", lat: 1.3521, lng: 103.8198 },
+  { name: "Tokyo", lat: 35.6762, lng: 139.6503 },
+  { name: "Sydney", lat: -33.8688, lng: 151.2093 }
+];
+
+function buildArcs(): GlobeArc[] {
+  const pairs = [
+    [0, 1],
+    [0, 2],
+    [0, 4],
+    [1, 3],
+    [2, 4],
+    [4, 5],
+    [4, 6],
+    [4, 7],
+    [7, 8],
+    [8, 9],
+    [9, 10],
+    [9, 11],
+    [2, 10],
+    [3, 9]
+  ] as const;
+
+  return pairs.map(([from, to]) => ({
+    startLat: HUBS[from].lat,
+    startLng: HUBS[from].lng,
+    endLat: HUBS[to].lat,
+    endLng: HUBS[to].lng,
+    color: ["rgba(143,0,0,.22)", "rgba(255,38,38,.98)", "rgba(143,0,0,.18)"]
+  }));
+}
+
+function GlobalGlobe() {
+  const globe = useMemo(() => new ThreeGlobe({ waitForGlobeReady: true }), []);
+  const globeGroup = useRef<THREE.Group>(null);
+  const { camera, pointer } = useThree();
+
+  const countries = useMemo(() => {
+    const topology = countriesTopology as unknown as {
+      objects: { countries: unknown };
+    };
+    const geo = feature(
+      countriesTopology as never,
+      topology.objects.countries as never
+    ) as unknown as { features: unknown[] };
+
+    return geo.features;
+  }, []);
+
+  const arcs = useMemo(buildArcs, []);
+  const points = useMemo<GlobePoint[]>(
+    () =>
+      HUBS.map((hub, index) => ({
+        lat: hub.lat,
+        lng: hub.lng,
+        size: index === 0 ? 0.18 : 0.095,
+        color: index === 0 ? "#ff3131" : "#d20a0a"
+      })),
+    []
+  );
+
+  useEffect(() => {
+    globe
+      .showGlobe(true)
+      .showAtmosphere(true)
+      .atmosphereColor("#7a0000")
+      .atmosphereAltitude(0.18)
+      .polygonsData(countries)
+      .polygonCapColor(() => "rgba(40,56,43,.95)")
+      .polygonSideColor(() => "rgba(17,23,20,.96)")
+      .polygonStrokeColor(() => "rgba(185,206,191,.16)")
+      .polygonAltitude(() => 0.012)
+      .arcsData(arcs)
+      .arcColor((arc) => (arc as GlobeArc).color)
+      .arcAltitudeAutoScale(0.34)
+      .arcStroke(0.42)
+      .arcDashLength(0.5)
+      .arcDashGap(0.18)
+      .arcDashAnimateTime(2600)
+      .pointsData(points)
+      .pointLat((point) => (point as GlobePoint).lat)
+      .pointLng((point) => (point as GlobePoint).lng)
+      .pointColor((point) => (point as GlobePoint).color)
+      .pointAltitude(0.022)
+      .pointRadius((point) => (point as GlobePoint).size)
+      .ringsData(points)
+      .ringLat((point) => (point as GlobePoint).lat)
+      .ringLng((point) => (point as GlobePoint).lng)
+      .ringColor(() => (t: number) => `rgba(255,30,30,${Math.max(0, 1 - t)})`)
+      .ringMaxRadius(2.1)
+      .ringPropagationSpeed(1.3)
+      .ringRepeatPeriod(1700);
+
+    const material = globe.globeMaterial() as THREE.MeshPhongMaterial;
+    material.color = new THREE.Color("#07141f");
+    material.emissive = new THREE.Color("#02070b");
+    material.emissiveIntensity = 0.55;
+    material.shininess = 18;
+    material.specular = new THREE.Color("#29465b");
+
+    globe.rotation.x = -0.08;
+    globe.rotation.z = -0.02;
+  }, [arcs, countries, globe, points]);
+
+  useFrame(({ clock }, delta) => {
+    const t = clock.elapsedTime;
+
+    if (globeGroup.current) {
+      const introRotation = Math.min(t / 5.8, 1);
+      const base = -1.95 + introRotation * 1.25;
+      const idle = Math.max(0, t - 5.8) * 0.035;
+      globeGroup.current.rotation.y =
+        base + idle + pointer.x * 0.08;
+      globeGroup.current.rotation.x =
+        -0.08 - pointer.y * 0.035;
+    }
+
+    const zoomProgress = THREE.MathUtils.smootherstep(
+      Math.min(t / 5.6, 1),
+      0,
+      1
+    );
+    const desiredZ = THREE.MathUtils.lerp(10.8, 5.25, zoomProgress);
+    const desiredX = THREE.MathUtils.lerp(-1.4, -0.55, zoomProgress) + pointer.x * 0.14;
+    const desiredY = THREE.MathUtils.lerp(0.55, 0.12, zoomProgress) + pointer.y * 0.08;
+
+    camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredZ, 3.8, delta);
+    camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredX, 3.2, delta);
+    camera.position.y = THREE.MathUtils.damp(camera.position.y, desiredY, 3.2, delta);
+    camera.lookAt(-0.18, 0, 0);
   });
 
   return (
-    <mesh ref={ref} position={position} scale={scale} castShadow receiveShadow>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshPhysicalMaterial
-        color={tone === "red" ? "#650000" : "#111216"}
-        roughness={0.28}
-        metalness={0.72}
-        clearcoat={0.7}
-        clearcoatRoughness={0.2}
-      />
-      <Edges
-        threshold={18}
-        color={tone === "red" ? "#e00000" : "#5b5e66"}
-        opacity={tone === "red" ? 0.8 : 0.36}
-        transparent
-      />
-    </mesh>
+    <group ref={globeGroup} position={[-0.35, 0, 0]}>
+      <primitive object={globe} />
+
+      <mesh scale={1.04}>
+        <sphereGeometry args={[1, 96, 96]} />
+        <meshBasicMaterial
+          color="#2a0505"
+          transparent
+          opacity={0.035}
+          side={THREE.BackSide}
+        />
+      </mesh>
+
+      <mesh rotation={[Math.PI / 2.8, 0.22, 0]} scale={1.5}>
+        <torusGeometry args={[1.08, 0.008, 10, 180]} />
+        <meshBasicMaterial
+          color="#8F0000"
+          transparent
+          opacity={0.18}
+        />
+      </mesh>
+    </group>
   );
 }
 
-function OrbitalNode({
-  radius,
-  y,
-  speed,
-  phase,
-  size
-}: {
-  radius: number;
-  y: number;
-  speed: number;
-  phase: number;
-  size: number;
-}) {
-  const ref = useRef<THREE.Mesh>(null);
+function MovingLight() {
+  const light = useRef<THREE.PointLight>(null);
 
   useFrame(({ clock }) => {
-    if (!ref.current) return;
-    const t = clock.elapsedTime * speed + phase;
-    ref.current.position.set(
-      Math.cos(t) * radius,
-      y + Math.sin(t * 1.6) * 0.25,
-      Math.sin(t) * radius - 1.4
+    if (!light.current) return;
+    const t = clock.elapsedTime * 0.24;
+    light.current.position.set(
+      Math.cos(t) * 4.8,
+      2.2 + Math.sin(t * 0.8) * 0.6,
+      3.4 + Math.sin(t) * 1.4
     );
   });
 
   return (
-    <mesh ref={ref}>
-      <sphereGeometry args={[size, 24, 24]} />
-      <meshStandardMaterial
-        color="#9b0000"
-        emissive="#8F0000"
-        emissiveIntensity={1.4}
-        roughness={0.2}
-        metalness={0.75}
-      />
-    </mesh>
-  );
-}
-
-function StockCore() {
-  const core = useRef<THREE.Group>(null);
-  const ring = useRef<THREE.Mesh>(null);
-
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
-    if (core.current) {
-      core.current.rotation.y = t * 0.14;
-      core.current.rotation.x = Math.sin(t * 0.28) * 0.09;
-    }
-    if (ring.current) {
-      ring.current.rotation.z = -t * 0.22;
-      ring.current.rotation.x = Math.PI / 2.65 + Math.sin(t * 0.2) * 0.08;
-    }
-  });
-
-  return (
-    <group position={[3.3, 0.25, -1.8]}>
-      <group ref={core}>
-        <mesh castShadow>
-          <boxGeometry args={[1.75, 1.75, 1.75]} />
-          <meshPhysicalMaterial
-            color="#141519"
-            roughness={0.16}
-            metalness={0.92}
-            clearcoat={1}
-            clearcoatRoughness={0.08}
-          />
-          <Edges color="#8F0000" opacity={0.88} transparent />
-        </mesh>
-
-        <mesh scale={1.09}>
-          <boxGeometry args={[1.75, 1.75, 1.75]} />
-          <meshBasicMaterial
-            color="#8F0000"
-            wireframe
-            transparent
-            opacity={0.16}
-          />
-        </mesh>
-      </group>
-
-      <mesh ref={ring}>
-        <torusGeometry args={[1.72, 0.018, 16, 160]} />
-        <meshStandardMaterial
-          color="#d10b0b"
-          emissive="#8F0000"
-          emissiveIntensity={2.3}
-        />
-      </mesh>
-
-      {[0, 1, 2, 3, 4, 5].map((index) => (
-        <OrbitalNode
-          key={index}
-          radius={2.25 + (index % 2) * 0.28}
-          y={(index - 2.5) * 0.26}
-          speed={0.15 + index * 0.018}
-          phase={(Math.PI * 2 * index) / 6}
-          size={0.055 + (index % 2) * 0.02}
-        />
-      ))}
-    </group>
-  );
-}
-
-function ConveyorField() {
-  const belt = useRef<THREE.Group>(null);
-
-  useFrame(({ clock }) => {
-    if (!belt.current) return;
-    belt.current.position.z = ((clock.elapsedTime * 0.22) % 1.6) - 0.8;
-  });
-
-  return (
-    <group position={[0, -2.45, -2.5]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[15, 8]} />
-        <meshStandardMaterial color="#070709" roughness={0.72} metalness={0.25} />
-      </mesh>
-
-      <gridHelper
-        args={[14, 28, "#270000", "#121214"]}
-        position={[0, 0.01, 0]}
-      />
-
-      <group ref={belt}>
-        {Array.from({ length: 9 }, (_, index) => (
-          <mesh
-            key={index}
-            position={[-5.6 + index * 1.4, 0.03, index % 2 === 0 ? 0.8 : -0.8]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
-            <planeGeometry args={[0.7, 0.035]} />
-            <meshBasicMaterial color="#8F0000" transparent opacity={0.45} />
-          </mesh>
-        ))}
-      </group>
-    </group>
-  );
-}
-
-function WarehouseWorld() {
-  const rig = useRef<THREE.Group>(null);
-
-  const crates = useMemo(
-    () => [
-      { position: [-4.5, 1.65, -3.4] as [number, number, number], scale: 0.58, speed: 0.32, phase: 0.2, tone: "red" as const },
-      { position: [-3.7, -1.15, -2.2] as [number, number, number], scale: 0.78, speed: 0.24, phase: 1.6, tone: "dark" as const },
-      { position: [-5.1, -0.15, -4.4] as [number, number, number], scale: 0.42, speed: 0.38, phase: 3.1, tone: "red" as const },
-      { position: [5.2, 1.65, -4.8] as [number, number, number], scale: 0.48, speed: 0.3, phase: 2.3, tone: "dark" as const },
-      { position: [5.35, -1.35, -3.2] as [number, number, number], scale: 0.68, speed: 0.27, phase: 4.2, tone: "red" as const },
-      { position: [4.45, -2.0, -5.1] as [number, number, number], scale: 0.36, speed: 0.42, phase: 5.1, tone: "dark" as const }
-    ],
-    []
-  );
-
-  useFrame(({ pointer, camera, clock }) => {
-    const targetX = pointer.x * 0.42;
-    const targetY = pointer.y * 0.24;
-
-    camera.position.x += (targetX - camera.position.x) * 0.025;
-    camera.position.y += (targetY - camera.position.y) * 0.025;
-    camera.position.z = 7.7 + Math.sin(clock.elapsedTime * 0.18) * 0.08;
-    camera.lookAt(0, -0.05, -1.6);
-
-    if (rig.current) {
-      rig.current.rotation.y +=
-        (pointer.x * 0.07 - rig.current.rotation.y) * 0.018;
-      rig.current.rotation.x +=
-        (-pointer.y * 0.035 - rig.current.rotation.x) * 0.018;
-    }
-  });
-
-  return (
-    <group ref={rig}>
-      <ambientLight intensity={0.34} />
-      <directionalLight
-        position={[-4, 6, 4]}
-        intensity={2.1}
-        color="#f7f8ff"
-        castShadow
-      />
-      <spotLight
-        position={[5.8, 4.5, 1.5]}
-        angle={0.42}
-        penumbra={0.85}
-        intensity={95}
-        distance={18}
-        color="#9b0000"
-      />
-      <pointLight
-        position={[-5, -0.5, 1.5]}
-        intensity={26}
-        distance={9}
-        color="#8F0000"
-      />
-
-      <ConveyorField />
-      <StockCore />
-
-      {crates.map((crate, index) => (
-        <Float
-          key={index}
-          speed={0.55 + index * 0.04}
-          rotationIntensity={0.06}
-          floatIntensity={0.12}
-        >
-          <Crate {...crate} />
-        </Float>
-      ))}
-
-      <mesh position={[-3.25, 0.2, -4.2]} rotation={[0.12, -0.58, 0]}>
-        <torusKnotGeometry args={[0.78, 0.11, 150, 22]} />
-        <meshStandardMaterial
-          color="#151519"
-          roughness={0.18}
-          metalness={0.92}
-          emissive="#290000"
-          emissiveIntensity={0.8}
-        />
-      </mesh>
-    </group>
+    <pointLight
+      ref={light}
+      intensity={26}
+      distance={12}
+      decay={2}
+      color="#9e1414"
+    />
   );
 }
 
@@ -272,23 +219,50 @@ export function AuthScene() {
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
       <Canvas
-        shadows
-        camera={{ position: [0, 0, 7.7], fov: 43 }}
-        dpr={[1, 1.55]}
+        camera={{ position: [-1.4, 0.55, 10.8], fov: 41 }}
+        dpr={[1, 1.6]}
         gl={{
           antialias: true,
-          alpha: true,
-          powerPreference: "high-performance"
+          alpha: false,
+          powerPreference: "high-performance",
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.08
         }}
       >
-        <color attach="background" args={["#000000"]} />
-        <fog attach="fog" args={["#000000", 7.5, 16]} />
-        <WarehouseWorld />
+        <color attach="background" args={["#010205"]} />
+        <fog attach="fog" args={["#010205", 7.8, 16]} />
+
+        <ambientLight intensity={0.62} />
+        <directionalLight
+          position={[-4, 4, 6]}
+          intensity={3.1}
+          color="#d9e8ff"
+        />
+        <directionalLight
+          position={[4, -1.5, 3]}
+          intensity={1.4}
+          color="#7a0000"
+        />
+        <MovingLight />
+
+        <Stars
+          radius={92}
+          depth={48}
+          count={2400}
+          factor={2.2}
+          saturation={0}
+          fade
+          speed={0.08}
+        />
+
+        <GlobalGlobe />
+
+        <Environment preset="city" environmentIntensity={0.16} />
       </Canvas>
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_78%_42%,rgba(143,0,0,.17),transparent_34%),radial-gradient(circle_at_20%_58%,rgba(143,0,0,.09),transparent_28%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/65" />
-      <div className="pointer-events-none absolute inset-0 opacity-[0.16] [background-image:linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.02)_1px,transparent_1px)] [background-size:48px_48px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_30%_48%,rgba(0,0,0,0)_0%,rgba(0,0,0,.08)_34%,rgba(0,0,0,.74)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.18)_0%,rgba(0,0,0,.06)_45%,rgba(0,0,0,.58)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 opacity-[0.22] [background-image:radial-gradient(circle_at_50%_50%,transparent_0%,transparent_60%,rgba(0,0,0,.9)_100%)]" />
     </div>
   );
 }
