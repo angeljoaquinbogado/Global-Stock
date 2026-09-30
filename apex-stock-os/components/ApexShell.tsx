@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 import type { LanguageCode } from "./GlobalPreferences";
 import { AuthScreen } from "./AuthScreen";
-import { Dashboard } from "./Dashboard";
+import { BusinessWorkspace } from "./BusinessWorkspace";
 
 const languageToHtml: Record<LanguageCode, string> = {
   es: "es",
@@ -93,7 +93,7 @@ export function ApexShell() {
   }
 
   return (
-    <Dashboard
+    <BusinessWorkspace
       dark={dark}
       language={language}
       currency={currency}
