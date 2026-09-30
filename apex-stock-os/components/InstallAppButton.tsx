@@ -4,12 +4,106 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Download, Share, Smartphone, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import type { LanguageCode } from "./GlobalPreferences";
+
 type BeforeInstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-export function InstallAppButton() {
+type InstallAppButtonProps = {
+  language: LanguageCode;
+};
+
+const copy: Record<
+  LanguageCode,
+  {
+    installed: string;
+    install: string;
+    title: string;
+    close: string;
+    iosFirst: string;
+    share: string;
+    addHome: string;
+    iosSecond: string;
+    browserFallback: string;
+    browserInstall: string;
+  }
+> = {
+  es: {
+    installed: "App instalada",
+    install: "Instalar app",
+    title: "Instalá Global Stock",
+    close: "Cerrar",
+    iosFirst: "En iPhone o iPad abrí esta página en Safari, tocá",
+    share: "Compartir",
+    addHome: "Añadir a pantalla de inicio",
+    iosSecond:
+      "Después Global Stock se abre desde su propio icono, sin la barra del navegador.",
+    browserFallback:
+      "Tu navegador todavía no ofreció la instalación automática. En Chrome o Edge abrí el menú del navegador y elegí",
+    browserInstall: "Instalar Global Stock"
+  },
+  en: {
+    installed: "App installed",
+    install: "Install app",
+    title: "Install Global Stock",
+    close: "Close",
+    iosFirst: "On iPhone or iPad open this page in Safari, tap",
+    share: "Share",
+    addHome: "Add to Home Screen",
+    iosSecond:
+      "Global Stock will then open from its own icon without the browser bar.",
+    browserFallback:
+      "Your browser has not offered automatic installation yet. In Chrome or Edge open the browser menu and choose",
+    browserInstall: "Install Global Stock"
+  },
+  pt: {
+    installed: "App instalado",
+    install: "Instalar app",
+    title: "Instale o Global Stock",
+    close: "Fechar",
+    iosFirst: "No iPhone ou iPad abra esta página no Safari e toque em",
+    share: "Compartilhar",
+    addHome: "Adicionar à Tela de Início",
+    iosSecond:
+      "Depois o Global Stock abre pelo próprio ícone, sem a barra do navegador.",
+    browserFallback:
+      "Seu navegador ainda não ofereceu a instalação automática. No Chrome ou Edge abra o menu e escolha",
+    browserInstall: "Instalar Global Stock"
+  },
+  fr: {
+    installed: "App installée",
+    install: "Installer l’app",
+    title: "Installer Global Stock",
+    close: "Fermer",
+    iosFirst: "Sur iPhone ou iPad, ouvrez cette page dans Safari puis touchez",
+    share: "Partager",
+    addHome: "Sur l’écran d’accueil",
+    iosSecond:
+      "Global Stock s’ouvrira ensuite depuis sa propre icône, sans la barre du navigateur.",
+    browserFallback:
+      "Votre navigateur n’a pas encore proposé l’installation automatique. Dans Chrome ou Edge, ouvrez le menu et choisissez",
+    browserInstall: "Installer Global Stock"
+  },
+  de: {
+    installed: "App installiert",
+    install: "App installieren",
+    title: "Global Stock installieren",
+    close: "Schließen",
+    iosFirst: "Öffne diese Seite auf iPhone oder iPad in Safari und tippe auf",
+    share: "Teilen",
+    addHome: "Zum Home-Bildschirm",
+    iosSecond:
+      "Danach öffnet sich Global Stock über das eigene Symbol ohne Browserleiste.",
+    browserFallback:
+      "Dein Browser hat die automatische Installation noch nicht angeboten. Öffne in Chrome oder Edge das Menü und wähle",
+    browserInstall: "Global Stock installieren"
+  }
+};
+
+export function InstallAppButton({ language }: InstallAppButtonProps) {
+  const labels = copy[language];
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showIosHelp, setShowIosHelp] = useState(false);
@@ -24,7 +118,9 @@ export function InstallAppButton() {
     const media = window.matchMedia("(display-mode: standalone)");
     const navigatorStandalone =
       "standalone" in window.navigator &&
-      Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
+      Boolean(
+        (window.navigator as Navigator & { standalone?: boolean }).standalone
+      );
 
     setStandalone(media.matches || navigatorStandalone);
 
@@ -51,7 +147,7 @@ export function InstallAppButton() {
   if (standalone) {
     return (
       <span className="hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-[10px] font-semibold text-[var(--apex-muted)] sm:inline-flex">
-        App instalada
+        {labels.installed}
       </span>
     );
   }
@@ -64,11 +160,6 @@ export function InstallAppButton() {
       return;
     }
 
-    if (isIos) {
-      setShowIosHelp(true);
-      return;
-    }
-
     setShowIosHelp(true);
   }
 
@@ -77,21 +168,23 @@ export function InstallAppButton() {
       <button
         type="button"
         onClick={install}
-        className="inline-flex h-10 items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition hover:scale-[1.02]"
+        className="inline-flex h-10 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition active:scale-[.98]"
       >
         <Download size={15} />
-        <span className="hidden sm:inline">Instalar app</span>
+        <span className="hidden sm:inline">{labels.install}</span>
       </button>
 
       <AnimatePresence>
         {showIosHelp && (
           <motion.div
-            className="fixed inset-0 z-[80] grid place-items-center bg-black/65 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onMouseDown={(event) => {
-              if (event.currentTarget === event.target) setShowIosHelp(false);
+              if (event.currentTarget === event.target) {
+                setShowIosHelp(false);
+              }
             }}
           >
             <motion.div
@@ -109,32 +202,31 @@ export function InstallAppButton() {
                   type="button"
                   onClick={() => setShowIosHelp(false)}
                   className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)]"
-                  aria-label="Cerrar"
+                  aria-label={labels.close}
                 >
                   <X size={15} />
                 </button>
               </div>
 
               <h3 className="mt-5 text-xl font-semibold tracking-[-0.035em]">
-                Instalá Global Stock
+                {labels.title}
               </h3>
 
               {isIos ? (
                 <div className="mt-3 space-y-3 text-sm leading-6 text-[var(--apex-muted)]">
                   <p>
-                    En iPhone o iPad abrí esta página en Safari, tocá{" "}
+                    {labels.iosFirst}{" "}
                     <span className="inline-flex items-center gap-1 font-semibold text-[var(--apex-text)]">
-                      Compartir <Share size={14} />
+                      {labels.share} <Share size={14} />
                     </span>{" "}
-                    y elegí <strong>Añadir a pantalla de inicio</strong>.
+                    y elegí <strong>{labels.addHome}</strong>.
                   </p>
-                  <p>
-                    Después Global Stock se abre desde su propio icono, sin la barra del navegador.
-                  </p>
+                  <p>{labels.iosSecond}</p>
                 </div>
               ) : (
                 <p className="mt-3 text-sm leading-6 text-[var(--apex-muted)]">
-                  Tu navegador todavía no ofreció la instalación automática. En Chrome o Edge abrí el menú del navegador y elegí <strong>Instalar Global Stock</strong>.
+                  {labels.browserFallback}{" "}
+                  <strong>{labels.browserInstall}</strong>.
                 </p>
               )}
             </motion.div>
