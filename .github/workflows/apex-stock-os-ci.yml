@@ -1,0 +1,36 @@
+name: Apex Stock OS CI
+
+on:
+  push:
+    branches:
+      - apex-stock-os-nextjs
+  pull_request:
+    paths:
+      - "apex-stock-os/**"
+      - ".github/workflows/apex-stock-os-ci.yml"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apex-stock-os
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apex-stock-os/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Production build
+        run: npm run build
