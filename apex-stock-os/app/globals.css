@@ -1,0 +1,124 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --apex-crimson: #8f0000;
+  --apex-crimson-hover: #a40000;
+  --apex-bg: #f5f5f7;
+  --apex-surface: rgba(255, 255, 255, 0.72);
+  --apex-surface-strong: #ffffff;
+  --apex-text: #1d1d1f;
+  --apex-muted: #6e6e73;
+  --apex-border: #e5e5ea;
+  --apex-success: #248a3d;
+  --apex-warning: #b25000;
+  --apex-danger: #c9342f;
+  --apex-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
+}
+
+.dark {
+  --apex-bg: #000000;
+  --apex-surface: rgba(0, 0, 0, 0.62);
+  --apex-surface-strong: #1c1c1e;
+  --apex-text: #f5f5f7;
+  --apex-muted: #98989d;
+  --apex-border: rgba(255, 255, 255, 0.1);
+  --apex-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--apex-bg);
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background: var(--apex-bg);
+  color: var(--apex-text);
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "SF Pro Display",
+    "SF Pro Text",
+    Inter,
+    "Segoe UI",
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(143, 0, 0, 0.28);
+}
+
+@layer components {
+  .apex-glass {
+    border: 1px solid var(--apex-border);
+    background: var(--apex-surface);
+    box-shadow: var(--apex-shadow);
+    backdrop-filter: blur(28px) saturate(140%);
+    -webkit-backdrop-filter: blur(28px) saturate(140%);
+  }
+
+  .apex-card {
+    border: 1px solid var(--apex-border);
+    background: var(--apex-surface-strong);
+    border-radius: 24px;
+  }
+
+  .apex-input {
+    width: 100%;
+    border: 1px solid var(--apex-border);
+    border-radius: 16px;
+    background: color-mix(in srgb, var(--apex-surface-strong) 92%, transparent);
+    color: var(--apex-text);
+    outline: none;
+    transition:
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      background 180ms ease;
+  }
+
+  .apex-input:focus {
+    border-color: var(--apex-crimson);
+    box-shadow: 0 0 0 4px rgba(143, 0, 0, 0.13);
+  }
+
+  .apex-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(127, 127, 127, 0.35) transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
