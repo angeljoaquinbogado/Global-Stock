@@ -84,6 +84,8 @@ const copy: Record<
     cost: string;
     price: string;
     status: string;
+    live: string;
+    stockUnits: string;
   }
 > = {
   es: {
@@ -113,7 +115,9 @@ const copy: Record<
     supplier: "Proveedor",
     cost: "Costo",
     price: "Precio",
-    status: "Estado"
+    status: "Estado",
+    live: "EN VIVO",
+    stockUnits: "Stock"
   },
   en: {
     overview: "Control center",
@@ -142,7 +146,9 @@ const copy: Record<
     supplier: "Supplier",
     cost: "Cost",
     price: "Price",
-    status: "Status"
+    status: "Status",
+    live: "LIVE",
+    stockUnits: "Stock"
   },
   pt: {
     overview: "Centro de controle",
@@ -171,7 +177,9 @@ const copy: Record<
     supplier: "Fornecedor",
     cost: "Custo",
     price: "Preço",
-    status: "Status"
+    status: "Status",
+    live: "AO VIVO",
+    stockUnits: "Estoque"
   },
   fr: {
     overview: "Centre de contrôle",
@@ -200,7 +208,9 @@ const copy: Record<
     supplier: "Fournisseur",
     cost: "Coût",
     price: "Prix",
-    status: "Statut"
+    status: "Statut",
+    live: "EN DIRECT",
+    stockUnits: "Stock"
   },
   de: {
     overview: "Kontrollzentrum",
@@ -229,7 +239,9 @@ const copy: Record<
     supplier: "Lieferant",
     cost: "Kosten",
     price: "Preis",
-    status: "Status"
+    status: "Status",
+    live: "LIVE",
+    stockUnits: "Bestand"
   }
 };
 
@@ -247,6 +259,14 @@ const periodLabels: Record<Language, Record<Period, string>> = {
   pt: { daily: "Diário", weekly: "Semanal", monthly: "Mensal", annual: "Anual" },
   fr: { daily: "Quotidien", weekly: "Hebdo", monthly: "Mensuel", annual: "Annuel" },
   de: { daily: "Täglich", weekly: "Wöchentlich", monthly: "Monatlich", annual: "Jährlich" }
+};
+
+const dayLabels: Record<Language, string[]> = {
+  es: ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"],
+  en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+  pt: ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"],
+  fr: ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"],
+  de: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"]
 };
 
 const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
@@ -354,13 +374,14 @@ export function Dashboard({
 
   const chartData = useMemo(
     () =>
-      demoTrend.map((point) => ({
+      demoTrend.map((point, index) => ({
         ...point,
+        label: dayLabels[language][index] ?? point.label,
         revenue: point.revenue * currencyRate,
         cost: point.cost * currencyRate,
         profit: point.profit * currencyRate
       })),
-    [currencyRate]
+    [currencyRate, language]
   );
 
   const money = (value: number) =>
@@ -494,24 +515,28 @@ export function Dashboard({
             label={labels.revenue}
             value={money(metrics.revenue)}
             detail={labels.series}
+            live={labels.live}
           />
           <MetricCard
             icon={<WalletCards size={19} />}
             label={labels.inventoryCost}
             value={money(metrics.inventoryCost)}
             detail={`${metrics.inventoryUnits} ${labels.units}`}
+            live={labels.live}
           />
           <MetricCard
             icon={<TrendingUp size={19} />}
             label={labels.profit}
             value={money(metrics.grossProfit)}
             detail={`${metrics.marginPct.toFixed(1)}% ${labels.margin.toLowerCase()}`}
+            live={labels.live}
           />
           <MetricCard
             icon={<AlertTriangle size={19} />}
             label={labels.inventory}
             value={String(metrics.lowStockCount + metrics.outOfStockCount)}
             detail={`${metrics.lowStockCount} ${labels.low.toLowerCase()} · ${metrics.outOfStockCount} ${labels.out.toLowerCase()}`}
+            live={labels.live}
           />
         </section>
 
@@ -690,7 +715,7 @@ export function Dashboard({
                   <th className="px-4 py-3.5">{labels.supplier}</th>
                   <th className="px-4 py-3.5">{labels.cost}</th>
                   <th className="px-4 py-3.5">{labels.price}</th>
-                  <th className="px-4 py-3.5">Stock</th>
+                  <th className="px-4 py-3.5">{labels.stockUnits}</th>
                   <th className="px-4 py-3.5">{labels.status}</th>
                 </tr>
               </thead>
@@ -771,12 +796,14 @@ function MetricCard({
   icon,
   label,
   value,
-  detail
+  detail,
+  live = "LIVE"
 }: {
   icon: React.ReactNode;
   label: string;
   value: string;
   detail: string;
+  live?: string;
 }) {
   return (
     <motion.article
@@ -789,7 +816,7 @@ function MetricCard({
           {icon}
         </span>
         <span className="text-[10px] font-semibold text-[var(--apex-muted)]">
-          LIVE
+          {live}
         </span>
       </div>
       <p className="mt-5 text-xs font-semibold text-[var(--apex-muted)]">
