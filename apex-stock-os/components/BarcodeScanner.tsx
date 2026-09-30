@@ -182,7 +182,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
     setStatus("scanning");
     setMessage("Escaneando con motor ZXing de compatibilidad…");
 
-    await reader.decodeFromVideoDevice(undefined, video, (result) => {
+    await reader.decodeFromVideoDevice(null, video, (result) => {
       const text = result?.getText();
       if (text) void resolveBarcode(text);
     });
