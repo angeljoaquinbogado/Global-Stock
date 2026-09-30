@@ -27,7 +27,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
       id: "welcome",
       role: "assistant",
       content:
-        "Apex Intelligence está conectado al estado actual del negocio. Preguntame por reposición, margen, rotación, inventario o stock crítico."
+        "Global Intelligence está conectado al estado actual del negocio. Preguntame por reposición, margen, rotación, inventario o stock crítico."
     }
   ]);
 
@@ -120,7 +120,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
             <span className="grid h-8 w-8 place-items-center rounded-full bg-[#8F0000]">
               <Sparkles size={15} />
             </span>
-            <span className="text-sm font-semibold">Apex Intelligence</span>
+            <span className="text-sm font-semibold">Global Intelligence</span>
           </motion.button>
         ) : (
           <motion.section
@@ -135,7 +135,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                   <Bot size={18} />
                 </span>
                 <div>
-                  <h2 className="text-sm font-semibold">Apex Intelligence</h2>
+                  <h2 className="text-sm font-semibold">Global Intelligence</h2>
                   <p className="mt-0.5 text-[10px] font-medium text-[var(--apex-muted)]">
                     Contexto operativo en tiempo real
                   </p>
@@ -144,7 +144,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
               <button
                 onClick={() => setOpen(false)}
                 className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
-                aria-label="Minimizar Apex Intelligence"
+                aria-label="Minimizar Global Intelligence"
               >
                 <Minimize2 size={15} />
               </button>
