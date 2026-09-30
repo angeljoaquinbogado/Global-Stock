@@ -77,7 +77,7 @@ function GlobalGlobe() {
     const geo = feature(
       countriesTopology as never,
       topology.objects.countries as never
-    ) as unknown as { features: unknown[] };
+    ) as unknown as { features: object[] };
 
     return geo.features;
   }, []);
@@ -106,7 +106,7 @@ function GlobalGlobe() {
       .polygonStrokeColor(() => "rgba(185,206,191,.16)")
       .polygonAltitude(() => 0.012)
       .arcsData(arcs)
-      .arcColor((arc) => (arc as GlobeArc).color)
+      .arcColor((arc: object) => (arc as GlobeArc).color)
       .arcAltitudeAutoScale(0.34)
       .arcStroke(0.42)
       .arcDashLength(0.5)
