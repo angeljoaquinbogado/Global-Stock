@@ -42,6 +42,10 @@ import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
 
 type DashboardProps = {
   dark: boolean;
+  language: LanguageCode;
+  currency: string;
+  onLanguageChange: (language: LanguageCode) => void;
+  onCurrencyChange: (currency: string) => void;
   onToggleTheme: () => void;
   onSignOut: () => void;
 };
@@ -251,14 +255,16 @@ const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
 
 export function Dashboard({
   dark,
+  language,
+  currency,
+  onLanguageChange,
+  onCurrencyChange,
   onToggleTheme,
   onSignOut
 }: DashboardProps) {
   const [products, setProducts] = useState<Product[]>(demoProducts);
   const [storageReady, setStorageReady] = useState(false);
-  const [currency, setCurrency] = useState("ARS");
   const [currencyRate, setCurrencyRate] = useState(1);
-  const [language, setLanguage] = useState<Language>("es");
   const [period, setPeriod] = useState<Period>("daily");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
@@ -271,29 +277,11 @@ export function Dashboard({
       const savedProducts = window.localStorage.getItem(
         "global-stock-demo-products-v1"
       );
-      const savedCurrency = window.localStorage.getItem(
-        "global-stock-demo-currency"
-      );
-      const savedLanguage = window.localStorage.getItem(
-        "global-stock-demo-language"
-      );
-
       if (savedProducts) {
         const parsed = JSON.parse(savedProducts) as Product[];
         if (Array.isArray(parsed) && parsed.length > 0) {
           setProducts(parsed);
         }
-      }
-
-      if (savedCurrency && currencies.includes(savedCurrency)) {
-        setCurrency(savedCurrency);
-      }
-
-      if (
-        savedLanguage &&
-        ["es", "en", "pt", "fr", "de"].includes(savedLanguage)
-      ) {
-        setLanguage(savedLanguage as Language);
       }
     } catch {
       // Invalid local demo data is ignored and the bundled sample is retained.
@@ -309,12 +297,6 @@ export function Dashboard({
       JSON.stringify(products)
     );
   }, [products, storageReady]);
-
-  useEffect(() => {
-    if (!storageReady) return;
-    window.localStorage.setItem("global-stock-demo-currency", currency);
-    window.localStorage.setItem("global-stock-demo-language", language);
-  }, [currency, language, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -419,18 +401,18 @@ export function Dashboard({
           <Logo withWordmark />
 
           <div className="flex items-center justify-end gap-2">
-            <div className="hidden lg:block"><InstallAppButton /></div>
+            <div className="hidden lg:block"><InstallAppButton language={language} /></div>
             <div className="hidden lg:block"><GlobalPreferences
               language={language}
               currency={currency}
-              onLanguageChange={setLanguage}
-              onCurrencyChange={setCurrency}
+              onLanguageChange={onLanguageChange}
+              onCurrencyChange={onCurrencyChange}
             /></div>
 
             <button
               onClick={onToggleTheme}
               className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] transition hover:scale-[1.02]"
-              aria-label="Cambiar tema"
+              aria-label={language === "en" ? "Change theme" : language === "pt" ? "Alterar tema" : language === "fr" ? "Changer de thème" : language === "de" ? "Design ändern" : "Cambiar tema"}
             >
               {dark ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -438,7 +420,7 @@ export function Dashboard({
             <button
               onClick={onSignOut}
               className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition hover:scale-[1.02] hover:text-[var(--apex-text)]"
-              aria-label="Cerrar sesión"
+              aria-label={language === "en" ? "Sign out" : language === "pt" ? "Sair" : language === "fr" ? "Se déconnecter" : language === "de" ? "Abmelden" : "Cerrar sesión"}
             >
               <LogOut size={16} />
             </button>
@@ -448,10 +430,10 @@ export function Dashboard({
             <GlobalPreferences
               language={language}
               currency={currency}
-              onLanguageChange={setLanguage}
-              onCurrencyChange={setCurrency}
+              onLanguageChange={onLanguageChange}
+              onCurrencyChange={onCurrencyChange}
             />
-            <InstallAppButton />
+            <InstallAppButton language={language} />
           </div>
         </div>
       </header>
@@ -809,7 +791,7 @@ function MetricCard({
           {icon}
         </span>
         <span className="text-[10px] font-semibold text-[var(--apex-muted)]">
-          LIVE
+          {label === "Ingresos" ? "LIVE" : "LIVE"}
         </span>
       </div>
       <p className="mt-5 text-xs font-semibold text-[var(--apex-muted)]">
