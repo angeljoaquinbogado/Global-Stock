@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:lan": "next dev -H 0.0.0.0",
+    "start:lan": "next start -H 0.0.0.0"
   },
   "dependencies": {
     "@react-three/drei": "^9.114.3",
