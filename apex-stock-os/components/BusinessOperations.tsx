@@ -10,7 +10,6 @@ import {
   FileCheck2,
   FilePlus2,
   Globe2,
-  Link2,
   PackageCheck,
   PlugZap,
   Printer,
@@ -31,7 +30,7 @@ type ConnectionState = "not_connected" | "configured";
 type Connector = {
   id: string;
   name: string;
-  description: string;
+  description: Record<LanguageCode, string>;
   kind: "marketplace" | "storefront" | "api";
 };
 
@@ -67,34 +66,73 @@ const connectors: Connector[] = [
   {
     id: "shopify",
     name: "Shopify",
-    description: "Productos, pedidos, stock y webhooks.",
+    description: {
+      es: "Productos, pedidos, stock y webhooks.",
+      en: "Products, orders, inventory and webhooks.",
+      pt: "Produtos, pedidos, estoque e webhooks.",
+      fr: "Produits, commandes, stock et webhooks.",
+      de: "Produkte, Bestellungen, Bestand und Webhooks."
+    },
     kind: "storefront"
   },
   {
     id: "tiendanube",
     name: "Tiendanube",
-    description: "Catálogo, pedidos, clientes y stock.",
+    description: {
+      es: "Catálogo, pedidos, clientes y stock.",
+      en: "Catalog, orders, customers and inventory.",
+      pt: "Catálogo, pedidos, clientes e estoque.",
+      fr: "Catalogue, commandes, clients et stock.",
+      de: "Katalog, Bestellungen, Kunden und Bestand."
+    },
     kind: "storefront"
   },
   {
     id: "woocommerce",
     name: "WooCommerce",
-    description: "REST API, pedidos, productos y existencias.",
+    description: {
+      es: "REST API, pedidos, productos y existencias.",
+      en: "REST API, orders, products and stock levels.",
+      pt: "REST API, pedidos, produtos e estoque.",
+      fr: "API REST, commandes, produits et niveaux de stock.",
+      de: "REST-API, Bestellungen, Produkte und Lagerbestände."
+    },
     kind: "storefront"
   },
   {
     id: "mercadolibre",
     name: "Mercado Libre",
-    description: "Publicaciones, órdenes, stock y envíos.",
+    description: {
+      es: "Publicaciones, órdenes, stock y envíos.",
+      en: "Listings, orders, inventory and shipping.",
+      pt: "Anúncios, pedidos, estoque e envios.",
+      fr: "Annonces, commandes, stock et expéditions.",
+      de: "Angebote, Bestellungen, Bestand und Versand."
+    },
     kind: "marketplace"
   },
   {
     id: "custom-api",
     name: "API / Webhooks",
-    description: "Conector genérico para cualquier ecommerce o sistema propio.",
+    description: {
+      es: "Conector genérico para cualquier ecommerce o sistema propio.",
+      en: "Generic connector for any ecommerce platform or custom system.",
+      pt: "Conector genérico para qualquer ecommerce ou sistema próprio.",
+      fr: "Connecteur générique pour tout ecommerce ou système personnalisé.",
+      de: "Generischer Connector für beliebige Shops oder eigene Systeme."
+    },
     kind: "api"
   }
 ];
+
+function escapeHtml(value: string) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
 
 const copy: Record<
   LanguageCode,
@@ -532,7 +570,7 @@ export function OnlineCommerceHub({
                   {connector.name}
                 </h3>
                 <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
-                  {connector.description}
+                  {connector.description[language]}
                 </p>
 
                 {saved?.storeUrl && (
@@ -783,7 +821,7 @@ export function DocumentsHub({
       <html>
         <head>
           <meta charset="utf-8" />
-          <title>${document.number}</title>
+          <title>${escapeHtml(document.number)}</title>
           <style>
             body{font-family:Arial,sans-serif;padding:48px;color:#111}
             .brand{font-size:13px;font-weight:700;letter-spacing:.16em;color:#8f0000}
@@ -797,14 +835,14 @@ export function DocumentsHub({
         </head>
         <body>
           <div class="brand">GLOBAL STOCK</div>
-          <h1>${typeLabel}</h1>
+          <h1>${escapeHtml(typeLabel)}</h1>
           <div class="card">
-            <div class="row"><span>${document.number}</span><span>${new Date(document.createdAt).toLocaleString(locale)}</span></div>
-            <div class="row"><span>${t.customer}</span><strong>${document.customer}</strong></div>
-            <div class="row"><span>${t.description}</span><strong>${document.description || "—"}</strong></div>
-            <div class="total">${money}</div>
+            <div class="row"><span>${escapeHtml(document.number)}</span><span>${escapeHtml(new Date(document.createdAt).toLocaleString(locale))}</span></div>
+            <div class="row"><span>${escapeHtml(t.customer)}</span><strong>${escapeHtml(document.customer)}</strong></div>
+            <div class="row"><span>${escapeHtml(t.description)}</span><strong>${escapeHtml(document.description || "—")}</strong></div>
+            <div class="total">${escapeHtml(money)}</div>
           </div>
-          <p class="muted">${t.internalNotice}</p>
+          <p class="muted">${escapeHtml(t.internalNotice)}</p>
           <script>window.onload=()=>window.print()</script>
         </body>
       </html>
