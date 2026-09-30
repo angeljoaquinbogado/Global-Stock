@@ -35,6 +35,7 @@ import { demoProducts, demoTrend } from "@/lib/demo-data";
 import type { BusinessSnapshot, Product, StockStatus } from "@/lib/types";
 
 import { ApexIntelligence } from "./ApexIntelligence";
+import { InstallAppButton } from "./InstallAppButton";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { Logo } from "./Logo";
 
@@ -263,6 +264,8 @@ export function Dashboard({
           <Logo withWordmark />
 
           <div className="flex items-center gap-2">
+            <InstallAppButton />
+
             <select
               aria-label="Idioma"
               value={language}
