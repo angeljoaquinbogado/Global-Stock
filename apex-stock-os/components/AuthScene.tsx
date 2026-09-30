@@ -846,6 +846,52 @@ function Earth({
   }, [earthMaterial, sunDirection]);
 
   useEffect(() => {
+    let cancelled = false;
+    const loaded: THREE.Texture[] = [];
+    const loader = new THREE.TextureLoader();
+    loader.setCrossOrigin("anonymous");
+
+    const applyTexture = (
+      url: string,
+      uniform: "dayMap" | "nightMap"
+    ) => {
+      loader.load(
+        url,
+        (texture) => {
+          if (cancelled) {
+            texture.dispose();
+            return;
+          }
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = 4;
+          texture.needsUpdate = true;
+          loaded.push(texture);
+          earthMaterial.uniforms[uniform].value = texture;
+          earthMaterial.needsUpdate = true;
+        },
+        undefined,
+        () => {
+          // Procedural texture remains active if the satellite asset cannot load.
+        }
+      );
+    };
+
+    applyTexture(
+      "https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg",
+      "dayMap"
+    );
+    applyTexture(
+      "https://unpkg.com/three-globe/example/img/earth-night.jpg",
+      "nightMap"
+    );
+
+    return () => {
+      cancelled = true;
+      loaded.forEach((texture) => texture.dispose());
+    };
+  }, [earthMaterial]);
+
+  useEffect(() => {
     return () => {
       earthMaterial.dispose();
       textures.day.dispose();
@@ -928,11 +974,11 @@ function Earth({
       rotation={[viewerRotation.x, viewerRotation.y - 1.15, 0]}
     >
       <mesh material={earthMaterial}>
-        <sphereGeometry args={[1.38, 72, 72]} />
+        <sphereGeometry args={[1.38, 64, 64]} />
       </mesh>
 
       <mesh ref={cloudsRef} scale={1.008}>
-        <sphereGeometry args={[1.38, 56, 56]} />
+        <sphereGeometry args={[1.38, 48, 48]} />
         <meshBasicMaterial
           map={textures.clouds}
           transparent
@@ -942,7 +988,7 @@ function Earth({
       </mesh>
 
       <mesh scale={1.025}>
-        <sphereGeometry args={[1.38, 56, 56]} />
+        <sphereGeometry args={[1.38, 48, 48]} />
         <meshBasicMaterial
           color="#79aee7"
           transparent
@@ -969,18 +1015,32 @@ function Earth({
 export function AuthScene() {
   const [now, setNow] = useState(() => new Date());
   const [timeZone, setTimeZone] = useState("UTC");
+  const [mobile, setMobile] = useState(false);
 
   useEffect(() => {
     setTimeZone(
       Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
     );
 
+    const updateViewport = () => {
+      setMobile(
+        window.innerWidth < 768 ||
+          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+      );
+    };
+
+    updateViewport();
+    window.addEventListener("resize", updateViewport);
+
     const timer = window.setInterval(
       () => setNow(new Date()),
       60_000
     );
 
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("resize", updateViewport);
+    };
   }, []);
 
   const viewer = useMemo(
@@ -999,7 +1059,8 @@ export function AuthScene() {
     <div className="absolute inset-0 overflow-hidden bg-black">
       <Canvas
         camera={{ position: [-1.1, 0.18, 8.7], fov: 42 }}
-        dpr={[1, 1.35]}
+        dpr={mobile ? 1 : [1, 1.25]}
+        performance={{ min: 0.6, max: 1 }}
         gl={{
           antialias: false,
           alpha: false,
