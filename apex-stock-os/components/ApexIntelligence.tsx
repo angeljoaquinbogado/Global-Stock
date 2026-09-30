@@ -3,7 +3,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowUp,
-  Bot,
   BrainCircuit,
   ChartNoAxesCombined,
   Minimize2,
@@ -18,17 +17,18 @@ import {
   useRef,
   useState
 } from "react";
+import { createPortal } from "react-dom";
 
 import { calculateMetrics } from "@/lib/analytics";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
-
-const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
+
+const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
 
 const uiCopy: Record<
   UiLanguage,
@@ -38,6 +38,11 @@ const uiCopy: Record<
     welcome: string;
     placeholder: string;
     analyzing: string;
+    alerts: string;
+    margin: string;
+    units: string;
+    close: string;
+    send: string;
     prompts: string[];
   }
 > = {
@@ -48,6 +53,11 @@ const uiCopy: Record<
       "Estoy leyendo inventario, rotación, costos, precios y ventas. Puedo cruzar esos datos para recomendar reposición, detectar capital inmovilizado, revisar márgenes o simular cambios de precio.",
     placeholder: "Preguntá algo sobre tu negocio…",
     analyzing: "Cruzando stock, ventas, costos y márgenes…",
+    alerts: "alertas",
+    margin: "margen",
+    units: "unidades",
+    close: "Minimizar inteligencia",
+    send: "Enviar consulta",
     prompts: [
       "¿Qué debería reponer hoy y cuánto costaría?",
       "¿Qué productos me inmovilizan capital?",
@@ -62,6 +72,11 @@ const uiCopy: Record<
       "I am reading inventory, rotation, costs, prices and sales. I can combine them to recommend restocking, detect tied capital, review margins or simulate price changes.",
     placeholder: "Ask about your business…",
     analyzing: "Crossing stock, sales, costs and margins…",
+    alerts: "alerts",
+    margin: "margin",
+    units: "units",
+    close: "Minimize intelligence",
+    send: "Send question",
     prompts: [
       "What should I restock today and what would it cost?",
       "Which products tie up capital?",
@@ -76,6 +91,11 @@ const uiCopy: Record<
       "Estou lendo estoque, rotação, custos, preços e vendas. Posso cruzar esses dados para recomendar reposição, detectar capital parado, revisar margens ou simular mudanças de preço.",
     placeholder: "Pergunte sobre seu negócio…",
     analyzing: "Cruzando estoque, vendas, custos e margens…",
+    alerts: "alertas",
+    margin: "margem",
+    units: "unidades",
+    close: "Minimizar inteligência",
+    send: "Enviar pergunta",
     prompts: [
       "O que devo repor hoje e quanto custaria?",
       "Quais produtos prendem capital?",
@@ -90,6 +110,11 @@ const uiCopy: Record<
       "J’analyse stock, rotation, coûts, prix et ventes. Je peux croiser ces données pour recommander le réapprovisionnement, détecter le capital immobilisé, revoir les marges ou simuler des prix.",
     placeholder: "Posez une question sur votre activité…",
     analyzing: "Analyse du stock, des ventes, coûts et marges…",
+    alerts: "alertes",
+    margin: "marge",
+    units: "unités",
+    close: "Réduire l’intelligence",
+    send: "Envoyer la question",
     prompts: [
       "Que dois-je réapprovisionner aujourd’hui ?",
       "Quels produits immobilisent du capital ?",
@@ -104,6 +129,11 @@ const uiCopy: Record<
       "Ich analysiere Bestand, Umschlag, Kosten, Preise und Verkäufe. Daraus kann ich Nachbestellungen empfehlen, gebundenes Kapital erkennen, Margen prüfen oder Preisänderungen simulieren.",
     placeholder: "Frag etwas über deinen Betrieb…",
     analyzing: "Bestand, Verkäufe, Kosten und Margen werden analysiert…",
+    alerts: "Warnungen",
+    margin: "Marge",
+    units: "Einheiten",
+    close: "Intelligenz minimieren",
+    send: "Frage senden",
     prompts: [
       "Was sollte ich heute nachbestellen?",
       "Welche Produkte binden Kapital?",
@@ -126,18 +156,18 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
   const copy = uiCopy[language];
   const metrics = useMemo(() => calculateMetrics(snapshot), [snapshot]);
 
+  const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content: copy.welcome
-    }
+    { id: "welcome", role: "assistant", content: copy.welcome }
   ]);
 
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     setMessages((current) => {
@@ -152,17 +182,26 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
     endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, pending]);
 
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const timer = window.setTimeout(() => inputRef.current?.focus(), 250);
+
+    return () => {
+      window.clearTimeout(timer);
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
+
   async function ask(message: string) {
     const text = message.trim();
     if (!text || pending) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: text
-    };
-
-    setMessages((current) => [...current, userMessage]);
+    setMessages((current) => [
+      ...current,
+      { id: crypto.randomUUID(), role: "user", content: text }
+    ]);
     setInput("");
     setPending(true);
 
@@ -170,10 +209,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
       const response = await fetch("/api/intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          snapshot
-        })
+        body: JSON.stringify({ message: text, snapshot })
       });
 
       const payload = (await response.json()) as {
@@ -199,7 +235,15 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
           id: crypto.randomUUID(),
           role: "assistant",
           content:
-            "No pude comunicarme con el motor analítico. El resto de la app sigue disponible."
+            language === "en"
+              ? "I could not reach the analytics engine. The rest of the app remains available."
+              : language === "pt"
+                ? "Não consegui acessar o motor analítico. O restante do app continua disponível."
+                : language === "fr"
+                  ? "Impossible de joindre le moteur analytique. Le reste de l’application reste disponible."
+                  : language === "de"
+                    ? "Die Analyse-Engine ist gerade nicht erreichbar. Der Rest der App bleibt verfügbar."
+                    : "No pude comunicarme con el motor analítico. El resto de la app sigue disponible."
         }
       ]);
     } finally {
@@ -218,34 +262,27 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
     }
   }
 
-  return (
-    <div className="fixed bottom-[max(16px,env(safe-area-inset-bottom))] right-4 z-50 sm:bottom-6 sm:right-6">
-      <AnimatePresence initial={false} mode="wait">
-        {!open ? (
-          <motion.button
-            key="closed"
-            layoutId="global-intelligence"
-            transition={spring}
-            type="button"
-            onClick={() => setOpen(true)}
-            whileTap={{ scale: 0.97 }}
-            className="flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)]"
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-[#8F0000]">
-              <Sparkles size={16} />
-            </span>
-            <span className="hidden text-sm font-semibold sm:inline">
-              {copy.title}
-            </span>
-          </motion.button>
-        ) : (
+  const panel = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          key="intelligence-overlay"
+          className="fixed inset-0 z-[120] bg-black/35 sm:bg-transparent"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setOpen(false);
+          }}
+        >
           <motion.section
-            key="open"
-            layoutId="global-intelligence"
+            initial={{ y: "100%", opacity: 0.7 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0.7 }}
             transition={spring}
-            className="fixed inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--apex-bg)] sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100dvh-48px))] sm:w-[440px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.28)] sm:backdrop-blur-2xl"
+            className="absolute inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100dvh-48px))] sm:w-[440px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-2xl"
           >
-            <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 py-3.5 sm:px-5 sm:py-4">
+            <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white">
                   <BrainCircuit size={19} />
@@ -261,7 +298,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                 type="button"
                 onClick={() => setOpen(false)}
                 className="grid h-11 w-11 touch-manipulation place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
-                aria-label="Minimizar Global Intelligence"
+                aria-label={copy.close}
               >
                 <Minimize2 size={16} />
               </button>
@@ -270,24 +307,22 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
             <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-[var(--apex-border)] px-3 py-3 sm:px-4">
               <InsightChip
                 icon={<PackageSearch size={14} />}
-                value={String(
-                  metrics.lowStockCount + metrics.outOfStockCount
-                )}
-                label={language === "en" ? "alerts" : "alertas"}
+                value={String(metrics.lowStockCount + metrics.outOfStockCount)}
+                label={copy.alerts}
               />
               <InsightChip
                 icon={<TrendingUp size={14} />}
                 value={`${metrics.marginPct.toFixed(1)}%`}
-                label={language === "en" ? "margin" : "margen"}
+                label={copy.margin}
               />
               <InsightChip
                 icon={<ChartNoAxesCombined size={14} />}
                 value={String(metrics.inventoryUnits)}
-                label={language === "en" ? "units" : "unidades"}
+                label={copy.units}
               />
             </div>
 
-            <div className="apex-scrollbar flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4 sm:py-5">
+            <div className="apex-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4 sm:py-5">
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
@@ -328,6 +363,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
 
               <div className="flex items-end gap-2">
                 <textarea
+                  ref={inputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
@@ -338,19 +374,43 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                 />
                 <button
                   type="button"
+                  onTouchEnd={(event) => {
+                    event.preventDefault();
+                    void ask(input);
+                  }}
                   onClick={() => void ask(input)}
                   disabled={!input.trim() || pending}
                   className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
-                  aria-label="Enviar consulta"
+                  aria-label={copy.send}
                 >
                   <ArrowUp size={18} />
                 </button>
               </div>
             </div>
           </motion.section>
-        )}
-      </AnimatePresence>
-    </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      <motion.button
+        type="button"
+        onClick={() => setOpen(true)}
+        whileTap={{ scale: 0.97 }}
+        className="fixed bottom-[max(16px,env(safe-area-inset-bottom))] right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)] sm:bottom-6 sm:right-6"
+      >
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-[#8F0000]">
+          <Sparkles size={16} />
+        </span>
+        <span className="hidden text-sm font-semibold sm:inline">
+          {copy.title}
+        </span>
+      </motion.button>
+
+      {mounted ? createPortal(panel, document.body) : null}
+    </>
   );
 }
 
