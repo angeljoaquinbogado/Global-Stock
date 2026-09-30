@@ -54,11 +54,12 @@ type BarcodeScannerProps = {
   language?: ScannerLanguage;
 };
 
-const scannerCopy: Record<ScannerLanguage, {
+type ScannerStrings = {
   idle: string;
   detected: (code: string) => string;
   missing: string;
   loaded: string;
+  genericError: string;
   secureRequired: string;
   noCamera: string;
   requesting: string;
@@ -83,28 +84,31 @@ const scannerCopy: Record<ScannerLanguage, {
   price: string;
   stock: string;
   supplier: string;
-}> = {
+};
+
+const scannerCopy: Record<ScannerLanguage, ScannerStrings> = {
   es: {
     idle: "Escaneá en vivo, tomá una foto o ingresá el código manualmente.",
     detected: (code) => `Código detectado: ${code}. Buscando producto…`,
     missing: "El código se leyó correctamente, pero todavía no existe en el catálogo.",
     loaded: "Producto identificado y cargado.",
-    secureRequired: "La cámara en vivo necesita HTTPS. En esta prueba local usá “{copy.photo}” o ingresá el código manualmente.",
-    noCamera: "Este navegador no expone acceso a cámara en vivo.",
+    genericError: "No se pudo procesar el código.",
+    secureRequired: "La cámara en vivo necesita HTTPS. En esta prueba local usá “Tomar foto” o ingresá el código manualmente.",
+    noCamera: "Este navegador no ofrece acceso a cámara en vivo.",
     requesting: "Solicitando permiso para usar la cámara…",
     aim: "Apuntá el código dentro del marco.",
     imageAnalyzing: "Analizando la imagen…",
     imageFail: "No pude detectar un código en esa imagen. Acercate más y asegurate de que esté nítido.",
-    title: "{copy.title}",
-    eyebrow: "{copy.eyebrow}",
-    description: "{copy.description}",
-    localNotice: "En tu dirección local HTTP el navegador bloquea la cámara en vivo. La foto sí funciona. En Vercel HTTPS se habilita el escaneo en vivo.",
+    title: "Lector de códigos",
+    eyebrow: "Captura universal",
+    description: "Cámara en vivo por HTTPS, foto como fallback y búsqueda manual.",
+    localNotice: "En tu dirección local HTTP el navegador bloquea la cámara en vivo. La foto sí funciona. En HTTPS se habilita el escaneo en vivo.",
     live: "Cámara en vivo",
     stop: "Detener",
     photo: "Tomar foto",
     previewSecure: "Abrí la cámara y apuntá al código.",
     previewInsecure: "En esta prueba local usá “Tomar foto”. La cámara en vivo se habilita con HTTPS.",
-    manual: "{copy.manual}",
+    manual: "Código manual",
     manualPlaceholder: "EAN / UPC / código",
     search: "Buscar código",
     product: "Producto",
@@ -119,6 +123,7 @@ const scannerCopy: Record<ScannerLanguage, {
     detected: (code) => `Code detected: ${code}. Looking up product…`,
     missing: "The code was read correctly, but it is not in the catalog yet.",
     loaded: "Product identified and loaded.",
+    genericError: "The code could not be processed.",
     secureRequired: "Live camera needs HTTPS. In this local test use “Take photo” or enter the code manually.",
     noCamera: "This browser does not expose live camera access.",
     requesting: "Requesting camera permission…",
@@ -149,6 +154,7 @@ const scannerCopy: Record<ScannerLanguage, {
     detected: (code) => `Código detectado: ${code}. Buscando produto…`,
     missing: "O código foi lido corretamente, mas ainda não existe no catálogo.",
     loaded: "Produto identificado e carregado.",
+    genericError: "Não foi possível processar o código.",
     secureRequired: "A câmera ao vivo precisa de HTTPS. Neste teste local use “Tirar foto” ou digite o código.",
     noCamera: "Este navegador não oferece acesso à câmera ao vivo.",
     requesting: "Solicitando permissão para usar a câmera…",
@@ -179,6 +185,7 @@ const scannerCopy: Record<ScannerLanguage, {
     detected: (code) => `Code détecté : ${code}. Recherche du produit…`,
     missing: "Le code a été lu correctement, mais il n’existe pas encore dans le catalogue.",
     loaded: "Produit identifié et chargé.",
+    genericError: "Impossible de traiter le code.",
     secureRequired: "La caméra en direct nécessite HTTPS. Pour ce test local, utilisez “Prendre une photo” ou saisissez le code.",
     noCamera: "Ce navigateur n’expose pas l’accès à la caméra en direct.",
     requesting: "Demande d’autorisation de la caméra…",
@@ -209,6 +216,7 @@ const scannerCopy: Record<ScannerLanguage, {
     detected: (code) => `Code erkannt: ${code}. Produkt wird gesucht…`,
     missing: "Der Code wurde gelesen, ist aber noch nicht im Katalog.",
     loaded: "Produkt erkannt und geladen.",
+    genericError: "Der Code konnte nicht verarbeitet werden.",
     secureRequired: "Die Live-Kamera benötigt HTTPS. Nutze in diesem lokalen Test “Foto aufnehmen” oder gib den Code manuell ein.",
     noCamera: "Dieser Browser stellt keinen Live-Kamerazugriff bereit.",
     requesting: "Kameraberechtigung wird angefordert…",
@@ -255,8 +263,15 @@ export function BarcodeScanner({
 
   const liveCameraAvailable = useMemo(() => {
     if (typeof window === "undefined") return false;
-    return window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia);
+    return (
+      window.isSecureContext &&
+      Boolean(navigator.mediaDevices?.getUserMedia)
+    );
   }, []);
+
+  useEffect(() => {
+    if (status === "idle") setMessage(copy.idle);
+  }, [copy.idle, status]);
 
   useEffect(() => {
     return () => stopCameraOnly();
@@ -276,9 +291,7 @@ export function BarcodeScanner({
         { cache: "no-store" }
       );
 
-      if (!response.ok) {
-        throw new Error(copy.missing);
-      }
+      if (!response.ok) throw new Error(copy.missing);
 
       const payload = (await response.json()) as { product: Product };
       setProduct(payload.product);
@@ -291,9 +304,7 @@ export function BarcodeScanner({
       resolvedRef.current = false;
       setStatus("error");
       setMessage(
-        reason instanceof Error
-          ? reason.message
-          : "No se pudo procesar el código."
+        reason instanceof Error ? reason.message : copy.genericError
       );
       stopCameraOnly();
     }
@@ -329,9 +340,7 @@ export function BarcodeScanner({
       stopCameraOnly();
       setStatus("error");
       setMessage(
-        reason instanceof Error
-          ? reason.message
-          : "No se pudo iniciar la cámara."
+        reason instanceof Error ? reason.message : copy.genericError
       );
     }
   }
@@ -378,7 +387,7 @@ export function BarcodeScanner({
           return;
         }
       } catch {
-        // The next frame is retried.
+        // Retry on the next video frame.
       }
 
       frameRef.current = window.requestAnimationFrame(tick);
@@ -395,7 +404,7 @@ export function BarcodeScanner({
     readerRef.current = reader;
 
     setStatus("scanning");
-    setMessage("Apuntá el código dentro del marco.");
+    setMessage(copy.aim);
 
     await reader.decodeFromVideoDevice(null, video, (result) => {
       const text = result?.getText();
@@ -469,13 +478,13 @@ export function BarcodeScanner({
           <div>
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#8F0000]">
               <ScanBarcode size={15} />
-              Captura universal
+              {copy.eyebrow}
             </div>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.035em]">
-              Lector de códigos
+              {copy.title}
             </h2>
             <p className="mt-1 max-w-xl text-sm leading-6 text-[var(--apex-muted)]">
-              Cámara en vivo por HTTPS, foto como fallback y búsqueda manual.
+              {copy.description}
             </p>
           </div>
 
@@ -491,7 +500,7 @@ export function BarcodeScanner({
           <button
             type="button"
             onClick={active ? stop : startLiveCamera}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[.985] disabled:opacity-45"
+            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[.985]"
           >
             {status === "requesting" && liveCameraAvailable ? (
               <Loader2 size={16} className="animate-spin" />
@@ -506,10 +515,10 @@ export function BarcodeScanner({
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2.5 text-sm font-semibold transition active:scale-[.985]"
+            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2.5 text-sm font-semibold transition active:scale-[.985]"
           >
             <ImagePlus size={16} />
-            Tomar foto
+            {copy.photo}
           </button>
 
           <input
@@ -542,8 +551,8 @@ export function BarcodeScanner({
                 />
                 <p className="mt-3 text-xs leading-5 text-white/45">
                   {liveCameraAvailable
-                    ? "Abrí la cámara y apuntá al código."
-                    : "En esta prueba local usá “Tomar foto”. La cámara en vivo se habilita con HTTPS."}
+                    ? copy.previewSecure
+                    : copy.previewInsecure}
                 </p>
               </div>
             </div>
@@ -578,7 +587,7 @@ export function BarcodeScanner({
           >
             <div className="mb-3 flex items-center gap-2 text-xs font-bold">
               <Keyboard size={15} className="text-[#8F0000]" />
-              Código manual
+              {copy.manual}
             </div>
             <div className="flex gap-2">
               <input
@@ -591,7 +600,7 @@ export function BarcodeScanner({
               <button
                 type="submit"
                 disabled={!manualCode.trim()}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white disabled:opacity-35"
+                className="grid h-11 w-11 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white disabled:opacity-35"
                 aria-label={copy.search}
               >
                 <Search size={17} />
