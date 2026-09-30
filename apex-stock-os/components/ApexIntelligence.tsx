@@ -11,6 +11,7 @@ import {
   TrendingUp
 } from "lucide-react";
 import {
+  FormEvent,
   KeyboardEvent,
   useEffect,
   useMemo,
@@ -24,9 +25,11 @@ import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
+  appContext?: Record<string, unknown>;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
+type AiStatus = "checking" | "ready" | "offline";
 
 const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
 
@@ -44,77 +47,116 @@ const uiCopy: Record<
     close: string;
     send: string;
     contextHint: string;
+    online: string;
+    offline: string;
+    disconnected: string;
+    providerError: string;
   }
 > = {
   es: {
     title: "Global Intelligence",
     subtitle: "Analista conectado a tu negocio",
     welcome:
-      "Listo. Preguntame lo que quieras: puedo conversar normalmente y, cuando haga falta, usar los datos reales de Global Stock para analizar tu negocio.",
+      "Preguntame lo que quieras. Puedo conversar normalmente y usar los datos reales de Global Stock para analizar stock, ventas, compras, margen, actividad, notas y escenarios.",
     placeholder: "Preguntá algo sobre tu negocio…",
-    analyzing: "Cruzando stock, ventas, costos y márgenes…",
+    analyzing: "Analizando tu negocio…",
     alerts: "alertas",
     margin: "margen",
     units: "unidades",
     close: "Minimizar inteligencia",
     send: "Enviar consulta",
-    contextHint: "Puede razonar con inventario, ventas, costos, márgenes, escenarios y cualquier consulta general."
+    contextHint:
+      "Usa inventario, ventas, costos, márgenes, actividad, notas y escenarios del negocio.",
+    online: "IA conectada",
+    offline: "IA sin conexión",
+    disconnected:
+      "La inteligencia avanzada todavía no está conectada en este entorno. La interfaz ya está lista, pero hace falta activar el proveedor de IA del servidor para obtener respuestas reales.",
+    providerError:
+      "La IA está conectada, pero el proveedor no respondió correctamente. Probá nuevamente en unos segundos."
   },
   en: {
     title: "Global Intelligence",
     subtitle: "Analyst connected to your business",
     welcome:
-      "Ready. Ask me anything: I can chat normally and, when useful, use Global Stock’s live business data for analysis.",
+      "Ask me anything. I can chat normally and use Global Stock's real business data to analyze inventory, sales, purchases, margins, activity, notes and scenarios.",
     placeholder: "Ask about your business…",
-    analyzing: "Crossing stock, sales, costs and margins…",
+    analyzing: "Analyzing your business…",
     alerts: "alerts",
     margin: "margin",
     units: "units",
     close: "Minimize intelligence",
     send: "Send question",
-    contextHint: "It can reason over inventory, sales, costs, margins, scenarios and general questions."
+    contextHint:
+      "Uses inventory, sales, costs, margins, activity, notes and business scenarios.",
+    online: "AI connected",
+    offline: "AI offline",
+    disconnected:
+      "Advanced intelligence is not connected in this environment yet. The interface is ready, but the server AI provider must be enabled to get real answers.",
+    providerError:
+      "The AI is connected, but the provider did not respond correctly. Try again in a few seconds."
   },
   pt: {
     title: "Global Intelligence",
     subtitle: "Analista conectado ao seu negócio",
     welcome:
-      "Pronto. Pergunte o que quiser: posso conversar normalmente e usar os dados reais do Global Stock quando for útil.",
+      "Pergunte o que quiser. Posso conversar normalmente e usar os dados reais do Global Stock para analisar estoque, vendas, compras, margem, atividade, notas e cenários.",
     placeholder: "Pergunte sobre seu negócio…",
-    analyzing: "Cruzando estoque, vendas, custos e margens…",
+    analyzing: "Analisando seu negócio…",
     alerts: "alertas",
     margin: "margem",
     units: "unidades",
     close: "Minimizar inteligência",
     send: "Enviar pergunta",
-    contextHint: "Pode raciocinar sobre estoque, vendas, custos, margens, cenários e perguntas gerais."
+    contextHint:
+      "Usa estoque, vendas, custos, margens, atividade, notas e cenários do negócio.",
+    online: "IA conectada",
+    offline: "IA sem conexão",
+    disconnected:
+      "A inteligência avançada ainda não está conectada neste ambiente. A interface está pronta, mas é necessário ativar o provedor de IA no servidor para obter respostas reais.",
+    providerError:
+      "A IA está conectada, mas o provedor não respondeu corretamente. Tente novamente em alguns segundos."
   },
   fr: {
     title: "Global Intelligence",
     subtitle: "Analyste connecté à votre activité",
     welcome:
-      "Prêt. Posez-moi n’importe quelle question : je peux discuter normalement et utiliser les données réelles de Global Stock lorsque c’est utile.",
+      "Posez-moi n’importe quelle question. Je peux discuter normalement et utiliser les données réelles de Global Stock pour analyser stock, ventes, achats, marges, activité, notes et scénarios.",
     placeholder: "Posez une question sur votre activité…",
-    analyzing: "Analyse du stock, des ventes, coûts et marges…",
+    analyzing: "Analyse de votre activité…",
     alerts: "alertes",
     margin: "marge",
     units: "unités",
     close: "Réduire l’intelligence",
     send: "Envoyer la question",
-    contextHint: "Peut raisonner sur le stock, les ventes, les coûts, les marges, les scénarios et les questions générales."
+    contextHint:
+      "Utilise stock, ventes, coûts, marges, activité, notes et scénarios de l’entreprise.",
+    online: "IA connectée",
+    offline: "IA hors ligne",
+    disconnected:
+      "L’intelligence avancée n’est pas encore connectée dans cet environnement. L’interface est prête, mais le fournisseur d’IA du serveur doit être activé pour obtenir de vraies réponses.",
+    providerError:
+      "L’IA est connectée, mais le fournisseur n’a pas répondu correctement. Réessayez dans quelques secondes."
   },
   de: {
     title: "Global Intelligence",
     subtitle: "Analyst für deinen Betrieb",
     welcome:
-      "Bereit. Frag mich alles: Ich kann normal antworten und bei Bedarf die echten Global-Stock-Daten für Analysen verwenden.",
+      "Frag mich alles. Ich kann normal antworten und echte Global-Stock-Daten nutzen, um Bestand, Verkäufe, Einkauf, Margen, Aktivität, Notizen und Szenarien zu analysieren.",
     placeholder: "Frag etwas über deinen Betrieb…",
-    analyzing: "Bestand, Verkäufe, Kosten und Margen werden analysiert…",
+    analyzing: "Dein Betrieb wird analysiert…",
     alerts: "Warnungen",
     margin: "Marge",
     units: "Einheiten",
     close: "Intelligenz minimieren",
     send: "Frage senden",
-    contextHint: "Kann über Bestand, Verkäufe, Kosten, Margen, Szenarien und allgemeine Fragen nachdenken."
+    contextHint:
+      "Verwendet Bestand, Verkäufe, Kosten, Margen, Aktivität, Notizen und Geschäftsszenarien.",
+    online: "KI verbunden",
+    offline: "KI offline",
+    disconnected:
+      "Die erweiterte Intelligenz ist in dieser Umgebung noch nicht verbunden. Die Oberfläche ist bereit, aber der KI-Anbieter auf dem Server muss aktiviert werden, damit echte Antworten möglich sind.",
+    providerError:
+      "Die KI ist verbunden, aber der Anbieter hat nicht korrekt geantwortet. Versuch es in ein paar Sekunden erneut."
   }
 };
 
@@ -126,7 +168,10 @@ function languageFromLocale(locale: string): UiLanguage {
   return "es";
 }
 
-export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
+export function ApexIntelligence({
+  snapshot,
+  appContext = {}
+}: ApexIntelligenceProps) {
   const language = languageFromLocale(snapshot.locale);
   const copy = uiCopy[language];
   const metrics = useMemo(() => calculateMetrics(snapshot), [snapshot]);
@@ -135,6 +180,16 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
   const [open, setOpen] = useState(false);
   const [pending, setPending] = useState(false);
   const [input, setInput] = useState("");
+  const [status, setStatus] = useState<AiStatus>("checking");
+  const [mobileViewport, setMobileViewport] = useState<{
+    compact: boolean;
+    height: number;
+    offsetTop: number;
+  }>({
+    compact: false,
+    height: 0,
+    offsetTop: 0
+  });
   const [messages, setMessages] = useState<ChatMessage[]>([
     { id: "welcome", role: "assistant", content: copy.welcome }
   ]);
@@ -143,6 +198,30 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => setMounted(true), []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function checkStatus() {
+      try {
+        const response = await fetch("/api/intelligence", {
+          method: "GET",
+          cache: "no-store"
+        });
+        const payload = (await response.json()) as { configured?: boolean };
+        if (!cancelled) {
+          setStatus(payload.configured ? "ready" : "offline");
+        }
+      } catch {
+        if (!cancelled) setStatus("offline");
+      }
+    }
+
+    void checkStatus();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     setMessages((current) => {
@@ -159,13 +238,37 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
 
   useEffect(() => {
     if (!open) return;
-    const previous = document.body.style.overflow;
+
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const timer = window.setTimeout(() => inputRef.current?.focus(), 250);
+
+    const updateViewport = () => {
+      const viewport = window.visualViewport;
+      const compact = window.innerWidth < 640;
+
+      setMobileViewport({
+        compact,
+        height: viewport?.height ?? window.innerHeight,
+        offsetTop: viewport?.offsetTop ?? 0
+      });
+    };
+
+    updateViewport();
+    const viewport = window.visualViewport;
+    viewport?.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+
+    const timer = window.setTimeout(() => {
+      if (window.innerWidth >= 640) inputRef.current?.focus();
+    }, 220);
 
     return () => {
       window.clearTimeout(timer);
-      document.body.style.overflow = previous;
+      viewport?.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+      document.body.style.overflow = previousOverflow;
     };
   }, [open]);
 
@@ -181,7 +284,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
 
     const history = [...messages, userMessage]
       .filter((item) => item.id !== "welcome")
-      .slice(-14)
+      .slice(-20)
       .map(({ role, content }) => ({ role, content }));
 
     setMessages((current) => [...current, userMessage]);
@@ -189,35 +292,61 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
     setPending(true);
 
     try {
+      const now = new Date();
+      const timeZone =
+        Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+
       const response = await fetch("/api/intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({
           message: text,
           snapshot,
           history,
           runtime: {
-            clientNow: new Date().toISOString(),
-            clientTimeZone:
-              Intl.DateTimeFormat().resolvedOptions().timeZone
+            clientNow: now.toISOString(),
+            clientLocalTime: new Intl.DateTimeFormat(snapshot.locale, {
+              dateStyle: "full",
+              timeStyle: "long",
+              timeZone
+            }).format(now),
+            clientTimeZone: timeZone,
+            appContext
           }
         })
       });
 
       const payload = (await response.json()) as {
         answer?: string;
-        error?: string;
+        code?: string;
+        configured?: boolean;
       };
+
+      if (payload.configured === true) setStatus("ready");
+
+      let content = payload.answer;
+
+      if (!content && payload.code === "AI_NOT_CONNECTED") {
+        setStatus("offline");
+        content = copy.disconnected;
+      }
+
+      if (!content && payload.code === "AI_PROVIDER_ERROR") {
+        setStatus("ready");
+        content = copy.providerError;
+      }
+
+      if (!content) {
+        content = copy.providerError;
+      }
 
       setMessages((current) => [
         ...current,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content:
-            payload.answer ??
-            payload.error ??
-            "No pude completar el análisis con los datos actuales."
+          content
         }
       ]);
     } catch {
@@ -226,21 +355,18 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content:
-            language === "en"
-              ? "I could not reach the analytics engine. The rest of the app remains available."
-              : language === "pt"
-                ? "Não consegui acessar o motor analítico. O restante do app continua disponível."
-                : language === "fr"
-                  ? "Impossible de joindre le moteur analytique. Le reste de l’application reste disponible."
-                  : language === "de"
-                    ? "Die Analyse-Engine ist gerade nicht erreichbar. Der Rest der App bleibt verfügbar."
-                    : "No pude comunicarme con el motor analítico. El resto de la app sigue disponible."
+          content: copy.providerError
         }
       ]);
     } finally {
       setPending(false);
+      window.setTimeout(() => inputRef.current?.focus(), 80);
     }
+  }
+
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    void ask(input);
   }
 
   function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -254,12 +380,20 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
     }
   }
 
+  const panelStyle =
+    mobileViewport.compact && mobileViewport.height
+      ? {
+          height: `${mobileViewport.height}px`,
+          top: `${mobileViewport.offsetTop}px`
+        }
+      : undefined;
+
   const panel = (
     <AnimatePresence>
       {open && (
         <motion.div
           key="intelligence-overlay"
-          className="fixed inset-0 z-[120] bg-black/35 sm:bg-transparent"
+          className="fixed inset-0 z-[220] bg-black/45 sm:bg-transparent"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -272,7 +406,8 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: "100%", opacity: 0.7 }}
             transition={spring}
-            className="absolute inset-0 flex h-[100dvh] w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:inset-auto sm:bottom-6 sm:right-6 sm:h-[min(720px,calc(100dvh-48px))] sm:w-[440px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-2xl"
+            style={panelStyle}
+            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-2xl"
           >
             <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
@@ -280,9 +415,23 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                   <BrainCircuit size={19} />
                 </span>
                 <div className="min-w-0">
-                  <h2 className="truncate text-sm font-semibold">{copy.title}</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="truncate text-sm font-semibold">
+                      {copy.title}
+                    </h2>
+                    <span
+                      className={
+                        "h-2 w-2 shrink-0 rounded-full " +
+                        (status === "ready"
+                          ? "bg-emerald-500"
+                          : status === "checking"
+                            ? "bg-amber-500"
+                            : "bg-red-500")
+                      }
+                    />
+                  </div>
                   <p className="mt-0.5 truncate text-[10px] font-medium text-[var(--apex-muted)]">
-                    {copy.subtitle}
+                    {status === "ready" ? copy.online : status === "offline" ? copy.offline : copy.subtitle}
                   </p>
                 </div>
               </div>
@@ -299,7 +448,9 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
             <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-[var(--apex-border)] px-3 py-3 sm:px-4">
               <InsightChip
                 icon={<PackageSearch size={14} />}
-                value={String(metrics.lowStockCount + metrics.outOfStockCount)}
+                value={String(
+                  metrics.lowStockCount + metrics.outOfStockCount
+                )}
                 label={copy.alerts}
               />
               <InsightChip
@@ -322,16 +473,18 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                   animate={{ opacity: 1, y: 0 }}
                   className={
                     message.role === "user"
-                      ? "ml-8 rounded-[20px] rounded-br-md bg-[#8F0000] px-4 py-3 text-sm leading-6 text-white sm:ml-12"
-                      : "mr-4 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm leading-6 sm:mr-8"
+                      ? "ml-10 rounded-[20px] rounded-br-md bg-[#8F0000] px-4 py-3 text-sm leading-6 text-white sm:ml-12"
+                      : "mr-3 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm leading-6 sm:mr-8"
                   }
                 >
-                  <div className="whitespace-pre-wrap">{message.content}</div>
+                  <div className="whitespace-pre-wrap break-words">
+                    {message.content}
+                  </div>
                 </motion.div>
               ))}
 
               {pending && (
-                <div className="mr-12 flex items-center gap-2 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-xs text-[var(--apex-muted)]">
+                <div className="mr-10 flex items-center gap-2 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-xs text-[var(--apex-muted)]">
                   <Sparkles size={15} className="animate-pulse" />
                   {copy.analyzing}
                 </div>
@@ -339,7 +492,10 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
               <div ref={endRef} />
             </div>
 
-            <div className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:p-3">
+            <form
+              onSubmit={submit}
+              className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:p-3"
+            >
               <div className="mb-2 px-1 text-[10px] leading-4 text-[var(--apex-muted)]">
                 {copy.contextHint}
               </div>
@@ -356,12 +512,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                   className="apex-input max-h-28 min-h-12 flex-1 resize-none px-4 py-3 text-[16px] sm:text-sm"
                 />
                 <button
-                  type="button"
-                  onTouchEnd={(event) => {
-                    event.preventDefault();
-                    void ask(input);
-                  }}
-                  onClick={() => void ask(input)}
+                  type="submit"
                   disabled={!input.trim() || pending}
                   className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
                   aria-label={copy.send}
@@ -369,7 +520,7 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
                   <ArrowUp size={18} />
                 </button>
               </div>
-            </div>
+            </form>
           </motion.section>
         </motion.div>
       )}
