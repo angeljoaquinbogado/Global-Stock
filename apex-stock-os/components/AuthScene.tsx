@@ -200,7 +200,7 @@ function ArcLine({
   to: (typeof HUBS)[number];
   radius?: number;
 }) {
-  const geometry = useMemo(() => {
+  const line = useMemo(() => {
     const start = latLngToVector3(from.lat, from.lng, radius);
     const end = latLngToVector3(to.lat, to.lng, radius);
     const mid = start
@@ -211,19 +211,19 @@ function ArcLine({
       .multiplyScalar(radius + 0.34 + start.distanceTo(end) * 0.07);
 
     const curve = new THREE.QuadraticBezierCurve3(start, mid, end);
-    const points = curve.getPoints(42);
-    return new THREE.BufferGeometry().setFromPoints(points);
+    const geometry = new THREE.BufferGeometry().setFromPoints(
+      curve.getPoints(42)
+    );
+    const material = new THREE.LineBasicMaterial({
+      color: "#d11111",
+      transparent: true,
+      opacity: 0.62
+    });
+
+    return new THREE.Line(geometry, material);
   }, [from, radius, to]);
 
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial
-        color="#d11111"
-        transparent
-        opacity={0.62}
-      />
-    </line>
-  );
+  return <primitive object={line} />;
 }
 
 function HubPoints() {
