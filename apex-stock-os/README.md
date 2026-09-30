@@ -1,4 +1,4 @@
-# Apex Stock OS
+# Global Stock
 
 Primera entrega funcional del nuevo frontend PWA empresarial construido en **Next.js + TypeScript**. Vive en una rama separada para no destruir el prototipo Flutter existente.
 
@@ -14,7 +14,7 @@ Primera entrega funcional del nuevo frontend PWA empresarial construido en **Nex
 - Inventario editable, filtros y estados Normal/Bajo/Agotado.
 - Lector de barras: `BarcodeDetector` + fallback ZXing.
 - Consulta por código contra catálogo local, Supabase y enriquecimiento OpenFoodFacts.
-- Apex Intelligence: chat persistente tipo Dynamic Island, conectado al snapshot real del dashboard.
+- Global Intelligence: chat persistente tipo Dynamic Island, conectado al snapshot real del dashboard.
 - i18n inicial: ES / EN / PT / FR / DE.
 - Multimoneda: ARS / USD / EUR / BRL / MXN / GBP / JPY.
 - PWA con `next-pwa`, manifest e iconos 192/512 maskable.
@@ -42,7 +42,7 @@ Sin variables de entorno, la app entra en **modo demo funcional**. El login vali
 
 ## Supabase
 
-1. Crear un proyecto Supabase separado para Apex Stock OS.
+1. Crear un proyecto Supabase separado para Global Stock.
 2. Ejecutar `supabase/schema.sql` en el SQL Editor.
 3. Copiar `.env.example` a `.env.local`.
 4. Completar las variables:
