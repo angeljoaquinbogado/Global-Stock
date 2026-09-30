@@ -52,6 +52,7 @@ type ScannerLanguage = "es" | "en" | "pt" | "fr" | "de";
 type BarcodeScannerProps = {
   onProduct?: (product: Product) => void;
   language?: ScannerLanguage;
+  autoStart?: boolean;
 };
 
 type ScannerStrings = {
@@ -246,7 +247,8 @@ const scannerCopy: Record<ScannerLanguage, ScannerStrings> = {
 
 export function BarcodeScanner({
   onProduct,
-  language = "es"
+  language = "es",
+  autoStart = false
 }: BarcodeScannerProps) {
   const copy = scannerCopy[language];
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -276,6 +278,16 @@ export function BarcodeScanner({
   useEffect(() => {
     return () => stopCameraOnly();
   }, []);
+
+  useEffect(() => {
+    if (!autoStart) return;
+    const timer = window.setTimeout(() => {
+      void startLiveCamera();
+    }, 120);
+    return () => window.clearTimeout(timer);
+    // Run only when the scanner overlay is mounted for quick capture.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoStart]);
 
   async function resolveBarcode(rawValue: string) {
     const normalized = rawValue.trim();
