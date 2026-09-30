@@ -16,7 +16,9 @@ import {
 import {
   ChangeEvent,
   FormEvent,
+  forwardRef,
   useEffect,
+  useImperativeHandle,
   useMemo,
   useRef,
   useState
@@ -53,6 +55,11 @@ type BarcodeScannerProps = {
   onProduct?: (product: Product) => void;
   language?: ScannerLanguage;
   autoStart?: boolean;
+};
+
+export type BarcodeScannerHandle = {
+  openCamera: () => void;
+  stop: () => void;
 };
 
 type ScannerStrings = {
@@ -245,11 +252,17 @@ const scannerCopy: Record<ScannerLanguage, ScannerStrings> = {
   }
 };
 
-export function BarcodeScanner({
-  onProduct,
-  language = "es",
-  autoStart = false
-}: BarcodeScannerProps) {
+export const BarcodeScanner = forwardRef<
+  BarcodeScannerHandle,
+  BarcodeScannerProps
+>(function BarcodeScanner(
+  {
+    onProduct,
+    language = "es",
+    autoStart = false
+  },
+  ref
+) {
   const copy = scannerCopy[language];
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -476,6 +489,19 @@ export function BarcodeScanner({
     setMessage(copy.idle);
   }
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      openCamera: () => {
+        void startLiveCamera();
+      },
+      stop
+    }),
+    // The exposed methods operate on refs/state owned by this scanner instance.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [copy.secureRequired]
+  );
+
   const active = status === "scanning" || status === "requesting";
 
   return (
@@ -645,4 +671,4 @@ export function BarcodeScanner({
       </div>
     </section>
   );
-}
+);
