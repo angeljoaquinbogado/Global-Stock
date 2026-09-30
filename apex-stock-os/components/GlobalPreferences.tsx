@@ -2,7 +2,8 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown, Coins, Globe2, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 export type LanguageCode = "es" | "en" | "pt" | "fr" | "de";
 
@@ -167,7 +168,21 @@ export function GlobalPreferences({
   onCurrencyChange
 }: GlobalPreferencesProps) {
   const [open, setOpen] = useState<"language" | "currency" | null>(null);
+  const [mounted, setMounted] = useState(false);
   const labels = ui[language];
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [open]);
 
   const activeLanguage = useMemo(
     () => languages.find((item) => item.code === language) ?? languages[0],
@@ -176,70 +191,53 @@ export function GlobalPreferences({
 
   const activeCurrency = currencyLabels[currency] ?? currencyLabels.ARS;
 
-  return (
-    <>
-      <div className="flex items-center gap-2">
-        <PreferenceButton
-          icon={<Globe2 size={15} />}
-          primary={activeLanguage.short}
-          secondary={activeLanguage.native}
-          onClick={() => setOpen("language")}
-          ariaLabel={labels.changeLanguage}
-        />
-        <PreferenceButton
-          icon={<Coins size={15} />}
-          primary={currency}
-          secondary={activeCurrency.symbol}
-          onClick={() => setOpen("currency")}
-          ariaLabel={labels.changeCurrency}
-        />
-      </div>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className="fixed inset-0 z-[90] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-6"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onMouseDown={(event) => {
-              if (event.currentTarget === event.target) setOpen(null);
-            }}
+  const modal = (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onMouseDown={(event) => {
+            if (event.currentTarget === event.target) setOpen(null);
+          }}
+        >
+          <motion.section
+            initial={{ opacity: 0, y: 38, scale: 0.985 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 24, scale: 0.99 }}
+            transition={spring}
+            className="apex-glass flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[30px] border-x-0 border-b-0 sm:max-h-[calc(100dvh-32px)] sm:rounded-[30px] sm:border"
           >
-            <motion.section
-              initial={{ opacity: 0, y: 38, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 24, scale: 0.99 }}
-              transition={spring}
-              className="apex-glass w-full max-w-[460px] rounded-t-[30px] border-x-0 border-b-0 p-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:rounded-[30px] sm:border"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <motion.p
-                    key={labels.eyebrow}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]"
-                  >
-                    {labels.eyebrow}
-                  </motion.p>
-                  <h3 className="mt-1 text-xl font-semibold tracking-[-0.035em]">
-                    {open === "language"
-                      ? labels.language
-                      : labels.currency}
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setOpen(null)}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
-                  aria-label={labels.close}
+            <div className="flex shrink-0 items-center justify-between p-5 pb-3">
+              <div>
+                <motion.p
+                  key={labels.eyebrow}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]"
                 >
-                  <X size={16} />
-                </button>
+                  {labels.eyebrow}
+                </motion.p>
+                <h3 className="mt-1 text-xl font-semibold tracking-[-0.035em]">
+                  {open === "language"
+                    ? labels.language
+                    : labels.currency}
+                </h3>
               </div>
+              <button
+                type="button"
+                onClick={() => setOpen(null)}
+                className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                aria-label={labels.close}
+              >
+                <X size={16} />
+              </button>
+            </div>
 
-              <div className="mt-5 grid gap-2">
+            <div className="apex-scrollbar min-h-0 flex-1 overflow-y-auto px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-2 sm:pb-5">
+              <div className="grid gap-2">
                 {open === "language"
                   ? languages.map((item) => {
                       const selected = item.code === language;
@@ -275,10 +273,33 @@ export function GlobalPreferences({
                       );
                     })}
               </div>
-            </motion.section>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            </div>
+          </motion.section>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  return (
+    <>
+      <div className="flex flex-wrap items-center gap-2">
+        <PreferenceButton
+          icon={<Globe2 size={15} />}
+          primary={activeLanguage.short}
+          secondary={activeLanguage.native}
+          onClick={() => setOpen("language")}
+          ariaLabel={labels.changeLanguage}
+        />
+        <PreferenceButton
+          icon={<Coins size={15} />}
+          primary={currency}
+          secondary={activeCurrency.symbol}
+          onClick={() => setOpen("currency")}
+          ariaLabel={labels.changeCurrency}
+        />
+      </div>
+
+      {mounted ? createPortal(modal, document.body) : null}
     </>
   );
 }
@@ -357,7 +378,7 @@ function PreferenceButton({
       whileTap={{ scale: 0.975 }}
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex h-10 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3"
+      className="flex h-10 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition hover:-translate-y-px hover:shadow-md"
     >
       <span className="text-[#8F0000]">{icon}</span>
       <span className="text-xs font-bold">{primary}</span>
