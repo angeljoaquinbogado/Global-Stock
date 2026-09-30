@@ -56,76 +56,142 @@ const copy: Record<
   Language,
   {
     overview: string;
+    subtitle: string;
     revenue: string;
     inventoryCost: string;
     profit: string;
     margin: string;
     inventory: string;
     analytics: string;
+    flow: string;
+    comparison: string;
+    comparisonTitle: string;
     stock: string;
+    liveInventory: string;
     search: string;
     scanner: string;
+    series: string;
+    units: string;
+    all: string;
+    normal: string;
+    low: string;
+    out: string;
   }
 > = {
   es: {
     overview: "Centro de control",
+    subtitle: "Inventario, rentabilidad y decisiones operativas sincronizadas.",
     revenue: "Ingresos",
     inventoryCost: "Costo de inventario",
     profit: "Ganancia bruta",
     margin: "Margen",
     inventory: "Inventario",
     analytics: "Pérdidas y ganancias",
+    flow: "{labels.flow}",
+    comparison: "Ingresos vs costos",
+    comparisonTitle: "{labels.comparisonTitle}",
     stock: "Stock operativo",
+    liveInventory: "{labels.liveInventory}",
     search: "Buscar producto, categoría o proveedor",
-    scanner: "Captura de inventario"
+    scanner: "Captura de inventario",
+    series: "Serie visible",
+    units: "unidades",
+    all: "Todos",
+    normal: "Normal",
+    low: "Bajo",
+    out: "Agotado"
   },
   en: {
     overview: "Control center",
+    subtitle: "Inventory, profitability and operational decisions in sync.",
     revenue: "Revenue",
     inventoryCost: "Inventory cost",
     profit: "Gross profit",
     margin: "Margin",
     inventory: "Inventory",
     analytics: "Profit & loss",
+    flow: "Operating flow",
+    comparison: "{labels.comparison}s",
+    comparisonTitle: "Revenue and costs",
     stock: "Operational stock",
+    liveInventory: "Live inventory",
     search: "Search product, category or supplier",
-    scanner: "Inventory capture"
+    scanner: "Inventory capture",
+    series: "Visible range",
+    units: "units",
+    all: "All",
+    normal: "Normal",
+    low: "Low",
+    out: "Out of stock"
   },
   pt: {
     overview: "Centro de controle",
+    subtitle: "Estoque, rentabilidade e decisões operacionais sincronizadas.",
     revenue: "Receita",
     inventoryCost: "Custo do estoque",
     profit: "Lucro bruto",
     margin: "Margem",
     inventory: "Estoque",
     analytics: "Perdas e ganhos",
+    flow: "Fluxo operacional",
+    comparison: "Receita vs custos",
+    comparisonTitle: "Receita e custos",
     stock: "Estoque operacional",
+    liveInventory: "Estoque ao vivo",
     search: "Buscar produto, categoria ou fornecedor",
-    scanner: "Captura de estoque"
+    scanner: "Captura de estoque",
+    series: "Período visível",
+    units: "unidades",
+    all: "Todos",
+    normal: "Normal",
+    low: "Baixo",
+    out: "Esgotado"
   },
   fr: {
     overview: "Centre de contrôle",
+    subtitle: "Inventaire, rentabilité et décisions opérationnelles synchronisées.",
     revenue: "Revenus",
     inventoryCost: "Coût du stock",
     profit: "Marge brute",
     margin: "Marge",
     inventory: "Inventaire",
     analytics: "Pertes et profits",
+    flow: "Flux opérationnel",
+    comparison: "Revenus vs coûts",
+    comparisonTitle: "Revenus et coûts",
     stock: "Stock opérationnel",
+    liveInventory: "Inventaire en direct",
     search: "Rechercher produit, catégorie ou fournisseur",
-    scanner: "Capture d'inventaire"
+    scanner: "Capture d'inventaire",
+    series: "Période visible",
+    units: "unités",
+    all: "Tous",
+    normal: "Normal",
+    low: "Faible",
+    out: "Épuisé"
   },
   de: {
     overview: "Kontrollzentrum",
+    subtitle: "Bestand, Rentabilität und operative Entscheidungen synchronisiert.",
     revenue: "Umsatz",
     inventoryCost: "Lagerkosten",
     profit: "Bruttogewinn",
     margin: "Marge",
     inventory: "Bestand",
     analytics: "Gewinn und Verlust",
+    flow: "Operativer Verlauf",
+    comparison: "Umsatz vs Kosten",
+    comparisonTitle: "Umsatz und Kosten",
     stock: "Operativer Bestand",
+    liveInventory: "Live-Bestand",
     search: "Produkt, Kategorie oder Lieferant suchen",
-    scanner: "Bestandserfassung"
+    scanner: "Bestandserfassung",
+    series: "Sichtbarer Zeitraum",
+    units: "Einheiten",
+    all: "Alle",
+    normal: "Normal",
+    low: "Niedrig",
+    out: "Ausverkauft"
   }
 };
 
@@ -137,11 +203,12 @@ const localeByLanguage: Record<Language, string> = {
   de: "de-DE"
 };
 
-const periodLabels: Record<Period, string> = {
-  daily: "Diario",
-  weekly: "Semanal",
-  monthly: "Mensual",
-  annual: "Anual"
+const periodLabels: Record<Language, Record<Period, string>> = {
+  es: { daily: "Diario", weekly: "Semanal", monthly: "Mensual", annual: "Anual" },
+  en: { daily: "Daily", weekly: "Weekly", monthly: "Monthly", annual: "Annual" },
+  pt: { daily: "Diário", weekly: "Semanal", monthly: "Mensal", annual: "Anual" },
+  fr: { daily: "Quotidien", weekly: "Hebdo", monthly: "Mensuel", annual: "Annuel" },
+  de: { daily: "Täglich", weekly: "Wöchentlich", monthly: "Monatlich", annual: "Jährlich" }
 };
 
 const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
@@ -353,12 +420,12 @@ export function Dashboard({
               {labels.overview}
             </h1>
             <p className="mt-2 text-sm text-[var(--apex-muted)]">
-              Inventario, P&amp;L y decisiones operativas sincronizadas.
+              {labels.subtitle}
             </p>
           </div>
 
           <div className="inline-flex self-start rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1 sm:self-auto">
-            {(Object.keys(periodLabels) as Period[]).map((item) => (
+            {(Object.keys(periodLabels[language]) as Period[]).map((item) => (
               <button
                 key={item}
                 onClick={() => setPeriod(item)}
@@ -378,7 +445,7 @@ export function Dashboard({
                       : "text-[var(--apex-muted)]"
                   }`}
                 >
-                  {periodLabels[item]}
+                  {periodLabels[language][item]}
                 </span>
               </button>
             ))}
@@ -390,7 +457,7 @@ export function Dashboard({
             icon={<CircleDollarSign size={19} />}
             label={labels.revenue}
             value={money(metrics.revenue)}
-            detail="Serie visible"
+            detail={labels.series}
           />
           <MetricCard
             icon={<WalletCards size={19} />}
@@ -424,7 +491,7 @@ export function Dashboard({
                 </h2>
               </div>
               <span className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]">
-                {periodLabels[period]}
+                {periodLabels[language][period]}
               </span>
             </div>
 
@@ -570,10 +637,10 @@ export function Dashboard({
                 }
                 className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5 text-xs font-semibold outline-none"
               >
-                <option value="all">Todos</option>
-                <option value="normal">Normal</option>
-                <option value="low">Bajo</option>
-                <option value="out">Agotado</option>
+                <option value="all">{labels.all}</option>
+                <option value="normal">{labels.normal}</option>
+                <option value="low">{labels.low}</option>
+                <option value="out">{labels.out}</option>
               </select>
             </div>
           </div>
