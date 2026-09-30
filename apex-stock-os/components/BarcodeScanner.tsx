@@ -315,15 +315,10 @@ export function BarcodeScanner({
     setProduct(null);
     resolvedRef.current = false;
 
-    if (!window.isSecureContext) {
-      setStatus("error");
+    if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
+      setStatus("idle");
       setMessage(copy.secureRequired);
-      return;
-    }
-
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setStatus("error");
-      setMessage(copy.noCamera);
+      fileInputRef.current?.click();
       return;
     }
 
@@ -509,7 +504,11 @@ export function BarcodeScanner({
             ) : (
               <Camera size={16} />
             )}
-            {active ? copy.stop : copy.live}
+            {active
+              ? copy.stop
+              : liveCameraAvailable
+                ? copy.live
+                : copy.photo}
           </button>
 
           <button
