@@ -46,6 +46,7 @@ type OnlineOrder = {
   channel: string;
   customer: string;
   total: number;
+  currency: string;
   status: "pending" | "paid" | "preparing" | "shipped" | "delivered";
   createdAt: string;
 };
@@ -59,6 +60,7 @@ type BusinessDocument = {
   customer: string;
   description: string;
   total: number;
+  currency: string;
   createdAt: string;
 };
 
@@ -440,7 +442,14 @@ export function OnlineCommerceHub({
       }
       if (savedOrders) {
         const parsed = JSON.parse(savedOrders) as OnlineOrder[];
-        if (Array.isArray(parsed)) setOrders(parsed);
+        if (Array.isArray(parsed)) {
+          setOrders(
+            parsed.map((order) => ({
+              ...order,
+              currency: order.currency || currency
+            }))
+          );
+        }
       }
     } catch {
       // Keep empty local state.
@@ -497,8 +506,18 @@ export function OnlineCommerceHub({
       {
         id: crypto.randomUUID(),
         channel,
-        customer: `Cliente ${index}`,
+        customer:
+          language === "en"
+            ? `Customer ${index}`
+            : language === "pt"
+              ? `Cliente ${index}`
+              : language === "fr"
+                ? `Client ${index}`
+                : language === "de"
+                  ? `Kunde ${index}`
+                  : `Cliente ${index}`,
         total: 15900 + index * 2300,
+        currency,
         status: index % 2 ? "paid" : "preparing",
         createdAt: new Date().toISOString()
       },
@@ -685,7 +704,7 @@ export function OnlineCommerceHub({
                     <p className="text-sm font-semibold">
                       {new Intl.NumberFormat(locale, {
                         style: "currency",
-                        currency
+                        currency: order.currency || currency
                       }).format(order.total)}
                     </p>
                     <p className="mt-1 text-[10px] font-semibold text-[#8F0000]">
@@ -754,7 +773,14 @@ export function DocumentsHub({
       );
       if (!raw) return;
       const parsed = JSON.parse(raw) as BusinessDocument[];
-      if (Array.isArray(parsed)) setDocuments(parsed);
+      if (Array.isArray(parsed)) {
+        setDocuments(
+          parsed.map((document) => ({
+            ...document,
+            currency: document.currency || currency
+          }))
+        );
+      }
     } catch {
       // Ignore invalid local document data.
     } finally {
@@ -772,15 +798,17 @@ export function DocumentsHub({
 
   const totals = useMemo(
     () =>
-      documents.reduce(
-        (sum, document) =>
-          sum +
-          (document.type === "credit_note"
-            ? -document.total
-            : document.total),
-        0
-      ),
-    [documents]
+      documents
+        .filter((document) => document.currency === currency)
+        .reduce(
+          (sum, document) =>
+            sum +
+            (document.type === "credit_note"
+              ? -document.total
+              : document.total),
+          0
+        ),
+    [currency, documents]
   );
 
   function createDocument() {
@@ -789,7 +817,12 @@ export function DocumentsHub({
 
     const prefix =
       type === "invoice" ? "FAC" : type === "receipt" ? "REC" : "NC";
-    const number = `${prefix}-${String(documents.length + 1).padStart(6, "0")}`;
+    const nextSequence =
+      documents.reduce((max, document) => {
+        const sequence = Number(document.number.split("-").pop());
+        return Number.isFinite(sequence) ? Math.max(max, sequence) : max;
+      }, 0) + 1;
+    const number = `${prefix}-${String(nextSequence).padStart(6, "0")}`;
 
     setDocuments((current) => [
       {
@@ -799,6 +832,7 @@ export function DocumentsHub({
         customer: customer.trim(),
         description: description.trim(),
         total: Math.max(0, parsedTotal),
+        currency,
         createdAt: new Date().toISOString()
       },
       ...current
@@ -822,7 +856,7 @@ export function DocumentsHub({
 
     const money = new Intl.NumberFormat(locale, {
       style: "currency",
-      currency
+      currency: document.currency || currency
     }).format(document.total);
 
     popup.document.write(`
@@ -985,7 +1019,7 @@ export function DocumentsHub({
                       <strong className="mr-2 text-sm">
                         {new Intl.NumberFormat(locale, {
                           style: "currency",
-                          currency
+                          currency: document.currency || currency
                         }).format(document.total)}
                       </strong>
                       <button
