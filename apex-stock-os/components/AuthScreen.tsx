@@ -261,17 +261,20 @@ export function AuthScreen({
   onAuthenticated
 }: AuthScreenProps) {
   const labels = copy[language];
+  const configured = useMemo(() => isSupabaseConfigured(), []);
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
-  const [email, setEmail] = useState("demo@globalstock.local");
-  const [password, setPassword] = useState("GlobalStock2026!");
+  const [email, setEmail] = useState(() =>
+    isSupabaseConfigured() ? "" : "demo@globalstock.local"
+  );
+  const [password, setPassword] = useState(() =>
+    isSupabaseConfigured() ? "" : "GlobalStock2026!"
+  );
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [introComplete, setIntroComplete] = useState(false);
   const [brandVisible, setBrandVisible] = useState(false);
-
-  const configured = useMemo(() => isSupabaseConfigured(), []);
 
   useEffect(() => {
     const brandTimer = window.setTimeout(() => setBrandVisible(true), 1050);
