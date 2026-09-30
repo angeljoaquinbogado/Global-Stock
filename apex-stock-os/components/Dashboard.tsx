@@ -151,6 +151,7 @@ export function Dashboard({
   onSignOut
 }: DashboardProps) {
   const [products, setProducts] = useState<Product[]>(demoProducts);
+  const [storageReady, setStorageReady] = useState(false);
   const [currency, setCurrency] = useState("ARS");
   const [currencyRate, setCurrencyRate] = useState(1);
   const [language, setLanguage] = useState<Language>("es");
@@ -160,6 +161,56 @@ export function Dashboard({
 
   const labels = copy[language];
   const locale = localeByLanguage[language];
+
+  useEffect(() => {
+    try {
+      const savedProducts = window.localStorage.getItem(
+        "global-stock-demo-products-v1"
+      );
+      const savedCurrency = window.localStorage.getItem(
+        "global-stock-demo-currency"
+      );
+      const savedLanguage = window.localStorage.getItem(
+        "global-stock-demo-language"
+      );
+
+      if (savedProducts) {
+        const parsed = JSON.parse(savedProducts) as Product[];
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setProducts(parsed);
+        }
+      }
+
+      if (savedCurrency && currencies.includes(savedCurrency)) {
+        setCurrency(savedCurrency);
+      }
+
+      if (
+        savedLanguage &&
+        ["es", "en", "pt", "fr", "de"].includes(savedLanguage)
+      ) {
+        setLanguage(savedLanguage as Language);
+      }
+    } catch {
+      // Invalid local demo data is ignored and the bundled sample is retained.
+    } finally {
+      setStorageReady(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    window.localStorage.setItem(
+      "global-stock-demo-products-v1",
+      JSON.stringify(products)
+    );
+  }, [products, storageReady]);
+
+  useEffect(() => {
+    if (!storageReady) return;
+    window.localStorage.setItem("global-stock-demo-currency", currency);
+    window.localStorage.setItem("global-stock-demo-language", language);
+  }, [currency, language, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
