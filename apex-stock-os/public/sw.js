@@ -1,4 +1,4 @@
-const CACHE_NAME = "global-stock-shell-v3";
+const CACHE_NAME = "global-stock-shell-v4";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
@@ -38,6 +38,13 @@ self.addEventListener("fetch", (event) => {
 
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
+
+  // Cesium ships large runtime assets and workers. Keep them network-only so
+  // the PWA cache never stores stale or oversized globe bundles.
+  if (url.pathname.startsWith("/cesium/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
 
   // Always fetch Next.js app code from the network so deployments never mix
   // old JS with new UI text. These files are content-hashed by Next.js.
