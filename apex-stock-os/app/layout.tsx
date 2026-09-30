@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { PwaRegistrar } from "@/components/PwaRegistrar";
 
 export const metadata: Metadata = {
   title: "Global Stock",
@@ -38,7 +39,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body>{children}</body>
+      <body><PwaRegistrar />{children}</body>
     </html>
   );
 }
