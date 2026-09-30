@@ -76,6 +76,12 @@ const copy: Record<
     normal: string;
     low: string;
     out: string;
+    product: string;
+    category: string;
+    supplier: string;
+    cost: string;
+    price: string;
+    status: string;
   }
 > = {
   es: {
@@ -99,7 +105,13 @@ const copy: Record<
     all: "Todos",
     normal: "Normal",
     low: "Bajo",
-    out: "Agotado"
+    out: "Agotado",
+    product: "Producto",
+    category: "Categoría",
+    supplier: "Proveedor",
+    cost: "Costo",
+    price: "Precio",
+    status: "Estado"
   },
   en: {
     overview: "Control center",
@@ -122,7 +134,13 @@ const copy: Record<
     all: "All",
     normal: "Normal",
     low: "Low",
-    out: "Out of stock"
+    out: "Out of stock",
+    product: "Product",
+    category: "Category",
+    supplier: "Supplier",
+    cost: "Cost",
+    price: "Price",
+    status: "Status"
   },
   pt: {
     overview: "Centro de controle",
@@ -145,7 +163,13 @@ const copy: Record<
     all: "Todos",
     normal: "Normal",
     low: "Baixo",
-    out: "Esgotado"
+    out: "Esgotado",
+    product: "Produto",
+    category: "Categoria",
+    supplier: "Fornecedor",
+    cost: "Custo",
+    price: "Preço",
+    status: "Status"
   },
   fr: {
     overview: "Centre de contrôle",
@@ -168,7 +192,13 @@ const copy: Record<
     all: "Tous",
     normal: "Normal",
     low: "Faible",
-    out: "Épuisé"
+    out: "Épuisé",
+    product: "Produit",
+    category: "Catégorie",
+    supplier: "Fournisseur",
+    cost: "Coût",
+    price: "Prix",
+    status: "Statut"
   },
   de: {
     overview: "Kontrollzentrum",
@@ -191,7 +221,13 @@ const copy: Record<
     all: "Alle",
     normal: "Normal",
     low: "Niedrig",
-    out: "Ausverkauft"
+    out: "Ausverkauft",
+    product: "Produkt",
+    category: "Kategorie",
+    supplier: "Lieferant",
+    cost: "Kosten",
+    price: "Preis",
+    status: "Status"
   }
 };
 
@@ -659,13 +695,13 @@ export function Dashboard({
             <table className="min-w-[880px] w-full border-collapse text-left">
               <thead>
                 <tr className="border-b border-[var(--apex-border)] text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
-                  <th className="px-5 py-3.5 sm:px-6">Producto</th>
-                  <th className="px-4 py-3.5">Categoría</th>
-                  <th className="px-4 py-3.5">Proveedor</th>
-                  <th className="px-4 py-3.5">Costo</th>
-                  <th className="px-4 py-3.5">Precio</th>
+                  <th className="px-5 py-3.5 sm:px-6">{labels.product}</th>
+                  <th className="px-4 py-3.5">{labels.category}</th>
+                  <th className="px-4 py-3.5">{labels.supplier}</th>
+                  <th className="px-4 py-3.5">{labels.cost}</th>
+                  <th className="px-4 py-3.5">{labels.price}</th>
                   <th className="px-4 py-3.5">Stock</th>
-                  <th className="px-4 py-3.5">Estado</th>
+                  <th className="px-4 py-3.5">{labels.status}</th>
                 </tr>
               </thead>
               <tbody>
@@ -732,7 +768,7 @@ export function Dashboard({
             <PackageCheck size={15} />
             {labels.scanner}
           </div>
-          <BarcodeScanner onProduct={integrateScannedProduct} />
+          <BarcodeScanner onProduct={integrateScannedProduct} language={language} />
         </div>
       </div>
 
