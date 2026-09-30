@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "cesium/Build/Cesium/Widgets/widgets.css";
 import { PwaRegistrar } from "@/components/PwaRegistrar";
 
 export const metadata: Metadata = {
@@ -39,7 +40,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body><PwaRegistrar />{children}</body>
+      <body>
+        <PwaRegistrar />
+        {children}
+      </body>
     </html>
   );
 }
