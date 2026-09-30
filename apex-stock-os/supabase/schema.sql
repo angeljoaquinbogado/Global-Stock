@@ -149,6 +149,42 @@ create trigger on_auth_user_created
 after insert on auth.users
 for each row execute function public.handle_new_user();
 
+create or replace function public.handle_new_business()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $
+begin
+  insert into public.business_members(business_id, user_id, role)
+  values (new.id, new.owner_id, 'owner')
+  on conflict (business_id, user_id)
+  do update set role = 'owner';
+  return new;
+end;
+$;
+
+drop trigger if exists on_business_created on public.businesses;
+create trigger on_business_created
+after insert on public.businesses
+for each row execute function public.handle_new_business();
+
+create or replace function public.is_business_admin(target_business_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $
+  select exists (
+    select 1
+    from public.business_members bm
+    where bm.business_id = target_business_id
+      and bm.user_id = auth.uid()
+      and bm.role in ('owner','admin')
+  );
+$;
+
 alter table public.profiles enable row level security;
 alter table public.businesses enable row level security;
 alter table public.business_members enable row level security;
@@ -197,24 +233,8 @@ using (public.is_business_member(business_id));
 
 create policy "members_manage_admin"
 on public.business_members for all
-using (
-  exists (
-    select 1
-    from public.business_members admin_member
-    where admin_member.business_id = business_id
-      and admin_member.user_id = auth.uid()
-      and admin_member.role in ('owner','admin')
-  )
-)
-with check (
-  exists (
-    select 1
-    from public.business_members admin_member
-    where admin_member.business_id = business_id
-      and admin_member.user_id = auth.uid()
-      and admin_member.role in ('owner','admin')
-  )
-);
+using (public.is_business_admin(business_id))
+with check (public.is_business_admin(business_id));
 
 create policy "products_member_access"
 on public.products for all
@@ -254,12 +274,77 @@ create policy "sync_logs_member_read"
 on public.sync_logs for select
 using (public.is_business_member(business_id));
 
-do $$
+create or replace function public.apply_stock_sync(
+  target_business_id uuid,
+  target_barcode text,
+  stock_delta integer,
+  sync_reference text
+)
+returns integer
+language plpgsql
+security definer
+set search_path = public
+as $
+declare
+  target_product_id uuid;
+  current_stock integer;
+  next_stock integer;
+begin
+  if stock_delta = 0 then
+    raise exception 'stock_delta cannot be zero';
+  end if;
+
+  select id, stock
+    into target_product_id, current_stock
+  from public.products
+  where business_id = target_business_id
+    and barcode = target_barcode
+  for update;
+
+  if target_product_id is null then
+    raise exception 'product not found for barcode %', target_barcode;
+  end if;
+
+  next_stock := current_stock + stock_delta;
+
+  if next_stock < 0 then
+    raise exception 'insufficient stock for barcode %', target_barcode;
+  end if;
+
+  update public.products
+  set stock = next_stock
+  where id = target_product_id;
+
+  insert into public.inventory_events(
+    business_id,
+    product_id,
+    actor_id,
+    delta,
+    reason,
+    reference_id
+  )
+  values (
+    target_business_id,
+    target_product_id,
+    null,
+    stock_delta,
+    'sync',
+    sync_reference
+  );
+
+  return next_stock;
+end;
+$;
+
+revoke all on function public.apply_stock_sync(uuid, text, integer, text) from public;
+grant execute on function public.apply_stock_sync(uuid, text, integer, text) to service_role;
+
+do $
 begin
   alter publication supabase_realtime add table public.products;
 exception
   when duplicate_object then null;
-end $$;
+end $;
 
 do $$
 begin
