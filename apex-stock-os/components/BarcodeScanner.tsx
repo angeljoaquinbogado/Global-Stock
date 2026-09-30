@@ -47,11 +47,200 @@ type ScannerStatus =
   | "resolved"
   | "error";
 
+type ScannerLanguage = "es" | "en" | "pt" | "fr" | "de";
+
 type BarcodeScannerProps = {
   onProduct?: (product: Product) => void;
+  language?: ScannerLanguage;
 };
 
-export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
+const scannerCopy: Record<ScannerLanguage, {
+  idle: string;
+  detected: (code: string) => string;
+  missing: string;
+  loaded: string;
+  secureRequired: string;
+  noCamera: string;
+  requesting: string;
+  aim: string;
+  imageAnalyzing: string;
+  imageFail: string;
+  title: string;
+  eyebrow: string;
+  description: string;
+  localNotice: string;
+  live: string;
+  stop: string;
+  photo: string;
+  previewSecure: string;
+  previewInsecure: string;
+  manual: string;
+  manualPlaceholder: string;
+  search: string;
+  product: string;
+  category: string;
+  cost: string;
+  price: string;
+  stock: string;
+  supplier: string;
+}> = {
+  es: {
+    idle: "Escaneá en vivo, tomá una foto o ingresá el código manualmente.",
+    detected: (code) => `Código detectado: ${code}. Buscando producto…`,
+    missing: "El código se leyó correctamente, pero todavía no existe en el catálogo.",
+    loaded: "Producto identificado y cargado.",
+    secureRequired: "La cámara en vivo necesita HTTPS. En esta prueba local usá “{copy.photo}” o ingresá el código manualmente.",
+    noCamera: "Este navegador no expone acceso a cámara en vivo.",
+    requesting: "Solicitando permiso para usar la cámara…",
+    aim: "Apuntá el código dentro del marco.",
+    imageAnalyzing: "Analizando la imagen…",
+    imageFail: "No pude detectar un código en esa imagen. Acercate más y asegurate de que esté nítido.",
+    title: "{copy.title}",
+    eyebrow: "{copy.eyebrow}",
+    description: "{copy.description}",
+    localNotice: "En tu dirección local HTTP el navegador bloquea la cámara en vivo. La foto sí funciona. En Vercel HTTPS se habilita el escaneo en vivo.",
+    live: "Cámara en vivo",
+    stop: "Detener",
+    photo: "Tomar foto",
+    previewSecure: "Abrí la cámara y apuntá al código.",
+    previewInsecure: "En esta prueba local usá “Tomar foto”. La cámara en vivo se habilita con HTTPS.",
+    manual: "{copy.manual}",
+    manualPlaceholder: "EAN / UPC / código",
+    search: "Buscar código",
+    product: "Producto",
+    category: "Categoría",
+    cost: "Compra",
+    price: "Venta",
+    stock: "Stock",
+    supplier: "Proveedor"
+  },
+  en: {
+    idle: "Scan live, take a photo or enter the code manually.",
+    detected: (code) => `Code detected: ${code}. Looking up product…`,
+    missing: "The code was read correctly, but it is not in the catalog yet.",
+    loaded: "Product identified and loaded.",
+    secureRequired: "Live camera needs HTTPS. In this local test use “Take photo” or enter the code manually.",
+    noCamera: "This browser does not expose live camera access.",
+    requesting: "Requesting camera permission…",
+    aim: "Place the code inside the frame.",
+    imageAnalyzing: "Analyzing image…",
+    imageFail: "I could not detect a code in that image. Move closer and make sure it is sharp.",
+    title: "Barcode scanner",
+    eyebrow: "Universal capture",
+    description: "Live camera on HTTPS, photo fallback and manual lookup.",
+    localNotice: "Your local HTTP address blocks live camera access. Photo capture still works. Live scanning is enabled on HTTPS.",
+    live: "Live camera",
+    stop: "Stop",
+    photo: "Take photo",
+    previewSecure: "Open the camera and point it at the code.",
+    previewInsecure: "Use “Take photo” in this local test. Live camera is enabled with HTTPS.",
+    manual: "Manual code",
+    manualPlaceholder: "EAN / UPC / code",
+    search: "Search code",
+    product: "Product",
+    category: "Category",
+    cost: "Cost",
+    price: "Price",
+    stock: "Stock",
+    supplier: "Supplier"
+  },
+  pt: {
+    idle: "Escaneie ao vivo, tire uma foto ou digite o código manualmente.",
+    detected: (code) => `Código detectado: ${code}. Buscando produto…`,
+    missing: "O código foi lido corretamente, mas ainda não existe no catálogo.",
+    loaded: "Produto identificado e carregado.",
+    secureRequired: "A câmera ao vivo precisa de HTTPS. Neste teste local use “Tirar foto” ou digite o código.",
+    noCamera: "Este navegador não oferece acesso à câmera ao vivo.",
+    requesting: "Solicitando permissão para usar a câmera…",
+    aim: "Posicione o código dentro do quadro.",
+    imageAnalyzing: "Analisando a imagem…",
+    imageFail: "Não consegui detectar um código nessa imagem. Aproxime e garanta que esteja nítida.",
+    title: "Leitor de códigos",
+    eyebrow: "Captura universal",
+    description: "Câmera ao vivo em HTTPS, foto como fallback e busca manual.",
+    localNotice: "No endereço HTTP local o navegador bloqueia a câmera ao vivo. A foto funciona. Em HTTPS o escaneamento ao vivo é liberado.",
+    live: "Câmera ao vivo",
+    stop: "Parar",
+    photo: "Tirar foto",
+    previewSecure: "Abra a câmera e aponte para o código.",
+    previewInsecure: "Use “Tirar foto” neste teste local. A câmera ao vivo é habilitada com HTTPS.",
+    manual: "Código manual",
+    manualPlaceholder: "EAN / UPC / código",
+    search: "Buscar código",
+    product: "Produto",
+    category: "Categoria",
+    cost: "Compra",
+    price: "Venda",
+    stock: "Estoque",
+    supplier: "Fornecedor"
+  },
+  fr: {
+    idle: "Scannez en direct, prenez une photo ou saisissez le code manuellement.",
+    detected: (code) => `Code détecté : ${code}. Recherche du produit…`,
+    missing: "Le code a été lu correctement, mais il n’existe pas encore dans le catalogue.",
+    loaded: "Produit identifié et chargé.",
+    secureRequired: "La caméra en direct nécessite HTTPS. Pour ce test local, utilisez “Prendre une photo” ou saisissez le code.",
+    noCamera: "Ce navigateur n’expose pas l’accès à la caméra en direct.",
+    requesting: "Demande d’autorisation de la caméra…",
+    aim: "Placez le code dans le cadre.",
+    imageAnalyzing: "Analyse de l’image…",
+    imageFail: "Aucun code détecté. Rapprochez-vous et assurez-vous que l’image est nette.",
+    title: "Lecteur de codes",
+    eyebrow: "Capture universelle",
+    description: "Caméra en direct via HTTPS, photo de secours et recherche manuelle.",
+    localNotice: "L’adresse HTTP locale bloque la caméra en direct. La photo fonctionne. Le scan en direct est disponible en HTTPS.",
+    live: "Caméra en direct",
+    stop: "Arrêter",
+    photo: "Prendre une photo",
+    previewSecure: "Ouvrez la caméra et visez le code.",
+    previewInsecure: "Utilisez “Prendre une photo” pour ce test local. La caméra en direct nécessite HTTPS.",
+    manual: "Code manuel",
+    manualPlaceholder: "EAN / UPC / code",
+    search: "Rechercher le code",
+    product: "Produit",
+    category: "Catégorie",
+    cost: "Achat",
+    price: "Vente",
+    stock: "Stock",
+    supplier: "Fournisseur"
+  },
+  de: {
+    idle: "Live scannen, Foto aufnehmen oder Code manuell eingeben.",
+    detected: (code) => `Code erkannt: ${code}. Produkt wird gesucht…`,
+    missing: "Der Code wurde gelesen, ist aber noch nicht im Katalog.",
+    loaded: "Produkt erkannt und geladen.",
+    secureRequired: "Die Live-Kamera benötigt HTTPS. Nutze in diesem lokalen Test “Foto aufnehmen” oder gib den Code manuell ein.",
+    noCamera: "Dieser Browser stellt keinen Live-Kamerazugriff bereit.",
+    requesting: "Kameraberechtigung wird angefordert…",
+    aim: "Code im Rahmen positionieren.",
+    imageAnalyzing: "Bild wird analysiert…",
+    imageFail: "Kein Code im Bild erkannt. Geh näher heran und achte auf ein scharfes Bild.",
+    title: "Barcode-Scanner",
+    eyebrow: "Universelle Erfassung",
+    description: "Live-Kamera über HTTPS, Foto-Fallback und manuelle Suche.",
+    localNotice: "Die lokale HTTP-Adresse blockiert die Live-Kamera. Fotos funktionieren. Live-Scanning wird über HTTPS aktiviert.",
+    live: "Live-Kamera",
+    stop: "Stoppen",
+    photo: "Foto aufnehmen",
+    previewSecure: "Kamera öffnen und auf den Code richten.",
+    previewInsecure: "Nutze in diesem lokalen Test “Foto aufnehmen”. Live-Kamera funktioniert über HTTPS.",
+    manual: "Manueller Code",
+    manualPlaceholder: "EAN / UPC / Code",
+    search: "Code suchen",
+    product: "Produkt",
+    category: "Kategorie",
+    cost: "Einkauf",
+    price: "Verkauf",
+    stock: "Bestand",
+    supplier: "Lieferant"
+  }
+};
+
+export function BarcodeScanner({
+  onProduct,
+  language = "es"
+}: BarcodeScannerProps) {
+  const copy = scannerCopy[language];
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
@@ -60,9 +249,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
   const resolvedRef = useRef(false);
 
   const [status, setStatus] = useState<ScannerStatus>("idle");
-  const [message, setMessage] = useState(
-    "Escaneá en vivo, tomá una foto o ingresá el código manualmente."
-  );
+  const [message, setMessage] = useState(copy.idle);
   const [product, setProduct] = useState<Product | null>(null);
   const [manualCode, setManualCode] = useState("");
 
@@ -81,7 +268,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
 
     resolvedRef.current = true;
     setStatus("requesting");
-    setMessage(`Código detectado: ${normalized}. Buscando producto…`);
+    setMessage(copy.detected(normalized));
 
     try {
       const response = await fetch(
@@ -90,16 +277,14 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
       );
 
       if (!response.ok) {
-        throw new Error(
-          "El código se leyó correctamente, pero todavía no existe en el catálogo."
-        );
+        throw new Error(copy.missing);
       }
 
       const payload = (await response.json()) as { product: Product };
       setProduct(payload.product);
       setManualCode(payload.product.barcode);
       setStatus("resolved");
-      setMessage("Producto identificado y cargado.");
+      setMessage(copy.loaded);
       onProduct?.(payload.product);
       stopCameraOnly();
     } catch (reason) {
@@ -121,20 +306,18 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
 
     if (!window.isSecureContext) {
       setStatus("error");
-      setMessage(
-        "La cámara en vivo necesita HTTPS. En esta prueba local usá “Tomar foto” o ingresá el código manualmente."
-      );
+      setMessage(copy.secureRequired);
       return;
     }
 
     if (!navigator.mediaDevices?.getUserMedia) {
       setStatus("error");
-      setMessage("Este navegador no expone acceso a cámara en vivo.");
+      setMessage(copy.noCamera);
       return;
     }
 
     setStatus("requesting");
-    setMessage("Solicitando permiso para usar la cámara…");
+    setMessage(copy.requesting);
 
     try {
       if (window.BarcodeDetector) {
@@ -183,7 +366,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
     });
 
     setStatus("scanning");
-    setMessage("Apuntá el código dentro del marco.");
+    setMessage(copy.aim);
 
     const tick = async () => {
       if (!videoRef.current || !streamRef.current || resolvedRef.current) return;
@@ -228,7 +411,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
     stopCameraOnly();
     setProduct(null);
     setStatus("requesting");
-    setMessage("Analizando la imagen…");
+    setMessage(copy.imageAnalyzing);
     resolvedRef.current = false;
 
     const url = URL.createObjectURL(file);
@@ -239,9 +422,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
       await resolveBarcode(result.getText());
     } catch {
       setStatus("error");
-      setMessage(
-        "No pude detectar un código en esa imagen. Acercate más y asegurate de que esté nítido."
-      );
+      setMessage(copy.imageFail);
     } finally {
       reader.reset();
       URL.revokeObjectURL(url);
@@ -276,7 +457,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
     stopCameraOnly();
     resolvedRef.current = false;
     setStatus("idle");
-    setMessage("Escaneá en vivo, tomá una foto o ingresá el código manualmente.");
+    setMessage(copy.idle);
   }
 
   const active = status === "scanning" || status === "requesting";
@@ -301,8 +482,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
           {!liveCameraAvailable && (
             <div className="flex max-w-sm items-start gap-2 rounded-2xl border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-[11px] leading-5 text-amber-600">
               <ShieldAlert size={16} className="mt-0.5 shrink-0" />
-              En tu dirección local HTTP el navegador bloquea la cámara en vivo.
-              La foto sí funciona. En Vercel HTTPS se habilita el escaneo en vivo.
+              {copy.localNotice}
             </div>
           )}
         </div>
@@ -320,7 +500,7 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
             ) : (
               <Camera size={16} />
             )}
-            {active ? "Detener" : "Cámara en vivo"}
+            {active ? copy.stop : copy.live}
           </button>
 
           <button
@@ -405,14 +585,14 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
                 value={manualCode}
                 onChange={(event) => setManualCode(event.target.value)}
                 inputMode="numeric"
-                placeholder="EAN / UPC / código"
+                placeholder={copy.manualPlaceholder}
                 className="apex-input min-w-0 flex-1 px-3 py-2.5 text-sm"
               />
               <button
                 type="submit"
                 disabled={!manualCode.trim()}
                 className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white disabled:opacity-35"
-                aria-label="Buscar código"
+                aria-label={copy.search}
               >
                 <Search size={17} />
               </button>
@@ -422,12 +602,12 @@ export function BarcodeScanner({ onProduct }: BarcodeScannerProps) {
           {product && (
             <dl className="grid grid-cols-2 gap-3 text-sm">
               {[
-                ["Producto", product.name],
-                ["Categoría", product.category],
-                ["Compra", product.cost.toLocaleString("es-AR")],
-                ["Venta", product.price.toLocaleString("es-AR")],
-                ["Stock", String(product.stock)],
-                ["Proveedor", product.supplier]
+                [copy.product, product.name],
+                [copy.category, product.category],
+                [copy.cost, product.cost.toLocaleString("es-AR")],
+                [copy.price, product.price.toLocaleString("es-AR")],
+                [copy.stock, String(product.stock)],
+                [copy.supplier, product.supplier]
               ].map(([label, value]) => (
                 <div
                   key={label}
