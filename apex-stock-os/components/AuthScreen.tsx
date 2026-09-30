@@ -452,12 +452,12 @@ export function AuthScreen({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7 }}
-            className="relative z-20 flex min-h-screen items-center justify-center px-4 py-5 lg:justify-end lg:px-10 xl:px-16"
+            className="relative z-20 flex min-h-screen items-center justify-center px-4 py-6 sm:px-6 lg:px-10"
           >
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
-              initial={{ opacity: 0, x: 44, scale: 0.985 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
+              initial={{ opacity: 0, y: 28, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={spring}
               className={`w-full max-w-[510px] rounded-[34px] border p-5 shadow-[0_38px_120px_rgba(0,0,0,.58)] backdrop-blur-[30px] sm:p-7 ${surfaceClass}`}
             >
