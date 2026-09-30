@@ -25,6 +25,7 @@ const copy: Record<
     iosFirst: string;
     share: string;
     addHome: string;
+    thenChoose: string;
     iosSecond: string;
     browserFallback: string;
     browserInstall: string;
@@ -38,6 +39,7 @@ const copy: Record<
     iosFirst: "En iPhone o iPad abrí esta página en Safari, tocá",
     share: "Compartir",
     addHome: "Añadir a pantalla de inicio",
+    thenChoose: "y elegí",
     iosSecond:
       "Después Global Stock se abre desde su propio icono, sin la barra del navegador.",
     browserFallback:
@@ -52,6 +54,7 @@ const copy: Record<
     iosFirst: "On iPhone or iPad open this page in Safari, tap",
     share: "Share",
     addHome: "Add to Home Screen",
+    thenChoose: "and choose",
     iosSecond:
       "Global Stock will then open from its own icon without the browser bar.",
     browserFallback:
@@ -66,6 +69,7 @@ const copy: Record<
     iosFirst: "No iPhone ou iPad abra esta página no Safari e toque em",
     share: "Compartilhar",
     addHome: "Adicionar à Tela de Início",
+    thenChoose: "e escolha",
     iosSecond:
       "Depois o Global Stock abre pelo próprio ícone, sem a barra do navegador.",
     browserFallback:
@@ -80,6 +84,7 @@ const copy: Record<
     iosFirst: "Sur iPhone ou iPad, ouvrez cette page dans Safari puis touchez",
     share: "Partager",
     addHome: "Sur l’écran d’accueil",
+    thenChoose: "puis choisissez",
     iosSecond:
       "Global Stock s’ouvrira ensuite depuis sa propre icône, sans la barre du navigateur.",
     browserFallback:
@@ -94,6 +99,7 @@ const copy: Record<
     iosFirst: "Öffne diese Seite auf iPhone oder iPad in Safari und tippe auf",
     share: "Teilen",
     addHome: "Zum Home-Bildschirm",
+    thenChoose: "und wähle",
     iosSecond:
       "Danach öffnet sich Global Stock über das eigene Symbol ohne Browserleiste.",
     browserFallback:
@@ -219,7 +225,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                     <span className="inline-flex items-center gap-1 font-semibold text-[var(--apex-text)]">
                       {labels.share} <Share size={14} />
                     </span>{" "}
-                    y elegí <strong>{labels.addHome}</strong>.
+                    {labels.thenChoose} <strong>{labels.addHome}</strong>.
                   </p>
                   <p>{labels.iosSecond}</p>
                 </div>
