@@ -43,14 +43,13 @@ const uiCopy: Record<
     units: string;
     close: string;
     send: string;
-    prompts: string[];
+    contextHint: string;
   }
 > = {
   es: {
     title: "Global Intelligence",
     subtitle: "Analista conectado a tu negocio",
-    welcome:
-      "Estoy leyendo inventario, rotación, costos, precios y ventas. Puedo cruzar esos datos para recomendar reposición, detectar capital inmovilizado, revisar márgenes o simular cambios de precio.",
+    welcome:\n      "Listo. Preguntame lo que quieras: puedo conversar normalmente y, cuando haga falta, usar los datos reales de Global Stock para analizar tu negocio.",
     placeholder: "Preguntá algo sobre tu negocio…",
     analyzing: "Cruzando stock, ventas, costos y márgenes…",
     alerts: "alertas",
@@ -58,18 +57,12 @@ const uiCopy: Record<
     units: "unidades",
     close: "Minimizar inteligencia",
     send: "Enviar consulta",
-    prompts: [
-      "¿Qué debería reponer hoy y cuánto costaría?",
-      "¿Qué productos me inmovilizan capital?",
-      "¿Cómo están mis márgenes?",
-      "¿Qué pasa si subo precios 8%?"
-    ]
+    contextHint: "Puede razonar con inventario, ventas, costos, márgenes, escenarios y cualquier consulta general."
   },
   en: {
     title: "Global Intelligence",
     subtitle: "Analyst connected to your business",
-    welcome:
-      "I am reading inventory, rotation, costs, prices and sales. I can combine them to recommend restocking, detect tied capital, review margins or simulate price changes.",
+    welcome:\n      "Ready. Ask me anything: I can chat normally and, when useful, use Global Stock’s live business data for analysis.",
     placeholder: "Ask about your business…",
     analyzing: "Crossing stock, sales, costs and margins…",
     alerts: "alerts",
@@ -77,18 +70,12 @@ const uiCopy: Record<
     units: "units",
     close: "Minimize intelligence",
     send: "Send question",
-    prompts: [
-      "What should I restock today and what would it cost?",
-      "Which products tie up capital?",
-      "How are my margins?",
-      "What if I raise prices 8%?"
-    ]
+    contextHint: "It can reason over inventory, sales, costs, margins, scenarios and general questions."
   },
   pt: {
     title: "Global Intelligence",
     subtitle: "Analista conectado ao seu negócio",
-    welcome:
-      "Estou lendo estoque, rotação, custos, preços e vendas. Posso cruzar esses dados para recomendar reposição, detectar capital parado, revisar margens ou simular mudanças de preço.",
+    welcome:\n      "Pronto. Pergunte o que quiser: posso conversar normalmente e usar os dados reais do Global Stock quando for útil.",
     placeholder: "Pergunte sobre seu negócio…",
     analyzing: "Cruzando estoque, vendas, custos e margens…",
     alerts: "alertas",
@@ -96,18 +83,12 @@ const uiCopy: Record<
     units: "unidades",
     close: "Minimizar inteligência",
     send: "Enviar pergunta",
-    prompts: [
-      "O que devo repor hoje e quanto custaria?",
-      "Quais produtos prendem capital?",
-      "Como estão minhas margens?",
-      "E se eu aumentar os preços em 8%?"
-    ]
+    contextHint: "Pode raciocinar sobre estoque, vendas, custos, margens, cenários e perguntas gerais."
   },
   fr: {
     title: "Global Intelligence",
     subtitle: "Analyste connecté à votre activité",
-    welcome:
-      "J’analyse stock, rotation, coûts, prix et ventes. Je peux croiser ces données pour recommander le réapprovisionnement, détecter le capital immobilisé, revoir les marges ou simuler des prix.",
+    welcome:\n      "Prêt. Posez-moi n’importe quelle question : je peux discuter normalement et utiliser les données réelles de Global Stock lorsque c’est utile.",
     placeholder: "Posez une question sur votre activité…",
     analyzing: "Analyse du stock, des ventes, coûts et marges…",
     alerts: "alertes",
@@ -115,18 +96,12 @@ const uiCopy: Record<
     units: "unités",
     close: "Réduire l’intelligence",
     send: "Envoyer la question",
-    prompts: [
-      "Que dois-je réapprovisionner aujourd’hui ?",
-      "Quels produits immobilisent du capital ?",
-      "Comment évoluent mes marges ?",
-      "Et si j’augmente les prix de 8% ?"
-    ]
+    contextHint: "Peut raisonner sur le stock, les ventes, les coûts, les marges, les scénarios et les questions générales."
   },
   de: {
     title: "Global Intelligence",
     subtitle: "Analyst für deinen Betrieb",
-    welcome:
-      "Ich analysiere Bestand, Umschlag, Kosten, Preise und Verkäufe. Daraus kann ich Nachbestellungen empfehlen, gebundenes Kapital erkennen, Margen prüfen oder Preisänderungen simulieren.",
+    welcome:\n      "Bereit. Frag mich alles: Ich kann normal antworten und bei Bedarf die echten Global-Stock-Daten für Analysen verwenden.",
     placeholder: "Frag etwas über deinen Betrieb…",
     analyzing: "Bestand, Verkäufe, Kosten und Margen werden analysiert…",
     alerts: "Warnungen",
@@ -134,12 +109,7 @@ const uiCopy: Record<
     units: "Einheiten",
     close: "Intelligenz minimieren",
     send: "Frage senden",
-    prompts: [
-      "Was sollte ich heute nachbestellen?",
-      "Welche Produkte binden Kapital?",
-      "Wie sind meine Margen?",
-      "Was passiert bei 8% höheren Preisen?"
-    ]
+    contextHint: "Kann über Bestand, Verkäufe, Kosten, Margen, Szenarien und allgemeine Fragen nachdenken."
   }
 };
 
@@ -198,10 +168,18 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
     const text = message.trim();
     if (!text || pending) return;
 
-    setMessages((current) => [
-      ...current,
-      { id: crypto.randomUUID(), role: "user", content: text }
-    ]);
+    const userMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: text
+    };
+
+    const history = [...messages, userMessage]
+      .filter((item) => item.id !== "welcome")
+      .slice(-14)
+      .map(({ role, content }) => ({ role, content }));
+
+    setMessages((current) => [...current, userMessage]);
     setInput("");
     setPending(true);
 
@@ -209,7 +187,16 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
       const response = await fetch("/api/intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text, snapshot })
+        body: JSON.stringify({
+          message: text,
+          snapshot,
+          history,
+          runtime: {
+            clientNow: new Date().toISOString(),
+            clientTimeZone:
+              Intl.DateTimeFormat().resolvedOptions().timeZone
+          }
+        })
       });
 
       const payload = (await response.json()) as {
@@ -348,17 +335,8 @@ export function ApexIntelligence({ snapshot }: ApexIntelligenceProps) {
             </div>
 
             <div className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:p-3">
-              <div className="apex-scrollbar mb-2 flex gap-2 overflow-x-auto pb-1">
-                {copy.prompts.map((prompt) => (
-                  <button
-                    key={prompt}
-                    type="button"
-                    onClick={() => void ask(prompt)}
-                    className="min-h-9 shrink-0 touch-manipulation rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-[10px] font-semibold text-[var(--apex-muted)] active:scale-[.98]"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+              <div className="mb-2 px-1 text-[10px] leading-4 text-[var(--apex-muted)]">
+                {copy.contextHint}
               </div>
 
               <div className="flex items-end gap-2">
