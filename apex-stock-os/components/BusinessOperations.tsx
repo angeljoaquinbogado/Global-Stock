@@ -422,6 +422,7 @@ export function OnlineCommerceHub({
   const t = copy[language];
   const [connections, setConnections] = useState<SavedConnection[]>([]);
   const [orders, setOrders] = useState<OnlineOrder[]>([]);
+  const [onlineStorageReady, setOnlineStorageReady] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [storeUrl, setStoreUrl] = useState("");
 
@@ -443,22 +444,26 @@ export function OnlineCommerceHub({
       }
     } catch {
       // Keep empty local state.
+    } finally {
+      setOnlineStorageReady(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!onlineStorageReady) return;
     localStorage.setItem(
       "global-stock-online-connections-v1",
       JSON.stringify(connections)
     );
-  }, [connections]);
+  }, [connections, onlineStorageReady]);
 
   useEffect(() => {
+    if (!onlineStorageReady) return;
     localStorage.setItem(
       "global-stock-online-orders-v1",
       JSON.stringify(orders)
     );
-  }, [orders]);
+  }, [orders, onlineStorageReady]);
 
   function saveConnection(id: string) {
     const normalized = storeUrl.trim();
@@ -736,6 +741,7 @@ export function DocumentsHub({
 }) {
   const t = copy[language];
   const [documents, setDocuments] = useState<BusinessDocument[]>([]);
+  const [documentsReady, setDocumentsReady] = useState(false);
   const [type, setType] = useState<DocumentType>("invoice");
   const [customer, setCustomer] = useState("");
   const [description, setDescription] = useState("");
@@ -751,15 +757,18 @@ export function DocumentsHub({
       if (Array.isArray(parsed)) setDocuments(parsed);
     } catch {
       // Ignore invalid local document data.
+    } finally {
+      setDocumentsReady(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!documentsReady) return;
     localStorage.setItem(
       "global-stock-documents-v1",
       JSON.stringify(documents)
     );
-  }, [documents]);
+  }, [documents, documentsReady]);
 
   const totals = useMemo(
     () =>
