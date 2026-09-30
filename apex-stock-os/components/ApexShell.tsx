@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from "react";
 
+import {
+  getSupabaseBrowserClient,
+  isSupabaseConfigured
+} from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 import { AuthScreen } from "./AuthScreen";
 import { BusinessWorkspace } from "./BusinessWorkspace";
@@ -14,6 +18,16 @@ const languageToHtml: Record<LanguageCode, string> = {
   de: "de"
 };
 
+const supportedCurrencies = [
+  "ARS",
+  "USD",
+  "EUR",
+  "BRL",
+  "MXN",
+  "GBP",
+  "JPY"
+];
+
 export function ApexShell() {
   const [dark, setDark] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
@@ -22,6 +36,8 @@ export function ApexShell() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
     const storedTheme = window.localStorage.getItem("global-stock-theme");
     const storedLanguage = window.localStorage.getItem(
       "global-stock-demo-language"
@@ -48,18 +64,44 @@ export function ApexShell() {
 
     if (
       storedCurrency &&
-      ["ARS", "USD", "EUR", "BRL", "MXN", "GBP", "JPY"].includes(
-        storedCurrency
-      )
+      supportedCurrencies.includes(storedCurrency)
     ) {
       setCurrency(storedCurrency);
     }
 
-    setReady(true);
+    const client = getSupabaseBrowserClient();
+
+    if (!client) {
+      setAuthenticated(
+        window.localStorage.getItem("global-stock-demo-auth") === "1"
+      );
+      setReady(true);
+      return;
+    }
+
+    void client.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setAuthenticated(Boolean(data.session));
+      setReady(true);
+    });
+
+    const {
+      data: { subscription }
+    } = client.auth.onAuthStateChange((_event, session) => {
+      if (!active) return;
+      setAuthenticated(Boolean(session));
+      setReady(true);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   useEffect(() => {
     if (!ready) return;
+
     document.documentElement.classList.toggle("dark", dark);
     window.localStorage.setItem(
       "global-stock-theme",
@@ -69,14 +111,48 @@ export function ApexShell() {
 
   useEffect(() => {
     if (!ready) return;
+
     document.documentElement.lang = languageToHtml[language];
-    window.localStorage.setItem("global-stock-demo-language", language);
+    window.localStorage.setItem(
+      "global-stock-demo-language",
+      language
+    );
   }, [language, ready]);
 
   useEffect(() => {
     if (!ready) return;
-    window.localStorage.setItem("global-stock-demo-currency", currency);
+
+    window.localStorage.setItem(
+      "global-stock-demo-currency",
+      currency
+    );
   }, [currency, ready]);
+
+  function handleAuthenticated() {
+    if (!isSupabaseConfigured()) {
+      window.localStorage.setItem("global-stock-demo-auth", "1");
+    }
+    setAuthenticated(true);
+  }
+
+  async function handleSignOut() {
+    window.localStorage.removeItem("global-stock-demo-auth");
+
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      await client.auth.signOut();
+    }
+
+    setAuthenticated(false);
+  }
+
+  if (!ready) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-black">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#8F0000]" />
+      </div>
+    );
+  }
 
   if (!authenticated) {
     return (
@@ -87,7 +163,7 @@ export function ApexShell() {
         onToggleTheme={() => setDark((value) => !value)}
         onLanguageChange={setLanguage}
         onCurrencyChange={setCurrency}
-        onAuthenticated={() => setAuthenticated(true)}
+        onAuthenticated={handleAuthenticated}
       />
     );
   }
@@ -100,7 +176,9 @@ export function ApexShell() {
       onLanguageChange={setLanguage}
       onCurrencyChange={setCurrency}
       onToggleTheme={() => setDark((value) => !value)}
-      onSignOut={() => setAuthenticated(false)}
+      onSignOut={() => {
+        void handleSignOut();
+      }}
     />
   );
 }
