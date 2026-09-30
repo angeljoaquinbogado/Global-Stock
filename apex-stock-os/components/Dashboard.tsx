@@ -310,7 +310,7 @@ export function Dashboard({
         <section className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-              Apex Stock OS
+              Global Stock
             </p>
             <h1 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
               {labels.overview}
