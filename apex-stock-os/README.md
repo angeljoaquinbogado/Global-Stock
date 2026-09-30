@@ -17,7 +17,7 @@ Primera entrega funcional del nuevo frontend PWA empresarial construido en **Nex
 - Global Intelligence: chat persistente tipo Dynamic Island, conectado al snapshot real del dashboard.
 - i18n inicial: ES / EN / PT / FR / DE.
 - Multimoneda: ARS / USD / EUR / BRL / MXN / GBP / JPY.
-- PWA con `next-pwa`, manifest e iconos 192/512 maskable.
+- PWA con service worker propio, manifest e iconos 192/512 maskable.
 - Esquema Supabase multi-tenant con RLS, Realtime, auditoría de stock y función atómica de sincronización.
 
 ## Ejecutar en Windows
@@ -28,8 +28,8 @@ Desde la raíz del repositorio:
 git fetch origin
 git switch apex-stock-os-nextjs
 cd apex-stock-os
-npm install
-npm run dev
+npm.cmd install
+npm.cmd run dev
 ```
 
 Abrir:
@@ -94,4 +94,33 @@ El modelo multi-tenant separa cada negocio mediante `business_id`. RLS limita le
 
 ## PWA
 
-En producción, `next-pwa` genera el Service Worker. La aplicación puede instalarse desde navegadores compatibles en Android, Windows y macOS; en iPhone/iPad se instala desde Safari usando **Compartir → Añadir a pantalla de inicio**.
+En producción se registra un Service Worker propio desde `public/sw.js`. La aplicación puede instalarse desde navegadores compatibles en Android, Windows y macOS; en iPhone/iPad se instala desde Safari usando **Compartir → Añadir a pantalla de inicio**.
+
+
+## Probar desde un celular
+
+Con la PC y el teléfono en la misma Wi-Fi:
+
+```powershell
+npm.cmd run dev:lan
+```
+
+En otra terminal de Windows ejecutar `ipconfig` y buscar la dirección IPv4 de la PC. Desde el teléfono abrir `http://IP-DE-LA-PC:3000`.
+
+Para probar instalación PWA, cámara y lector de códigos en condiciones reales se recomienda un despliegue HTTPS en Vercel.
+
+## Despliegue Vercel
+
+El proyecto está preparado para desplegarse usando `apex-stock-os` como directorio raíz.
+
+Desde esta carpeta:
+
+```powershell
+npx.cmd vercel@latest --prod
+```
+
+La primera ejecución puede pedir iniciar sesión y confirmar el equipo/proyecto. Una vez desplegado, la URL HTTPS permite probar Global Stock desde PC, Android, iPhone y tablet.
+
+## Estado de beta
+
+Sin Supabase configurado, Global Stock funciona en modo demo local: autenticación de demostración, inventario editable, persistencia en el dispositivo, analítica, multimoneda, lector y Global Intelligence. Para un lanzamiento multiusuario real deben configurarse Supabase Auth y la base de datos multi-tenant incluida en `supabase/schema.sql`.
