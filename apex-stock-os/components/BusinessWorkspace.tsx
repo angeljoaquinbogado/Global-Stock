@@ -97,6 +97,13 @@ type BusinessWorkspaceProps = {
 };
 
 type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
+type BusinessType =
+  | "retail"
+  | "restaurant"
+  | "services"
+  | "wholesale"
+  | "ecommerce"
+  | "other";
 
 type ActivityKind =
   | "sale"
@@ -813,6 +820,8 @@ export function BusinessWorkspace({
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
   const [businessName, setBusinessName] = useState("Global Stock Demo");
+  const [businessType, setBusinessType] =
+    useState<BusinessType>("retail");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -830,6 +839,9 @@ export function BusinessWorkspace({
       const savedProducts = localStorage.getItem("global-stock-demo-products-v2");
       const savedTrend = localStorage.getItem("global-stock-trend-v1");
       const savedName = localStorage.getItem("global-stock-business-name");
+      const savedBusinessType = localStorage.getItem(
+        "global-stock-business-type"
+      ) as BusinessType | null;
       const savedActivities = localStorage.getItem("global-stock-activities-v1");
       const savedNotes = localStorage.getItem("global-stock-notes-v1");
       const savedFxHistory = localStorage.getItem("global-stock-fx-history-v1");
@@ -846,6 +858,19 @@ export function BusinessWorkspace({
         if (Array.isArray(parsed) && parsed.length) setTrend(parsed);
       }
       if (savedName) setBusinessName(savedName);
+      if (
+        savedBusinessType &&
+        [
+          "retail",
+          "restaurant",
+          "services",
+          "wholesale",
+          "ecommerce",
+          "other"
+        ].includes(savedBusinessType)
+      ) {
+        setBusinessType(savedBusinessType);
+      }
       if (savedActivities) {
         const parsed = JSON.parse(savedActivities) as ActivityRecord[];
         if (Array.isArray(parsed)) setActivities(parsed);
@@ -1215,6 +1240,10 @@ export function BusinessWorkspace({
       "global-stock-business-name",
       businessName.trim()
     );
+    localStorage.setItem(
+      "global-stock-business-type",
+      businessType
+    );
     addActivity("settings");
     setNotice(labels.saved);
     window.setTimeout(() => setNotice(""), 2200);
@@ -1487,7 +1516,9 @@ export function BusinessWorkspace({
                 currency={currency}
                 dark={dark}
                 businessName={businessName}
+                businessType={businessType}
                 setBusinessName={setBusinessName}
+                setBusinessType={setBusinessType}
                 onLanguageChange={onLanguageChange}
                 onCurrencyChange={onCurrencyChange}
                 onToggleTheme={onToggleTheme}
@@ -1682,6 +1713,7 @@ export function BusinessWorkspace({
         snapshot={snapshot}
         appContext={{
           businessName,
+          businessType,
           recentActivities: activities.slice(0, 80),
           notes: notes.slice(0, 80),
           fxHistory: fxHistory.slice(0, 60),
@@ -2843,7 +2875,9 @@ function SettingsModule({
   currency,
   dark,
   businessName,
+  businessType,
   setBusinessName,
+  setBusinessType,
   onLanguageChange,
   onCurrencyChange,
   onToggleTheme,
@@ -2862,7 +2896,9 @@ function SettingsModule({
   currency: string;
   dark: boolean;
   businessName: string;
+  businessType: BusinessType;
   setBusinessName: (value: string) => void;
+  setBusinessType: (value: BusinessType) => void;
   onLanguageChange: (language: LanguageCode) => void;
   onCurrencyChange: (currency: string) => void;
   onToggleTheme: () => void;
@@ -2895,6 +2931,32 @@ function SettingsModule({
             }
             className="apex-input mt-4 px-4 py-3"
           />
+          <select
+            value={businessType}
+            onChange={(event) =>
+              setBusinessType(event.target.value as BusinessType)
+            }
+            className="apex-input mt-3 px-4 py-3 text-sm"
+          >
+            <option value="retail">
+              {language === "en" ? "Retail" : language === "pt" ? "Varejo" : language === "fr" ? "Commerce" : language === "de" ? "Einzelhandel" : "Comercio"}
+            </option>
+            <option value="restaurant">
+              {language === "en" ? "Restaurant / gastronomy" : language === "pt" ? "Restaurante / gastronomia" : language === "fr" ? "Restaurant / restauration" : language === "de" ? "Restaurant / Gastronomie" : "Restaurante / gastronomía"}
+            </option>
+            <option value="services">
+              {language === "en" ? "Services" : language === "pt" ? "Serviços" : language === "fr" ? "Services" : language === "de" ? "Dienstleistungen" : "Servicios"}
+            </option>
+            <option value="wholesale">
+              {language === "en" ? "Wholesale / distribution" : language === "pt" ? "Atacado / distribuição" : language === "fr" ? "Grossiste / distribution" : language === "de" ? "Großhandel / Vertrieb" : "Mayorista / distribución"}
+            </option>
+            <option value="ecommerce">
+              Ecommerce
+            </option>
+            <option value="other">
+              {language === "en" ? "Other" : language === "pt" ? "Outro" : language === "fr" ? "Autre" : language === "de" ? "Andere" : "Otro"}
+            </option>
+          </select>
           <button
             type="button"
             onClick={saveBusinessName}
