@@ -1,6 +1,5 @@
-const CACHE_NAME = "global-stock-shell-v1";
+const CACHE_NAME = "global-stock-shell-v3";
 const APP_SHELL = [
-  "/",
   "/manifest.webmanifest",
   "/icons/icon-192.png",
   "/icons/icon-512.png"
@@ -40,25 +39,33 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith("/api/")) return;
 
+  // Always fetch Next.js app code from the network so deployments never mix
+  // old JS with new UI text. These files are content-hashed by Next.js.
+  if (url.pathname.startsWith("/_next/")) {
+    event.respondWith(fetch(request));
+    return;
+  }
+
+  // Navigation is network-first. Offline fallback only uses a navigation
+  // response that was fetched by the current service worker version.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+          }
           return response;
         })
         .catch(async () => {
-          return (
-            (await caches.match(request)) ||
-            (await caches.match("/")) ||
-            Response.error()
-          );
+          return (await caches.match("/")) || Response.error();
         })
     );
     return;
   }
 
+  // Icons/manifest can safely use stale-while-revalidate.
   event.respondWith(
     caches.match(request).then((cached) => {
       const network = fetch(request)
