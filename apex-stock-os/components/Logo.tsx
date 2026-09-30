@@ -15,7 +15,7 @@ export function Logo({
         <LogoMark className="h-10 w-10 shrink-0" />
         <div className="leading-none">
           <div className="text-[15px] font-semibold tracking-[-0.03em]">
-            Apex Stock
+            Global Stock
           </div>
           <div className="mt-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--apex-muted)]">
             OS
@@ -34,7 +34,7 @@ function LogoMark(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 64 64"
       fill="none"
       role="img"
-      aria-label="Apex Stock OS"
+      aria-label="Global Stock"
       {...props}
     >
       <defs>
