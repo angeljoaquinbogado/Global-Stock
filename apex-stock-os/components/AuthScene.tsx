@@ -1,7 +1,6 @@
 "use client";
 
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { Stars } from "@react-three/drei";
 import ThreeGlobe from "three-globe";
 import { feature } from "topojson-client";
 import countriesTopology from "world-atlas/countries-110m.json";
@@ -63,6 +62,120 @@ function buildArcs(): GlobeArc[] {
     endLng: HUBS[to].lng,
     color: ["rgba(143,0,0,.22)", "rgba(255,38,38,.98)", "rgba(143,0,0,.18)"]
   }));
+}
+
+
+type StarLayerProps = {
+  count: number;
+  radiusMin: number;
+  radiusMax: number;
+  size: number;
+  opacity: number;
+  speed: number;
+  seed: number;
+};
+
+function createStarPositions(
+  count: number,
+  radiusMin: number,
+  radiusMax: number,
+  seed: number
+) {
+  let state = seed >>> 0;
+  const random = () => {
+    state = (1664525 * state + 1013904223) >>> 0;
+    return state / 4294967296;
+  };
+
+  const positions = new Float32Array(count * 3);
+
+  for (let index = 0; index < count; index += 1) {
+    const u = random();
+    const v = random();
+    const radius = THREE.MathUtils.lerp(radiusMin, radiusMax, random());
+    const theta = u * Math.PI * 2;
+    const phi = Math.acos(2 * v - 1);
+
+    positions[index * 3] = radius * Math.sin(phi) * Math.cos(theta);
+    positions[index * 3 + 1] = radius * Math.cos(phi);
+    positions[index * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+  }
+
+  return positions;
+}
+
+function StarLayer({
+  count,
+  radiusMin,
+  radiusMax,
+  size,
+  opacity,
+  speed,
+  seed
+}: StarLayerProps) {
+  const points = useRef<THREE.Points>(null);
+  const positions = useMemo(
+    () => createStarPositions(count, radiusMin, radiusMax, seed),
+    [count, radiusMin, radiusMax, seed]
+  );
+
+  useFrame(({ clock, pointer }, delta) => {
+    if (!points.current) return;
+
+    points.current.rotation.y += speed * delta;
+    points.current.rotation.x = THREE.MathUtils.damp(
+      points.current.rotation.x,
+      -pointer.y * 0.025,
+      2.6,
+      delta
+    );
+    points.current.rotation.z = Math.sin(clock.elapsedTime * 0.08 + seed) * 0.01;
+  });
+
+  return (
+    <points ref={points} frustumCulled={false}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        color="#f7f9ff"
+        size={size}
+        sizeAttenuation
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+function SmoothStarField() {
+  return (
+    <group>
+      <StarLayer
+        count={1250}
+        radiusMin={18}
+        radiusMax={52}
+        size={0.065}
+        opacity={0.72}
+        speed={0.012}
+        seed={17}
+      />
+      <StarLayer
+        count={700}
+        radiusMin={9}
+        radiusMax={26}
+        size={0.085}
+        opacity={0.48}
+        speed={0.025}
+        seed={91}
+      />
+    </group>
+  );
 }
 
 function GlobalGlobe() {
@@ -170,7 +283,7 @@ function GlobalGlobe() {
       <primitive object={globe} />
 
       <mesh scale={1.04}>
-        <sphereGeometry args={[1, 96, 96]} />
+        <sphereGeometry args={[1, 64, 64]} />
         <meshBasicMaterial
           color="#2a0505"
           transparent
@@ -180,7 +293,7 @@ function GlobalGlobe() {
       </mesh>
 
       <mesh rotation={[Math.PI / 2.8, 0.22, 0]} scale={1.5}>
-        <torusGeometry args={[1.08, 0.008, 10, 180]} />
+        <torusGeometry args={[1.08, 0.008, 10, 120]} />
         <meshBasicMaterial
           color="#8F0000"
           transparent
@@ -220,7 +333,7 @@ export function AuthScene() {
     <div className="absolute inset-0 overflow-hidden bg-black">
       <Canvas
         camera={{ position: [-1.4, 0.55, 10.8], fov: 41 }}
-        dpr={[1, 1.6]}
+        dpr={[1, 1.35]}
         gl={{
           antialias: true,
           alpha: false,
@@ -245,15 +358,7 @@ export function AuthScene() {
         />
         <MovingLight />
 
-        <Stars
-          radius={92}
-          depth={48}
-          count={2400}
-          factor={2.2}
-          saturation={0}
-          fade
-          speed={0.08}
-        />
+        <SmoothStarField />
 
         <GlobalGlobe />
 
