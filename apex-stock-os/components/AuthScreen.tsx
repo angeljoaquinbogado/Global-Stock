@@ -376,14 +376,14 @@ export function AuthScreen({
   }
 
   const surfaceClass = dark
-    ? "border-white/10 bg-black/52 text-white"
-    : "border-white/55 bg-white/82 text-[#1D1D1F]";
+    ? "border-white/12 bg-black/[0.78] text-white shadow-[0_38px_120px_rgba(0,0,0,.62)]"
+    : "border-black/10 bg-white/[0.96] text-[#111114] shadow-[0_32px_90px_rgba(0,0,0,.26)]";
 
-  const mutedClass = dark ? "text-white/52" : "text-[#6E6E73]";
+  const mutedClass = dark ? "text-white/65" : "text-[#5F6068]";
   const fieldClass = dark
-    ? "border-white/10 bg-white/[0.06] text-white placeholder:text-white/30"
-    : "border-black/10 bg-white/80 text-[#1D1D1F] placeholder:text-black/30";
-  const iconMutedClass = dark ? "text-white/40" : "text-black/35";
+    ? "border-white/12 bg-white/[0.07] text-white placeholder:text-white/35 focus:bg-white/[0.10]"
+    : "border-black/12 bg-white text-[#111114] placeholder:text-[#8A8B91] shadow-[0_1px_0_rgba(0,0,0,.03)] focus:bg-white";
+  const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-black">
@@ -459,7 +459,7 @@ export function AuthScreen({
               initial={{ opacity: 0, y: 28, scale: 0.985 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={spring}
-              className={`w-full max-w-[510px] rounded-[34px] border p-5 shadow-[0_38px_120px_rgba(0,0,0,.58)] backdrop-blur-[30px] sm:p-7 ${surfaceClass}`}
+              className={`relative w-full max-w-[560px] overflow-visible rounded-[34px] border p-5 backdrop-blur-[26px] sm:p-7 ${surfaceClass}`}
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <Logo withWordmark />
@@ -469,8 +469,8 @@ export function AuthScreen({
                   className={
                     "grid h-10 w-10 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
                     (dark
-                      ? "border-white/10 bg-white/[0.06] text-white hover:bg-white/10"
-                      : "border-black/10 bg-black/[0.04] text-[#1D1D1F] hover:bg-black/[0.07]")
+                      ? "border-white/12 bg-white/[0.07] text-white hover:bg-white/[0.12]"
+                      : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
                   }
                   aria-label={labels.theme}
                 >
@@ -492,7 +492,7 @@ export function AuthScreen({
                   "mb-6 grid grid-cols-2 rounded-2xl border p-1 " +
                   (dark
                     ? "border-white/10 bg-white/[0.05]"
-                    : "border-black/10 bg-black/[0.035]")
+                    : "border-black/10 bg-[#F2F2F4]")
                 }
               >
                 {(["signin", "signup"] as const).map((item) => {
@@ -508,8 +508,8 @@ export function AuthScreen({
                         (active
                           ? "text-white"
                           : dark
-                            ? "text-white/50 hover:text-white/90"
-                            : "text-black/50 hover:text-black/85")
+                            ? "text-white/58 hover:text-white"
+                            : "text-[#5F6068] hover:text-[#111114]")
                       }
                     >
                       {active && (
@@ -536,11 +536,11 @@ export function AuthScreen({
                   transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <div className="mb-6">
-                    <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] text-[#b94c4c]">
+                    <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#ff8d8d]" : "text-[#8F0000]"}`}>
                       <Sparkles size={13} />
                       {labels.ready}
                     </div>
-                    <h1 className="text-3xl font-semibold tracking-[-0.045em]">
+                    <h1 className={`text-3xl font-semibold tracking-[-0.045em] ${dark ? "text-white" : "text-[#111114]"}`}>
                       {mode === "signin"
                         ? labels.signInTitle
                         : labels.signUpTitle}
@@ -662,8 +662,8 @@ export function AuthScreen({
                       className={
                         "w-full rounded-2xl border px-5 py-3.5 text-sm font-semibold transition active:scale-[.99] " +
                         (dark
-                          ? "border-white/10 bg-white/[0.05] text-white hover:bg-white/10"
-                          : "border-black/10 bg-white/65 text-[#1D1D1F] hover:bg-white")
+                          ? "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.11]"
+                          : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
                       }
                     >
                       {labels.google}
