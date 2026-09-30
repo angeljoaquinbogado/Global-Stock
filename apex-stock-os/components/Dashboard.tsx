@@ -54,8 +54,6 @@ type Language = LanguageCode;
 type Period = "daily" | "weekly" | "monthly" | "annual";
 type StatusFilter = "all" | StockStatus;
 
-const currencies = ["ARS", "USD", "EUR", "BRL", "MXN", "GBP", "JPY"];
-
 const copy: Record<
   Language,
   {
@@ -97,11 +95,11 @@ const copy: Record<
     margin: "Margen",
     inventory: "Inventario",
     analytics: "Pérdidas y ganancias",
-    flow: "{labels.flow}",
+    flow: "Flujo operativo",
     comparison: "Ingresos vs costos",
-    comparisonTitle: "{labels.comparisonTitle}",
+    comparisonTitle: "Ingresos y costos",
     stock: "Stock operativo",
-    liveInventory: "{labels.liveInventory}",
+    liveInventory: "Inventario en vivo",
     search: "Buscar producto, categoría o proveedor",
     scanner: "Captura de inventario",
     series: "Serie visible",
@@ -127,7 +125,7 @@ const copy: Record<
     inventory: "Inventory",
     analytics: "Profit & loss",
     flow: "Operating flow",
-    comparison: "{labels.comparison}s",
+    comparison: "Revenue vs costs",
     comparisonTitle: "Revenue and costs",
     stock: "Operational stock",
     liveInventory: "Live inventory",
@@ -791,7 +789,7 @@ function MetricCard({
           {icon}
         </span>
         <span className="text-[10px] font-semibold text-[var(--apex-muted)]">
-          {label === "Ingresos" ? "LIVE" : "LIVE"}
+          LIVE
         </span>
       </div>
       <p className="mt-5 text-xs font-semibold text-[var(--apex-muted)]">
