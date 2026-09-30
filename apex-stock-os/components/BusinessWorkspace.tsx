@@ -2,18 +2,23 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Activity as ActivityIcon,
   BarChart3,
+  BellRing,
   Boxes,
   Building2,
+  CalendarDays,
+  ChevronLeft,
   ChevronRight,
   CircleDollarSign,
-  LayoutDashboard,
+  ClipboardList,
   LogOut,
   Menu,
   Minus,
   Moon,
   PackagePlus,
   Plus,
+  ScanLine,
   Search,
   Settings2,
   ShoppingCart,
@@ -29,6 +34,9 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
+  Cell,
+  Pie,
+  PieChart as RechartsPieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -42,11 +50,18 @@ import {
   rankRestockNeeds
 } from "@/lib/analytics";
 import { demoProducts, demoTrend } from "@/lib/demo-data";
-import type { BusinessSnapshot, Product } from "@/lib/types";
+import type {
+  BusinessSnapshot,
+  Product,
+  TrendPoint
+} from "@/lib/types";
 
 import { ApexIntelligence } from "./ApexIntelligence";
 import { BarcodeScanner } from "./BarcodeScanner";
-import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
+import {
+  GlobalPreferences,
+  type LanguageCode
+} from "./GlobalPreferences";
 import { InstallAppButton } from "./InstallAppButton";
 import { Logo } from "./Logo";
 
@@ -54,9 +69,11 @@ type ModuleId =
   | "overview"
   | "pos"
   | "inventory"
+  | "charts"
   | "purchases"
   | "suppliers"
-  | "reports"
+  | "activities"
+  | "notes"
   | "settings";
 
 type BusinessWorkspaceProps = {
@@ -67,6 +84,30 @@ type BusinessWorkspaceProps = {
   onCurrencyChange: (currency: string) => void;
   onToggleTheme: () => void;
   onSignOut: () => void;
+};
+
+type ActivityKind =
+  | "sale"
+  | "restock"
+  | "scan"
+  | "note"
+  | "settings";
+
+type ActivityRecord = {
+  id: string;
+  kind: ActivityKind;
+  createdAt: string;
+  product?: string;
+  units?: number;
+  total?: number;
+};
+
+type BusinessNote = {
+  id: string;
+  text: string;
+  date: string;
+  done: boolean;
+  createdAt: string;
 };
 
 const localeByLanguage: Record<LanguageCode, string> = {
@@ -96,6 +137,7 @@ const copy: Record<
     inventoryCost: string;
     grossProfit: string;
     margin: string;
+    losses: string;
     units: string;
     alerts: string;
     salesFlow: string;
@@ -122,6 +164,11 @@ const copy: Record<
     normal: string;
     low: string;
     out: string;
+    chartsTitle: string;
+    chartsSubtitle: string;
+    stockByProduct: string;
+    marginByProduct: string;
+    stockHealth: string;
     purchasesTitle: string;
     purchasesSubtitle: string;
     suggested: string;
@@ -135,8 +182,22 @@ const copy: Record<
     products: string;
     inventoryValue: string;
     averageMargin: string;
-    reportsTitle: string;
-    reportsSubtitle: string;
+    activitiesTitle: string;
+    activitiesSubtitle: string;
+    noActivities: string;
+    saleActivity: string;
+    restockActivity: string;
+    scanActivity: string;
+    noteActivity: string;
+    settingsActivity: string;
+    notesTitle: string;
+    notesSubtitle: string;
+    addNote: string;
+    notePlaceholder: string;
+    noNotes: string;
+    today: string;
+    previousMonth: string;
+    nextMonth: string;
     settingsTitle: string;
     settingsSubtitle: string;
     businessName: string;
@@ -150,6 +211,15 @@ const copy: Record<
     criticalStock: string;
     businessSummary: string;
     open: string;
+    scan: string;
+    scannerTitle: string;
+    close: string;
+    exchangeRate: string;
+    liveRate: string;
+    rateUnavailable: string;
+    updated: string;
+    recentActivity: string;
+    todayNotes: string;
   }
 > = {
   es: {
@@ -157,9 +227,11 @@ const copy: Record<
       overview: "Inicio",
       pos: "Ventas",
       inventory: "Inventario",
+      charts: "Gráficos",
       purchases: "Compras",
       suppliers: "Proveedores",
-      reports: "Reportes",
+      activities: "Actividad",
+      notes: "Notas",
       settings: "Configuración"
     },
     more: "Más",
@@ -169,6 +241,7 @@ const copy: Record<
     inventoryCost: "Costo de inventario",
     grossProfit: "Ganancia bruta",
     margin: "Margen",
+    losses: "Pérdidas",
     units: "unidades",
     alerts: "alertas",
     salesFlow: "Flujo de ventas",
@@ -195,6 +268,11 @@ const copy: Record<
     normal: "Normal",
     low: "Bajo",
     out: "Agotado",
+    chartsTitle: "Gráficos",
+    chartsSubtitle: "Analizá ventas, costos, ganancias, pérdidas, stock y margen.",
+    stockByProduct: "Stock por producto",
+    marginByProduct: "Margen por producto",
+    stockHealth: "Estado del stock",
     purchasesTitle: "Compras y reposición",
     purchasesSubtitle: "Priorizá compras según cobertura y rotación.",
     suggested: "Sugerido",
@@ -208,8 +286,22 @@ const copy: Record<
     products: "Productos",
     inventoryValue: "Valor de inventario",
     averageMargin: "Margen promedio",
-    reportsTitle: "Reportes",
-    reportsSubtitle: "Compará ingresos, costos y ganancia por período.",
+    activitiesTitle: "Actividad",
+    activitiesSubtitle: "Historial de ventas, reposiciones, escaneos y cambios.",
+    noActivities: "Todavía no hay movimientos registrados.",
+    saleActivity: "Venta registrada",
+    restockActivity: "Reposición recibida",
+    scanActivity: "Producto escaneado",
+    noteActivity: "Nota creada",
+    settingsActivity: "Configuración actualizada",
+    notesTitle: "Notas y calendario",
+    notesSubtitle: "Organizá tareas, compras pendientes y recordatorios por fecha.",
+    addNote: "Agregar nota",
+    notePlaceholder: "Ej.: mañana comprar 20 anzuelos...",
+    noNotes: "No hay notas para esta fecha.",
+    today: "Hoy",
+    previousMonth: "Mes anterior",
+    nextMonth: "Mes siguiente",
     settingsTitle: "Configuración",
     settingsSubtitle: "Preferencias globales de tu negocio y aplicación.",
     businessName: "Nombre del negocio",
@@ -222,16 +314,27 @@ const copy: Record<
     install: "Instalar aplicación",
     criticalStock: "Stock crítico",
     businessSummary: "Resumen del negocio",
-    open: "Abrir"
+    open: "Abrir",
+    scan: "Escanear",
+    scannerTitle: "Escáner rápido",
+    close: "Cerrar",
+    exchangeRate: "Tipo de cambio",
+    liveRate: "Cotización actual",
+    rateUnavailable: "Cotización en vivo no disponible",
+    updated: "Actualizado",
+    recentActivity: "Actividad reciente",
+    todayNotes: "Notas de hoy"
   },
   en: {
     nav: {
       overview: "Home",
       pos: "Sales",
       inventory: "Inventory",
+      charts: "Charts",
       purchases: "Purchases",
       suppliers: "Suppliers",
-      reports: "Reports",
+      activities: "Activity",
+      notes: "Notes",
       settings: "Settings"
     },
     more: "More",
@@ -241,6 +344,7 @@ const copy: Record<
     inventoryCost: "Inventory cost",
     grossProfit: "Gross profit",
     margin: "Margin",
+    losses: "Losses",
     units: "units",
     alerts: "alerts",
     salesFlow: "Sales flow",
@@ -267,6 +371,11 @@ const copy: Record<
     normal: "Normal",
     low: "Low",
     out: "Out of stock",
+    chartsTitle: "Charts",
+    chartsSubtitle: "Analyze sales, costs, profit, losses, stock and margins.",
+    stockByProduct: "Stock by product",
+    marginByProduct: "Margin by product",
+    stockHealth: "Stock health",
     purchasesTitle: "Purchasing & replenishment",
     purchasesSubtitle: "Prioritize purchases by coverage and rotation.",
     suggested: "Suggested",
@@ -280,8 +389,22 @@ const copy: Record<
     products: "Products",
     inventoryValue: "Inventory value",
     averageMargin: "Average margin",
-    reportsTitle: "Reports",
-    reportsSubtitle: "Compare revenue, costs and profit by period.",
+    activitiesTitle: "Activity",
+    activitiesSubtitle: "History of sales, restocks, scans and changes.",
+    noActivities: "No activity recorded yet.",
+    saleActivity: "Sale recorded",
+    restockActivity: "Restock received",
+    scanActivity: "Product scanned",
+    noteActivity: "Note created",
+    settingsActivity: "Settings updated",
+    notesTitle: "Notes & calendar",
+    notesSubtitle: "Organize tasks, pending purchases and reminders by date.",
+    addNote: "Add note",
+    notePlaceholder: "Example: buy 20 hooks tomorrow...",
+    noNotes: "No notes for this date.",
+    today: "Today",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
     settingsTitle: "Settings",
     settingsSubtitle: "Global business and application preferences.",
     businessName: "Business name",
@@ -294,16 +417,27 @@ const copy: Record<
     install: "Install app",
     criticalStock: "Critical stock",
     businessSummary: "Business summary",
-    open: "Open"
+    open: "Open",
+    scan: "Scan",
+    scannerTitle: "Quick scanner",
+    close: "Close",
+    exchangeRate: "Exchange rate",
+    liveRate: "Current quote",
+    rateUnavailable: "Live exchange rate unavailable",
+    updated: "Updated",
+    recentActivity: "Recent activity",
+    todayNotes: "Today's notes"
   },
   pt: {
     nav: {
       overview: "Início",
       pos: "Vendas",
       inventory: "Estoque",
+      charts: "Gráficos",
       purchases: "Compras",
       suppliers: "Fornecedores",
-      reports: "Relatórios",
+      activities: "Atividade",
+      notes: "Notas",
       settings: "Configurações"
     },
     more: "Mais",
@@ -313,6 +447,7 @@ const copy: Record<
     inventoryCost: "Custo do estoque",
     grossProfit: "Lucro bruto",
     margin: "Margem",
+    losses: "Perdas",
     units: "unidades",
     alerts: "alertas",
     salesFlow: "Fluxo de vendas",
@@ -339,6 +474,11 @@ const copy: Record<
     normal: "Normal",
     low: "Baixo",
     out: "Esgotado",
+    chartsTitle: "Gráficos",
+    chartsSubtitle: "Analise vendas, custos, lucros, perdas, estoque e margens.",
+    stockByProduct: "Estoque por produto",
+    marginByProduct: "Margem por produto",
+    stockHealth: "Estado do estoque",
     purchasesTitle: "Compras e reposição",
     purchasesSubtitle: "Priorize compras por cobertura e rotação.",
     suggested: "Sugerido",
@@ -352,8 +492,22 @@ const copy: Record<
     products: "Produtos",
     inventoryValue: "Valor do estoque",
     averageMargin: "Margem média",
-    reportsTitle: "Relatórios",
-    reportsSubtitle: "Compare receita, custos e lucro por período.",
+    activitiesTitle: "Atividade",
+    activitiesSubtitle: "Histórico de vendas, reposições, leituras e mudanças.",
+    noActivities: "Ainda não há movimentações registradas.",
+    saleActivity: "Venda registrada",
+    restockActivity: "Reposição recebida",
+    scanActivity: "Produto escaneado",
+    noteActivity: "Nota criada",
+    settingsActivity: "Configurações atualizadas",
+    notesTitle: "Notas e calendário",
+    notesSubtitle: "Organize tarefas, compras pendentes e lembretes por data.",
+    addNote: "Adicionar nota",
+    notePlaceholder: "Ex.: amanhã comprar 20 anzóis...",
+    noNotes: "Não há notas para esta data.",
+    today: "Hoje",
+    previousMonth: "Mês anterior",
+    nextMonth: "Próximo mês",
     settingsTitle: "Configurações",
     settingsSubtitle: "Preferências globais do negócio e do aplicativo.",
     businessName: "Nome do negócio",
@@ -366,16 +520,27 @@ const copy: Record<
     install: "Instalar aplicativo",
     criticalStock: "Estoque crítico",
     businessSummary: "Resumo do negócio",
-    open: "Abrir"
+    open: "Abrir",
+    scan: "Escanear",
+    scannerTitle: "Scanner rápido",
+    close: "Fechar",
+    exchangeRate: "Taxa de câmbio",
+    liveRate: "Cotação atual",
+    rateUnavailable: "Cotação ao vivo indisponível",
+    updated: "Atualizado",
+    recentActivity: "Atividade recente",
+    todayNotes: "Notas de hoje"
   },
   fr: {
     nav: {
       overview: "Accueil",
       pos: "Ventes",
       inventory: "Inventaire",
+      charts: "Graphiques",
       purchases: "Achats",
       suppliers: "Fournisseurs",
-      reports: "Rapports",
+      activities: "Activité",
+      notes: "Notes",
       settings: "Paramètres"
     },
     more: "Plus",
@@ -385,6 +550,7 @@ const copy: Record<
     inventoryCost: "Coût du stock",
     grossProfit: "Bénéfice brut",
     margin: "Marge",
+    losses: "Pertes",
     units: "unités",
     alerts: "alertes",
     salesFlow: "Flux des ventes",
@@ -411,6 +577,11 @@ const copy: Record<
     normal: "Normal",
     low: "Faible",
     out: "Épuisé",
+    chartsTitle: "Graphiques",
+    chartsSubtitle: "Analysez ventes, coûts, bénéfices, pertes, stock et marges.",
+    stockByProduct: "Stock par produit",
+    marginByProduct: "Marge par produit",
+    stockHealth: "État du stock",
     purchasesTitle: "Achats et réapprovisionnement",
     purchasesSubtitle: "Priorisez les achats selon couverture et rotation.",
     suggested: "Suggéré",
@@ -424,8 +595,22 @@ const copy: Record<
     products: "Produits",
     inventoryValue: "Valeur du stock",
     averageMargin: "Marge moyenne",
-    reportsTitle: "Rapports",
-    reportsSubtitle: "Comparez revenus, coûts et bénéfice par période.",
+    activitiesTitle: "Activité",
+    activitiesSubtitle: "Historique des ventes, réapprovisionnements et scans.",
+    noActivities: "Aucun mouvement enregistré.",
+    saleActivity: "Vente enregistrée",
+    restockActivity: "Réapprovisionnement reçu",
+    scanActivity: "Produit scanné",
+    noteActivity: "Note créée",
+    settingsActivity: "Paramètres mis à jour",
+    notesTitle: "Notes et calendrier",
+    notesSubtitle: "Organisez tâches, achats en attente et rappels par date.",
+    addNote: "Ajouter une note",
+    notePlaceholder: "Ex. : acheter 20 hameçons demain...",
+    noNotes: "Aucune note pour cette date.",
+    today: "Aujourd’hui",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
     settingsTitle: "Paramètres",
     settingsSubtitle: "Préférences globales de l’entreprise et de l’application.",
     businessName: "Nom de l’entreprise",
@@ -438,16 +623,27 @@ const copy: Record<
     install: "Installer l’application",
     criticalStock: "Stock critique",
     businessSummary: "Résumé de l’activité",
-    open: "Ouvrir"
+    open: "Ouvrir",
+    scan: "Scanner",
+    scannerTitle: "Scanner rapide",
+    close: "Fermer",
+    exchangeRate: "Taux de change",
+    liveRate: "Cours actuel",
+    rateUnavailable: "Cours en direct indisponible",
+    updated: "Mis à jour",
+    recentActivity: "Activité récente",
+    todayNotes: "Notes du jour"
   },
   de: {
     nav: {
       overview: "Start",
       pos: "Verkäufe",
       inventory: "Bestand",
+      charts: "Diagramme",
       purchases: "Einkauf",
       suppliers: "Lieferanten",
-      reports: "Berichte",
+      activities: "Aktivität",
+      notes: "Notizen",
       settings: "Einstellungen"
     },
     more: "Mehr",
@@ -457,6 +653,7 @@ const copy: Record<
     inventoryCost: "Lagerkosten",
     grossProfit: "Bruttogewinn",
     margin: "Marge",
+    losses: "Verluste",
     units: "Einheiten",
     alerts: "Warnungen",
     salesFlow: "Verkaufsverlauf",
@@ -483,6 +680,11 @@ const copy: Record<
     normal: "Normal",
     low: "Niedrig",
     out: "Ausverkauft",
+    chartsTitle: "Diagramme",
+    chartsSubtitle: "Verkäufe, Kosten, Gewinn, Verluste, Bestand und Margen analysieren.",
+    stockByProduct: "Bestand pro Produkt",
+    marginByProduct: "Marge pro Produkt",
+    stockHealth: "Bestandsstatus",
     purchasesTitle: "Einkauf und Nachschub",
     purchasesSubtitle: "Einkäufe nach Reichweite und Umschlag priorisieren.",
     suggested: "Empfohlen",
@@ -496,8 +698,22 @@ const copy: Record<
     products: "Produkte",
     inventoryValue: "Lagerwert",
     averageMargin: "Durchschnittsmarge",
-    reportsTitle: "Berichte",
-    reportsSubtitle: "Umsatz, Kosten und Gewinn nach Zeitraum vergleichen.",
+    activitiesTitle: "Aktivität",
+    activitiesSubtitle: "Verlauf von Verkäufen, Nachschub, Scans und Änderungen.",
+    noActivities: "Noch keine Aktivitäten gespeichert.",
+    saleActivity: "Verkauf gespeichert",
+    restockActivity: "Nachschub erhalten",
+    scanActivity: "Produkt gescannt",
+    noteActivity: "Notiz erstellt",
+    settingsActivity: "Einstellungen aktualisiert",
+    notesTitle: "Notizen und Kalender",
+    notesSubtitle: "Aufgaben, offene Einkäufe und Erinnerungen nach Datum organisieren.",
+    addNote: "Notiz hinzufügen",
+    notePlaceholder: "Beispiel: morgen 20 Haken kaufen...",
+    noNotes: "Keine Notizen für dieses Datum.",
+    today: "Heute",
+    previousMonth: "Vorheriger Monat",
+    nextMonth: "Nächster Monat",
     settingsTitle: "Einstellungen",
     settingsSubtitle: "Globale Einstellungen für Unternehmen und App.",
     businessName: "Unternehmensname",
@@ -510,19 +726,37 @@ const copy: Record<
     install: "App installieren",
     criticalStock: "Kritischer Bestand",
     businessSummary: "Geschäftsübersicht",
-    open: "Öffnen"
+    open: "Öffnen",
+    scan: "Scannen",
+    scannerTitle: "Schnellscanner",
+    close: "Schließen",
+    exchangeRate: "Wechselkurs",
+    liveRate: "Aktueller Kurs",
+    rateUnavailable: "Live-Wechselkurs nicht verfügbar",
+    updated: "Aktualisiert",
+    recentActivity: "Letzte Aktivität",
+    todayNotes: "Heutige Notizen"
   }
 };
 
-const modules: Array<{ id: ModuleId; icon: typeof LayoutDashboard }> = [
-  { id: "overview", icon: LayoutDashboard },
+const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
+  { id: "overview", icon: Store },
   { id: "pos", icon: ShoppingCart },
   { id: "inventory", icon: Boxes },
+  { id: "charts", icon: BarChart3 },
   { id: "purchases", icon: PackagePlus },
   { id: "suppliers", icon: Truck },
-  { id: "reports", icon: BarChart3 },
+  { id: "activities", icon: ActivityIcon },
+  { id: "notes", icon: ClipboardList },
   { id: "settings", icon: Settings2 }
 ];
+
+function localDateKey(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 export function BusinessWorkspace({
   dark,
@@ -538,80 +772,158 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [products, setProducts] = useState<Product[]>(demoProducts);
+  const [trend, setTrend] = useState<TrendPoint[]>(demoTrend);
   const [currencyRate, setCurrencyRate] = useState(1);
+  const [fxUpdatedAt, setFxUpdatedAt] = useState("");
+  const [fxStatus, setFxStatus] = useState<"live" | "error">("live");
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
   const [businessName, setBusinessName] = useState("Global Stock Demo");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [activities, setActivities] = useState<ActivityRecord[]>([]);
+  const [notes, setNotes] = useState<BusinessNote[]>([]);
+  const [selectedDate, setSelectedDate] = useState(localDateKey(new Date()));
+  const [calendarMonth, setCalendarMonth] = useState(
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+  );
+  const [noteDraft, setNoteDraft] = useState("");
 
   useEffect(() => {
     try {
-      const savedProducts = localStorage.getItem("global-stock-demo-products-v1");
+      const savedProducts = localStorage.getItem("global-stock-demo-products-v2");
+      const savedTrend = localStorage.getItem("global-stock-trend-v1");
+      const savedName = localStorage.getItem("global-stock-business-name");
+      const savedActivities = localStorage.getItem("global-stock-activities-v1");
+      const savedNotes = localStorage.getItem("global-stock-notes-v1");
+
       if (savedProducts) {
         const parsed = JSON.parse(savedProducts) as Product[];
         if (Array.isArray(parsed) && parsed.length) setProducts(parsed);
       }
-      const savedName = localStorage.getItem("global-stock-business-name");
+      if (savedTrend) {
+        const parsed = JSON.parse(savedTrend) as TrendPoint[];
+        if (Array.isArray(parsed) && parsed.length) setTrend(parsed);
+      }
       if (savedName) setBusinessName(savedName);
+      if (savedActivities) {
+        const parsed = JSON.parse(savedActivities) as ActivityRecord[];
+        if (Array.isArray(parsed)) setActivities(parsed);
+      }
+      if (savedNotes) {
+        const parsed = JSON.parse(savedNotes) as BusinessNote[];
+        if (Array.isArray(parsed)) setNotes(parsed);
+      }
     } catch {
-      // Ignore invalid local demo data.
+      // Keep bundled demo data if a local value is invalid.
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem("global-stock-demo-products-v1", JSON.stringify(products));
+    localStorage.setItem("global-stock-demo-products-v2", JSON.stringify(products));
   }, [products]);
+
+  useEffect(() => {
+    localStorage.setItem("global-stock-trend-v1", JSON.stringify(trend));
+  }, [trend]);
+
+  useEffect(() => {
+    localStorage.setItem("global-stock-activities-v1", JSON.stringify(activities));
+  }, [activities]);
+
+  useEffect(() => {
+    localStorage.setItem("global-stock-notes-v1", JSON.stringify(notes));
+  }, [notes]);
 
   useEffect(() => {
     let cancelled = false;
 
     async function loadRate() {
+      if (currency === "ARS") {
+        if (!cancelled) {
+          setCurrencyRate(1);
+          setFxStatus("live");
+          setFxUpdatedAt(new Date().toISOString());
+        }
+        return;
+      }
+
       try {
         const response = await fetch(
-          `/api/fx?target=${encodeURIComponent(currency)}`,
+          `/api/fx?target=${encodeURIComponent(currency)}&t=${Date.now()}`,
           { cache: "no-store" }
         );
-        const payload = (await response.json()) as { rate?: number };
+        if (!response.ok) throw new Error("FX unavailable");
+
+        const payload = (await response.json()) as {
+          rate?: number;
+          checkedAt?: string;
+        };
         const nextRate = Number(payload.rate);
+
         if (!cancelled && Number.isFinite(nextRate) && nextRate > 0) {
           setCurrencyRate(nextRate);
+          setFxStatus("live");
+          setFxUpdatedAt(payload.checkedAt ?? new Date().toISOString());
         }
       } catch {
-        if (!cancelled && currency === "ARS") setCurrencyRate(1);
+        if (!cancelled) setFxStatus("error");
       }
     }
 
     void loadRate();
+    const timer = window.setInterval(loadRate, 30 * 60 * 1000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void loadRate();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
       cancelled = true;
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", onVisible);
     };
   }, [currency]);
 
   const localizedTrend = useMemo(
     () =>
-      demoTrend.map((point, index) => ({
+      trend.map((point, index) => ({
         ...point,
         label: dayLabels[language][index] ?? point.label,
         revenue: point.revenue * currencyRate,
         cost: point.cost * currencyRate,
         profit: point.profit * currencyRate
       })),
-    [language, currencyRate]
+    [trend, language, currencyRate]
   );
 
   const snapshot: BusinessSnapshot = useMemo(
     () => ({
       products,
-      trend: demoTrend,
+      trend,
       currency,
       currencyRate,
       locale
     }),
-    [products, currency, currencyRate, locale]
+    [products, trend, currency, currencyRate, locale]
   );
 
   const metrics = useMemo(() => calculateMetrics(snapshot), [snapshot]);
+  const totalCost = useMemo(
+    () => trend.reduce((sum, point) => sum + point.cost, 0),
+    [trend]
+  );
+  const totalLoss = useMemo(
+    () =>
+      Math.abs(
+        trend.reduce(
+          (sum, point) => sum + Math.min(point.profit, 0),
+          0
+        )
+      ),
+    [trend]
+  );
 
   const money = (value: number) =>
     formatMoney(value * currencyRate, currency, locale);
@@ -650,7 +962,13 @@ export function BusinessWorkspace({
   const supplierStats = useMemo(() => {
     const groups = new Map<
       string,
-      { supplier: string; products: number; units: number; value: number; margins: number[] }
+      {
+        supplier: string;
+        products: number;
+        units: number;
+        value: number;
+        margins: number[];
+      }
     >();
 
     for (const product of products) {
@@ -682,9 +1000,39 @@ export function BusinessWorkspace({
   }, [products]);
 
   const restock = useMemo(
-    () => rankRestockNeeds(products).filter((item) => item.suggestedUnits > 0),
+    () =>
+      rankRestockNeeds(products).filter(
+        (item) => item.suggestedUnits > 0
+      ),
     [products]
   );
+
+  const selectedNotes = useMemo(
+    () => notes.filter((note) => note.date === selectedDate),
+    [notes, selectedDate]
+  );
+  const todayNotes = useMemo(
+    () =>
+      notes.filter(
+        (note) => note.date === localDateKey(new Date()) && !note.done
+      ),
+    [notes]
+  );
+
+  function addActivity(
+    kind: ActivityKind,
+    extra: Omit<ActivityRecord, "id" | "kind" | "createdAt"> = {}
+  ) {
+    setActivities((current) => [
+      {
+        id: crypto.randomUUID(),
+        kind,
+        createdAt: new Date().toISOString(),
+        ...extra
+      },
+      ...current
+    ].slice(0, 200));
+  }
 
   function setQuantity(id: string, quantity: number) {
     const product = products.find((item) => item.id === id);
@@ -714,6 +1062,24 @@ export function BusinessWorkspace({
       })
     );
 
+    const dayIndex = (new Date().getDay() + 6) % 7;
+    setTrend((current) =>
+      current.map((point, index) =>
+        index === dayIndex
+          ? {
+              ...point,
+              revenue: point.revenue + cartTotal,
+              cost: point.cost + cartCost,
+              profit: point.profit + (cartTotal - cartCost)
+            }
+          : point
+      )
+    );
+
+    addActivity("sale", {
+      units: cartLines.reduce((sum, line) => sum + line.quantity, 0),
+      total: cartTotal
+    });
     setCart({});
     setNotice(labels.saleCompleted);
     window.setTimeout(() => setNotice(""), 2800);
@@ -723,7 +1089,10 @@ export function BusinessWorkspace({
     setProducts((current) =>
       current.map((product) =>
         product.id === id
-          ? { ...product, stock: Math.max(0, Math.round(nextStock)) }
+          ? {
+              ...product,
+              stock: Math.max(0, Math.round(nextStock))
+            }
           : product
       )
     );
@@ -731,30 +1100,79 @@ export function BusinessWorkspace({
 
   function integrateScannedProduct(scanned: Product) {
     setProducts((current) => {
-      const exists = current.some((item) => item.barcode === scanned.barcode);
+      const exists = current.some(
+        (item) => item.barcode === scanned.barcode
+      );
       if (!exists) return [scanned, ...current];
       return current.map((item) =>
-        item.barcode === scanned.barcode ? { ...item, ...scanned } : item
+        item.barcode === scanned.barcode
+          ? { ...item, ...scanned }
+          : item
       );
     });
+
+    addActivity("scan", { product: scanned.name });
+    setScannerOpen(false);
   }
 
   function receiveRestock(id: string, units: number) {
+    const product = products.find((item) => item.id === id);
+
     setProducts((current) =>
-      current.map((product) =>
-        product.id === id
-          ? { ...product, stock: product.stock + units }
-          : product
+      current.map((item) =>
+        item.id === id
+          ? { ...item, stock: item.stock + units }
+          : item
       )
     );
+
+    addActivity("restock", {
+      product: product?.name,
+      units
+    });
     setNotice(labels.purchaseApplied);
     window.setTimeout(() => setNotice(""), 2800);
   }
 
   function saveBusinessName() {
-    localStorage.setItem("global-stock-business-name", businessName.trim());
+    localStorage.setItem(
+      "global-stock-business-name",
+      businessName.trim()
+    );
+    addActivity("settings");
     setNotice(labels.saved);
     window.setTimeout(() => setNotice(""), 2200);
+  }
+
+  function addNote() {
+    const text = noteDraft.trim();
+    if (!text) return;
+
+    const note: BusinessNote = {
+      id: crypto.randomUUID(),
+      text,
+      date: selectedDate,
+      done: false,
+      createdAt: new Date().toISOString()
+    };
+
+    setNotes((current) => [note, ...current]);
+    addActivity("note");
+    setNoteDraft("");
+  }
+
+  function toggleNote(id: string) {
+    setNotes((current) =>
+      current.map((note) =>
+        note.id === id ? { ...note, done: !note.done } : note
+      )
+    );
+  }
+
+  function removeNote(id: string) {
+    setNotes((current) =>
+      current.filter((note) => note.id !== id)
+    );
   }
 
   return (
@@ -762,7 +1180,7 @@ export function BusinessWorkspace({
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
-        <nav className="mt-8 space-y-1.5">
+        <nav className="mt-8 space-y-1.5 overflow-y-auto pr-1">
           {modules.map(({ id, icon: Icon }) => {
             const active = activeModule === id;
             return (
@@ -784,12 +1202,14 @@ export function BusinessWorkspace({
           })}
         </nav>
 
-        <div className="mt-auto space-y-3">
+        <div className="mt-auto space-y-3 pt-4">
           <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
               {labels.businessSummary}
             </p>
-            <p className="mt-2 truncate text-sm font-semibold">{businessName}</p>
+            <p className="mt-2 truncate text-sm font-semibold">
+              {businessName}
+            </p>
             <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
               {metrics.inventoryUnits} {labels.units}
             </p>
@@ -806,7 +1226,7 @@ export function BusinessWorkspace({
         </div>
       </aside>
 
-      <section className="min-w-0 pb-24 lg:pb-0">
+      <section className="min-w-0 pb-28 lg:pb-0">
         <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-2xl">
           <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="lg:hidden">
@@ -838,6 +1258,7 @@ export function BusinessWorkspace({
                 type="button"
                 onClick={onToggleTheme}
                 className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                aria-label={labels.theme}
               >
                 {dark ? <Sun size={16} /> : <Moon size={16} />}
               </button>
@@ -845,6 +1266,7 @@ export function BusinessWorkspace({
                 type="button"
                 onClick={() => setMoreOpen(true)}
                 className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] lg:hidden"
+                aria-label={labels.more}
               >
                 <Menu size={17} />
               </button>
@@ -870,6 +1292,11 @@ export function BusinessWorkspace({
                 currency={currency}
                 locale={locale}
                 setActiveModule={setActiveModule}
+                recentActivities={activities.slice(0, 4)}
+                todayNotes={todayNotes}
+                activityText={(activity) =>
+                  describeActivity(activity, labels, money)
+                }
               />
             )}
 
@@ -900,6 +1327,21 @@ export function BusinessWorkspace({
               />
             )}
 
+            {activeModule === "charts" && (
+              <ChartsModule
+                labels={labels}
+                products={products}
+                data={localizedTrend}
+                money={money}
+                currency={currency}
+                locale={locale}
+                revenue={metrics.revenue}
+                cost={totalCost}
+                profit={metrics.grossProfit}
+                losses={totalLoss}
+              />
+            )}
+
             {activeModule === "purchases" && (
               <PurchasesModule
                 labels={labels}
@@ -917,12 +1359,32 @@ export function BusinessWorkspace({
               />
             )}
 
-            {activeModule === "reports" && (
-              <ReportsModule
+            {activeModule === "activities" && (
+              <ActivitiesModule
                 labels={labels}
-                data={localizedTrend}
-                currency={currency}
+                activities={activities}
                 locale={locale}
+                activityText={(activity) =>
+                  describeActivity(activity, labels, money)
+                }
+              />
+            )}
+
+            {activeModule === "notes" && (
+              <NotesModule
+                labels={labels}
+                locale={locale}
+                notes={notes}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                selectedNotes={selectedNotes}
+                noteDraft={noteDraft}
+                setNoteDraft={setNoteDraft}
+                addNote={addNote}
+                toggleNote={toggleNote}
+                removeNote={removeNote}
+                calendarMonth={calendarMonth}
+                setCalendarMonth={setCalendarMonth}
               />
             )}
 
@@ -939,51 +1401,62 @@ export function BusinessWorkspace({
                 onToggleTheme={onToggleTheme}
                 onSignOut={onSignOut}
                 saveBusinessName={saveBusinessName}
+                fxStatus={fxStatus}
+                fxUpdatedAt={fxUpdatedAt}
+                currencyRate={currencyRate}
+                locale={locale}
               />
             )}
           </motion.div>
         </AnimatePresence>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/95 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl lg:hidden">
-        <div className="grid grid-cols-5 gap-1">
-          {(["overview", "pos", "inventory", "reports"] as ModuleId[]).map((id) => {
-            const item = modules.find((module) => module.id === id)!;
-            const Icon = item.icon;
-            const active = activeModule === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setActiveModule(id)}
-                className={
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold " +
-                  (active
-                    ? "bg-[#8F0000]/12 text-[#8F0000]"
-                    : "text-[var(--apex-muted)]")
-                }
-              >
-                <Icon size={18} />
-                <span>{labels.nav[id]}</span>
-              </button>
-            );
-          })}
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl lg:hidden">
+        <div className="grid grid-cols-5 items-end gap-1">
+          <MobileNavButton
+            active={activeModule === "overview"}
+            icon={<Store size={18} />}
+            label={labels.nav.overview}
+            onClick={() => setActiveModule("overview")}
+          />
+          <MobileNavButton
+            active={activeModule === "pos"}
+            icon={<ShoppingCart size={18} />}
+            label={labels.nav.pos}
+            onClick={() => setActiveModule("pos")}
+          />
 
           <button
             type="button"
-            onClick={() => setMoreOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold text-[var(--apex-muted)]"
+            onClick={() => setScannerOpen(true)}
+            className="-mt-8 flex min-h-[72px] flex-col items-center justify-end gap-1 text-[10px] font-semibold text-[#8F0000]"
+            aria-label={labels.scan}
           >
-            <Menu size={18} />
-            <span>{labels.more}</span>
+            <span className="grid h-16 w-16 place-items-center rounded-full border-[5px] border-[var(--apex-bg)] bg-[#8F0000] text-white shadow-[0_12px_34px_rgba(143,0,0,.36)]">
+              <ScanLine size={25} />
+            </span>
+            <span>{labels.scan}</span>
           </button>
+
+          <MobileNavButton
+            active={activeModule === "charts"}
+            icon={<BarChart3 size={18} />}
+            label={labels.nav.charts}
+            onClick={() => setActiveModule("charts")}
+          />
+          <MobileNavButton
+            active={false}
+            icon={<Menu size={18} />}
+            label={labels.more}
+            onClick={() => setMoreOpen(true)}
+          />
         </div>
       </nav>
 
       <AnimatePresence>
         {moreOpen && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-end bg-black/55 p-0 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[100] flex items-end bg-black/55 backdrop-blur-sm lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1003,14 +1476,26 @@ export function BusinessWorkspace({
                   type="button"
                   onClick={() => setMoreOpen(false)}
                   className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)]"
+                  aria-label={labels.close}
                 >
                   <X size={16} />
                 </button>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
-                {(["purchases", "suppliers", "settings"] as ModuleId[]).map((id) => {
-                  const item = modules.find((module) => module.id === id)!;
+                {(
+                  [
+                    "inventory",
+                    "purchases",
+                    "suppliers",
+                    "activities",
+                    "notes",
+                    "settings"
+                  ] as ModuleId[]
+                ).map((id) => {
+                  const item = modules.find(
+                    (module) => module.id === id
+                  )!;
                   const Icon = item.icon;
                   return (
                     <button
@@ -1029,7 +1514,7 @@ export function BusinessWorkspace({
                 })}
               </div>
 
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3">
                 <GlobalPreferences
                   language={language}
                   currency={currency}
@@ -1043,12 +1528,50 @@ export function BusinessWorkspace({
       </AnimatePresence>
 
       <AnimatePresence>
+        {scannerOpen && (
+          <motion.div
+            className="fixed inset-0 z-[130] overflow-y-auto bg-[var(--apex-bg)] p-3 pb-24 sm:p-6"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <div className="mx-auto max-w-5xl">
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+                    Global Stock
+                  </p>
+                  <h2 className="mt-1 text-xl font-semibold">
+                    {labels.scannerTitle}
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setScannerOpen(false)}
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                  aria-label={labels.close}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <BarcodeScanner
+                language={language}
+                autoStart
+                onProduct={integrateScannedProduct}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
         {notice && (
           <motion.div
             initial={{ opacity: 0, y: 16, scale: 0.97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 12 }}
-            className="fixed bottom-24 left-1/2 z-[110] -translate-x-1/2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
+            className="fixed bottom-28 left-1/2 z-[140] -translate-x-1/2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
           >
             {notice}
           </motion.div>
@@ -1067,48 +1590,115 @@ function OverviewModule({
   money,
   currency,
   locale,
-  setActiveModule
+  setActiveModule,
+  recentActivities,
+  todayNotes,
+  activityText
 }: {
   labels: (typeof copy)[LanguageCode];
   metrics: ReturnType<typeof calculateMetrics>;
-  chartData: Array<{ label: string; revenue: number; cost: number; profit: number }>;
+  chartData: Array<{
+    label: string;
+    revenue: number;
+    cost: number;
+    profit: number;
+  }>;
   money: (value: number) => string;
   currency: string;
   locale: string;
   setActiveModule: (id: ModuleId) => void;
+  recentActivities: ActivityRecord[];
+  todayNotes: BusinessNote[];
+  activityText: (activity: ActivityRecord) => string;
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.overviewTitle} subtitle={labels.overviewSubtitle} />
+      <PageIntro
+        title={labels.overviewTitle}
+        subtitle={labels.overviewSubtitle}
+      />
 
       <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Kpi label={labels.revenue} value={money(metrics.revenue)} icon={<CircleDollarSign size={18} />} />
-        <Kpi label={labels.inventoryCost} value={money(metrics.inventoryCost)} icon={<Boxes size={18} />} />
-        <Kpi label={labels.grossProfit} value={money(metrics.grossProfit)} icon={<BarChart3 size={18} />} />
+        <Kpi
+          label={labels.revenue}
+          value={money(metrics.revenue)}
+          icon={<CircleDollarSign size={18} />}
+        />
+        <Kpi
+          label={labels.inventoryCost}
+          value={money(metrics.inventoryCost)}
+          icon={<Boxes size={18} />}
+        />
+        <Kpi
+          label={labels.grossProfit}
+          value={money(metrics.grossProfit)}
+          icon={<BarChart3 size={18} />}
+        />
         <Kpi
           label={labels.criticalStock}
-          value={String(metrics.lowStockCount + metrics.outOfStockCount)}
+          value={String(
+            metrics.lowStockCount + metrics.outOfStockCount
+          )}
           detail={labels.alerts}
-          icon={<PackagePlus size={18} />}
+          icon={<BellRing size={18} />}
         />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.35fr_.65fr]">
+      <section className="grid gap-4 xl:grid-cols-[1.25fr_.75fr]">
         <div className="apex-card p-5 sm:p-6">
-          <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8F0000]">
-            {labels.salesFlow}
-          </p>
-          <div className="mt-5 h-[310px]">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+                {labels.salesFlow}
+              </p>
+              <h3 className="mt-2 text-lg font-semibold">
+                {labels.grossProfit}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModule("charts")}
+              className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]"
+            >
+              {labels.nav.charts}
+            </button>
+          </div>
+
+          <div className="mt-5 h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <defs>
-                  <linearGradient id="workspaceProfit" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#8F0000" stopOpacity={0.36} />
-                    <stop offset="100%" stopColor="#8F0000" stopOpacity={0} />
+                  <linearGradient
+                    id="workspaceProfit"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#8F0000"
+                      stopOpacity={0.36}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="#8F0000"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
                 </defs>
-                <CartesianGrid stroke="var(--apex-border)" strokeDasharray="4 6" vertical={false} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} fontSize={11} stroke="var(--apex-muted)" />
+                <CartesianGrid
+                  stroke="var(--apex-border)"
+                  strokeDasharray="4 6"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  fontSize={11}
+                  stroke="var(--apex-muted)"
+                />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{
@@ -1117,29 +1707,87 @@ function OverviewModule({
                     background: "var(--apex-surface-strong)",
                     color: "var(--apex-text)"
                   }}
-                  formatter={(value) => formatMoney(Number(value), currency, locale)}
+                  formatter={(value) =>
+                    formatMoney(Number(value), currency, locale)
+                  }
                 />
-                <Area type="monotone" dataKey="profit" stroke="#8F0000" strokeWidth={2.5} fill="url(#workspaceProfit)" />
+                <Area
+                  type="monotone"
+                  dataKey="profit"
+                  stroke="#8F0000"
+                  strokeWidth={2.5}
+                  fill="url(#workspaceProfit)"
+                />
               </AreaChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        <div className="grid gap-3">
-          {(["pos", "inventory", "purchases"] as ModuleId[]).map((id) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveModule(id)}
-              className="apex-card flex items-center justify-between p-5 text-left"
-            >
-              <div>
-                <p className="text-sm font-semibold">{labels.nav[id]}</p>
-                <p className="mt-1 text-[11px] text-[var(--apex-muted)]">{labels.open}</p>
-              </div>
-              <ChevronRight size={18} className="text-[#8F0000]" />
-            </button>
-          ))}
+        <div className="grid gap-4">
+          <section className="apex-card p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">
+                {labels.recentActivity}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveModule("activities")}
+                className="text-[10px] font-semibold text-[#8F0000]"
+              >
+                {labels.open}
+              </button>
+            </div>
+            <div className="mt-4 space-y-3">
+              {recentActivities.length ? (
+                recentActivities.map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3"
+                  >
+                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#8F0000]" />
+                    <p className="text-xs leading-5 text-[var(--apex-muted)]">
+                      {activityText(activity)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[var(--apex-muted)]">
+                  {labels.noActivities}
+                </p>
+              )}
+            </div>
+          </section>
+
+          <section className="apex-card p-5">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold">
+                {labels.todayNotes}
+              </h3>
+              <button
+                type="button"
+                onClick={() => setActiveModule("notes")}
+                className="text-[10px] font-semibold text-[#8F0000]"
+              >
+                {labels.open}
+              </button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {todayNotes.length ? (
+                todayNotes.slice(0, 4).map((note) => (
+                  <div
+                    key={note.id}
+                    className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5 text-xs"
+                  >
+                    {note.text}
+                  </div>
+                ))
+              ) : (
+                <p className="text-xs text-[var(--apex-muted)]">
+                  {labels.noNotes}
+                </p>
+              )}
+            </div>
+          </section>
         </div>
       </section>
     </div>
@@ -1178,7 +1826,10 @@ function PosModule({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">
           <label className="relative block">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--apex-muted)]" />
+            <Search
+              size={16}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--apex-muted)]"
+            />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -1198,13 +1849,24 @@ function PosModule({
                     {product.stock} {labels.stock}
                   </span>
                 </div>
-                <h3 className="mt-4 text-sm font-semibold">{product.name}</h3>
-                <p className="mt-1 text-[11px] text-[var(--apex-muted)]">{product.category}</p>
-                <p className="mt-4 text-lg font-semibold">{money(product.price)}</p>
+                <h3 className="mt-4 text-sm font-semibold">
+                  {product.name}
+                </h3>
+                <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
+                  {product.category}
+                </p>
+                <p className="mt-4 text-lg font-semibold">
+                  {money(product.price)}
+                </p>
                 <button
                   type="button"
                   disabled={product.stock <= 0}
-                  onClick={() => setQuantity(product.id, (cart[product.id] ?? 0) + 1)}
+                  onClick={() =>
+                    setQuantity(
+                      product.id,
+                      (cart[product.id] ?? 0) + 1
+                    )
+                  }
                   className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white disabled:opacity-35"
                 >
                   <Plus size={16} />
@@ -1219,14 +1881,21 @@ function PosModule({
           <h2 className="text-lg font-semibold">{labels.cart}</h2>
 
           {!cartLines.length ? (
-            <p className="mt-4 text-sm text-[var(--apex-muted)]">{labels.emptyCart}</p>
+            <p className="mt-4 text-sm text-[var(--apex-muted)]">
+              {labels.emptyCart}
+            </p>
           ) : (
             <div className="mt-4 space-y-3">
               {cartLines.map(({ product, quantity }) => (
-                <div key={product.id} className="rounded-2xl border border-[var(--apex-border)] p-3">
+                <div
+                  key={product.id}
+                  className="rounded-2xl border border-[var(--apex-border)] p-3"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold">{product.name}</p>
+                      <p className="text-sm font-semibold">
+                        {product.name}
+                      </p>
                       <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
                         {money(product.price)}
                       </p>
@@ -1234,15 +1903,21 @@ function PosModule({
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => setQuantity(product.id, quantity - 1)}
+                        onClick={() =>
+                          setQuantity(product.id, quantity - 1)
+                        }
                         className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
                       >
                         <Minus size={14} />
                       </button>
-                      <span className="w-5 text-center text-sm font-semibold">{quantity}</span>
+                      <span className="w-5 text-center text-sm font-semibold">
+                        {quantity}
+                      </span>
                       <button
                         type="button"
-                        onClick={() => setQuantity(product.id, quantity + 1)}
+                        onClick={() =>
+                          setQuantity(product.id, quantity + 1)
+                        }
                         className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
                       >
                         <Plus size={14} />
@@ -1256,11 +1931,15 @@ function PosModule({
 
           <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm">
             <div className="flex items-center justify-between">
-              <span className="text-[var(--apex-muted)]">{labels.total}</span>
+              <span className="text-[var(--apex-muted)]">
+                {labels.total}
+              </span>
               <strong>{money(cartTotal)}</strong>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-[var(--apex-muted)]">{labels.estimatedProfit}</span>
+              <span className="text-[var(--apex-muted)]">
+                {labels.estimatedProfit}
+              </span>
               <strong>{money(cartProfit)}</strong>
             </div>
           </div>
@@ -1296,11 +1975,14 @@ function InventoryModule({
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.inventoryTitle} subtitle={labels.inventorySubtitle} />
+      <PageIntro
+        title={labels.inventoryTitle}
+        subtitle={labels.inventorySubtitle}
+      />
 
       <section className="apex-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-[900px] w-full text-left">
+          <table className="w-full min-w-[900px] text-left">
             <thead className="border-b border-[var(--apex-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--apex-muted)]">
               <tr>
                 <th className="px-5 py-4">{labels.product}</th>
@@ -1316,21 +1998,41 @@ function InventoryModule({
               {products.map((product) => {
                 const status = getStockStatus(product);
                 return (
-                  <tr key={product.id} className="border-b border-[var(--apex-border)] last:border-0">
+                  <tr
+                    key={product.id}
+                    className="border-b border-[var(--apex-border)] last:border-0"
+                  >
                     <td className="px-5 py-4">
-                      <p className="text-sm font-semibold">{product.name}</p>
-                      <p className="mt-1 text-[10px] text-[var(--apex-muted)]">{product.barcode}</p>
+                      <p className="text-sm font-semibold">
+                        {product.name}
+                      </p>
+                      <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                        {product.barcode}
+                      </p>
                     </td>
-                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">{product.category}</td>
-                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">{product.supplier}</td>
-                    <td className="px-4 py-4 text-xs font-semibold">{money(product.cost)}</td>
-                    <td className="px-4 py-4 text-xs font-semibold">{money(product.price)}</td>
+                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
+                      {product.category}
+                    </td>
+                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
+                      {product.supplier}
+                    </td>
+                    <td className="px-4 py-4 text-xs font-semibold">
+                      {money(product.cost)}
+                    </td>
+                    <td className="px-4 py-4 text-xs font-semibold">
+                      {money(product.price)}
+                    </td>
                     <td className="px-4 py-4">
                       <input
                         type="number"
                         min={0}
                         value={product.stock}
-                        onChange={(event) => updateStock(product.id, Number(event.target.value))}
+                        onChange={(event) =>
+                          updateStock(
+                            product.id,
+                            Number(event.target.value)
+                          )
+                        }
                         className="apex-input w-20 px-3 py-2 text-xs"
                       />
                     </td>
@@ -1360,7 +2062,264 @@ function InventoryModule({
         </div>
       </section>
 
-      <BarcodeScanner onProduct={integrateScannedProduct} language={language} />
+      <BarcodeScanner
+        onProduct={integrateScannedProduct}
+        language={language}
+      />
+    </div>
+  );
+}
+
+function ChartsModule({
+  labels,
+  products,
+  data,
+  money,
+  currency,
+  locale,
+  revenue,
+  cost,
+  profit,
+  losses
+}: {
+  labels: (typeof copy)[LanguageCode];
+  products: Product[];
+  data: Array<{
+    label: string;
+    revenue: number;
+    cost: number;
+    profit: number;
+  }>;
+  money: (value: number) => string;
+  currency: string;
+  locale: string;
+  revenue: number;
+  cost: number;
+  profit: number;
+  losses: number;
+}) {
+  const stockData = products.map((product) => ({
+    name: product.name.split(" ").slice(0, 2).join(" "),
+    stock: product.stock
+  }));
+
+  const marginData = products.map((product) => ({
+    name: product.name.split(" ").slice(0, 2).join(" "),
+    margin:
+      product.price > 0
+        ? ((product.price - product.cost) / product.price) * 100
+        : 0
+  }));
+
+  const healthData = [
+    {
+      name: labels.normal,
+      value: products.filter(
+        (product) => getStockStatus(product) === "normal"
+      ).length
+    },
+    {
+      name: labels.low,
+      value: products.filter(
+        (product) => getStockStatus(product) === "low"
+      ).length
+    },
+    {
+      name: labels.out,
+      value: products.filter(
+        (product) => getStockStatus(product) === "out"
+      ).length
+    }
+  ];
+
+  return (
+    <div className="space-y-5">
+      <PageIntro
+        title={labels.chartsTitle}
+        subtitle={labels.chartsSubtitle}
+      />
+
+      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <Kpi
+          label={labels.revenue}
+          value={money(revenue)}
+          icon={<CircleDollarSign size={18} />}
+        />
+        <Kpi
+          label={labels.cost}
+          value={money(cost)}
+          icon={<Boxes size={18} />}
+        />
+        <Kpi
+          label={labels.grossProfit}
+          value={money(profit)}
+          icon={<BarChart3 size={18} />}
+        />
+        <Kpi
+          label={labels.losses}
+          value={money(losses)}
+          icon={<BellRing size={18} />}
+        />
+      </section>
+
+      <section className="grid gap-4 xl:grid-cols-2">
+        <ChartCard title={labels.revenueVsCost}>
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data}>
+              <CartesianGrid
+                stroke="var(--apex-border)"
+                strokeDasharray="4 6"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="label"
+                axisLine={false}
+                tickLine={false}
+                stroke="var(--apex-muted)"
+                fontSize={11}
+              />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 18,
+                  border: "1px solid var(--apex-border)",
+                  background: "var(--apex-surface-strong)",
+                  color: "var(--apex-text)"
+                }}
+                formatter={(value) =>
+                  formatMoney(Number(value), currency, locale)
+                }
+              />
+              <Area
+                type="monotone"
+                dataKey="revenue"
+                stroke="#8F0000"
+                fill="#8F0000"
+                fillOpacity={0.15}
+              />
+              <Area
+                type="monotone"
+                dataKey="cost"
+                stroke="#6B6B70"
+                fill="#6B6B70"
+                fillOpacity={0.08}
+              />
+              <Area
+                type="monotone"
+                dataKey="profit"
+                stroke="#B90000"
+                fill="#B90000"
+                fillOpacity={0.05}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title={labels.stockByProduct}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stockData}>
+              <CartesianGrid
+                stroke="var(--apex-border)"
+                strokeDasharray="4 6"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                stroke="var(--apex-muted)"
+                fontSize={9}
+              />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 18,
+                  border: "1px solid var(--apex-border)",
+                  background: "var(--apex-surface-strong)",
+                  color: "var(--apex-text)"
+                }}
+              />
+              <Bar
+                dataKey="stock"
+                fill="#8F0000"
+                radius={[8, 8, 3, 3]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title={labels.marginByProduct}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={marginData}>
+              <CartesianGrid
+                stroke="var(--apex-border)"
+                strokeDasharray="4 6"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="name"
+                axisLine={false}
+                tickLine={false}
+                stroke="var(--apex-muted)"
+                fontSize={9}
+              />
+              <YAxis hide />
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 18,
+                  border: "1px solid var(--apex-border)",
+                  background: "var(--apex-surface-strong)",
+                  color: "var(--apex-text)"
+                }}
+                formatter={(value) =>
+                  `${Number(value).toFixed(1)}%`
+                }
+              />
+              <Bar
+                dataKey="margin"
+                fill="#8F0000"
+                radius={[8, 8, 3, 3]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartCard>
+
+        <ChartCard title={labels.stockHealth}>
+          <ResponsiveContainer width="100%" height="100%">
+            <RechartsPieChart>
+              <Pie
+                data={healthData}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={70}
+                outerRadius={110}
+                paddingAngle={4}
+              >
+                {healthData.map((entry, index) => (
+                  <Cell
+                    key={entry.name}
+                    fill={
+                      index === 0
+                        ? "#52525B"
+                        : index === 1
+                          ? "#8F0000"
+                          : "#C90000"
+                    }
+                  />
+                ))}
+              </Pie>
+              <Tooltip
+                contentStyle={{
+                  borderRadius: 18,
+                  border: "1px solid var(--apex-border)",
+                  background: "var(--apex-surface-strong)",
+                  color: "var(--apex-text)"
+                }}
+              />
+            </RechartsPieChart>
+          </ResponsiveContainer>
+        </ChartCard>
+      </section>
     </div>
   );
 }
@@ -1378,31 +2337,51 @@ function PurchasesModule({
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.purchasesTitle} subtitle={labels.purchasesSubtitle} />
+      <PageIntro
+        title={labels.purchasesTitle}
+        subtitle={labels.purchasesSubtitle}
+      />
 
       <div className="grid gap-3">
-        {restock.map(({ product, daysCover, suggestedUnits }) => (
-          <article key={product.id} className="apex-card p-5">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <h3 className="text-sm font-semibold">{product.name}</h3>
-                <p className="mt-1 text-[11px] text-[var(--apex-muted)]">{product.supplier}</p>
+        {restock.map(
+          ({ product, daysCover, suggestedUnits }) => (
+            <article key={product.id} className="apex-card p-5">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold">
+                    {product.name}
+                  </h3>
+                  <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
+                    {product.supplier}
+                  </p>
+                </div>
+                <div className="grid grid-cols-3 gap-3 sm:min-w-[430px]">
+                  <MiniStat
+                    label={labels.suggested}
+                    value={String(suggestedUnits)}
+                  />
+                  <MiniStat
+                    label={labels.coverage}
+                    value={`${daysCover.toFixed(1)} ${labels.days}`}
+                  />
+                  <MiniStat
+                    label={labels.estimatedCost}
+                    value={money(suggestedUnits * product.cost)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    receiveRestock(product.id, suggestedUnits)
+                  }
+                  className="rounded-2xl bg-[#8F0000] px-4 py-3 text-xs font-semibold text-white"
+                >
+                  {labels.receivePurchase}
+                </button>
               </div>
-              <div className="grid grid-cols-3 gap-3 sm:min-w-[430px]">
-                <MiniStat label={labels.suggested} value={String(suggestedUnits)} />
-                <MiniStat label={labels.coverage} value={`${daysCover.toFixed(1)} ${labels.days}`} />
-                <MiniStat label={labels.estimatedCost} value={money(suggestedUnits * product.cost)} />
-              </div>
-              <button
-                type="button"
-                onClick={() => receiveRestock(product.id, suggestedUnits)}
-                className="rounded-2xl bg-[#8F0000] px-4 py-3 text-xs font-semibold text-white"
-              >
-                {labels.receivePurchase}
-              </button>
-            </div>
-          </article>
-        ))}
+            </article>
+          )
+        )}
       </div>
     </div>
   );
@@ -1425,26 +2404,43 @@ function SuppliersModule({
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.suppliersTitle} subtitle={labels.suppliersSubtitle} />
+      <PageIntro
+        title={labels.suppliersTitle}
+        subtitle={labels.suppliersSubtitle}
+      />
 
       <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         {stats.map((supplier) => (
-          <article key={supplier.supplier} className="apex-card p-5">
+          <article
+            key={supplier.supplier}
+            className="apex-card p-5"
+          >
             <div className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
                 <Building2 size={18} />
               </span>
               <div>
-                <h3 className="text-sm font-semibold">{supplier.supplier}</h3>
+                <h3 className="text-sm font-semibold">
+                  {supplier.supplier}
+                </h3>
                 <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
                   {supplier.products} {labels.products}
                 </p>
               </div>
             </div>
             <div className="mt-5 grid grid-cols-2 gap-3">
-              <MiniStat label={labels.units} value={String(supplier.units)} />
-              <MiniStat label={labels.inventoryValue} value={money(supplier.value)} />
-              <MiniStat label={labels.averageMargin} value={`${supplier.averageMargin.toFixed(1)}%`} />
+              <MiniStat
+                label={labels.units}
+                value={String(supplier.units)}
+              />
+              <MiniStat
+                label={labels.inventoryValue}
+                value={money(supplier.value)}
+              />
+              <MiniStat
+                label={labels.averageMargin}
+                value={`${supplier.averageMargin.toFixed(1)}%`}
+              />
             </div>
           </article>
         ))}
@@ -1453,68 +2449,280 @@ function SuppliersModule({
   );
 }
 
-function ReportsModule({
+function ActivitiesModule({
   labels,
-  data,
-  currency,
-  locale
+  activities,
+  locale,
+  activityText
 }: {
   labels: (typeof copy)[LanguageCode];
-  data: Array<{ label: string; revenue: number; cost: number; profit: number }>;
-  currency: string;
+  activities: ActivityRecord[];
   locale: string;
+  activityText: (activity: ActivityRecord) => string;
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.reportsTitle} subtitle={labels.reportsSubtitle} />
+      <PageIntro
+        title={labels.activitiesTitle}
+        subtitle={labels.activitiesSubtitle}
+      />
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        <div className="apex-card p-5 sm:p-6">
-          <h3 className="text-sm font-semibold">{labels.salesFlow}</h3>
-          <div className="mt-5 h-[340px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data}>
-                <CartesianGrid stroke="var(--apex-border)" strokeDasharray="4 6" vertical={false} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} stroke="var(--apex-muted)" fontSize={11} />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 18,
-                    border: "1px solid var(--apex-border)",
-                    background: "var(--apex-surface-strong)",
-                    color: "var(--apex-text)"
-                  }}
-                  formatter={(value) => formatMoney(Number(value), currency, locale)}
-                />
-                <Area type="monotone" dataKey="revenue" stroke="#8F0000" fill="#8F0000" fillOpacity={0.16} />
-              </AreaChart>
-            </ResponsiveContainer>
+      <section className="apex-card p-5 sm:p-6">
+        {!activities.length ? (
+          <p className="text-sm text-[var(--apex-muted)]">
+            {labels.noActivities}
+          </p>
+        ) : (
+          <div className="space-y-1">
+            {activities.map((activity, index) => (
+              <div
+                key={activity.id}
+                className="relative flex gap-4 py-4"
+              >
+                {index < activities.length - 1 && (
+                  <div className="absolute left-[15px] top-9 h-[calc(100%-20px)] w-px bg-[var(--apex-border)]" />
+                )}
+                <span className="relative z-10 mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#8F0000]/12 text-[#8F0000]">
+                  <ActivityIcon size={14} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold">
+                    {activityText(activity)}
+                  </p>
+                  <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
+                    {new Intl.DateTimeFormat(locale, {
+                      dateStyle: "medium",
+                      timeStyle: "short"
+                    }).format(new Date(activity.createdAt))}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        )}
+      </section>
+    </div>
+  );
+}
 
-        <div className="apex-card p-5 sm:p-6">
-          <h3 className="text-sm font-semibold">{labels.revenueVsCost}</h3>
-          <div className="mt-5 h-[340px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <CartesianGrid stroke="var(--apex-border)" strokeDasharray="4 6" vertical={false} />
-                <XAxis dataKey="label" axisLine={false} tickLine={false} stroke="var(--apex-muted)" fontSize={11} />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 18,
-                    border: "1px solid var(--apex-border)",
-                    background: "var(--apex-surface-strong)",
-                    color: "var(--apex-text)"
-                  }}
-                  formatter={(value) => formatMoney(Number(value), currency, locale)}
-                />
-                <Bar dataKey="revenue" fill="#8F0000" radius={[8, 8, 3, 3]} />
-                <Bar dataKey="cost" fill="#6B6B70" radius={[8, 8, 3, 3]} />
-              </BarChart>
-            </ResponsiveContainer>
+function NotesModule({
+  labels,
+  locale,
+  notes,
+  selectedDate,
+  setSelectedDate,
+  selectedNotes,
+  noteDraft,
+  setNoteDraft,
+  addNote,
+  toggleNote,
+  removeNote,
+  calendarMonth,
+  setCalendarMonth
+}: {
+  labels: (typeof copy)[LanguageCode];
+  locale: string;
+  notes: BusinessNote[];
+  selectedDate: string;
+  setSelectedDate: (value: string) => void;
+  selectedNotes: BusinessNote[];
+  noteDraft: string;
+  setNoteDraft: (value: string) => void;
+  addNote: () => void;
+  toggleNote: (id: string) => void;
+  removeNote: (id: string) => void;
+  calendarMonth: Date;
+  setCalendarMonth: (date: Date) => void;
+}) {
+  const year = calendarMonth.getFullYear();
+  const month = calendarMonth.getMonth();
+  const firstOffset =
+    (new Date(year, month, 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const days = [
+    ...Array.from({ length: firstOffset }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, index) => index + 1)
+  ];
+
+  const weekdays = Array.from({ length: 7 }, (_, index) =>
+    new Intl.DateTimeFormat(locale, { weekday: "short" }).format(
+      new Date(2024, 0, 1 + index)
+    )
+  );
+
+  const monthLabel = new Intl.DateTimeFormat(locale, {
+    month: "long",
+    year: "numeric"
+  }).format(calendarMonth);
+
+  return (
+    <div className="space-y-5">
+      <PageIntro title={labels.notesTitle} subtitle={labels.notesSubtitle} />
+
+      <div className="grid gap-4 xl:grid-cols-[1fr_.9fr]">
+        <section className="apex-card p-4 sm:p-6">
+          <div className="flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() =>
+                setCalendarMonth(new Date(year, month - 1, 1))
+              }
+              className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)]"
+              aria-label={labels.previousMonth}
+            >
+              <ChevronLeft size={17} />
+            </button>
+
+            <h3 className="text-sm font-semibold capitalize">
+              {monthLabel}
+            </h3>
+
+            <button
+              type="button"
+              onClick={() =>
+                setCalendarMonth(new Date(year, month + 1, 1))
+              }
+              className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)]"
+              aria-label={labels.nextMonth}
+            >
+              <ChevronRight size={17} />
+            </button>
           </div>
-        </div>
+
+          <div className="mt-5 grid grid-cols-7 gap-1 text-center">
+            {weekdays.map((weekday) => (
+              <div
+                key={weekday}
+                className="py-2 text-[10px] font-bold uppercase text-[var(--apex-muted)]"
+              >
+                {weekday}
+              </div>
+            ))}
+
+            {days.map((day, index) => {
+              if (!day) {
+                return <div key={`empty-${index}`} />;
+              }
+
+              const key = localDateKey(new Date(year, month, day));
+              const selected = key === selectedDate;
+              const noteCount = notes.filter(
+                (note) => note.date === key && !note.done
+              ).length;
+
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => setSelectedDate(key)}
+                  className={
+                    "relative aspect-square rounded-2xl text-xs font-semibold transition " +
+                    (selected
+                      ? "bg-[#8F0000] text-white"
+                      : "hover:bg-[var(--apex-surface-strong)]")
+                  }
+                >
+                  {day}
+                  {noteCount > 0 && (
+                    <span
+                      className={
+                        "absolute bottom-1.5 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full " +
+                        (selected ? "bg-white" : "bg-[#8F0000]")
+                      }
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              const today = new Date();
+              setCalendarMonth(
+                new Date(today.getFullYear(), today.getMonth(), 1)
+              );
+              setSelectedDate(localDateKey(today));
+            }}
+            className="mt-4 rounded-full border border-[var(--apex-border)] px-3 py-2 text-xs font-semibold"
+          >
+            {labels.today}
+          </button>
+        </section>
+
+        <section className="apex-card p-4 sm:p-6">
+          <div className="flex items-center gap-2">
+            <CalendarDays size={17} className="text-[#8F0000]" />
+            <h3 className="text-sm font-semibold">
+              {new Intl.DateTimeFormat(locale, {
+                dateStyle: "full"
+              }).format(new Date(`${selectedDate}T12:00:00`))}
+            </h3>
+          </div>
+
+          <div className="mt-4 flex gap-2">
+            <textarea
+              value={noteDraft}
+              onChange={(event) => setNoteDraft(event.target.value)}
+              placeholder={labels.notePlaceholder}
+              rows={3}
+              className="apex-input min-h-24 flex-1 resize-none px-4 py-3 text-sm"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={addNote}
+            disabled={!noteDraft.trim()}
+            className="mt-3 rounded-2xl bg-[#8F0000] px-4 py-3 text-sm font-semibold text-white disabled:opacity-35"
+          >
+            {labels.addNote}
+          </button>
+
+          <div className="mt-5 space-y-2">
+            {selectedNotes.length ? (
+              selectedNotes.map((note) => (
+                <div
+                  key={note.id}
+                  className="flex items-start gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3"
+                >
+                  <button
+                    type="button"
+                    onClick={() => toggleNote(note.id)}
+                    className={
+                      "mt-0.5 h-5 w-5 shrink-0 rounded-full border " +
+                      (note.done
+                        ? "border-[#8F0000] bg-[#8F0000]"
+                        : "border-[var(--apex-border)]")
+                    }
+                  />
+                  <p
+                    className={
+                      "min-w-0 flex-1 text-sm leading-5 " +
+                      (note.done
+                        ? "text-[var(--apex-muted)] line-through"
+                        : "")
+                    }
+                  >
+                    {note.text}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => removeNote(note.id)}
+                    className="grid h-8 w-8 place-items-center rounded-full text-[var(--apex-muted)]"
+                    aria-label={labels.close}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-[var(--apex-muted)]">
+                {labels.noNotes}
+              </p>
+            )}
+          </div>
+        </section>
       </div>
     </div>
   );
@@ -1531,7 +2739,11 @@ function SettingsModule({
   onCurrencyChange,
   onToggleTheme,
   onSignOut,
-  saveBusinessName
+  saveBusinessName,
+  fxStatus,
+  fxUpdatedAt,
+  currencyRate,
+  locale
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -1544,17 +2756,28 @@ function SettingsModule({
   onToggleTheme: () => void;
   onSignOut: () => void;
   saveBusinessName: () => void;
+  fxStatus: "live" | "error";
+  fxUpdatedAt: string;
+  currencyRate: number;
+  locale: string;
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.settingsTitle} subtitle={labels.settingsSubtitle} />
+      <PageIntro
+        title={labels.settingsTitle}
+        subtitle={labels.settingsSubtitle}
+      />
 
       <div className="grid gap-4 xl:grid-cols-2">
         <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">{labels.businessName}</h3>
+          <h3 className="text-sm font-semibold">
+            {labels.businessName}
+          </h3>
           <input
             value={businessName}
-            onChange={(event) => setBusinessName(event.target.value)}
+            onChange={(event) =>
+              setBusinessName(event.target.value)
+            }
             className="apex-input mt-4 px-4 py-3"
           />
           <button
@@ -1567,7 +2790,9 @@ function SettingsModule({
         </section>
 
         <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">{labels.preferences}</h3>
+          <h3 className="text-sm font-semibold">
+            {labels.preferences}
+          </h3>
           <div className="mt-4">
             <GlobalPreferences
               language={language}
@@ -1579,7 +2804,43 @@ function SettingsModule({
         </section>
 
         <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">{labels.appearance}</h3>
+          <h3 className="text-sm font-semibold">
+            {labels.exchangeRate}
+          </h3>
+          <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
+            {currency === "ARS"
+              ? "1 ARS"
+              : `1 ARS = ${currencyRate.toLocaleString(locale, {
+                  maximumFractionDigits: 8
+                })} ${currency}`}
+          </p>
+          <p
+            className={
+              "mt-2 text-xs " +
+              (fxStatus === "live"
+                ? "text-emerald-600"
+                : "text-red-500")
+            }
+          >
+            {fxStatus === "live"
+              ? labels.liveRate
+              : labels.rateUnavailable}
+          </p>
+          {fxUpdatedAt && (
+            <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+              {labels.updated}:{" "}
+              {new Intl.DateTimeFormat(locale, {
+                dateStyle: "medium",
+                timeStyle: "short"
+              }).format(new Date(fxUpdatedAt))}
+            </p>
+          )}
+        </section>
+
+        <section className="apex-card p-5">
+          <h3 className="text-sm font-semibold">
+            {labels.appearance}
+          </h3>
           <button
             type="button"
             onClick={onToggleTheme}
@@ -1591,7 +2852,9 @@ function SettingsModule({
         </section>
 
         <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">{labels.install}</h3>
+          <h3 className="text-sm font-semibold">
+            {labels.install}
+          </h3>
           <div className="mt-4">
             <InstallAppButton language={language} />
           </div>
@@ -1609,7 +2872,76 @@ function SettingsModule({
   );
 }
 
-function PageIntro({ title, subtitle }: { title: string; subtitle: string }) {
+function describeActivity(
+  activity: ActivityRecord,
+  labels: (typeof copy)[LanguageCode],
+  money: (value: number) => string
+) {
+  if (activity.kind === "sale") {
+    return `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units} · ${money(activity.total ?? 0)}`;
+  }
+  if (activity.kind === "restock") {
+    return `${labels.restockActivity} · ${activity.product ?? ""} · +${activity.units ?? 0}`;
+  }
+  if (activity.kind === "scan") {
+    return `${labels.scanActivity} · ${activity.product ?? ""}`;
+  }
+  if (activity.kind === "note") {
+    return labels.noteActivity;
+  }
+  return labels.settingsActivity;
+}
+
+function MobileNavButton({
+  active,
+  icon,
+  label,
+  onClick
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold " +
+        (active
+          ? "bg-[#8F0000]/12 text-[#8F0000]"
+          : "text-[var(--apex-muted)]")
+      }
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
+function ChartCard({
+  title,
+  children
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="apex-card p-5 sm:p-6">
+      <h3 className="text-sm font-semibold">{title}</h3>
+      <div className="mt-5 h-[330px]">{children}</div>
+    </section>
+  );
+}
+
+function PageIntro({
+  title,
+  subtitle
+}: {
+  title: string;
+  subtitle: string;
+}) {
   return (
     <section>
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
@@ -1641,17 +2973,33 @@ function Kpi({
       <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
         {icon}
       </span>
-      <p className="mt-4 text-xs font-semibold text-[var(--apex-muted)]">{label}</p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">{value}</p>
-      {detail && <p className="mt-1 text-[11px] text-[var(--apex-muted)]">{detail}</p>}
+      <p className="mt-4 text-xs font-semibold text-[var(--apex-muted)]">
+        {label}
+      </p>
+      <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">
+        {value}
+      </p>
+      {detail && (
+        <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
+          {detail}
+        </p>
+      )}
     </article>
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: string }) {
+function MiniStat({
+  label,
+  value
+}: {
+  label: string;
+  value: string;
+}) {
   return (
     <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">{label}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+        {label}
+      </p>
       <p className="mt-1.5 text-sm font-semibold">{value}</p>
     </div>
   );
