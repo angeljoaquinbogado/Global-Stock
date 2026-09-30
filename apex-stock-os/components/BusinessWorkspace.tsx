@@ -13,6 +13,8 @@ import {
   CircleDollarSign,
   ClipboardList,
   LogOut,
+  ReceiptText,
+  ShoppingBag,
   Menu,
   Minus,
   Moon,
@@ -64,15 +66,23 @@ import {
 } from "./GlobalPreferences";
 import { InstallAppButton } from "./InstallAppButton";
 import { Logo } from "./Logo";
+import { PremiumCharts } from "./PremiumCharts";
+import { NotesHub } from "./NotesHub";
+import {
+  DocumentsHub,
+  OnlineCommerceHub
+} from "./BusinessOperations";
 
 type ModuleId =
   | "overview"
   | "pos"
+  | "online"
   | "inventory"
   | "charts"
   | "purchases"
   | "suppliers"
   | "activities"
+  | "documents"
   | "notes"
   | "settings";
 
@@ -226,12 +236,14 @@ const copy: Record<
   es: {
     nav: {
       overview: "Inicio",
-      pos: "Ventas",
+      pos: "Tienda física",
+      online: "Tienda online",
       inventory: "Inventario",
       charts: "Gráficos",
       purchases: "Compras",
       suppliers: "Proveedores",
       activities: "Actividad",
+      documents: "Comprobantes",
       notes: "Notas",
       settings: "Configuración"
     },
@@ -330,12 +342,14 @@ const copy: Record<
   en: {
     nav: {
       overview: "Home",
-      pos: "Sales",
+      pos: "Physical store",
+      online: "Online store",
       inventory: "Inventory",
       charts: "Charts",
       purchases: "Purchases",
       suppliers: "Suppliers",
       activities: "Activity",
+      documents: "Documents",
       notes: "Notes",
       settings: "Settings"
     },
@@ -434,12 +448,14 @@ const copy: Record<
   pt: {
     nav: {
       overview: "Início",
-      pos: "Vendas",
+      pos: "Loja física",
+      online: "Loja online",
       inventory: "Estoque",
       charts: "Gráficos",
       purchases: "Compras",
       suppliers: "Fornecedores",
       activities: "Atividade",
+      documents: "Comprovantes",
       notes: "Notas",
       settings: "Configurações"
     },
@@ -538,12 +554,14 @@ const copy: Record<
   fr: {
     nav: {
       overview: "Accueil",
-      pos: "Ventes",
+      pos: "Magasin physique",
+      online: "Boutique en ligne",
       inventory: "Inventaire",
       charts: "Graphiques",
       purchases: "Achats",
       suppliers: "Fournisseurs",
       activities: "Activité",
+      documents: "Documents",
       notes: "Notes",
       settings: "Paramètres"
     },
@@ -642,12 +660,14 @@ const copy: Record<
   de: {
     nav: {
       overview: "Start",
-      pos: "Verkäufe",
+      pos: "Filiale",
+      online: "Onlineshop",
       inventory: "Bestand",
       charts: "Diagramme",
       purchases: "Einkauf",
       suppliers: "Lieferanten",
       activities: "Aktivität",
+      documents: "Belege",
       notes: "Notizen",
       settings: "Einstellungen"
     },
@@ -748,11 +768,13 @@ const copy: Record<
 const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "overview", icon: Store },
   { id: "pos", icon: ShoppingCart },
+  { id: "online", icon: ShoppingBag },
   { id: "inventory", icon: Boxes },
   { id: "charts", icon: BarChart3 },
   { id: "purchases", icon: PackagePlus },
   { id: "suppliers", icon: Truck },
   { id: "activities", icon: ActivityIcon },
+  { id: "documents", icon: ReceiptText },
   { id: "notes", icon: ClipboardList },
   { id: "settings", icon: Settings2 }
 ];
@@ -1352,6 +1374,14 @@ export function BusinessWorkspace({
               />
             )}
 
+            {activeModule === "online" && (
+              <OnlineCommerceHub
+                language={language}
+                currency={currency}
+                locale={locale}
+              />
+            )}
+
             {activeModule === "inventory" && (
               <InventoryModule
                 labels={labels}
@@ -1364,8 +1394,8 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "charts" && (
-              <ChartsModule
-                labels={labels}
+              <PremiumCharts
+                language={language}
                 products={products}
                 data={localizedTrend}
                 money={money}
@@ -1406,9 +1436,17 @@ export function BusinessWorkspace({
               />
             )}
 
+            {activeModule === "documents" && (
+              <DocumentsHub
+                language={language}
+                currency={currency}
+                locale={locale}
+              />
+            )}
+
             {activeModule === "notes" && (
-              <NotesModule
-                labels={labels}
+              <NotesHub
+                language={language}
                 locale={locale}
                 notes={notes}
                 selectedDate={selectedDate}
@@ -1526,9 +1564,11 @@ export function BusinessWorkspace({
                 {(
                   [
                     "inventory",
+                    "online",
                     "purchases",
                     "suppliers",
                     "activities",
+                    "documents",
                     "notes",
                     "settings"
                   ] as ModuleId[]
