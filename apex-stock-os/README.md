@@ -124,3 +124,31 @@ La primera ejecución puede pedir iniciar sesión y confirmar el equipo/proyecto
 ## Estado de beta
 
 Sin Supabase configurado, Global Stock funciona en modo demo local: autenticación de demostración, inventario editable, persistencia en el dispositivo, analítica, multimoneda, lector y Global Intelligence. Para un lanzamiento multiusuario real deben configurarse Supabase Auth y la base de datos multi-tenant incluida en `supabase/schema.sql`.
+
+
+## Global Intelligence real
+
+Global Intelligence no usa respuestas empresariales predeterminadas. El frontend envía al servidor:
+
+- la conversación reciente;
+- fecha/hora y zona horaria del dispositivo;
+- productos, stock, costos, precios y ventas 30d;
+- métricas P&L disponibles;
+- tendencias;
+- reposición estimada, cobertura de stock, capital inmovilizado y márgenes derivados.
+
+El servidor arma ese contexto dinámicamente y lo envía a un modelo conversacional externo mediante un endpoint compatible con payload de chat completions.
+
+Variables del servidor:
+
+```env
+AI_API_URL=
+AI_API_KEY=
+AI_MODEL=
+```
+
+`AI_API_KEY` puede quedar vacío cuando el servidor de modelo local no requiere autenticación.
+
+Para pruebas locales con un servidor de modelos compatible en la misma PC, `AI_API_URL` puede apuntar a localhost. Para producción pública, usar un proveedor accesible desde Vercel y guardar los secretos solamente como variables de entorno del servidor.
+
+Si no hay modelo configurado, la API devuelve un error de configuración en lugar de fingir una respuesta de IA.
