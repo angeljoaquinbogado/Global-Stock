@@ -96,6 +96,8 @@ type BusinessWorkspaceProps = {
   onSignOut: () => void;
 };
 
+type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
+
 type ActivityKind =
   | "sale"
   | "restock"
@@ -804,6 +806,7 @@ export function BusinessWorkspace({
   const [currencyRate, setCurrencyRate] = useState(1);
   const [fxUpdatedAt, setFxUpdatedAt] = useState("");
   const [fxStatus, setFxStatus] = useState<"live" | "error">("live");
+  const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
   const [fxHistory, setFxHistory] = useState<
     Array<{ date: string; currency: string; rate: number }>
   >([]);
@@ -830,6 +833,9 @@ export function BusinessWorkspace({
       const savedActivities = localStorage.getItem("global-stock-activities-v1");
       const savedNotes = localStorage.getItem("global-stock-notes-v1");
       const savedFxHistory = localStorage.getItem("global-stock-fx-history-v1");
+      const savedFxMarket = localStorage.getItem(
+        "global-stock-fx-market-v1"
+      ) as FxMarket | null;
 
       if (savedProducts) {
         const parsed = JSON.parse(savedProducts) as Product[];
@@ -856,6 +862,14 @@ export function BusinessWorkspace({
         }>;
         if (Array.isArray(parsed)) setFxHistory(parsed);
       }
+      if (
+        savedFxMarket &&
+        ["oficial", "blue", "mep", "ccl", "tarjeta"].includes(
+          savedFxMarket
+        )
+      ) {
+        setFxMarket(savedFxMarket);
+      }
     } catch {
       // Keep bundled demo data if a local value is invalid.
     }
@@ -878,6 +892,10 @@ export function BusinessWorkspace({
   }, [notes]);
 
   useEffect(() => {
+    localStorage.setItem("global-stock-fx-market-v1", fxMarket);
+  }, [fxMarket]);
+
+  useEffect(() => {
     let cancelled = false;
 
     async function loadRate() {
@@ -892,7 +910,7 @@ export function BusinessWorkspace({
 
       try {
         const response = await fetch(
-          `/api/fx?target=${encodeURIComponent(currency)}&t=${Date.now()}`,
+          `/api/fx?target=${encodeURIComponent(currency)}&market=${encodeURIComponent(fxMarket)}&t=${Date.now()}`,
           { cache: "no-store" }
         );
         if (!response.ok) throw new Error("FX unavailable");
@@ -942,7 +960,7 @@ export function BusinessWorkspace({
       window.clearInterval(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [currency]);
+  }, [currency, fxMarket]);
 
   const localizedTrend = useMemo(
     () =>
@@ -1480,6 +1498,8 @@ export function BusinessWorkspace({
                 currencyRate={currencyRate}
                 locale={locale}
                 fxHistory={fxHistory}
+                fxMarket={fxMarket}
+                setFxMarket={setFxMarket}
               />
             )}
           </motion.div>
@@ -2833,7 +2853,9 @@ function SettingsModule({
   fxUpdatedAt,
   currencyRate,
   locale,
-  fxHistory
+  fxHistory,
+  fxMarket,
+  setFxMarket
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -2851,6 +2873,8 @@ function SettingsModule({
   currencyRate: number;
   locale: string;
   fxHistory: Array<{ date: string; currency: string; rate: number }>;
+  fxMarket: FxMarket;
+  setFxMarket: (market: FxMarket) => void;
 }) {
   return (
     <div className="space-y-5">
@@ -2895,9 +2919,29 @@ function SettingsModule({
         </section>
 
         <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.exchangeRate}
-          </h3>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">
+                {labels.exchangeRate}
+              </h3>
+              <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                DolarHoy.com · ARS
+              </p>
+            </div>
+            <select
+              value={fxMarket}
+              onChange={(event) =>
+                setFxMarket(event.target.value as FxMarket)
+              }
+              className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-semibold outline-none"
+            >
+              <option value="oficial">Oficial</option>
+              <option value="blue">Blue</option>
+              <option value="mep">MEP</option>
+              <option value="ccl">CCL</option>
+              <option value="tarjeta">Tarjeta</option>
+            </select>
+          </div>
           <p className="mt-3 text-2xl font-semibold tracking-[-0.04em]">
             {currency === "ARS"
               ? "1 ARS"
