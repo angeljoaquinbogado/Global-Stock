@@ -157,7 +157,7 @@ function SmoothStarField() {
   return (
     <group>
       <StarLayer
-        count={1250}
+        count={700}
         radiusMin={18}
         radiusMax={52}
         size={0.065}
@@ -166,7 +166,7 @@ function SmoothStarField() {
         seed={17}
       />
       <StarLayer
-        count={700}
+        count={320}
         radiusMin={9}
         radiusMax={26}
         size={0.085}
@@ -217,27 +217,19 @@ function GlobalGlobe() {
       .polygonCapColor(() => "rgba(40,56,43,.95)")
       .polygonSideColor(() => "rgba(17,23,20,.96)")
       .polygonStrokeColor(() => "rgba(185,206,191,.16)")
-      .polygonAltitude(() => 0.012)
+      .polygonAltitude(() => 0.003)
       .arcsData(arcs)
       .arcColor((arc: object) => (arc as GlobeArc).color)
       .arcAltitudeAutoScale(0.34)
       .arcStroke(0.42)
-      .arcDashLength(0.5)
-      .arcDashGap(0.18)
-      .arcDashAnimateTime(2600)
-      .pointsData(points)
+            .pointsData(points)
       .pointLat((point) => (point as GlobePoint).lat)
       .pointLng((point) => (point as GlobePoint).lng)
       .pointColor((point) => (point as GlobePoint).color)
       .pointAltitude(0.022)
       .pointRadius((point) => (point as GlobePoint).size)
-      .ringsData(points)
-      .ringLat((point) => (point as GlobePoint).lat)
-      .ringLng((point) => (point as GlobePoint).lng)
-      .ringColor(() => (t: number) => `rgba(255,30,30,${Math.max(0, 1 - t)})`)
-      .ringMaxRadius(2.1)
-      .ringPropagationSpeed(1.3)
-      .ringRepeatPeriod(1700);
+      .pointsTransitionDuration(0)
+      .arcsTransitionDuration(0);
 
     const material = globe.globeMaterial() as THREE.MeshPhongMaterial;
     material.color = new THREE.Color("#07141f");
@@ -269,8 +261,8 @@ function GlobalGlobe() {
       1
     );
     const desiredZ = THREE.MathUtils.lerp(10.8, 5.25, zoomProgress);
-    const desiredX = THREE.MathUtils.lerp(-1.4, -0.55, zoomProgress) + pointer.x * 0.14;
-    const desiredY = THREE.MathUtils.lerp(0.55, 0.12, zoomProgress) + pointer.y * 0.08;
+    const desiredX = THREE.MathUtils.lerp(-1.4, -0.55, zoomProgress) + pointer.x * 0.08;
+    const desiredY = THREE.MathUtils.lerp(0.55, 0.12, zoomProgress) + pointer.y * 0.05;
 
     camera.position.z = THREE.MathUtils.damp(camera.position.z, desiredZ, 3.8, delta);
     camera.position.x = THREE.MathUtils.damp(camera.position.x, desiredX, 3.2, delta);
@@ -333,9 +325,9 @@ export function AuthScene() {
     <div className="absolute inset-0 overflow-hidden bg-black">
       <Canvas
         camera={{ position: [-1.4, 0.55, 10.8], fov: 41 }}
-        dpr={[1, 1.35]}
+        dpr={1}
         gl={{
-          antialias: true,
+          antialias: false,
           alpha: false,
           powerPreference: "high-performance",
           toneMapping: THREE.ACESFilmicToneMapping,
@@ -356,8 +348,6 @@ export function AuthScene() {
           intensity={1.4}
           color="#7a0000"
         />
-        <MovingLight />
-
         <SmoothStarField />
 
         <GlobalGlobe />
