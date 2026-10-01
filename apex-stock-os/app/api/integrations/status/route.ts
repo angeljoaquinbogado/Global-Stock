@@ -21,7 +21,7 @@ export async function GET() {
         process.env.MERCADOLIBRE_CLIENT_ID,
         process.env.MERCADOLIBRE_CLIENT_SECRET
       ),
-      woocommerce: true,
+      woocommerce: false,
       custom: true
     },
     {
