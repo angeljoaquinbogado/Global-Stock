@@ -25,15 +25,9 @@ export async function GET() {
         auth: supabase,
         connector,
         providers: {
-          shopify:
-            filled(process.env.SHOPIFY_CLIENT_ID) &&
-            filled(process.env.SHOPIFY_CLIENT_SECRET),
-          tiendanube:
-            filled(process.env.TIENDANUBE_APP_ID) &&
-            filled(process.env.TIENDANUBE_CLIENT_SECRET),
-          mercadolibre:
-            filled(process.env.MERCADOLIBRE_CLIENT_ID) &&
-            filled(process.env.MERCADOLIBRE_CLIENT_SECRET),
+          shopify: false,
+          tiendanube: false,
+          mercadolibre: false,
           woocommerce: false,
           custom: true
         }
