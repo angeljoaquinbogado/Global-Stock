@@ -1202,8 +1202,14 @@ export function BusinessWorkspace({
     (sum, line) => sum + line.product.price * line.quantity,
     0
   );
+  const cartCostKnown = cartLines.every(
+    (line) => line.product.costKnown !== false
+  );
   const cartCost = cartLines.reduce(
-    (sum, line) => sum + line.product.cost * line.quantity,
+    (sum, line) =>
+      line.product.costKnown === false
+        ? sum
+        : sum + line.product.cost * line.quantity,
     0
   );
 
@@ -1230,20 +1236,24 @@ export function BusinessWorkspace({
 
       current.products += 1;
       current.units += product.stock;
-      current.value += product.stock * product.cost;
-      current.margins.push(
-        product.price > 0
-          ? ((product.price - product.cost) / product.price) * 100
-          : 0
-      );
+      if (product.costKnown !== false) {
+        current.value += product.stock * product.cost;
+        if (product.price > 0) {
+          current.margins.push(
+            ((product.price - product.cost) / product.price) * 100
+          );
+        }
+      }
       groups.set(product.supplier, current);
     }
 
     return [...groups.values()].map((group) => ({
       ...group,
       averageMargin:
-        group.margins.reduce((sum, value) => sum + value, 0) /
-        Math.max(group.margins.length, 1)
+        group.margins.length > 0
+          ? group.margins.reduce((sum, value) => sum + value, 0) /
+            group.margins.length
+          : null
     }));
   }, [products]);
 
@@ -1762,7 +1772,7 @@ export function BusinessWorkspace({
                 setQuantity={setQuantity}
                 cartLines={cartLines}
                 cartTotal={cartTotal}
-                cartProfit={cartTotal - cartCost}
+                cartProfit={cartCostKnown ? cartTotal - cartCost : null}
                 money={money}
                 completeSale={completeSale}
               />
@@ -2314,7 +2324,7 @@ function PosModule({
   setQuantity: (id: string, quantity: number) => void;
   cartLines: Array<{ product: Product; quantity: number }>;
   cartTotal: number;
-  cartProfit: number;
+  cartProfit: number | null;
   money: (value: number) => string;
   completeSale: () => void;
 }) {
@@ -2440,7 +2450,7 @@ function PosModule({
               <span className="text-[var(--apex-muted)]">
                 {labels.estimatedProfit}
               </span>
-              <strong>{money(cartProfit)}</strong>
+              <strong>{cartProfit === null ? "—" : money(cartProfit)}</strong>
             </div>
           </div>
 
@@ -2540,7 +2550,7 @@ function InventoryModule({
                       {product.supplier}
                     </td>
                     <td className="px-4 py-4 text-xs font-semibold">
-                      {money(product.cost)}
+                      {product.costKnown === false ? "—" : money(product.cost)}
                     </td>
                     <td className="px-4 py-4 text-xs font-semibold">
                       {money(product.price)}
@@ -2645,7 +2655,11 @@ function PurchasesModule({
                   />
                   <MiniStat
                     label={labels.estimatedCost}
-                    value={money(suggestedUnits * product.cost)}
+                    value={
+                      product.costKnown === false
+                        ? "—"
+                        : money(suggestedUnits * product.cost)
+                    }
                   />
                 </div>
                 <button
