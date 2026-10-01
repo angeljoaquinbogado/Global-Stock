@@ -544,7 +544,7 @@ export function AuthScreen({
   const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
 
   return (
-    <main className="relative min-h-screen overflow-hidden bg-black">
+    <main className="relative h-[100dvh] min-h-[100svh] overflow-hidden bg-black">
       <AuthScene />
 
       <AnimatePresence mode="wait">
