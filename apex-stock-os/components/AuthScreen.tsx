@@ -564,18 +564,46 @@ export function AuthScreen({
                   className="text-center"
                 >
                   <motion.div
-                    initial={{ rotateY: -50, opacity: 0 }}
-                    animate={{ rotateY: 0, opacity: 1 }}
-                    transition={{ ...spring, delay: 0.1 }}
+                    initial={{
+                      opacity: 0,
+                      scale: 0.28,
+                      rotate: 38,
+                      filter: "blur(14px)"
+                    }}
+                    animate={{
+                      opacity: 1,
+                      scale: 1,
+                      rotate: 0,
+                      filter: "blur(0px)"
+                    }}
+                    transition={{
+                      duration: 0.95,
+                      delay: 0.08,
+                      ease: [0.16, 1, 0.3, 1]
+                    }}
                     className="mx-auto grid h-24 w-24 place-items-center rounded-[30px] border border-white/10 bg-black/35 shadow-[0_28px_100px_rgba(143,0,0,.42)] backdrop-blur-xl"
                   >
                     <Logo className="h-16 w-16" />
                   </motion.div>
 
                   <motion.div
-                    initial={{ opacity: 0, letterSpacing: "0.35em" }}
-                    animate={{ opacity: 1, letterSpacing: "-0.045em" }}
-                    transition={{ duration: 1.05, delay: 0.22 }}
+                    initial={{
+                      opacity: 0,
+                      letterSpacing: "0.34em",
+                      clipPath: "inset(0 50% 0 50%)",
+                      filter: "blur(10px)"
+                    }}
+                    animate={{
+                      opacity: 1,
+                      letterSpacing: "-0.045em",
+                      clipPath: "inset(0 0% 0 0%)",
+                      filter: "blur(0px)"
+                    }}
+                    transition={{
+                      duration: 1.2,
+                      delay: 0.2,
+                      ease: [0.16, 1, 0.3, 1]
+                    }}
                     className="mt-7 text-[clamp(2.8rem,7vw,6.4rem)] font-semibold leading-none"
                   >
                     GLOBAL STOCK
