@@ -1517,17 +1517,29 @@ export function BusinessWorkspace({
   }
 
   function updatePrice(id: string, nextPrice: number) {
-    const safePrice = Math.max(0, Number(nextPrice) || 0);
+    const safeListPrice = Math.max(0, Number(nextPrice) || 0);
     const product = products.find((item) => item.id === id);
+    const discount = Math.min(
+      90,
+      Math.max(0, Number(product?.discountPercent) || 0)
+    );
+    const finalPrice =
+      Math.round(safeListPrice * (1 - discount / 100) * 100) / 100;
 
     setProducts((current) =>
       current.map((item) =>
-        item.id === id ? { ...item, price: safePrice } : item
+        item.id === id
+          ? {
+              ...item,
+              originalPrice: safeListPrice,
+              price: finalPrice
+            }
+          : item
       )
     );
 
     if (product) {
-      scheduleConnectedWrite(product, { price: safePrice });
+      scheduleConnectedWrite(product, { price: safeListPrice });
     }
   }
 
@@ -2672,7 +2684,7 @@ function InventoryModule({
                         type="number"
                         min={0}
                         step="0.01"
-                        value={product.price}
+                        value={product.originalPrice ?? product.price}
                         onChange={(event) =>
                           updatePrice(
                             product.id,
