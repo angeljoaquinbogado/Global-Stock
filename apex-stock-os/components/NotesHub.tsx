@@ -362,9 +362,9 @@ export function NotesHub({
             initial={{ opacity: 0, y: 7 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="grid gap-4 xl:grid-cols-[.72fr_1.28fr]"
+            className="grid gap-3 xl:grid-cols-[360px_1fr]"
           >
-            <section className="apex-card h-fit p-5">
+            <section className="apex-card h-fit p-4">
               <div className="flex items-center gap-2">
                 <StickyNote size={17} className="text-[#8F0000]" />
                 <h3 className="text-sm font-semibold">{t.newNote}</h3>
@@ -374,21 +374,21 @@ export function NotesHub({
                 value={freeTitle}
                 onChange={(event) => setFreeTitle(event.target.value)}
                 placeholder={t.noteTitle}
-                className="apex-input mt-4 px-4 py-3 text-sm"
+                className="apex-input mt-3 px-3.5 py-2.5 text-sm"
               />
               <textarea
                 value={freeBody}
                 onChange={(event) => setFreeBody(event.target.value)}
                 placeholder={t.noteBody}
-                rows={7}
-                className="apex-input mt-3 min-h-40 resize-y px-4 py-3 text-sm leading-6"
+                rows={4}
+                className="apex-input mt-2 min-h-24 resize-y px-3.5 py-2.5 text-sm leading-5"
               />
 
               <button
                 type="button"
                 onClick={saveFreeNote}
                 disabled={!freeTitle.trim() && !freeBody.trim()}
-                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white disabled:opacity-35"
+                className="mt-2.5 flex min-h-10 w-full items-center justify-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white disabled:opacity-35"
               >
                 <Plus size={16} />
                 {t.save}
@@ -405,7 +405,7 @@ export function NotesHub({
                   {sortedFreeNotes.map((note) => (
                     <article
                       key={note.id}
-                      className="apex-card mb-3 break-inside-avoid p-5"
+                      className="apex-card mb-3 break-inside-avoid p-4"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
@@ -470,7 +470,7 @@ export function NotesHub({
             initial={{ opacity: 0, y: 7 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="grid gap-4 xl:grid-cols-[.68fr_1.32fr]"
+            className="grid gap-3 xl:grid-cols-[360px_1fr]"
           >
             <CompactCalendar
               t={t}
@@ -572,7 +572,7 @@ export function NotesHub({
             initial={{ opacity: 0, y: 7 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -6 }}
-            className="max-w-[540px]"
+            className="max-w-[430px]"
           >
             <CompactCalendar
               t={t}
@@ -634,7 +634,7 @@ function CompactCalendar({
   return (
     <section
       className={
-        "apex-card h-fit p-4 " +
+        "apex-card h-fit p-3.5 " +
         (standalone ? "w-full" : "xl:sticky xl:top-24")
       }
     >
@@ -644,7 +644,7 @@ function CompactCalendar({
           onClick={() =>
             setCalendarMonth(new Date(year, month - 1, 1))
           }
-          className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)]"
+          className="grid h-8 w-8 place-items-center rounded-full border border-[var(--apex-border)]"
           aria-label={t.previousMonth}
         >
           <ChevronLeft size={15} />
@@ -662,14 +662,14 @@ function CompactCalendar({
           onClick={() =>
             setCalendarMonth(new Date(year, month + 1, 1))
           }
-          className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)]"
+          className="grid h-8 w-8 place-items-center rounded-full border border-[var(--apex-border)]"
           aria-label={t.nextMonth}
         >
           <ChevronRight size={15} />
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-7 gap-1 text-center">
+      <div className="mt-3 grid grid-cols-7 gap-1 text-center">
         {weekdays.map((weekday, index) => (
           <div
             key={`${weekday}-${index}`}
@@ -694,7 +694,7 @@ function CompactCalendar({
               type="button"
               onClick={() => setSelectedDate(key)}
               className={
-                "relative aspect-square max-h-10 rounded-xl text-[11px] font-semibold transition " +
+                "relative aspect-square max-h-8 rounded-lg text-[10px] font-semibold transition " +
                 (selected
                   ? "bg-[#8F0000] text-white"
                   : "hover:bg-[var(--apex-surface-strong)]")
@@ -723,7 +723,7 @@ function CompactCalendar({
           );
           setSelectedDate(localDateKey(today));
         }}
-        className="mt-3 rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold"
+        className="mt-2.5 rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold"
       >
         {t.today}
       </button>
