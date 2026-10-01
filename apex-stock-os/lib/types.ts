@@ -11,6 +11,19 @@ export type Product = {
   cost: number;
   price: number;
   sold30d: number;
+  source?: "demo" | "local" | "connected";
+  externalId?: string;
+  sourceStoreId?: string;
+  sourceStoreUrl?: string;
+  costKnown?: boolean;
+  description?: string;
+  brand?: string;
+  image?: string;
+  images?: string[];
+  originalPrice?: number;
+  discountPercent?: number;
+  active?: boolean;
+  updatedAt?: string | null;
 };
 
 export type TrendPoint = {
