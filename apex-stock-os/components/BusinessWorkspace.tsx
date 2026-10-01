@@ -1516,6 +1516,77 @@ export function BusinessWorkspace({
     }
   }
 
+  function updatePrice(id: string, nextPrice: number) {
+    const safePrice = Math.max(0, Number(nextPrice) || 0);
+    const product = products.find((item) => item.id === id);
+
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === id ? { ...item, price: safePrice } : item
+      )
+    );
+
+    if (product) {
+      scheduleConnectedWrite(product, { price: safePrice });
+    }
+  }
+
+  function updateCost(id: string, raw: string) {
+    const product = products.find((item) => item.id === id);
+    const trimmed = raw.trim();
+    const known = trimmed !== "";
+    const safeCost = known
+      ? Math.max(0, Number(trimmed.replace(",", ".")) || 0)
+      : 0;
+
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === id
+          ? { ...item, cost: safeCost, costKnown: known }
+          : item
+      )
+    );
+
+    if (product) {
+      scheduleConnectedWrite(product, {
+        cost: known ? safeCost : null
+      });
+    }
+  }
+
+  function updateMinStock(id: string, nextMinStock: number) {
+    const safeMinStock = Math.max(0, Math.round(nextMinStock));
+    const product = products.find((item) => item.id === id);
+
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === id
+          ? { ...item, minStock: safeMinStock }
+          : item
+      )
+    );
+
+    if (product) {
+      scheduleConnectedWrite(product, {
+        minStock: safeMinStock
+      });
+    }
+  }
+
+  function updateSupplier(id: string, supplier: string) {
+    const product = products.find((item) => item.id === id);
+
+    setProducts((current) =>
+      current.map((item) =>
+        item.id === id ? { ...item, supplier } : item
+      )
+    );
+
+    if (product) {
+      scheduleConnectedWrite(product, { supplier });
+    }
+  }
+
   function updateBarcode(id: string, barcode: string) {
     const product = products.find((item) => item.id === id);
 
@@ -1793,6 +1864,10 @@ export function BusinessWorkspace({
                 products={products}
                 money={money}
                 updateStock={updateStock}
+                updatePrice={updatePrice}
+                updateCost={updateCost}
+                updateMinStock={updateMinStock}
+                updateSupplier={updateSupplier}
                 updateBarcode={updateBarcode}
                 integrateScannedProduct={integrateScannedProduct}
               />
@@ -2494,6 +2569,10 @@ function InventoryModule({
   products,
   money,
   updateStock,
+  updatePrice,
+  updateCost,
+  updateMinStock,
+  updateSupplier,
   updateBarcode,
   integrateScannedProduct
 }: {
@@ -2502,6 +2581,10 @@ function InventoryModule({
   products: Product[];
   money: (value: number) => string;
   updateStock: (id: string, stock: number) => void;
+  updatePrice: (id: string, price: number) => void;
+  updateCost: (id: string, value: string) => void;
+  updateMinStock: (id: string, minStock: number) => void;
+  updateSupplier: (id: string, supplier: string) => void;
   updateBarcode: (id: string, barcode: string) => void;
   integrateScannedProduct: (product: Product) => void;
 }) {
@@ -2515,7 +2598,7 @@ function InventoryModule({
 
       <section className="apex-card overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[900px] text-left">
+          <table className="w-full min-w-[1180px] text-left">
             <thead className="border-b border-[var(--apex-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--apex-muted)]">
               <tr>
                 <th className="px-5 py-4">{labels.product}</th>
@@ -2524,6 +2607,17 @@ function InventoryModule({
                 <th className="px-4 py-4">{labels.cost}</th>
                 <th className="px-4 py-4">{labels.price}</th>
                 <th className="px-4 py-4">{labels.stock}</th>
+                <th className="px-4 py-4">
+                  {language === "es"
+                    ? "Mínimo"
+                    : language === "pt"
+                      ? "Mínimo"
+                      : language === "fr"
+                        ? "Minimum"
+                        : language === "de"
+                          ? "Minimum"
+                          : "Minimum"}
+                </th>
                 <th className="px-4 py-4">{labels.status}</th>
               </tr>
             </thead>
@@ -2546,14 +2640,47 @@ function InventoryModule({
                     <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
                       {product.category}
                     </td>
-                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
-                      {product.supplier}
+                    <td className="px-4 py-4">
+                      <input
+                        value={product.supplier}
+                        onChange={(event) =>
+                          updateSupplier(product.id, event.target.value)
+                        }
+                        placeholder="—"
+                        className="apex-input w-36 px-3 py-2 text-xs"
+                      />
                     </td>
-                    <td className="px-4 py-4 text-xs font-semibold">
-                      {product.costKnown === false ? "—" : money(product.cost)}
+                    <td className="px-4 py-4">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={
+                          product.costKnown === false
+                            ? ""
+                            : product.cost
+                        }
+                        onChange={(event) =>
+                          updateCost(product.id, event.target.value)
+                        }
+                        placeholder="—"
+                        className="apex-input w-28 px-3 py-2 text-xs"
+                      />
                     </td>
-                    <td className="px-4 py-4 text-xs font-semibold">
-                      {money(product.price)}
+                    <td className="px-4 py-4">
+                      <input
+                        type="number"
+                        min={0}
+                        step="0.01"
+                        value={product.price}
+                        onChange={(event) =>
+                          updatePrice(
+                            product.id,
+                            Number(event.target.value)
+                          )
+                        }
+                        className="apex-input w-28 px-3 py-2 text-xs"
+                      />
                     </td>
                     <td className="px-4 py-4">
                       <input
@@ -2562,6 +2689,20 @@ function InventoryModule({
                         value={product.stock}
                         onChange={(event) =>
                           updateStock(
+                            product.id,
+                            Number(event.target.value)
+                          )
+                        }
+                        className="apex-input w-20 px-3 py-2 text-xs"
+                      />
+                    </td>
+                    <td className="px-4 py-4">
+                      <input
+                        type="number"
+                        min={0}
+                        value={product.minStock}
+                        onChange={(event) =>
+                          updateMinStock(
                             product.id,
                             Number(event.target.value)
                           )
