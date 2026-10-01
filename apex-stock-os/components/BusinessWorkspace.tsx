@@ -1946,7 +1946,7 @@ function OverviewModule({
                     <stop
                       offset="0%"
                       stopColor="#8F0000"
-                      stopOpacity={0.36}
+                      stopOpacity={0.12}
                     />
                     <stop
                       offset="100%"
@@ -1957,8 +1957,8 @@ function OverviewModule({
                 </defs>
                 <CartesianGrid
                   stroke="var(--apex-border)"
-                  strokeDasharray="4 6"
-                  vertical={false}
+                  strokeDasharray="1 7"
+                  vertical
                 />
                 <XAxis
                   dataKey="label"
@@ -1980,11 +1980,13 @@ function OverviewModule({
                   }
                 />
                 <Area
-                  type="monotone"
+                  type="linear"
                   dataKey="profit"
-                  stroke="#8F0000"
-                  strokeWidth={2.5}
+                  stroke="#C10A0A"
+                  strokeWidth={2.15}
                   fill="url(#workspaceProfit)"
+                  dot={false}
+                  activeDot={{ r: 4, strokeWidth: 0 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
