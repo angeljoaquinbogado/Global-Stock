@@ -415,6 +415,22 @@ export function AuthScreen({
     setShowPassword(false);
   }
 
+  function persistBusinessProfile() {
+    localStorage.setItem(
+      "global-stock-business-name",
+      businessName.trim()
+    );
+    localStorage.setItem("global-stock-business-type", industry);
+    localStorage.setItem(
+      "global-stock-business-country",
+      country.trim()
+    );
+    localStorage.setItem(
+      "global-stock-business-description",
+      businessDescription.trim()
+    );
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
@@ -447,21 +463,7 @@ export function AuthScreen({
       const supabase = getSupabaseBrowserClient();
 
       if (!supabase) {
-        if (mode === "signup") {
-          localStorage.setItem(
-            "global-stock-business-name",
-            businessName.trim()
-          );
-          localStorage.setItem("global-stock-business-type", industry);
-          localStorage.setItem(
-            "global-stock-business-country",
-            country.trim()
-          );
-          localStorage.setItem(
-            "global-stock-business-description",
-            businessDescription.trim()
-          );
-        }
+        if (mode === "signup") persistBusinessProfile();
         await new Promise((resolve) => window.setTimeout(resolve, 450));
         onAuthenticated();
         return;
@@ -495,6 +497,8 @@ export function AuthScreen({
       });
 
       if (authError) throw authError;
+
+      persistBusinessProfile();
 
       if (data.session) {
         onAuthenticated();
