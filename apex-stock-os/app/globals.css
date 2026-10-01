@@ -35,6 +35,13 @@ html {
   background: var(--apex-bg);
   color-scheme: light;
   scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+  overscroll-behavior: none;
+}
+
+body {
+  overscroll-behavior: none;
 }
 
 html.dark {
@@ -66,9 +73,21 @@ textarea {
   font: inherit;
 }
 
+button,
+a,
+[role="button"] {
+  touch-action: manipulation;
+}
+
+button,
+[role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
 button {
   cursor: pointer;
-  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -411,4 +430,12 @@ textarea:focus-visible {
 .gs-auth-scene-rest .gs-orbit-plane,
 .gs-auth-scene-rest .gs-auth-horizon {
   animation-play-state: paused !important;
+}
+
+@media (pointer: coarse) {
+  input,
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
 }
