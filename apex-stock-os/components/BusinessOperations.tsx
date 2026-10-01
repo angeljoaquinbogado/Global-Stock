@@ -157,6 +157,7 @@ const copy: Record<
     storeUrl: string;
     credentialsHint: string;
     saveConnector: string;
+    invalidUrl: string;
     noOrders: string;
     sampleOrder: string;
     syncArchitecture: string;
@@ -201,6 +202,7 @@ const copy: Record<
     credentialsHint:
       "Las credenciales reales deben cargarse en el servidor o mediante OAuth. No se guardan secretos en el navegador.",
     saveConnector: "Guardar configuración",
+    invalidUrl: "Ingresá una URL válida de la tienda.",
     noOrders: "Todavía no hay pedidos online sincronizados.",
     sampleOrder: "Agregar pedido de prueba",
     syncArchitecture: "Sincronización omnicanal",
@@ -247,6 +249,7 @@ const copy: Record<
     credentialsHint:
       "Real credentials must be stored server-side or through OAuth. Browser secrets are not persisted.",
     saveConnector: "Save configuration",
+    invalidUrl: "Enter a valid store URL.",
     noOrders: "No online orders have been synchronized yet.",
     sampleOrder: "Add sample order",
     syncArchitecture: "Omnichannel synchronization",
@@ -293,6 +296,7 @@ const copy: Record<
     credentialsHint:
       "As credenciais reais devem ficar no servidor ou via OAuth. Segredos não são salvos no navegador.",
     saveConnector: "Salvar configuração",
+    invalidUrl: "Digite uma URL válida da loja.",
     noOrders: "Ainda não há pedidos online sincronizados.",
     sampleOrder: "Adicionar pedido de teste",
     syncArchitecture: "Sincronização omnichannel",
@@ -339,6 +343,7 @@ const copy: Record<
     credentialsHint:
       "Les identifiants réels doivent être stockés côté serveur ou via OAuth. Aucun secret n’est conservé dans le navigateur.",
     saveConnector: "Enregistrer",
+    invalidUrl: "Saisissez une URL de boutique valide.",
     noOrders: "Aucune commande en ligne synchronisée.",
     sampleOrder: "Ajouter une commande test",
     syncArchitecture: "Synchronisation omnicanale",
@@ -385,6 +390,7 @@ const copy: Record<
     credentialsHint:
       "Echte Zugangsdaten gehören auf den Server oder in OAuth. Geheimnisse werden nicht im Browser gespeichert.",
     saveConnector: "Konfiguration speichern",
+    invalidUrl: "Gib eine gültige Shop-URL ein.",
     noOrders: "Noch keine Online-Bestellungen synchronisiert.",
     sampleOrder: "Testbestellung hinzufügen",
     syncArchitecture: "Omnichannel-Synchronisierung",
@@ -427,6 +433,7 @@ export function OnlineCommerceHub({
   const [onlineStorageReady, setOnlineStorageReady] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [storeUrl, setStoreUrl] = useState("");
+  const [connectionError, setConnectionError] = useState("");
 
   useEffect(() => {
     try {
@@ -475,7 +482,27 @@ export function OnlineCommerceHub({
   }, [orders, onlineStorageReady]);
 
   function saveConnection(id: string) {
-    const normalized = storeUrl.trim();
+    let normalized = storeUrl.trim();
+    if (!normalized) {
+      setConnectionError(t.invalidUrl);
+      return;
+    }
+
+    if (!/^https?:\/\//i.test(normalized)) {
+      normalized = `https://${normalized}`;
+    }
+
+    try {
+      const parsed = new URL(normalized);
+      if (!["http:", "https:"].includes(parsed.protocol)) {
+        throw new Error("invalid protocol");
+      }
+      normalized = parsed.toString();
+    } catch {
+      setConnectionError(t.invalidUrl);
+      return;
+    }
+
     setConnections((current) => {
       const next = current.filter((item) => item.id !== id);
       return [
@@ -488,6 +515,7 @@ export function OnlineCommerceHub({
         }
       ];
     });
+    setConnectionError("");
     setEditing(null);
     setStoreUrl("");
   }
@@ -608,6 +636,7 @@ export function OnlineCommerceHub({
                     type="button"
                     onClick={() => {
                       setEditing(connector.id);
+                      setConnectionError("");
                       setStoreUrl(saved?.storeUrl ?? "");
                     }}
                     className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-[#8F0000] px-3 text-xs font-semibold text-white"
@@ -647,9 +676,15 @@ export function OnlineCommerceHub({
                         <p className="mt-2 text-[10px] leading-4 text-[var(--apex-muted)]">
                           {t.credentialsHint}
                         </p>
+                        {connectionError && (
+                          <p className="mt-2 text-[10px] font-semibold text-red-500">
+                            {connectionError}
+                          </p>
+                        )}
                         <button
                           type="button"
                           onClick={() => saveConnection(connector.id)}
+                          disabled={!storeUrl.trim()}
                           className="mt-3 w-full rounded-xl border border-[var(--apex-border)] px-3 py-2.5 text-xs font-semibold"
                         >
                           {t.saveConnector}
