@@ -545,7 +545,16 @@ export function OnlineCommerceHub({
         if (Array.isArray(parsed)) {
           setConnections(parsed);
           parsed
-            .filter((connection) => connection.storeUrl && !connection.preview)
+            .filter((connection) => {
+              if (!connection.storeUrl) return false;
+              if (!connection.preview?.inspectedAt) return true;
+
+              const age =
+                Date.now() -
+                new Date(connection.preview.inspectedAt).getTime();
+
+              return !Number.isFinite(age) || age > 30 * 60 * 1000;
+            })
             .forEach((connection) => {
               void inspectStore(connection.id, connection.storeUrl);
             });
