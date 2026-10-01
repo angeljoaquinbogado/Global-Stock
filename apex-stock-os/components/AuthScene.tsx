@@ -1,243 +1,171 @@
 "use client";
 
-import type { Viewer as CesiumViewer } from "cesium";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { motion } from "framer-motion";
 
-type ViewerAnchor = {
-  lat: number;
-  lng: number;
-};
+const orbitPaths = [
+  "M120 525 C255 260 735 225 880 500 C715 735 300 790 120 525Z",
+  "M85 470 C320 355 690 315 915 555 C680 665 325 690 85 470Z",
+  "M250 160 C470 355 595 650 700 855",
+  "M160 720 C360 560 590 420 845 280",
+  "M175 300 C390 520 620 605 850 690"
+];
 
-const TIMEZONE_ANCHORS: Record<string, ViewerAnchor> = {
-  "America/Argentina/Buenos_Aires": { lat: -34.6037, lng: -58.3816 },
-  "America/Sao_Paulo": { lat: -23.5505, lng: -46.6333 },
-  "America/Mexico_City": { lat: 19.4326, lng: -99.1332 },
-  "America/New_York": { lat: 40.7128, lng: -74.006 },
-  "America/Chicago": { lat: 41.8781, lng: -87.6298 },
-  "America/Denver": { lat: 39.7392, lng: -104.9903 },
-  "America/Los_Angeles": { lat: 34.0522, lng: -118.2437 },
-  "America/Toronto": { lat: 43.6532, lng: -79.3832 },
-  "America/Bogota": { lat: 4.711, lng: -74.0721 },
-  "America/Lima": { lat: -12.0464, lng: -77.0428 },
-  "America/Santiago": { lat: -33.4489, lng: -70.6693 },
-  "Europe/Madrid": { lat: 40.4168, lng: -3.7038 },
-  "Europe/London": { lat: 51.5072, lng: -0.1276 },
-  "Europe/Paris": { lat: 48.8566, lng: 2.3522 },
-  "Europe/Berlin": { lat: 52.52, lng: 13.405 },
-  "Europe/Rome": { lat: 41.9028, lng: 12.4964 },
-  "Europe/Lisbon": { lat: 38.7223, lng: -9.1393 },
-  "Africa/Cairo": { lat: 30.0444, lng: 31.2357 },
-  "Africa/Johannesburg": { lat: -26.2041, lng: 28.0473 },
-  "Asia/Dubai": { lat: 25.2048, lng: 55.2708 },
-  "Asia/Kolkata": { lat: 22.5726, lng: 88.3639 },
-  "Asia/Singapore": { lat: 1.3521, lng: 103.8198 },
-  "Asia/Tokyo": { lat: 35.6762, lng: 139.6503 },
-  "Asia/Seoul": { lat: 37.5665, lng: 126.978 },
-  "Australia/Sydney": { lat: -33.8688, lng: 151.2093 }
-};
-
-function fallbackAnchor(timeZone: string): ViewerAnchor {
-  const offsetHours = -new Date().getTimezoneOffset() / 60;
-  const fallbackLng = Math.max(-175, Math.min(175, offsetHours * 15));
-
-  if (timeZone.startsWith("America/")) return { lat: 18, lng: fallbackLng };
-  if (timeZone.startsWith("Europe/")) return { lat: 48, lng: fallbackLng };
-  if (timeZone.startsWith("Asia/")) return { lat: 24, lng: fallbackLng };
-  if (timeZone.startsWith("Africa/")) return { lat: 8, lng: fallbackLng };
-  if (timeZone.startsWith("Australia/")) return { lat: -25, lng: fallbackLng };
-
-  return { lat: 8, lng: fallbackLng };
-}
+const stars = Array.from({ length: 72 }, (_, index) => ({
+  left: ((index * 37) % 97) + 1,
+  top: ((index * 61) % 93) + 2,
+  size: index % 11 === 0 ? 2.2 : index % 4 === 0 ? 1.4 : 0.8,
+  delay: (index % 9) * 0.22
+}));
 
 export function AuthScene() {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-  const viewerRef = useRef<CesiumViewer | null>(null);
-  const [failed, setFailed] = useState(false);
-  const timeZone = useMemo(
-    () =>
-      typeof Intl !== "undefined"
-        ? Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC"
-        : "UTC",
-    []
-  );
-  const anchor = useMemo(
-    () => TIMEZONE_ANCHORS[timeZone] ?? fallbackAnchor(timeZone),
-    [timeZone]
-  );
-
-  useEffect(() => {
-    let cancelled = false;
-    let removePreRender: (() => void) | null = null;
-    let introTimer: number | null = null;
-
-    async function boot() {
-      if (!containerRef.current) return;
-
-      try {
-        const runtimeWindow = window as Window & {
-          CESIUM_BASE_URL?: string;
-        };
-        runtimeWindow.CESIUM_BASE_URL = "/cesium/";
-
-        const Cesium = await import("cesium");
-        if (cancelled || !containerRef.current) return;
-
-        const mobile =
-          window.innerWidth < 768 ||
-          /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-
-        const options = {
-          animation: false,
-          timeline: false,
-          baseLayerPicker: false,
-          geocoder: false,
-          homeButton: false,
-          sceneModePicker: false,
-          navigationHelpButton: false,
-          infoBox: false,
-          selectionIndicator: false,
-          fullscreenButton: false,
-          shouldAnimate: true,
-          baseLayer: false
-        };
-
-        const viewer = new Cesium.Viewer(
-          containerRef.current,
-          options as never
-        );
-        viewerRef.current = viewer;
-
-        viewer.targetFrameRate = 60;
-        viewer.resolutionScale = mobile
-          ? Math.min(window.devicePixelRatio || 1, 0.78)
-          : Math.min(window.devicePixelRatio || 1, 1.15);
-
-        viewer.scene.backgroundColor = Cesium.Color.BLACK;
-        if (viewer.scene.skyAtmosphere) viewer.scene.skyAtmosphere.show = true;
-        if (viewer.scene.sun) viewer.scene.sun.show = true;
-        if (viewer.scene.moon) viewer.scene.moon.show = true;
-        viewer.scene.globe.show = true;
-        viewer.scene.globe.enableLighting = true;
-        viewer.scene.globe.showGroundAtmosphere = true;
-        viewer.scene.globe.depthTestAgainstTerrain = false;
-        viewer.scene.globe.maximumScreenSpaceError = mobile ? 3.8 : 1.8;
-        viewer.scene.fog.enabled = false;
-        viewer.scene.requestRenderMode = false;
-        viewer.scene.highDynamicRange = !mobile;
-        viewer.scene.screenSpaceCameraController.enableInputs = false;
-
-        viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-        viewer.clock.shouldAnimate = true;
-        viewer.clock.multiplier = 1;
-
-        viewer.imageryLayers.removeAll();
-
-        const imagery = new Cesium.UrlTemplateImageryProvider({
-          url:
-            "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          maximumLevel: 18,
-          credit:
-            "Esri, Maxar, Earthstar Geographics, and the GIS User Community"
-        });
-
-        viewer.imageryLayers.addImageryProvider(imagery);
-
-        viewer.camera.setView({
-          destination: Cesium.Cartesian3.fromDegrees(
-            anchor.lng - 22,
-            anchor.lat + 8,
-            26_000_000
-          ),
-          orientation: {
-            heading: Cesium.Math.toRadians(12),
-            pitch: Cesium.Math.toRadians(-88),
-            roll: 0
-          }
-        });
-
-        introTimer = window.setTimeout(() => {
-          if (cancelled || viewer.isDestroyed()) return;
-          viewer.camera.flyTo({
-            destination: Cesium.Cartesian3.fromDegrees(
-              anchor.lng,
-              anchor.lat,
-              mobile ? 15_500_000 : 13_500_000
-            ),
-            orientation: {
-              heading: Cesium.Math.toRadians(8),
-              pitch: Cesium.Math.toRadians(-89),
-              roll: 0
-            },
-            duration: 4.55,
-            easingFunction: Cesium.EasingFunction.QUADRATIC_IN_OUT
-          });
-        }, 180);
-
-        const startedAt = performance.now();
-        let last = startedAt;
-        const onPreRender = () => {
-          if (cancelled || viewer.isDestroyed()) return;
-
-          const now = performance.now();
-          const deltaSeconds = Math.min((now - last) / 1000, 0.05);
-          last = now;
-
-          if (now - startedAt > 5200) {
-            viewer.camera.rotate(
-              Cesium.Cartesian3.UNIT_Z,
-              -deltaSeconds * 0.0024
-            );
-          }
-
-          viewer.clock.currentTime = Cesium.JulianDate.fromDate(new Date());
-        };
-
-        viewer.scene.preRender.addEventListener(onPreRender);
-        removePreRender = () =>
-          viewer.scene.preRender.removeEventListener(onPreRender);
-
-        const canvas = viewer.canvas;
-        canvas.setAttribute("aria-hidden", "true");
-        canvas.style.outline = "none";
-
-        const creditContainer =
-          viewer.cesiumWidget.creditContainer as HTMLElement | undefined;
-        if (creditContainer) {
-          creditContainer.style.fontSize = "8px";
-          creditContainer.style.opacity = "0.55";
-        }
-      } catch {
-        if (!cancelled) setFailed(true);
-      }
-    }
-
-    void boot();
-
-    return () => {
-      cancelled = true;
-      if (introTimer !== null) window.clearTimeout(introTimer);
-      removePreRender?.();
-
-      const viewer = viewerRef.current;
-      if (viewer && !viewer.isDestroyed()) viewer.destroy();
-      viewerRef.current = null;
-    };
-  }, [anchor.lat, anchor.lng]);
-
   return (
     <div className="absolute inset-0 overflow-hidden bg-black">
-      <div
-        ref={containerRef}
-        className="absolute inset-0"
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_46%,rgba(22,38,72,.28),transparent_29%),radial-gradient(circle_at_18%_18%,rgba(143,0,0,.14),transparent_24%),radial-gradient(circle_at_82%_28%,rgba(58,76,125,.18),transparent_22%),linear-gradient(180deg,#010207_0%,#000_70%)]" />
+
+      <div className="absolute inset-0 opacity-90">
+        {stars.map((star, index) => (
+          <motion.span
+            key={index}
+            className="absolute rounded-full bg-white"
+            style={{
+              left: `${star.left}%`,
+              top: `${star.top}%`,
+              width: star.size,
+              height: star.size
+            }}
+            animate={{
+              opacity: [0.16, 0.95, 0.2],
+              scale: [0.8, 1.25, 0.82]
+            }}
+            transition={{
+              duration: 2.6 + (index % 5) * 0.35,
+              repeat: Infinity,
+              delay: star.delay,
+              ease: "easeInOut"
+            }}
+          />
+        ))}
+      </div>
+
+      <motion.div
+        initial={{ opacity: 0, scale: 0.76, y: 34 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1] }}
+        className="absolute inset-0 flex items-center justify-center"
+      >
+        <motion.div
+          animate={{
+            y: [0, -7, 0],
+            rotate: [-0.6, 0.7, -0.6]
+          }}
+          transition={{
+            y: { duration: 7.5, repeat: Infinity, ease: "easeInOut" },
+            rotate: { duration: 18, repeat: Infinity, ease: "easeInOut" }
+          }}
+          className="relative h-[min(78vw,760px)] w-[min(78vw,760px)] min-h-[360px] min-w-[360px] sm:min-h-[520px] sm:min-w-[520px]"
+        >
+          <img
+            src="/global-stock-earth.png"
+            alt=""
+            draggable={false}
+            className="h-full w-full select-none object-contain drop-shadow-[0_0_46px_rgba(41,91,180,.22)]"
+          />
+
+          <div className="pointer-events-none absolute inset-[9%] rounded-full shadow-[inset_-44px_-22px_80px_rgba(0,0,0,.28),0_0_70px_rgba(66,128,255,.13)]" />
+        </motion.div>
+      </motion.div>
+
+      <svg
+        viewBox="0 0 1000 1000"
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[min(92vw,900px)] w-[min(92vw,900px)] -translate-x-1/2 -translate-y-1/2 overflow-visible"
         aria-hidden="true"
+      >
+        <defs>
+          <filter id="orbitGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <linearGradient id="orbitStroke" x1="0" x2="1">
+            <stop offset="0%" stopColor="#450000" stopOpacity="0.15" />
+            <stop offset="35%" stopColor="#ff2c2c" stopOpacity="0.86" />
+            <stop offset="70%" stopColor="#d90000" stopOpacity="0.6" />
+            <stop offset="100%" stopColor="#320000" stopOpacity="0.08" />
+          </linearGradient>
+        </defs>
+
+        {orbitPaths.map((path, index) => (
+          <motion.path
+            key={path}
+            d={path}
+            fill="none"
+            stroke="url(#orbitStroke)"
+            strokeWidth={index < 2 ? 2.1 : 1.35}
+            strokeLinecap="round"
+            filter="url(#orbitGlow)"
+            initial={{ pathLength: 0, opacity: 0 }}
+            animate={{
+              pathLength: [0, 1, 1],
+              opacity: [0, 0.9, 0.22],
+              strokeDashoffset: [0, -180]
+            }}
+            strokeDasharray={index % 2 ? "10 16" : "22 18"}
+            transition={{
+              pathLength: {
+                duration: 2.4,
+                delay: 0.35 + index * 0.12,
+                ease: [0.16, 1, 0.3, 1]
+              },
+              opacity: {
+                duration: 4.8,
+                delay: index * 0.08,
+                ease: "easeInOut"
+              },
+              strokeDashoffset: {
+                duration: 7 + index,
+                repeat: Infinity,
+                ease: "linear"
+              }
+            }}
+          />
+        ))}
+
+        {[
+          [238, 355],
+          [372, 276],
+          [610, 298],
+          [744, 415],
+          [718, 660],
+          [480, 735],
+          [292, 650]
+        ].map(([cx, cy], index) => (
+          <motion.circle
+            key={index}
+            cx={cx}
+            cy={cy}
+            r={index % 3 === 0 ? 6 : 4}
+            fill="#ff2a2a"
+            filter="url(#orbitGlow)"
+            animate={{ opacity: [0.25, 1, 0.25], r: [3, 6, 3] }}
+            transition={{
+              duration: 1.8 + index * 0.12,
+              repeat: Infinity,
+              delay: index * 0.16
+            }}
+          />
+        ))}
+      </svg>
+
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: [0, 0, 0.8, 0.18] }}
+        transition={{ duration: 5.2, times: [0, 0.18, 0.55, 1] }}
+        className="pointer-events-none absolute left-1/2 top-1/2 h-[2px] w-[74vw] max-w-[980px] -translate-x-1/2 bg-gradient-to-r from-transparent via-red-500 to-transparent shadow-[0_0_24px_rgba(255,0,0,.55)]"
       />
 
-      {failed && (
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_45%_45%,#14161d_0%,#05060a_38%,#000_78%)]" />
-      )}
-
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_42%_50%,transparent_0%,rgba(0,0,0,.03)_42%,rgba(0,0,0,.68)_100%)]" />
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(0,0,0,.12)_0%,rgba(0,0,0,.02)_48%,rgba(0,0,0,.44)_100%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,.05)_48%,rgba(0,0,0,.68)_100%)]" />
     </div>
   );
 }
