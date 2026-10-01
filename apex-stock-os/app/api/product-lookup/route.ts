@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
       `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(barcode)}.json`,
       {
         headers: {
-          "User-Agent": "ApexStockOS/0.1"
+          "User-Agent": "GlobalStock/1.0"
         },
         next: { revalidate: 86400 }
       }
