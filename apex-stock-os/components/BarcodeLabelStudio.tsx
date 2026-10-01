@@ -26,10 +26,10 @@ const copy = {
     eyebrow: "Etiquetas imprimibles",
     title: "Códigos de barras",
     subtitle:
-      "Usá el código de un producto o generá un EAN-13 válido. Podés asignarlo al producto e imprimir varias etiquetas.",
+      "Usá el código existente de un producto o generá un código interno Code 128 para tu negocio. Podés asignarlo e imprimir varias etiquetas.",
     product: "Producto",
     code: "Código",
-    generate: "Generar EAN-13",
+    generate: "Generar código interno",
     assign: "Asignar al producto",
     assigned: "Código asignado",
     quantity: "Cantidad de etiquetas",
@@ -44,10 +44,10 @@ const copy = {
     eyebrow: "Printable labels",
     title: "Barcodes",
     subtitle:
-      "Use a product code or generate a valid EAN-13. Assign it to the product and print multiple labels.",
+      "Use the product’s existing code or generate an internal Code 128 for your business. Assign it and print multiple labels.",
     product: "Product",
     code: "Code",
-    generate: "Generate EAN-13",
+    generate: "Generate internal code",
     assign: "Assign to product",
     assigned: "Code assigned",
     quantity: "Label quantity",
@@ -62,10 +62,10 @@ const copy = {
     eyebrow: "Etiquetas imprimíveis",
     title: "Códigos de barras",
     subtitle:
-      "Use o código de um produto ou gere um EAN-13 válido. Atribua ao produto e imprima várias etiquetas.",
+      "Use o código existente do produto ou gere um código interno Code 128 para o negócio. Atribua e imprima várias etiquetas.",
     product: "Produto",
     code: "Código",
-    generate: "Gerar EAN-13",
+    generate: "Gerar código interno",
     assign: "Atribuir ao produto",
     assigned: "Código atribuído",
     quantity: "Quantidade de etiquetas",
@@ -80,10 +80,10 @@ const copy = {
     eyebrow: "Étiquettes imprimables",
     title: "Codes-barres",
     subtitle:
-      "Utilisez le code d’un produit ou générez un EAN-13 valide. Attribuez-le au produit et imprimez plusieurs étiquettes.",
+      "Utilisez le code existant du produit ou générez un code interne Code 128. Attribuez-le et imprimez plusieurs étiquettes.",
     product: "Produit",
     code: "Code",
-    generate: "Générer EAN-13",
+    generate: "Générer un code interne",
     assign: "Attribuer au produit",
     assigned: "Code attribué",
     quantity: "Nombre d’étiquettes",
@@ -98,10 +98,10 @@ const copy = {
     eyebrow: "Druckbare Etiketten",
     title: "Barcodes",
     subtitle:
-      "Vorhandenen Produktcode verwenden oder eine gültige EAN-13 erzeugen. Dem Produkt zuweisen und mehrere Etiketten drucken.",
+      "Vorhandenen Produktcode verwenden oder einen internen Code 128 erzeugen. Dem Produkt zuweisen und mehrere Etiketten drucken.",
     product: "Produkt",
     code: "Code",
-    generate: "EAN-13 erzeugen",
+    generate: "Internen Code erzeugen",
     assign: "Produkt zuweisen",
     assigned: "Code zugewiesen",
     quantity: "Etikettenanzahl",
@@ -125,13 +125,13 @@ function ean13Checksum(base12: string) {
   return String((10 - (sum % 10)) % 10);
 }
 
-function generateEan13() {
-  const time = String(Date.now()).slice(-9);
-  const random = Math.floor(Math.random() * 1000)
-    .toString()
-    .padStart(3, "0");
-  const base = (time + random).slice(0, 12).padStart(12, "0");
-  return base + ean13Checksum(base);
+function generateInternalCode() {
+  const time = Date.now().toString(36).toUpperCase();
+  const random = Math.floor(Math.random() * 1_679_616)
+    .toString(36)
+    .toUpperCase()
+    .padStart(4, "0");
+  return `GS-${time}-${random}`;
 }
 
 function normalizeCode(value: string) {
@@ -197,7 +197,7 @@ export function BarcodeLabelStudio({
   }, [code, t.invalid]);
 
   function generate() {
-    setCode(generateEan13());
+    setCode(generateInternalCode());
     setAssigned(false);
     setError("");
   }
