@@ -455,6 +455,14 @@ export function ConnectedCommerceHub({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [readiness, setReadiness] = useState<IntegrationReadiness | null>(null);
+  const [selectedProvider, setSelectedProvider] = useState<keyof IntegrationReadiness>("custom");
+
+  const selectedProviderMeta =
+    providerMethods[language].find(
+      (provider) => provider.id === selectedProvider
+    ) ?? providerMethods[language][0];
+  const selectedProviderReady =
+    readiness?.[selectedProvider] ?? false;
 
   const adminUrl = useMemo(() => {
     const value = store?.url || preview?.url || url;
@@ -690,11 +698,20 @@ export function ConnectedCommerceHub({
         <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
           {providerMethods[language].map((provider) => {
             const ready = readiness?.[provider.id] ?? false;
+            const active = selectedProvider === provider.id;
 
             return (
-              <article
+              <button
                 key={provider.name}
-                className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4"
+                type="button"
+                onClick={() => setSelectedProvider(provider.id)}
+                aria-pressed={active}
+                className={
+                  "rounded-2xl border p-4 text-left transition " +
+                  (active
+                    ? "border-[#8F0000]/60 bg-[#8F0000]/[0.07] shadow-[0_12px_34px_rgba(143,0,0,.12)]"
+                    : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] hover:border-[#8F0000]/30")
+                }
               >
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -722,24 +739,88 @@ export function ConnectedCommerceHub({
                               ? "Bereit"
                               : "Ready"
                       : language === "es"
-                        ? "Falta configurar"
+                        ? "Pendiente"
                         : language === "pt"
-                          ? "Configurar"
+                          ? "Pendente"
                           : language === "fr"
-                            ? "À configurer"
+                            ? "En attente"
                             : language === "de"
-                              ? "Konfigurieren"
-                              : "Needs setup"}
+                              ? "Ausstehend"
+                              : "Pending"}
                   </span>
                 </div>
                 <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
                   {provider.detail}
                 </p>
-              </article>
+                <div className="mt-3 flex items-center justify-between text-[9px] font-bold uppercase tracking-[0.08em]">
+                  <span className={active ? "text-[#8F0000]" : "text-[var(--apex-muted)]"}>
+                    {active
+                      ? language === "es"
+                        ? "Seleccionado"
+                        : language === "pt"
+                          ? "Selecionado"
+                          : language === "fr"
+                            ? "Sélectionné"
+                            : language === "de"
+                              ? "Ausgewählt"
+                              : "Selected"
+                      : language === "es"
+                        ? "Elegir canal"
+                        : language === "pt"
+                          ? "Escolher canal"
+                          : language === "fr"
+                            ? "Choisir"
+                            : language === "de"
+                              ? "Auswählen"
+                              : "Choose channel"}
+                  </span>
+                  {active && <CheckCircle2 size={14} />}
+                </div>
+              </button>
             );
           })}
         </div>
+
+        {selectedProvider !== "custom" && (
+          <div className="mt-4 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm font-semibold">
+                  {selectedProviderMeta.name} · {selectedProviderMeta.auth}
+                </p>
+                <p className="mt-1 max-w-3xl text-xs leading-5 text-[var(--apex-muted)]">
+                  {selectedProviderMeta.detail}
+                </p>
+              </div>
+              <span
+                className={
+                  "shrink-0 rounded-full border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.08em] " +
+                  (selectedProviderReady
+                    ? "border-emerald-500/25 bg-emerald-500/8 text-emerald-600"
+                    : "border-amber-500/20 bg-amber-500/8 text-amber-600")
+                }
+              >
+                {selectedProviderReady
+                  ? language === "es"
+                    ? "Autorización disponible"
+                    : "Authorization available"
+                  : language === "es"
+                    ? "Integración todavía no habilitada"
+                    : "Integration not enabled yet"}
+              </span>
+            </div>
+            {!selectedProviderReady && (
+              <p className="mt-3 text-[10px] leading-5 text-[var(--apex-muted)]">
+                {language === "es"
+                  ? "Global Stock no simula esta conexión: el botón se habilitará cuando el flujo oficial del proveedor esté implementado y configurado."
+                  : "Global Stock does not simulate this connection. It becomes available only after the provider's official authorization flow is implemented and configured."}
+              </p>
+            )}
+          </div>
+        )}
       </section>
+      <section>
+        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">      </section>
       <section>
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
           {t.eyebrow}
@@ -752,7 +833,7 @@ export function ConnectedCommerceHub({
         </p>
       </section>
 
-      {!store && (
+      {!store && selectedProvider === "custom" && (
         <section className="apex-card p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
@@ -839,7 +920,7 @@ export function ConnectedCommerceHub({
         </section>
       )}
 
-      {!store && preview && (
+      {!store && selectedProvider === "custom" && preview && (
         <section className="apex-card p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
@@ -1091,7 +1172,7 @@ export function ConnectedCommerceHub({
         </div>
       )}
 
-      {!store && !preview && (
+      {!store && selectedProvider === "custom" && !preview && (
         <section className="grid gap-3 sm:grid-cols-3">
           <Info icon={<Link2 size={16} />} text={t.publicOnly} />
           <Info icon={<ShieldCheck size={16} />} text={t.ownershipBody} />

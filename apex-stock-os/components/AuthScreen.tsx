@@ -5,7 +5,6 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Building2,
-  BriefcaseBusiness,
   Eye,
   EyeOff,
   Loader2,
@@ -22,6 +21,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
+import { BusinessTypePicker, type BusinessTypeValue } from "./BusinessTypePicker";
 import { Logo } from "./Logo";
 
 const AuthScene = dynamic(
@@ -382,7 +382,7 @@ export function AuthScreen({
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
-  const [industry, setIndustry] = useState("retail");
+  const [industry, setIndustry] = useState<BusinessTypeValue>("retail");
   const [country, setCountry] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
   const [email, setEmail] = useState(() =>
@@ -549,7 +549,7 @@ export function AuthScreen({
 
   return (
     <main className="relative h-[100dvh] min-h-[100svh] overflow-hidden bg-black">
-      <AuthScene active={!introComplete} />
+      <AuthScene active />
 
       <AnimatePresence mode="wait">
         {!introComplete ? (
@@ -750,25 +750,11 @@ export function AuthScreen({
                           <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
                             {signupLabels.industry}
                           </span>
-                          <div className="relative">
-                            <BriefcaseBusiness
-                              size={17}
-                              className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
-                            />
-                            <select
-                              value={industry}
-                              onChange={(event) => setIndustry(event.target.value)}
-                              className={`w-full appearance-none rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
-                            >
-                              <option value="retail">{signupLabels.industryRetail}</option>
-                              <option value="restaurant">{signupLabels.industryRestaurant}</option>
-                              <option value="services">{signupLabels.industryServices}</option>
-                              <option value="wholesale">{signupLabels.industryWholesale}</option>
-                              <option value="ecommerce">{signupLabels.industryEcommerce}</option>
-                              <option value="industry">{signupLabels.industryIndustry}</option>
-                              <option value="other">{signupLabels.industryOther}</option>
-                            </select>
-                          </div>
+                          <BusinessTypePicker
+                            language={language}
+                            value={industry}
+                            onChange={setIndustry}
+                          />
                         </label>
 
                         <label className="block">

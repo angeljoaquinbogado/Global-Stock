@@ -11,13 +11,13 @@ import {
   TrendingUp
 } from "lucide-react";
 import {
+  Area,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
+  ComposedChart,
   Line,
-  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -311,6 +311,33 @@ export function PremiumCharts({
     { name: t.out, value: out, fill: "#E32626" }
   ];
 
+  const latestPoint = data.at(-1) ?? null;
+  const previousPoint = data.at(-2) ?? null;
+
+  const periodDelta = (current?: number, previous?: number) => {
+    if (
+      current === undefined ||
+      previous === undefined ||
+      !Number.isFinite(current) ||
+      !Number.isFinite(previous) ||
+      previous === 0
+    ) {
+      return null;
+    }
+    return ((current - previous) / Math.abs(previous)) * 100;
+  };
+
+  const noData =
+    language === "es"
+      ? "Todavía no hay ventas registradas para graficar."
+      : language === "pt"
+        ? "Ainda não há vendas registradas para exibir no gráfico."
+        : language === "fr"
+          ? "Aucune vente enregistrée à afficher pour le moment."
+          : language === "de"
+            ? "Es sind noch keine Verkäufe für das Diagramm erfasst."
+            : "No sales have been recorded for this chart yet.";
+
   return (
     <div className="space-y-5">
       <section>
@@ -366,88 +393,140 @@ export function PremiumCharts({
             <SmallStat label={t.weakestDay} value={weakestDay?.label ?? "—"} />
             <SmallStat
               label={t.avgMargin}
-              value={`${avgMargin.toFixed(1)}%`}
+              value={costedProducts.length ? `${avgMargin.toFixed(1)}%` : "—"}
             />
-            <SmallStat label={t.units} value={String(totalUnits)} />
+            <SmallStat label={t.units} value={products.length ? String(totalUnits) : "—"} />
           </div>
         </div>
 
-        <div className="mt-6 h-[360px] sm:h-[420px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={data} margin={{ left: 8, right: 10, top: 12, bottom: 4 }}>
-       <CartesianGrid
-                stroke="var(--apex-border)"
-                strokeDasharray="1 7"
-                vertical
-              />
-              <XAxis
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                stroke="var(--apex-muted)"
-                fontSize={11}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                stroke="var(--apex-muted)"
-                fontSize={9}
-                width={54}
-                tickFormatter={(value) =>
-                  new Intl.NumberFormat(locale, {
-                    notation: "compact",
-                    maximumFractionDigits: 1
-                  }).format(Number(value))
-                }
-              />
-              <Tooltip
-                contentStyle={tooltipStyle()}
-                formatter={(value) =>
-                  formatMoney(Number(value), currency, locale)
-                }
-              />
-              <Legend
-                iconType="circle"
-                wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
-              />
-              <ReferenceLine y={0} stroke="var(--apex-border)" />
-              <Line
-                type="linear"
-                dataKey="revenue"
-                name={t.revenue}
-                stroke="#D10A0A"
-                strokeWidth={2.3}
-                dot={false}
-                activeDot={{ r: 4, strokeWidth: 0 }}
-
-                isAnimationActive={false}
-              />
-              <Line
-                type="linear"
-                dataKey="cost"
-                name={t.cost}
-                stroke="#8C8C94"
-                strokeWidth={1.35}
-                strokeDasharray="5 5"
-                dot={false}
-                activeDot={{ r: 3, strokeWidth: 0 }}
-
-                isAnimationActive={false}
-              />
-              <Line
-                type="linear"
-                dataKey="profit"
-                name={t.profit}
-                stroke="#FFFFFF"
-                strokeWidth={1.55}
-                dot={false}
-                activeDot={{ r: 3, strokeWidth: 0 }}
-
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
+        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <SeriesStat
+            label={t.revenue}
+            value={latestPoint ? formatMoney(latestPoint.revenue, currency, locale) : "—"}
+            change={periodDelta(latestPoint?.revenue, previousPoint?.revenue)}
+            markerClass="bg-[#D10A0A]"
+          />
+          <SeriesStat
+            label={t.cost}
+            value={latestPoint ? formatMoney(latestPoint.cost, currency, locale) : "—"}
+            change={periodDelta(latestPoint?.cost, previousPoint?.cost)}
+            markerClass="bg-[#8C8C94]"
+          />
+          <SeriesStat
+            label={t.profit}
+            value={latestPoint ? formatMoney(latestPoint.profit, currency, locale) : "—"}
+            change={periodDelta(latestPoint?.profit, previousPoint?.profit)}
+            markerClass="bg-[var(--apex-text)]"
+          />
         </div>
+
+        {data.length ? (
+          <div className="mt-4 h-[390px] rounded-[24px] border border-[var(--apex-border)] bg-[linear-gradient(180deg,var(--apex-surface-strong),var(--apex-bg))] p-2 sm:h-[450px] sm:p-4">
+            <ResponsiveContainer width="100%" height="100%">
+              <ComposedChart
+                data={data}
+                margin={{ left: 6, right: 12, top: 16, bottom: 8 }}
+              >
+                <defs>
+                  <linearGradient id="premiumRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#D10A0A" stopOpacity={0.16} />
+                    <stop offset="100%" stopColor="#D10A0A" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  stroke="var(--apex-border)"
+                  strokeDasharray="2 9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="label"
+                  axisLine={false}
+                  tickLine={false}
+                  stroke="var(--apex-muted)"
+                  fontSize={11}
+                  tickMargin={12}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  stroke="var(--apex-muted)"
+                  fontSize={9}
+                  width={58}
+                  tickMargin={8}
+                  tickFormatter={(value) =>
+                    new Intl.NumberFormat(locale, {
+                      notation: "compact",
+                      maximumFractionDigits: 1
+                    }).format(Number(value))
+                  }
+                />
+                <Tooltip
+                  cursor={{
+                    stroke: "var(--apex-muted)",
+                    strokeOpacity: 0.32,
+                    strokeDasharray: "3 6"
+                  }}
+                  contentStyle={tooltipStyle()}
+                  formatter={(value) =>
+                    formatMoney(Number(value), currency, locale)
+                  }
+                  labelStyle={{
+                    color: "var(--apex-muted)",
+                    fontSize: 11,
+                    marginBottom: 6
+                  }}
+                />
+                <ReferenceLine
+                  y={0}
+                  stroke="var(--apex-border)"
+                  strokeDasharray="3 6"
+                />
+                <Area
+                  type="linear"
+                  dataKey="revenue"
+                  stroke="none"
+                  fill="url(#premiumRevenueFill)"
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="linear"
+                  dataKey="revenue"
+                  name={t.revenue}
+                  stroke="#D10A0A"
+                  strokeWidth={2.6}
+                  dot={false}
+                  activeDot={{ r: 4.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="linear"
+                  dataKey="cost"
+                  name={t.cost}
+                  stroke="#8C8C94"
+                  strokeWidth={1.55}
+                  strokeDasharray="5 5"
+                  dot={false}
+                  activeDot={{ r: 3.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
+                  isAnimationActive={false}
+                />
+                <Line
+                  type="linear"
+                  dataKey="profit"
+                  name={t.profit}
+                  stroke="var(--apex-text)"
+                  strokeWidth={1.9}
+                  dot={false}
+                  activeDot={{ r: 3.8, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
+                  isAnimationActive={false}
+                />
+              </ComposedChart>
+            </ResponsiveContainer>
+          </div>
+        ) : (
+          <div className="mt-4 grid min-h-[260px] place-items-center rounded-[24px] border border-dashed border-[var(--apex-border)] bg-[var(--apex-bg)] px-6 text-center text-sm text-[var(--apex-muted)]">
+            {noData}
+          </div>
+        )}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-2">
@@ -600,6 +679,54 @@ export function PremiumCharts({
           />
         </div>
       </section>
+    </div>
+  );
+}
+
+function SeriesStat({
+  label,
+  value,
+  change,
+  markerClass
+}: {
+  label: string;
+  value: string;
+  change: number | null;
+  markerClass: string;
+}) {
+  const positive = change !== null && change > 0;
+  const negative = change !== null && change < 0;
+
+  return (
+    <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3">
+      <div className="flex items-center gap-2">
+        <span className={`h-1.5 w-5 rounded-full ${markerClass}`} />
+        <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+          {label}
+        </p>
+      </div>
+      <div className="mt-2 flex items-end justify-between gap-3">
+        <p className="truncate text-sm font-semibold">{value}</p>
+        {change !== null && (
+          <span
+            className={
+              "flex shrink-0 items-center gap-1 text-[10px] font-semibold " +
+              (positive
+                ? "text-emerald-600"
+                : negative
+                  ? "text-red-500"
+                  : "text-[var(--apex-muted)]")
+            }
+          >
+            {positive ? (
+              <ArrowUpRight size={12} />
+            ) : negative ? (
+              <ArrowDownRight size={12} />
+            ) : null}
+            {Math.abs(change).toFixed(1)}%
+          </span>
+        )}
+      </div>
     </div>
   );
 }

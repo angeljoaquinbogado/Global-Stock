@@ -1127,7 +1127,7 @@ export function DocumentsHub({
     [currency, documents]
   );
 
-  function createDocument() {
+  function createDocument(printAfterCreate = false) {
     const parsedTotal = Number(total.replace(",", "."));
     if (!customer.trim() || !Number.isFinite(parsedTotal)) return;
 
@@ -1140,23 +1140,25 @@ export function DocumentsHub({
       }, 0) + 1;
     const number = `${prefix}-${String(nextSequence).padStart(6, "0")}`;
 
-    setDocuments((current) => [
-      {
-        id: crypto.randomUUID(),
-        number,
-        type,
-        customer: customer.trim(),
-        description: description.trim(),
-        total: Math.max(0, parsedTotal),
-        currency,
-        createdAt: new Date().toISOString()
-      },
-      ...current
-    ]);
+    const document: BusinessDocument = {
+      id: crypto.randomUUID(),
+      number,
+      type,
+      customer: customer.trim(),
+      description: description.trim(),
+      total: Math.max(0, parsedTotal),
+      currency,
+      createdAt: new Date().toISOString()
+    };
 
+    setDocuments((current) => [document, ...current]);
     setCustomer("");
     setDescription("");
     setTotal("");
+
+    if (printAfterCreate) {
+      printDocument(document);
+    }
   }
 
   function printDocument(document: BusinessDocument) {
@@ -1300,15 +1302,26 @@ export function DocumentsHub({
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={createDocument}
-            disabled={!customer.trim() || !total.trim()}
-            className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white disabled:opacity-35"
-          >
-            <FileCheck2 size={16} />
-            {t.create}
-          </button>
+          <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_auto]">
+            <button
+              type="button"
+              onClick={() => createDocument(false)}
+              disabled={!customer.trim() || !total.trim()}
+              className="flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white disabled:opacity-35"
+            >
+              <FileCheck2 size={16} />
+              {t.create}
+            </button>
+            <button
+              type="button"
+              onClick={() => createDocument(true)}
+              disabled={!customer.trim() || !total.trim()}
+              className="flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-sm font-semibold disabled:opacity-35"
+            >
+              <Printer size={16} />
+              {t.print}
+            </button>
+          </div>
 
           <p className="mt-4 rounded-2xl border border-amber-500/20 bg-amber-500/8 p-3 text-[10px] leading-4 text-[var(--apex-muted)]">
             {t.internalNotice}

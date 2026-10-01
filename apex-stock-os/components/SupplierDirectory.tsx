@@ -44,6 +44,7 @@ type Props = {
   language: LanguageCode;
   stats: SupplierStat[];
   money: (value: number) => string;
+  onRemoveSupplier: (name: string) => void;
 };
 
 const copy = {
@@ -200,7 +201,7 @@ const emptyDraft = {
   notes: ""
 };
 
-export function SupplierDirectory({ language, stats, money }: Props) {
+export function SupplierDirectory({ language, stats, money, onRemoveSupplier }: Props) {
   const t = copy[language];
   const [profiles, setProfiles] = useState<SupplierProfile[]>([]);
   const [ready, setReady] = useState(false);
@@ -342,6 +343,20 @@ export function SupplierDirectory({ language, stats, money }: Props) {
     closeEditor();
   }
 
+  function removeSupplier(name: string, profile?: SupplierProfile) {
+    if (profile) {
+      setProfiles((current) => current.filter((item) => item.id !== profile.id));
+    } else {
+      setProfiles((current) =>
+        current.filter(
+          (item) =>
+            item.name.toLocaleLowerCase() !== name.toLocaleLowerCase()
+        )
+      );
+    }
+    onRemoveSupplier(name);
+  }
+
   return (
     <div className="space-y-5">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
@@ -383,15 +398,26 @@ export function SupplierDirectory({ language, stats, money }: Props) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => openExisting(name, profile)}
-                className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)]"
-                aria-label={profile ? t.editSupplier : t.complete}
-                title={profile ? t.editSupplier : t.complete}
-              >
-                <Pencil size={15} />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => openExisting(name, profile)}
+                  className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)]"
+                  aria-label={profile ? t.editSupplier : t.complete}
+                  title={profile ? t.editSupplier : t.complete}
+                >
+                  <Pencil size={15} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => removeSupplier(name, profile)}
+                  className="grid h-11 w-11 place-items-center rounded-xl border border-red-500/20 text-red-500 transition hover:bg-red-500/8"
+                  aria-label={t.delete}
+                  title={t.delete}
+                >
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
 
             {stat && (

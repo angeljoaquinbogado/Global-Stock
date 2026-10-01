@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-import { productCatalog } from "@/lib/demo-data";
 import type { Product } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +13,6 @@ export async function GET(request: NextRequest) {
       { error: "barcode is required" },
       { status: 400 }
     );
-  }
-
-  const local = productCatalog[barcode];
-  if (local) {
-    return NextResponse.json({ product: local, source: "local-catalog" });
   }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

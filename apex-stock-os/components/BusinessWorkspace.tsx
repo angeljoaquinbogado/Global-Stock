@@ -43,7 +43,6 @@ import {
   getStockStatus,
   rankRestockNeeds
 } from "@/lib/analytics";
-import { demoProducts, demoTrend } from "@/lib/demo-data";
 import type {
   BusinessSnapshot,
   Product,
@@ -51,6 +50,7 @@ import type {
 } from "@/lib/types";
 
 import { ApexIntelligence } from "./ApexIntelligence";
+import { BusinessTypePicker } from "./BusinessTypePicker";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
@@ -882,15 +882,15 @@ export function BusinessWorkspace({
   const locale = localeByLanguage[language];
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [products, setProducts] = useState<Product[]>(demoProducts);
-  const [trend, setTrend] = useState<TrendPoint[]>(demoTrend);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [currencyRate, setCurrencyRate] = useState(1);
   const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
   const [fxHistory, setFxHistory] = useState<FxHistoryEntry[]>([]);
   const [storageReady, setStorageReady] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
-  const [businessName, setBusinessName] = useState("Global Stock Demo");
+  const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] =
     useState<BusinessType>("retail");
   const [businessCountry, setBusinessCountry] = useState("");
@@ -936,8 +936,12 @@ export function BusinessWorkspace({
 
   useEffect(() => {
     try {
-      const savedProducts = localStorage.getItem("global-stock-demo-products-v2");
-      const savedTrend = localStorage.getItem("global-stock-trend-v1");
+      const currentProducts = localStorage.getItem("global-stock-products-v3");
+      const legacyProducts = localStorage.getItem("global-stock-demo-products-v2");
+      const savedProducts = currentProducts ?? legacyProducts;
+      const currentTrend = localStorage.getItem("global-stock-trend-v2");
+      const legacyTrend = localStorage.getItem("global-stock-trend-v1");
+      const savedTrend = currentTrend ?? legacyTrend;
       const savedName = localStorage.getItem("global-stock-business-name");
       const savedBusinessType = localStorage.getItem(
         "global-stock-business-type"
@@ -957,11 +961,52 @@ export function BusinessWorkspace({
 
       if (savedProducts) {
         const parsed = JSON.parse(savedProducts) as Product[];
-        if (Array.isArray(parsed) && parsed.length) setProducts(parsed);
+        const bundledDemoIds = new Set([
+          "p-001",
+          "p-002",
+          "p-003",
+          "p-004",
+          "p-005",
+          "p-006"
+        ]);
+        const isBundledDemo =
+          !currentProducts &&
+          Array.isArray(parsed) &&
+          parsed.length === bundledDemoIds.size &&
+          parsed.every((item) => bundledDemoIds.has(String(item.id)));
+
+        if (Array.isArray(parsed) && !isBundledDemo) {
+          setProducts(parsed);
+          if (!currentProducts) {
+            localStorage.setItem(
+              "global-stock-products-v3",
+              JSON.stringify(parsed)
+            );
+          }
+        } else if (isBundledDemo) {
+          localStorage.removeItem("global-stock-demo-products-v2");
+        }
       }
       if (savedTrend) {
         const parsed = JSON.parse(savedTrend) as TrendPoint[];
-        if (Array.isArray(parsed) && parsed.length) setTrend(parsed);
+        const isBundledDemoTrend =
+          !currentTrend &&
+          Array.isArray(parsed) &&
+          parsed.length === 7 &&
+          Number(parsed[0]?.revenue) === 612000 &&
+          Number(parsed[5]?.profit) === 524000;
+
+        if (Array.isArray(parsed) && !isBundledDemoTrend) {
+          setTrend(parsed);
+          if (!currentTrend) {
+            localStorage.setItem(
+              "global-stock-trend-v2",
+              JSON.stringify(parsed)
+            );
+          }
+        } else if (isBundledDemoTrend) {
+          localStorage.removeItem("global-stock-trend-v1");
+        }
       }
       if (savedName) setBusinessName(savedName);
       if (
@@ -1036,14 +1081,14 @@ export function BusinessWorkspace({
   useEffect(() => {
     if (!storageReady) return;
     localStorage.setItem(
-      "global-stock-demo-products-v2",
+      "global-stock-products-v3",
       JSON.stringify(products)
     );
   }, [products, storageReady]);
 
   useEffect(() => {
     if (!storageReady) return;
-    localStorage.setItem("global-stock-trend-v1", JSON.stringify(trend));
+    localStorage.setItem("global-stock-trend-v2", JSON.stringify(trend));
   }, [trend, storageReady]);
 
   useEffect(() => {
@@ -1226,8 +1271,11 @@ export function BusinessWorkspace({
     >();
 
     for (const product of products) {
-      const current = groups.get(product.supplier) ?? {
-        supplier: product.supplier,
+      const supplier = product.supplier.trim();
+      if (!supplier) continue;
+
+      const current = groups.get(supplier) ?? {
+        supplier,
         products: 0,
         units: 0,
         value: 0,
@@ -1244,7 +1292,7 @@ export function BusinessWorkspace({
           );
         }
       }
-      groups.set(product.supplier, current);
+      groups.set(supplier, current);
     }
 
     return [...groups.values()].map((group) => ({
@@ -1599,6 +1647,41 @@ export function BusinessWorkspace({
     }
   }
 
+  function removeSupplier(name: string) {
+    const normalized = name.trim().toLocaleLowerCase();
+    if (!normalized) return;
+
+    const affected = products.filter(
+      (product) =>
+        product.supplier.trim().toLocaleLowerCase() === normalized
+    );
+
+    setProducts((current) =>
+      current.map((product) =>
+        product.supplier.trim().toLocaleLowerCase() === normalized
+          ? { ...product, supplier: "" }
+          : product
+      )
+    );
+
+    for (const product of affected) {
+      scheduleConnectedWrite(product, { supplier: "" });
+    }
+
+    setNotice(
+      language === "es"
+        ? "Proveedor eliminado y desvinculado de los productos."
+        : language === "pt"
+          ? "Fornecedor removido e desvinculado dos produtos."
+          : language === "fr"
+            ? "Fournisseur supprimé et dissocié des produits."
+            : language === "de"
+              ? "Lieferant entfernt und von den Produkten getrennt."
+              : "Supplier removed and unlinked from products."
+    );
+    window.setTimeout(() => setNotice(""), 2600);
+  }
+
   function updateBarcode(id: string, barcode: string) {
     const product = products.find((item) => item.id === id);
 
@@ -1752,7 +1835,7 @@ export function BusinessWorkspace({
               {labels.businessSummary}
             </p>
             <p className="mt-2 truncate text-sm font-semibold">
-              {businessName}
+              {businessName || labels.businessSummary}
             </p>
             <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
               {metrics.inventoryUnits} {labels.units}
@@ -1915,6 +1998,7 @@ export function BusinessWorkspace({
                 language={language}
                 stats={supplierStats}
                 money={money}
+                onRemoveSupplier={removeSupplier}
               />
             )}
 
@@ -2776,6 +2860,19 @@ function PurchasesModule({
   money: (value: number) => string;
   receiveRestock: (id: string, units: number) => void;
 }) {
+  const [plannedUnits, setPlannedUnits] = useState<Record<string, number>>({});
+
+  const noRestockText =
+    language === "es"
+      ? "No hay productos que requieran reposición con los datos actuales."
+      : language === "pt"
+        ? "Não há produtos que precisem de reposição com os dados atuais."
+        : language === "fr"
+          ? "Aucun produit ne nécessite de réapprovisionnement avec les données actuelles."
+          : language === "de"
+            ? "Mit den aktuellen Daten ist keine Nachbestellung erforderlich."
+            : "No products need restocking with the current data.";
+
   return (
     <div className="space-y-5">
       <PageIntro
@@ -2784,51 +2881,98 @@ function PurchasesModule({
       />
       <WorkflowHelp {...workflowHelp[language].purchases} />
 
-      <div className="grid gap-3">
-        {restock.map(
-          ({ product, daysCover, suggestedUnits }) => (
-            <article key={product.id} className="apex-card p-5">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold">
-                    {product.name}
-                  </h3>
-                  <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-                    {product.supplier}
-                  </p>
-                </div>
-                <div className="grid grid-cols-3 gap-3 sm:min-w-[430px]">
-                  <MiniStat
-                    label={labels.suggested}
-                    value={String(suggestedUnits)}
-                  />
-                  <MiniStat
-                    label={labels.coverage}
-                    value={`${daysCover.toFixed(1)} ${labels.days}`}
-                  />
-                  <MiniStat
-                    label={labels.estimatedCost}
-                    value={
-                      product.costKnown === false
-                        ? "—"
-                        : money(suggestedUnits * product.cost)
-                    }
-                  />
-                </div>
-                <button
-                  type="button"
-                  onClick={() =>
-                    receiveRestock(product.id, suggestedUnits)
-                  }
-                  className="rounded-2xl bg-[#8F0000] px-4 py-3 text-xs font-semibold text-white"
-                >
-                  {labels.receivePurchase}
-                </button>
-              </div>
-            </article>
-          )
-        )}
-      </div>
+      {!restock.length ? (
+        <section className="apex-card p-6 text-sm text-[var(--apex-muted)]">
+          {noRestockText}
+        </section>
+      ) : (
+        <div className="grid gap-3">
+          {restock.map(
+            ({ product, daysCover, suggestedUnits }) => {
+              const units = Math.max(
+                1,
+                Math.round(plannedUnits[product.id] ?? suggestedUnits)
+              );
+
+              return (
+                <article key={product.id} className="apex-card p-5">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                    <div className="min-w-0 xl:w-[260px]">
+                      <h3 className="truncate text-sm font-semibold">
+                        {product.name}
+                      </h3>
+                      <p className="mt-1 truncate text-[11px] text-[var(--apex-muted)]">
+                        {product.supplier || "—"}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[470px]">
+                      <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5">
+                        <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                          {labels.suggested}
+                        </p>
+                        <div className="mt-1 flex items-center gap-2">
+                          <input
+                            type="number"
+                            min={1}
+                            step={1}
+                            value={units}
+                            onChange={(event) =>
+                              setPlannedUnits((current) => ({
+                                ...current,
+                                [product.id]: Math.max(
+                                  1,
+                                  Math.round(Number(event.target.value) || 1)
+                                )
+                              }))
+                            }
+                            className="w-20 bg-transparent text-base font-semibold outline-none"
+                            aria-label={labels.suggested}
+                          />
+                          <span className="text-[10px] text-[var(--apex-muted)]">
+                            {suggestedUnits !== units
+                              ? language === "es"
+                                ? `sugerencia: ${suggestedUnits}`
+                                : language === "pt"
+                                  ? `sugestão: ${suggestedUnits}`
+                                  : language === "fr"
+                                    ? `suggestion : ${suggestedUnits}`
+                                    : language === "de"
+                                      ? `Vorschlag: ${suggestedUnits}`
+                                      : `suggested: ${suggestedUnits}`
+                              : ""}
+                          </span>
+                        </div>
+                      </div>
+
+                      <MiniStat
+                        label={labels.coverage}
+                        value={`${daysCover.toFixed(1)} ${labels.days}`}
+                      />
+                      <MiniStat
+                        label={labels.estimatedCost}
+                        value={
+                          product.costKnown === false
+                            ? "—"
+                            : money(units * product.cost)
+                        }
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => receiveRestock(product.id, units)}
+                      className="min-h-11 rounded-2xl bg-[#8F0000] px-4 py-3 text-xs font-semibold text-white"
+                    >
+                      {labels.receivePurchase}
+                    </button>
+                  </div>
+                </article>
+              );
+            }
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -3032,73 +3176,12 @@ function SettingsModule({
               <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
                 {settingsCopy.activity}
               </span>
-              <select
+              <BusinessTypePicker
+                language={language}
                 value={businessType}
-                onChange={(event) =>
-                  setBusinessType(event.target.value as BusinessType)
-                }
-                className="apex-input mt-2 px-4 py-3 text-sm"
-              >
-                <option value="retail">
-                  {language === "en"
-                    ? "Retail"
-                    : language === "pt"
-                      ? "Comércio / varejo"
-                      : language === "fr"
-                        ? "Commerce"
-                        : language === "de"
-                          ? "Einzelhandel"
-                          : "Comercio / retail"}
-                </option>
-                <option value="restaurant">
-                  {language === "en"
-                    ? "Restaurant / hospitality"
-                    : language === "pt"
-                      ? "Restaurante / gastronomia"
-                      : language === "fr"
-                        ? "Restaurant / restauration"
-                        : language === "de"
-                          ? "Restaurant / Gastronomie"
-                          : "Restaurante / gastronomía"}
-                </option>
-                <option value="services">
-                  {language === "en"
-                    ? "Services"
-                    : language === "pt"
-                      ? "Serviços"
-                      : language === "fr"
-                        ? "Services"
-                        : language === "de"
-                          ? "Dienstleistungen"
-                          : "Servicios"}
-                </option>
-                <option value="wholesale">
-                  {language === "en"
-                    ? "Wholesale / distribution"
-                    : language === "pt"
-                      ? "Atacado / distribuição"
-                      : language === "fr"
-                        ? "Grossiste / distribution"
-                        : language === "de"
-                          ? "Großhandel / Vertrieb"
-                          : "Mayorista / distribución"}
-                </option>
-                <option value="ecommerce">Ecommerce</option>
-                <option value="industry">
-                  {settingsCopy.industry}
-                </option>
-                <option value="other">
-                  {language === "en"
-                    ? "Other"
-                    : language === "pt"
-                      ? "Outro"
-                      : language === "fr"
-                        ? "Autre"
-                        : language === "de"
-                          ? "Andere"
-                          : "Otro"}
-                </option>
-              </select>
+                onChange={(value) => setBusinessType(value as BusinessType)}
+                className="mt-2"
+              />
             </label>
 
             <label>
