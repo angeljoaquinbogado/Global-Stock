@@ -39,11 +39,28 @@ export class IntelligenceNotConfiguredError extends Error {
   }
 }
 
+function providerConfig() {
+  const vercelOidc = process.env.VERCEL_OIDC_TOKEN?.trim();
+  const endpoint =
+    process.env.AI_API_URL?.trim() ||
+    (vercelOidc
+      ? "https://ai-gateway.vercel.sh/v1/chat/completions"
+      : "");
+  const model =
+    process.env.AI_MODEL?.trim() ||
+    (vercelOidc ? "openai/gpt-5.6-sol" : "");
+  const apiKey =
+    process.env.AI_API_KEY?.trim() ||
+    process.env.AI_GATEWAY_API_KEY?.trim() ||
+    vercelOidc ||
+    "";
+
+  return { endpoint, model, apiKey };
+}
+
 export function isIntelligenceConfigured() {
-  return Boolean(
-    process.env.AI_API_URL?.trim() &&
-      process.env.AI_MODEL?.trim()
-  );
+  const { endpoint, model } = providerConfig();
+  return Boolean(endpoint && model);
 }
 
 export async function generateIntelligenceAnswer({
@@ -57,9 +74,7 @@ export async function generateIntelligenceAnswer({
   history: IntelligenceHistoryMessage[];
   runtime: IntelligenceRuntimeContext;
 }) {
-  const endpoint = process.env.AI_API_URL?.trim();
-  const model = process.env.AI_MODEL?.trim();
-  const apiKey = process.env.AI_API_KEY?.trim();
+  const { endpoint, model, apiKey } = providerConfig();
 
   if (!endpoint || !model) {
     throw new IntelligenceNotConfiguredError();
@@ -199,7 +214,8 @@ function buildSystemPrompt(
       sold30d: product.sold30d,
       stock: product.stock,
       minStock: product.minStock,
-      cost: product.cost,
+      cost: product.costKnown === false ? null : product.cost,
+      costKnown: product.costKnown !== false,
       price: product.price
     })),
     slowMovingProducts30d: slowMovers.slice(0, 16).map((product) => ({
@@ -207,7 +223,10 @@ function buildSystemPrompt(
       name: product.name,
       sold30d: product.sold30d,
       stock: product.stock,
-      inventoryCost: product.stock * product.cost
+      inventoryCost:
+        product.costKnown === false
+          ? null
+          : product.stock * product.cost
     })),
     restockAnalysis: restock.map(
       ({ product, daysCover, suggestedUnits, urgency }) => ({
@@ -218,7 +237,10 @@ function buildSystemPrompt(
         sold30d: product.sold30d,
         daysCover,
         suggestedUnits,
-        estimatedPurchaseCost: suggestedUnits * product.cost,
+        estimatedPurchaseCost:
+          product.costKnown === false
+            ? null
+            : suggestedUnits * product.cost,
         urgency
       })
     ),
@@ -230,16 +252,25 @@ function buildSystemPrompt(
       supplier: product.supplier,
       stock: product.stock,
       minStock: product.minStock,
-      cost: product.cost,
+      cost: product.costKnown === false ? null : product.cost,
+      costKnown: product.costKnown !== false,
       price: product.price,
       sold30d: product.sold30d,
       stockStatus: getStockStatus(product),
-      unitGrossProfit: product.price - product.cost,
+      unitGrossProfit:
+        product.costKnown === false
+          ? null
+          : product.price - product.cost,
       unitGrossMarginPct:
-        product.price > 0
-          ? ((product.price - product.cost) / product.price) * 100
-          : 0,
-      inventoryCost: product.stock * product.cost,
+        product.costKnown === false
+          ? null
+          : product.price > 0
+            ? ((product.price - product.cost) / product.price) * 100
+            : 0,
+      inventoryCost:
+        product.costKnown === false
+          ? null
+          : product.stock * product.cost,
       inventoryRetailValue: product.stock * product.price
     })),
     appContext: runtime.appContext ?? {}
@@ -253,7 +284,7 @@ function buildSystemPrompt(
     "When asked what day/date/time it is, use currentLocalDateTime and clientTimeZone. Never answer from model training time.",
     "When the user asks about this business, use only supplied business data for factual numeric claims. Derive calculations explicitly when useful.",
     "You may analyze inventory, pricing, gross margins, hypothetical price changes, stock coverage, restocking, purchasing budget, tied-up capital, product rotation, suppliers, sales trends, best/worst periods, physical-store activity, online orders, internal documents, cash implications, scenarios, risks, notes and operational priorities.",
-    "If a requested calculation needs data that is not available, identify exactly what is missing instead of inventing it.",
+    "If a requested calculation needs data that is not available, identify exactly what is missing instead of inventing it. A null cost or costKnown=false means the real purchase cost has not been recorded; never treat it as zero.",
     "Clearly distinguish gross profit, contribution margin and net profit. Do not call gross profit net profit.",
     "For forecasts or scenarios, state assumptions and avoid pretending uncertain future demand is known.",
     "If the user asks how to use Global Stock, explain the relevant capability using the current app modules: Home, Sales/POS, Inventory, Charts, Purchases, Suppliers, Activity, Notes/Calendar, Scanner, Settings, language/currency and Global Intelligence.",
