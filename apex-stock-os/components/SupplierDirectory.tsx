@@ -51,7 +51,7 @@ const copy = {
     eyebrow: "Directorio de abastecimiento",
     title: "Proveedores",
     subtitle:
-      "Guardá quién te provee mercadería, cómo contactarlo y qué parte del stock depende de cada proveedor."
+      "Guardá quién te provee mercadería, cómo contactarlo y qué parte del stock depende de cada proveedor.",
     newSupplier: "Nuevo proveedor",
     editSupplier: "Editar proveedor",
     name: "Empresa / nombre",
