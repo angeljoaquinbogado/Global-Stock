@@ -411,7 +411,8 @@ export function PremiumCharts({
                 strokeWidth={2.3}
                 dot={false}
                 activeDot={{ r: 4, strokeWidth: 0 }}
-              />
+              
+                isAnimationActive={false}/>
               <Line
                 type="linear"
                 dataKey="cost"
@@ -421,7 +422,8 @@ export function PremiumCharts({
                 strokeDasharray="5 5"
                 dot={false}
                 activeDot={{ r: 3, strokeWidth: 0 }}
-              />
+              
+                isAnimationActive={false}/>
               <Line
                 type="linear"
                 dataKey="profit"
@@ -430,7 +432,8 @@ export function PremiumCharts({
                 strokeWidth={1.55}
                 dot={false}
                 activeDot={{ r: 3, strokeWidth: 0 }}
-              />
+              
+                isAnimationActive={false}/>
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -459,13 +462,15 @@ export function PremiumCharts({
                 name={t.stockByProduct}
                 fill="#8F0000"
                 radius={[9, 9, 3, 3]}
-              />
+              
+                isAnimationActive={false}/>
               <Bar
                 dataKey="min"
                 name="Min"
                 fill="#55555D"
                 radius={[9, 9, 3, 3]}
-              />
+              
+                isAnimationActive={false}/>
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -496,7 +501,8 @@ export function PremiumCharts({
                 dataKey="margin"
                 fill="#A50000"
                 radius={[0, 9, 9, 0]}
-              />
+              
+                isAnimationActive={false}/>
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
@@ -520,7 +526,8 @@ export function PremiumCharts({
                   cornerRadius={9}
                 >
                   {donutData.map((item) => (
-                    <Cell key={item.name} fill={item.fill} />
+                    <Cell key={item.name} fill={item.fill} 
+                isAnimationActive={false}/>
                   ))}
                 </Pie>
                 <Tooltip contentStyle={tooltipStyle()} />
