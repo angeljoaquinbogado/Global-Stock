@@ -129,7 +129,6 @@ export async function generateIntelligenceAnswer({
       cache: "no-store",
       body: JSON.stringify({
         model,
-        temperature: 0.35,
         messages: [
           {
             role: "system",
