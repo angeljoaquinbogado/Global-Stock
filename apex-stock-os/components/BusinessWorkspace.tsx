@@ -1885,6 +1885,9 @@ export function BusinessWorkspace({
 
       <ApexIntelligence
         snapshot={snapshot}
+        raiseOnMobile={
+          activeModule === "pos" && cartLines.length > 0
+        }
         appContext={{
           businessName,
           businessType,
