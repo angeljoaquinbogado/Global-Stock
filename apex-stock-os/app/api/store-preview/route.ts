@@ -357,6 +357,116 @@ async function inspectWooCommerce(base: URL) {
   }
 }
 
+function normalizeCatalogProduct(
+  product: Record<string, unknown>
+): ProductSample {
+  const variants = Array.isArray(product.variants)
+    ? (product.variants as Array<Record<string, unknown>>)
+    : [];
+
+  const firstVariant = variants[0];
+  const rawPrice =
+    product.price ??
+    firstVariant?.price ??
+    product.sale_price ??
+    product.regular_price ??
+    null;
+
+  const rawCurrency =
+    product.currency ??
+    product.currency_code ??
+    (product.prices &&
+    typeof product.prices === "object" &&
+    !Array.isArray(product.prices)
+      ? (product.prices as Record<string, unknown>).currency_code
+      : null);
+
+  return {
+    name:
+      cleanText(
+        String(
+          product.name ??
+            product.title ??
+            product.product_name ??
+            "Producto"
+        )
+      ) ?? "Producto",
+    price:
+      rawPrice === null || rawPrice === undefined
+        ? null
+        : String(rawPrice),
+    currency:
+      rawCurrency === null || rawCurrency === undefined
+        ? null
+        : String(rawCurrency)
+  };
+}
+
+async function inspectGenericCatalog(base: URL) {
+  const candidates = [
+    "/products.json?limit=50",
+    "/api/products",
+    "/api/catalog",
+    "/api/store/products"
+  ];
+
+  for (const path of candidates) {
+    try {
+      const { response } = await safeFetch(
+        new URL(path, base),
+        "application/json,text/plain;q=0.9,*/*;q=0.5",
+        2_500_000
+      );
+
+      if (!response.ok) continue;
+      const contentType = response.headers.get("content-type") ?? "";
+      if (
+        !contentType.includes("json") &&
+        !contentType.includes("text/plain")
+      ) {
+        continue;
+      }
+
+      const payload = (await response.json()) as unknown;
+      let products: Array<Record<string, unknown>> = [];
+
+      if (Array.isArray(payload)) {
+        products = payload.filter(
+          (item): item is Record<string, unknown> =>
+            Boolean(item) && typeof item === "object" && !Array.isArray(item)
+        );
+      } else if (payload && typeof payload === "object") {
+        const object = payload as Record<string, unknown>;
+        const candidate =
+          object.products ??
+          object.items ??
+          object.data ??
+          object.catalog;
+
+        if (Array.isArray(candidate)) {
+          products = candidate.filter(
+            (item): item is Record<string, unknown> =>
+              Boolean(item) &&
+              typeof item === "object" &&
+              !Array.isArray(item)
+          );
+        }
+      }
+
+      if (!products.length) continue;
+
+      return {
+        productCount: products.length,
+        samples: products.slice(0, 12).map(normalizeCatalogProduct)
+      };
+    } catch {
+      // Try the next common public storefront endpoint.
+    }
+  }
+
+  return null;
+}
+
 async function inspectTiendanube(base: URL) {
   const url = new URL("/products.json?limit=50", base);
   try {
@@ -455,6 +565,10 @@ export async function GET(request: NextRequest) {
       catalog = await inspectWooCommerce(finalUrl);
     } else if (platform === "Tiendanube") {
       catalog = await inspectTiendanube(finalUrl);
+    }
+
+    if (!catalog) {
+      catalog = await inspectGenericCatalog(finalUrl);
     }
 
     const structuredProducts = extractJsonLdProducts(html);
