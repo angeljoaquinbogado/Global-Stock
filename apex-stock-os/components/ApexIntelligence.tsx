@@ -478,6 +478,24 @@ export function ApexIntelligence({
       const timeZone =
         Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
+      const localAnswer = localBusinessAnswer({
+        message: text,
+        snapshot,
+        now
+      });
+
+      if (localAnswer) {
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: localAnswer
+          }
+        ]);
+        return;
+      }
+
       const localModules: Record<string, unknown> = {};
       for (const [name, key] of [
         ["freeNotes", "global-stock-free-notes-v1"],
