@@ -52,6 +52,7 @@ import type {
 
 import { ApexIntelligence } from "./ApexIntelligence";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
+import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
   GlobalPreferences,
   type LanguageCode
@@ -61,6 +62,7 @@ import { Logo } from "./Logo";
 import { FxCenter } from "./FxCenter";
 import { PremiumCharts } from "./PremiumCharts";
 import { NotesHub } from "./NotesHub";
+import { SupplierDirectory } from "./SupplierDirectory";
 import {
   DocumentsHub,
   OnlineCommerceHub
@@ -250,8 +252,8 @@ const copy: Record<
       online: "Tienda online",
       inventory: "Almacén",
       charts: "Gráficos",
-      purchases: "Reposição",
-      suppliers: "Abastecedores",
+      purchases: "Reposición",
+      suppliers: "Proveedores",
       activities: "Actividad",
       documents: "Comprobantes",
       notes: "Agenda",
@@ -304,8 +306,8 @@ const copy: Record<
     estimatedCost: "Costo estimado",
     receivePurchase: "Recibir reposición",
     purchaseApplied: "Reposición aplicada al inventario.",
-    suppliersTitle: "Abastecedores",
-    suppliersSubtitle: "Compará quién abastece tu negocio, cuánto stock depende de cada uno y qué margen generan sus productos.",
+    suppliersTitle: "Proveedores",
+    suppliersSubtitle: "Administrá tus proveedores, contactos y condiciones, y compará cuánto stock depende de cada uno."
     products: "Productos",
     inventoryValue: "Valor de inventario",
     averageMargin: "Margen promedio",
@@ -810,11 +812,11 @@ const workflowHelp: Record<
       ]
     },
     suppliers: {
-      title: "Qué muestra Abastecedores",
+      title: "Qué gestionás en Proveedores",
       steps: [
+        "Datos de contacto, empresa, teléfono, correo y dirección",
         "Productos y unidades asociadas a cada proveedor",
-        "Capital inmovilizado por abastecedor",
-        "Margen promedio para comparar conveniencia"
+        "Capital inmovilizado y margen promedio por proveedor"
       ]
     }
   },
@@ -1341,6 +1343,26 @@ export function BusinessWorkspace({
     );
   }
 
+  function updateBarcode(id: string, barcode: string) {
+    setProducts((current) =>
+      current.map((product) =>
+        product.id === id ? { ...product, barcode } : product
+      )
+    );
+    setNotice(
+      language === "es"
+        ? "Código de barras asignado."
+        : language === "pt"
+          ? "Código de barras atribuído."
+          : language === "fr"
+            ? "Code-barres attribué."
+            : language === "de"
+              ? "Barcode zugewiesen."
+              : "Barcode assigned."
+    );
+    window.setTimeout(() => setNotice(""), 1800);
+  }
+
   function integrateScannedProduct(scanned: Product) {
     setProducts((current) => {
       const exists = current.some(
@@ -1587,6 +1609,7 @@ export function BusinessWorkspace({
                 products={products}
                 money={money}
                 updateStock={updateStock}
+                updateBarcode={updateBarcode}
                 integrateScannedProduct={integrateScannedProduct}
               />
             )}
@@ -1617,8 +1640,7 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "suppliers" && (
-              <SuppliersModule
-                labels={labels}
+              <SupplierDirectory
                 language={language}
                 stats={supplierStats}
                 money={money}
@@ -2255,6 +2277,26 @@ function PosModule({
           </button>
         </aside>
       </div>
+
+      {cartLines.length > 0 && (
+        <div className="fixed inset-x-3 bottom-[calc(82px+env(safe-area-inset-bottom,0px))] z-[70] rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/96 p-2.5 shadow-[0_18px_60px_rgba(0,0,0,.28)] backdrop-blur-lg lg:hidden">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1 px-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+                {labels.total}
+              </p>
+              <p className="truncate text-base font-semibold">{money(cartTotal)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={completeSale}
+              className="min-h-12 shrink-0 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(143,0,0,.24)]"
+            >
+              {labels.completeSale}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -2265,6 +2307,7 @@ function InventoryModule({
   products,
   money,
   updateStock,
+  updateBarcode,
   integrateScannedProduct
 }: {
   labels: (typeof copy)[LanguageCode];
@@ -2272,6 +2315,7 @@ function InventoryModule({
   products: Product[];
   money: (value: number) => string;
   updateStock: (id: string, stock: number) => void;
+  updateBarcode: (id: string, barcode: string) => void;
   integrateScannedProduct: (product: Product) => void;
 }) {
   return (
@@ -2363,6 +2407,13 @@ function InventoryModule({
           </table>
         </div>
       </section>
+
+      <BarcodeLabelStudio
+        language={language}
+        products={products}
+        money={money}
+        onAssignBarcode={updateBarcode}
+      />
 
       <BarcodeScanner
         onProduct={integrateScannedProduct}
