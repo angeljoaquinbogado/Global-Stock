@@ -7,6 +7,11 @@ import {
   type IntelligenceHistoryMessage,
   type IntelligenceRuntimeContext
 } from "@/lib/ai-provider";
+import {
+  authorizeApiRequest,
+  isApiAuthAvailable,
+  isApiAuthConfigured
+} from "@/lib/server-auth";
 import type { BusinessSnapshot } from "@/lib/types";
 
 type IntelligenceRequest = {
@@ -20,9 +25,14 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const providerConfigured = isIntelligenceConfigured();
+  const authConfigured = isApiAuthConfigured();
+
   return NextResponse.json(
     {
-      configured: isIntelligenceConfigured()
+      configured: providerConfigured && isApiAuthAvailable(),
+      providerConfigured,
+      authConfigured
     },
     {
       headers: {
@@ -33,6 +43,33 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  if (!isIntelligenceConfigured()) {
+    return NextResponse.json(
+      {
+        code: "AI_NOT_CONNECTED",
+        configured: false
+      },
+      {
+        status: 503,
+        headers: { "Cache-Control": "no-store" }
+      }
+    );
+  }
+
+  const authorization = await authorizeApiRequest(request);
+  if (!authorization.ok) {
+    return NextResponse.json(
+      {
+        code: authorization.code,
+        configured: false
+      },
+      {
+        status: authorization.status,
+        headers: { "Cache-Control": "no-store" }
+      }
+    );
+  }
+
   let body: IntelligenceRequest;
 
   try {

@@ -21,6 +21,7 @@ import {
 import { createPortal } from "react-dom";
 
 import { calculateMetrics } from "@/lib/analytics";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 
 type ApexIntelligenceProps = {
@@ -159,6 +160,15 @@ const uiCopy: Record<
     providerError:
       "Die KI ist verbunden, aber der Anbieter hat nicht korrekt geantwortet. Versuch es in ein paar Sekunden erneut."
   }
+};
+
+
+const authErrorCopy: Record<UiLanguage, string> = {
+  es: "Global Intelligence necesita una sesión segura válida. Cerrá sesión y volvé a ingresar; si continúa, falta completar la autenticación de producción.",
+  en: "Global Intelligence needs a valid secure session. Sign out and sign in again; if it continues, production authentication still needs to be completed.",
+  pt: "O Global Intelligence precisa de uma sessão segura válida. Saia e entre novamente; se continuar, ainda falta concluir a autenticação de produção.",
+  fr: "Global Intelligence nécessite une session sécurisée valide. Déconnectez-vous puis reconnectez-vous ; si le problème persiste, l’authentification de production doit encore être finalisée.",
+  de: "Global Intelligence benötigt eine gültige sichere Sitzung. Melde dich ab und wieder an; wenn das Problem bleibt, muss die Produktionsauthentifizierung noch abgeschlossen werden."
 };
 
 function languageFromLocale(locale: string): UiLanguage {
@@ -321,9 +331,19 @@ export function ApexIntelligence({
         }
       }
 
+      const supabase = getSupabaseBrowserClient();
+      const accessToken = supabase
+        ? (await supabase.auth.getSession()).data.session?.access_token
+        : null;
+
       const response = await fetch("/api/intelligence", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : {})
+        },
         cache: "no-store",
         body: JSON.stringify({
           message: text,
@@ -358,6 +378,15 @@ export function ApexIntelligence({
       if (!content && payload.code === "AI_NOT_CONNECTED") {
         setStatus("offline");
         content = copy.disconnected;
+      }
+
+      if (
+        !content &&
+        (payload.code === "AUTH_REQUIRED" ||
+          payload.code === "AUTH_NOT_CONFIGURED")
+      ) {
+        setStatus("offline");
+        content = authErrorCopy[language];
       }
 
       if (!content && payload.code === "AI_PROVIDER_ERROR") {

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { isIntelligenceConfigured } from "@/lib/ai-provider";
+import { isApiAuthAvailable, isApiAuthConfigured } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,19 +10,20 @@ function filled(value: string | undefined) {
 }
 
 export async function GET() {
-  const supabase =
-    filled(process.env.NEXT_PUBLIC_SUPABASE_URL) &&
-    filled(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+  const supabase = isApiAuthConfigured();
 
   const connector =
     (process.env.GLOBAL_STOCK_CONNECTOR_SECRET?.trim().length ?? 0) >= 32;
+
+  const aiProvider = isIntelligenceConfigured();
 
   return NextResponse.json(
     {
       ok: true,
       app: "Global Stock",
       checks: {
-        ai: isIntelligenceConfigured(),
+        ai: aiProvider && isApiAuthAvailable(),
+        aiProvider,
         auth: supabase,
         connector,
         providers: {
