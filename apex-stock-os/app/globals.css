@@ -405,3 +405,10 @@ textarea:focus-visible {
   .gs-orbit-plane-b { transform: rotate(57deg) scaleY(.62) !important; }
   .gs-orbit-plane-c { transform: rotate(108deg) scaleY(.48) !important; }
 }
+
+.gs-auth-scene-rest .gs-space-layer,
+.gs-auth-scene-rest .gs-earth-wrap,
+.gs-auth-scene-rest .gs-orbit-plane,
+.gs-auth-scene-rest .gs-auth-horizon {
+  animation-play-state: paused !important;
+}
