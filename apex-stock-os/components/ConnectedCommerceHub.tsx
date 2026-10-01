@@ -111,7 +111,7 @@ const copy = {
     ownershipBody:
       "Generá un token desde el panel administrador de la tienda. Global Stock lo valida en el servidor y nunca lo guarda en localStorage.",
     doradoStep:
-      "En Dorado: Administrador → Global Stock → Crear token de conexión.",
+      "Abrí la autorización desde este botón. Dorado no muestra Global Stock en su panel normal: solo abre este permiso cuando la conexión se inicia desde Global Stock.",
     token: "Token de conexión",
     verify: "Verificar y conectar",
     verifying: "Verificando…",
@@ -125,7 +125,7 @@ const copy = {
     missingCost:
       "Algunos productos todavía no tienen costo real cargado. Global Stock no inventará ese dato.",
     disconnect: "Desconectar",
-    openAdmin: "Abrir administrador",
+    openAdmin: "Autorizar en Dorado",
     openStore: "Abrir tienda",
     invalidUrl: "Ingresá una URL válida.",
     inspectError: "No pude leer la tienda desde esa URL.",
@@ -169,7 +169,7 @@ const copy = {
     ownershipBody:
       "Create a token from the store admin. Global Stock validates it server-side and never stores it in localStorage.",
     doradoStep:
-      "In Dorado: Admin → Global Stock → Create connection token.",
+      "Open authorization from this button. Dorado keeps Global Stock out of normal admin navigation and exposes the permission only for this connection flow.",
     token: "Connection token",
     verify: "Verify and connect",
     verifying: "Verifying…",
@@ -183,7 +183,7 @@ const copy = {
     missingCost:
       "Some products still have no recorded real cost. Global Stock will not invent it.",
     disconnect: "Disconnect",
-    openAdmin: "Open admin",
+    openAdmin: "Authorize in Dorado",
     openStore: "Open store",
     invalidUrl: "Enter a valid URL.",
     inspectError: "Could not inspect that store URL.",
@@ -226,7 +226,7 @@ const copy = {
     ownershipBody:
       "Crie um token no painel administrador da loja. O Global Stock valida no servidor e não guarda o token no localStorage.",
     doradoStep:
-      "No Dorado: Administrador → Global Stock → Criar token de conexão.",
+      "Abra a autorização por este botão. O Dorado não exibe Global Stock na navegação normal do administrador; o acesso aparece apenas neste fluxo.",
     token: "Token de conexão",
     verify: "Verificar e conectar",
     verifying: "Verificando…",
@@ -240,7 +240,7 @@ const copy = {
     missingCost:
       "Alguns produtos ainda não têm custo real registrado. O Global Stock não inventará esse dado.",
     disconnect: "Desconectar",
-    openAdmin: "Abrir administrador",
+    openAdmin: "Autorizar no Dorado",
     openStore: "Abrir loja",
     invalidUrl: "Digite uma URL válida.",
     inspectError: "Não foi possível ler a loja dessa URL.",
@@ -283,7 +283,7 @@ const copy = {
     ownershipBody:
       "Créez un jeton depuis l’administration de la boutique. Global Stock le valide côté serveur sans le stocker dans localStorage.",
     doradoStep:
-      "Dans Dorado : Administration → Global Stock → Créer un jeton.",
+      "Ouvrez l’autorisation avec ce bouton. Dorado masque Global Stock dans l’administration normale et ne l’affiche que pour ce flux de connexion.",
     token: "Jeton de connexion",
     verify: "Vérifier et connecter",
     verifying: "Vérification…",
@@ -297,7 +297,7 @@ const copy = {
     missingCost:
       "Certains produits n’ont pas encore de coût réel enregistré. Global Stock ne l’inventera pas.",
     disconnect: "Déconnecter",
-    openAdmin: "Ouvrir l’administration",
+    openAdmin: "Autoriser dans Dorado",
     openStore: "Ouvrir la boutique",
     invalidUrl: "Saisissez une URL valide.",
     inspectError: "Impossible de lire cette boutique.",
@@ -340,7 +340,7 @@ const copy = {
     ownershipBody:
       "Erstelle im Shop-Admin ein Token. Global Stock prüft es serverseitig und speichert es nicht im localStorage.",
     doradoStep:
-      "In Dorado: Admin → Global Stock → Verbindungstoken erstellen.",
+      "Öffne die Freigabe über diese Schaltfläche. Dorado blendet Global Stock in der normalen Administration aus und zeigt die Freigabe nur in diesem Verbindungsablauf.",
     token: "Verbindungstoken",
     verify: "Prüfen und verbinden",
     verifying: "Prüfung…",
@@ -354,7 +354,7 @@ const copy = {
     missingCost:
       "Einige Produkte haben noch keine echten Kosten. Global Stock erfindet diesen Wert nicht.",
     disconnect: "Trennen",
-    openAdmin: "Admin öffnen",
+    openAdmin: "In Dorado autorisieren",
     openStore: "Shop öffnen",
     invalidUrl: "Gib eine gültige URL ein.",
     inspectError: "Der Shop konnte nicht gelesen werden.",
@@ -459,7 +459,11 @@ export function ConnectedCommerceHub({
   const adminUrl = useMemo(() => {
     const value = store?.url || preview?.url || url;
     try {
-      return new URL("/admin.html", normalizeUrl(value)).toString();
+      const admin = new URL("/admin.html", normalizeUrl(value));
+      admin.searchParams.set("source", "global-stock");
+      admin.searchParams.set("intent", "authorize");
+      admin.hash = "global-stock-panel";
+      return admin.toString();
     } catch {
       return "";
     }
