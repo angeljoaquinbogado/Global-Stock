@@ -49,11 +49,11 @@ type Props = {
 const copy = {
   es: {
     eyebrow: "Directorio de abastecimiento",
-    title: "Abastecedores",
+    title: "Proveedores",
     subtitle:
-      "Guardá quién te abastece, cómo contactarlo y qué parte del stock depende de cada uno.",
-    newSupplier: "Nuevo abastecedor",
-    editSupplier: "Editar abastecedor",
+      "Guardá quién te provee mercadería, cómo contactarlo y qué parte del stock depende de cada proveedor."
+    newSupplier: "Nuevo proveedor",
+    editSupplier: "Editar proveedor",
     name: "Empresa / nombre",
     contactName: "Persona de contacto",
     phone: "Teléfono",
@@ -62,7 +62,7 @@ const copy = {
     address: "Dirección",
     taxId: "CUIT / identificación fiscal",
     notes: "Notas",
-    save: "Guardar abastecedor",
+    save: "Guardar proveedor",
     cancel: "Cancelar",
     delete: "Eliminar",
     products: "Productos",
@@ -72,7 +72,7 @@ const copy = {
     detected: "Detectado desde productos",
     complete: "Completar contacto",
     noContact: "Sin datos de contacto cargados.",
-    required: "Ingresá el nombre del abastecedor.",
+    required: "Ingresá el nombre del proveedor.",
     close: "Cerrar"
   },
   en: {
