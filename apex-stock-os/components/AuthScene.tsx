@@ -173,7 +173,8 @@ export function AuthScene() {
           });
         }, 180);
 
-        let last = performance.now();
+        const startedAt = performance.now();
+        let last = startedAt;
         const onPreRender = () => {
           if (cancelled || viewer.isDestroyed()) return;
 
@@ -181,7 +182,7 @@ export function AuthScene() {
           const deltaSeconds = Math.min((now - last) / 1000, 0.05);
           last = now;
 
-          if (now > 5200) {
+          if (now - startedAt > 5200) {
             viewer.camera.rotate(
               Cesium.Cartesian3.UNIT_Z,
               -deltaSeconds * 0.0024
