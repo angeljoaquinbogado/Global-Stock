@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 
-import { isIntelligenceConfigured } from "@/lib/ai-provider";
+import {
+  getIntelligenceProvider,
+  isIntelligenceConfigured
+} from "@/lib/ai-provider";
 import { isApiAuthAvailable, isApiAuthConfigured } from "@/lib/server-auth";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +19,7 @@ export async function GET() {
     (process.env.GLOBAL_STOCK_CONNECTOR_SECRET?.trim().length ?? 0) >= 32;
 
   const aiProvider = isIntelligenceConfigured();
+  const aiProviderName = getIntelligenceProvider();
 
   return NextResponse.json(
     {
@@ -24,6 +28,7 @@ export async function GET() {
       checks: {
         ai: aiProvider && isApiAuthAvailable(),
         aiProvider,
+        aiProviderName,
         auth: supabase,
         connector,
         providers: {
