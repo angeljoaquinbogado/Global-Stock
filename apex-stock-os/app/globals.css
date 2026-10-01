@@ -95,9 +95,13 @@ button:disabled {
   cursor: not-allowed;
 }
 
-button:not(:disabled):active {
-  opacity: 0.78;
-  transition: opacity 90ms ease-out;
+button:not(:disabled):active,
+[role="button"]:active {
+  opacity: 0.86;
+  transform: scale(0.985);
+  transition:
+    transform 120ms ease-out,
+    opacity 120ms ease-out;
 }
 
 button:focus-visible,
