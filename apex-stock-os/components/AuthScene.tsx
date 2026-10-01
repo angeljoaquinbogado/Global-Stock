@@ -1,9 +1,12 @@
 "use client";
 
-export function AuthScene() {
+export function AuthScene({ active = true }: { active?: boolean }) {
   return (
     <div
-      className="gs-auth-scene absolute inset-0 overflow-hidden bg-black"
+      className={
+        "gs-auth-scene absolute inset-0 overflow-hidden bg-black " +
+        (active ? "gs-auth-scene-active" : "gs-auth-scene-rest")
+      }
       aria-hidden="true"
     >
       <div className="gs-space-layer gs-space-layer-a absolute -inset-[8%]" />
