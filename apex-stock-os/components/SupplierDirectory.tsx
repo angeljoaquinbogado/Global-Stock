@@ -23,7 +23,7 @@ type SupplierStat = {
   products: number;
   units: number;
   value: number;
-  averageMargin: number;
+  averageMargin: number | null;
 };
 
 type SupplierProfile = {
@@ -399,7 +399,14 @@ export function SupplierDirectory({ language, stats, money }: Props) {
                 <Metric label={t.products} value={String(stat.products)} />
                 <Metric label={t.units} value={String(stat.units)} />
                 <Metric label={t.inventoryValue} value={money(stat.value)} />
-                <Metric label={t.margin} value={`${stat.averageMargin.toFixed(1)}%`} />
+                <Metric
+                  label={t.margin}
+                  value={
+                    stat.averageMargin === null
+                      ? "—"
+                      : `${stat.averageMargin.toFixed(1)}%`
+                  }
+                />
               </div>
             )}
 
