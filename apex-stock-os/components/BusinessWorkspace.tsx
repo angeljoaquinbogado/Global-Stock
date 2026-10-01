@@ -1482,7 +1482,7 @@ export function BusinessWorkspace({
       </aside>
 
       <section className="min-w-0 pb-28 lg:pb-0">
-        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-2xl">
+        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-lg">
           <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <Logo withWordmark />
@@ -1688,7 +1688,7 @@ export function BusinessWorkspace({
         </AnimatePresence>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-2xl lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg lg:hidden">
         <div className="grid grid-cols-5 items-end gap-1">
           <MobileNavButton
             active={activeModule === "overview"}
