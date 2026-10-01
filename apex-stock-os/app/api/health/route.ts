@@ -34,7 +34,7 @@ export async function GET() {
           mercadolibre:
             filled(process.env.MERCADOLIBRE_CLIENT_ID) &&
             filled(process.env.MERCADOLIBRE_CLIENT_SECRET),
-          woocommerce: true,
+          woocommerce: false,
           custom: true
         }
       },
