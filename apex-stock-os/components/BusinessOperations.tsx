@@ -34,11 +34,32 @@ type Connector = {
   kind: "marketplace" | "storefront" | "api";
 };
 
+type StorePreview = {
+  reachable: boolean;
+  url: string;
+  domain: string;
+  title: string;
+  description: string | null;
+  platform: string;
+  image: string | null;
+  icon: string | null;
+  currency: string | null;
+  productCount: number | null;
+  sampleProducts: Array<{
+    name: string;
+    price: string | null;
+    currency: string | null;
+  }>;
+  inspectedAt: string;
+  publicDataOnly: boolean;
+};
+
 type SavedConnection = {
   id: string;
   status: ConnectionState;
   storeUrl: string;
   updatedAt: string;
+  preview?: StorePreview;
 };
 
 type OnlineOrder = {
@@ -195,7 +216,7 @@ const copy: Record<
     delivered: "Entregado",
     connector: "Conector",
     notConnected: "Sin conectar",
-    configured: "Configuración preparada",
+    configured: "URL guardada",
     configure: "Configurar",
     disconnect: "Desconectar",
     storeUrl: "URL de la tienda",
@@ -242,7 +263,7 @@ const copy: Record<
     delivered: "Delivered",
     connector: "Connector",
     notConnected: "Not connected",
-    configured: "Configuration ready",
+    configured: "URL saved",
     configure: "Configure",
     disconnect: "Disconnect",
     storeUrl: "Store URL",
@@ -289,7 +310,7 @@ const copy: Record<
     delivered: "Entregue",
     connector: "Conector",
     notConnected: "Sem conexão",
-    configured: "Configuração pronta",
+    configured: "URL salva",
     configure: "Configurar",
     disconnect: "Desconectar",
     storeUrl: "URL da loja",
@@ -336,7 +357,7 @@ const copy: Record<
     delivered: "Livrée",
     connector: "Connecteur",
     notConnected: "Non connecté",
-    configured: "Configuration prête",
+    configured: "URL enregistrée",
     configure: "Configurer",
     disconnect: "Déconnecter",
     storeUrl: "URL de la boutique",
@@ -383,7 +404,7 @@ const copy: Record<
     delivered: "Geliefert",
     connector: "Connector",
     notConnected: "Nicht verbunden",
-    configured: "Konfiguration bereit",
+    configured: "URL gespeichert",
     configure: "Konfigurieren",
     disconnect: "Trennen",
     storeUrl: "Shop-URL",
@@ -418,6 +439,79 @@ const copy: Record<
   }
 };
 
+const onlineExtra = {
+  es: {
+    connected: "Tienda detectada",
+    inspecting: "Leyendo tienda…",
+    platform: "Plataforma",
+    publicProducts: "Productos públicos detectados",
+    publicData: "Datos públicos",
+    refresh: "Actualizar datos",
+    visit: "Abrir tienda",
+    unavailable: "No pude leer datos públicos de esta URL.",
+    privateHint:
+      "La URL permite detectar la tienda y su catálogo público. Pedidos, clientes y stock privado requieren autorizar la API u OAuth del canal.",
+    productsFound: "productos encontrados",
+    noPublicProducts: "Sin catálogo público detectable"
+  },
+  en: {
+    connected: "Store detected",
+    inspecting: "Reading store…",
+    platform: "Platform",
+    publicProducts: "Public products detected",
+    publicData: "Public data",
+    refresh: "Refresh data",
+    visit: "Open store",
+    unavailable: "I could not read public data from this URL.",
+    privateHint:
+      "The URL can detect the storefront and public catalog. Orders, customers and private inventory require API or OAuth authorization.",
+    productsFound: "products found",
+    noPublicProducts: "No detectable public catalog"
+  },
+  pt: {
+    connected: "Loja detectada",
+    inspecting: "Lendo loja…",
+    platform: "Plataforma",
+    publicProducts: "Produtos públicos detectados",
+    publicData: "Dados públicos",
+    refresh: "Atualizar dados",
+    visit: "Abrir loja",
+    unavailable: "Não foi possível ler dados públicos desta URL.",
+    privateHint:
+      "A URL permite detectar a loja e o catálogo público. Pedidos, clientes e estoque privado exigem autorização por API ou OAuth.",
+    productsFound: "produtos encontrados",
+    noPublicProducts: "Sem catálogo público detectável"
+  },
+  fr: {
+    connected: "Boutique détectée",
+    inspecting: "Lecture de la boutique…",
+    platform: "Plateforme",
+    publicProducts: "Produits publics détectés",
+    publicData: "Données publiques",
+    refresh: "Actualiser",
+    visit: "Ouvrir la boutique",
+    unavailable: "Impossible de lire les données publiques de cette URL.",
+    privateHint:
+      "L’URL permet de détecter la boutique et son catalogue public. Commandes, clients et stock privé nécessitent une autorisation API ou OAuth.",
+    productsFound: "produits trouvés",
+    noPublicProducts: "Aucun catalogue public détectable"
+  },
+  de: {
+    connected: "Shop erkannt",
+    inspecting: "Shop wird gelesen…",
+    platform: "Plattform",
+    publicProducts: "Öffentliche Produkte erkannt",
+    publicData: "Öffentliche Daten",
+    refresh: "Daten aktualisieren",
+    visit: "Shop öffnen",
+    unavailable: "Öffentliche Daten dieser URL konnten nicht gelesen werden.",
+    privateHint:
+      "Über die URL lassen sich Shop und öffentlicher Katalog erkennen. Bestellungen, Kunden und privater Bestand benötigen API- oder OAuth-Freigabe.",
+    productsFound: "Produkte gefunden",
+    noPublicProducts: "Kein öffentlicher Katalog erkennbar"
+  }
+} satisfies Record<LanguageCode, Record<string, string>>;
+
 export function OnlineCommerceHub({
   language,
   currency,
@@ -428,12 +522,15 @@ export function OnlineCommerceHub({
   locale: string;
 }) {
   const t = copy[language];
+  const x = onlineExtra[language];
   const [connections, setConnections] = useState<SavedConnection[]>([]);
   const [orders, setOrders] = useState<OnlineOrder[]>([]);
   const [onlineStorageReady, setOnlineStorageReady] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [storeUrl, setStoreUrl] = useState("");
   const [connectionError, setConnectionError] = useState("");
+  const [inspectingId, setInspectingId] = useState<string | null>(null);
+  const [previewErrors, setPreviewErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     try {
@@ -445,7 +542,14 @@ export function OnlineCommerceHub({
       );
       if (savedConnections) {
         const parsed = JSON.parse(savedConnections) as SavedConnection[];
-        if (Array.isArray(parsed)) setConnections(parsed);
+        if (Array.isArray(parsed)) {
+          setConnections(parsed);
+          parsed
+            .filter((connection) => connection.storeUrl && !connection.preview)
+            .forEach((connection) => {
+              void inspectStore(connection.id, connection.storeUrl);
+            });
+        }
       }
       if (savedOrders) {
         const parsed = JSON.parse(savedOrders) as OnlineOrder[];
@@ -481,6 +585,50 @@ export function OnlineCommerceHub({
     );
   }, [orders, onlineStorageReady]);
 
+  async function inspectStore(id: string, url: string) {
+    setInspectingId(id);
+    setPreviewErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    try {
+      const response = await fetch(
+        `/api/store-preview?url=${encodeURIComponent(url)}&t=${Date.now()}`,
+        { cache: "no-store" }
+      );
+      const payload = (await response.json()) as
+        | StorePreview
+        | { error?: string };
+
+      if (!response.ok || !("reachable" in payload)) {
+        throw new Error("STORE_PREVIEW_FAILED");
+      }
+
+      setConnections((current) =>
+        current.map((connection) =>
+          connection.id === id
+            ? {
+                ...connection,
+                status: "configured",
+                storeUrl: payload.url || connection.storeUrl,
+                updatedAt: new Date().toISOString(),
+                preview: payload
+              }
+            : connection
+        )
+      );
+    } catch {
+      setPreviewErrors((current) => ({
+        ...current,
+        [id]: x.unavailable
+      }));
+    } finally {
+      setInspectingId((current) => (current === id ? null : current));
+    }
+  }
+
   function saveConnection(id: string) {
     let normalized = storeUrl.trim();
     if (!normalized) {
@@ -504,6 +652,7 @@ export function OnlineCommerceHub({
     }
 
     setConnections((current) => {
+      const existing = current.find((item) => item.id === id);
       const next = current.filter((item) => item.id !== id);
       return [
         ...next,
@@ -511,19 +660,29 @@ export function OnlineCommerceHub({
           id,
           status: "configured",
           storeUrl: normalized,
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          preview:
+            existing?.storeUrl === normalized
+              ? existing.preview
+              : undefined
         }
       ];
     });
     setConnectionError("");
     setEditing(null);
     setStoreUrl("");
+    void inspectStore(id, normalized);
   }
 
   function disconnect(id: string) {
     setConnections((current) =>
       current.filter((item) => item.id !== id)
     );
+    setPreviewErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
   }
 
   function addSampleOrder() {
@@ -615,7 +774,13 @@ export function OnlineCommerceHub({
                         : "bg-[var(--apex-bg)] text-[var(--apex-muted)]")
                     }
                   >
-                    {saved ? t.configured : t.notConnected}
+                    {saved?.preview?.reachable
+                      ? x.connected
+                      : inspectingId === connector.id
+                        ? x.inspecting
+                        : saved
+                          ? t.configured
+                          : t.notConnected}
                   </span>
                 </div>
                 <h3 className="mt-4 text-sm font-semibold">
@@ -626,9 +791,114 @@ export function OnlineCommerceHub({
                 </p>
 
                 {saved?.storeUrl && (
-                  <p className="mt-3 truncate text-[10px] text-[var(--apex-muted)]">
-                    {saved.storeUrl}
-                  </p>
+                  <div className="mt-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      {saved.preview?.icon ? (
+                        <img
+                          src={saved.preview.icon}
+                          alt=""
+                          className="h-8 w-8 shrink-0 rounded-lg bg-white object-contain p-1"
+                          loading="lazy"
+                          referrerPolicy="no-referrer"
+                        />
+                      ) : (
+                        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#8F0000]/10 text-[#8F0000]">
+                          <Globe2 size={14} />
+                        </span>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold">
+                          {saved.preview?.title ?? saved.storeUrl}
+                        </p>
+                        <p className="truncate text-[9px] text-[var(--apex-muted)]">
+                          {saved.preview?.domain ?? saved.storeUrl}
+                        </p>
+                      </div>
+                    </div>
+
+                    {saved.preview && (
+                      <>
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                          <div className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-2.5">
+                            <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+                              {x.platform}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold">
+                              {saved.preview.platform}
+                            </p>
+                          </div>
+                          <div className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-2.5">
+                            <p className="text-[8px] font-bold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+                              {x.publicProducts}
+                            </p>
+                            <p className="mt-1 text-xs font-semibold">
+                              {saved.preview.productCount === null
+                                ? x.noPublicProducts
+                                : `${saved.preview.productCount} ${x.productsFound}`}
+                            </p>
+                          </div>
+                        </div>
+
+                        {saved.preview.description && (
+                          <p className="mt-3 line-clamp-3 text-[10px] leading-4 text-[var(--apex-muted)]">
+                            {saved.preview.description}
+                          </p>
+                        )}
+
+                        {saved.preview.sampleProducts?.length > 0 && (
+                          <div className="mt-3 space-y-1.5">
+                            {saved.preview.sampleProducts.slice(0, 3).map((product, index) => (
+                              <div
+                                key={`${product.name}-${index}`}
+                                className="flex items-center justify-between gap-2 text-[10px]"
+                              >
+                                <span className="min-w-0 truncate">{product.name}</span>
+                                {product.price && (
+                                  <span className="shrink-0 font-semibold text-[var(--apex-muted)]">
+                                    {product.currency ? `${product.currency} ` : ""}
+                                    {product.price}
+                                  </span>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {previewErrors[connector.id] && (
+                      <p className="mt-2 text-[10px] font-semibold text-red-500">
+                        {previewErrors[connector.id]}
+                      </p>
+                    )}
+
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void inspectStore(connector.id, saved.storeUrl)}
+                        disabled={inspectingId === connector.id}
+                        className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-[10px] font-semibold disabled:opacity-50"
+                      >
+                        <RefreshCw
+                          size={12}
+                          className={inspectingId === connector.id ? "animate-spin" : ""}
+                        />
+                        {inspectingId === connector.id ? x.inspecting : x.refresh}
+                      </button>
+                      <a
+                        href={saved.storeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex min-h-10 items-center justify-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-[10px] font-semibold"
+                      >
+                        {x.visit}
+                      </a>
+                    </div>
+
+                    <p className="mt-3 text-[9px] leading-4 text-[var(--apex-muted)]">
+                      {x.privateHint}
+                    </p>
+                  </div>
                 )}
 
                 <div className="mt-4 flex gap-2">
