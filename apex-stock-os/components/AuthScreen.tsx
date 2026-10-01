@@ -41,7 +41,7 @@ type AuthScreenProps = {
 
 type Mode = "signin" | "signup";
 
-const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
+const spring = { type: "spring", bounce: 0, duration: 0.38 } as const;
 
 const copy: Record<
   LanguageCode,
@@ -564,22 +564,13 @@ export function AuthScreen({
                   className="text-center"
                 >
                   <motion.div
-                    initial={{
-                      opacity: 0,
-                      scale: 0.28,
-                      rotate: 38,
-                      filter: "blur(14px)"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      scale: 1,
-                      rotate: 0,
-                      filter: "blur(0px)"
-                    }}
+                    initial={{ opacity: 0, scale: 0.46, rotate: 26 }}
+                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
                     transition={{
-                      duration: 0.95,
-                      delay: 0.08,
-                      ease: [0.16, 1, 0.3, 1]
+                      type: "spring",
+                      bounce: 0,
+                      duration: 0.72,
+                      delay: 0.08
                     }}
                     className="mx-auto grid h-24 w-24 place-items-center rounded-[30px] border border-white/10 bg-black/35 shadow-[0_28px_100px_rgba(143,0,0,.42)] backdrop-blur-xl"
                   >
@@ -587,24 +578,15 @@ export function AuthScreen({
                   </motion.div>
 
                   <motion.div
-                    initial={{
-                      opacity: 0,
-                      letterSpacing: "0.34em",
-                      clipPath: "inset(0 50% 0 50%)",
-                      filter: "blur(10px)"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      letterSpacing: "-0.045em",
-                      clipPath: "inset(0 0% 0 0%)",
-                      filter: "blur(0px)"
-                    }}
+                    initial={{ opacity: 0, scaleX: 0.7, y: 8 }}
+                    animate={{ opacity: 1, scaleX: 1, y: 0 }}
                     transition={{
-                      duration: 1.2,
-                      delay: 0.2,
-                      ease: [0.16, 1, 0.3, 1]
+                      type: "spring",
+                      bounce: 0,
+                      duration: 0.78,
+                      delay: 0.18
                     }}
-                    className="mt-7 text-[clamp(2.8rem,7vw,6.4rem)] font-semibold leading-none"
+                    className="mt-7 origin-center text-[clamp(2.55rem,7vw,6.4rem)] font-semibold leading-none tracking-[-0.045em]"
                   >
                     GLOBAL STOCK
                   </motion.div>
@@ -637,15 +619,15 @@ export function AuthScreen({
             key="auth-ui"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.7 }}
-            className="relative z-20 flex h-[100dvh] items-start justify-center overflow-y-auto px-4 py-6 sm:items-center sm:px-6 lg:px-10"
+            transition={{ duration: 0.32 }}
+            className="absolute inset-0 z-20 flex items-start justify-center overflow-y-auto overscroll-contain px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(20px,env(safe-area-inset-top))] sm:px-6 lg:px-10"
           >
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
               initial={{ opacity: 0, y: 28, scale: 0.985 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={spring}
-              className={`relative w-full max-w-[560px] overflow-visible rounded-[34px] border p-5 backdrop-blur-[26px] sm:p-7 ${surfaceClass}`}
+              className={`relative my-auto w-full max-w-[560px] overflow-visible rounded-[30px] border p-5 backdrop-blur-[14px] sm:rounded-[34px] sm:p-7 sm:backdrop-blur-[22px] ${surfaceClass}`}
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <Logo withWordmark />
@@ -653,7 +635,7 @@ export function AuthScreen({
                   type="button"
                   onClick={onToggleTheme}
                   className={
-                    "grid h-10 w-10 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
+                    "grid h-11 w-11 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
                     (dark
                       ? "border-white/12 bg-white/[0.07] text-white hover:bg-white/[0.12]"
                       : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
@@ -908,8 +890,7 @@ export function AuthScreen({
 
                     <motion.button
                       type="submit"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.985 }}
+                      whileTap={{ scale: 0.98 }}
                       transition={spring}
                       disabled={pending}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition hover:bg-[#a40000] disabled:cursor-not-allowed disabled:opacity-60"
