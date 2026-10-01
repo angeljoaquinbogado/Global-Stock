@@ -137,6 +137,11 @@ Write-Host "Comprobando ESLint..." -ForegroundColor Cyan
 if ($LASTEXITCODE -ne 0) { throw "Lint fallo." }
 
 Write-Host ""
+Write-Host "Auditando controles de interfaz..." -ForegroundColor Cyan
+& npm.cmd run ui:audit
+if ($LASTEXITCODE -ne 0) { throw "UI audit fallo." }
+
+Write-Host ""
 Write-Host "Compilando produccion..." -ForegroundColor Cyan
 & npm.cmd run build
 if ($LASTEXITCODE -ne 0) { throw "Build fallo." }
