@@ -308,6 +308,7 @@ export function ApexIntelligence({
         ["freeNotes", "global-stock-free-notes-v1"],
         ["onlineOrders", "global-stock-online-orders-v1"],
         ["onlineConnections", "global-stock-online-connections-v1"],
+        ["suppliers", "global-stock-suppliers-v1"],
         ["documents", "global-stock-documents-v1"]
       ] as const) {
         try {
