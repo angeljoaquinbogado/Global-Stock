@@ -397,10 +397,13 @@ export function AuthScreen({
   const [brandVisible, setBrandVisible] = useState(false);
 
   useEffect(() => {
-    const brandTimer = window.setTimeout(() => setBrandVisible(true), 1050);
+    const brandTimer = window.setTimeout(
+      () => setBrandVisible(true),
+      2350
+    );
     const completeTimer = window.setTimeout(
       () => setIntroComplete(true),
-      5200
+      6200
     );
 
     return () => {
@@ -607,7 +610,7 @@ export function AuthScreen({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7 }}
-            className="relative z-20 flex min-h-screen items-center justify-center px-4 py-6 sm:px-6 lg:px-10"
+            className="relative z-20 flex h-[100dvh] items-start justify-center overflow-y-auto px-4 py-6 sm:items-center sm:px-6 lg:px-10"
           >
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
