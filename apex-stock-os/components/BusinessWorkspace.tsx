@@ -904,6 +904,32 @@ export function BusinessWorkspace({
   const [noteDraft, setNoteDraft] = useState("");
 
   useEffect(() => {
+    if (!moreOpen && !scannerOpen) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+
+      if (scannerOpen) {
+        scannerRef.current?.stop();
+        setScannerOpen(false);
+        return;
+      }
+
+      setMoreOpen(false);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [moreOpen, scannerOpen]);
+
+  useEffect(() => {
     try {
       const savedProducts = localStorage.getItem("global-stock-demo-products-v2");
       const savedTrend = localStorage.getItem("global-stock-trend-v1");
@@ -1405,7 +1431,7 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main className="min-h-screen bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+    <main className="min-h-screen overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
@@ -1418,7 +1444,7 @@ export function BusinessWorkspace({
                 type="button"
                 onClick={() => setActiveModule(id)}
                 className={
-                  "flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition " +
+                  "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
                   (active
                     ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
                     : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
@@ -1486,7 +1512,7 @@ export function BusinessWorkspace({
               <button
                 type="button"
                 onClick={onToggleTheme}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
                 aria-label={labels.theme}
               >
                 {dark ? <Sun size={16} /> : <Moon size={16} />}
@@ -1494,7 +1520,7 @@ export function BusinessWorkspace({
               <button
                 type="button"
                 onClick={() => setMoreOpen(true)}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] lg:hidden"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] lg:hidden"
                 aria-label={labels.more}
               >
                 <Menu size={17} />
@@ -1503,13 +1529,13 @@ export function BusinessWorkspace({
           </div>
         </header>
 
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence initial={false}>
           <motion.div
             key={activeModule + language}
-            initial={{ opacity: 0, y: 8 }}
+            initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.18 }}
+            exit={{ opacity: 0, y: -4 }}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
             className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7"
           >
             {activeModule === "overview" && (
@@ -1710,7 +1736,7 @@ export function BusinessWorkspace({
       <AnimatePresence>
         {moreOpen && (
           <motion.div
-            className="fixed inset-0 z-[100] flex items-end bg-black/55 backdrop-blur-sm lg:hidden"
+            className="fixed inset-0 z-[100] flex items-end bg-black/55 lg:hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -1719,9 +1745,10 @@ export function BusinessWorkspace({
             }}
           >
             <motion.div
-              initial={{ y: 40, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: 30, opacity: 0 }}
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", bounce: 0, duration: 0.34 }}
               className="apex-scrollbar max-h-[88dvh] w-full overflow-y-auto rounded-t-[30px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))]"
             >
               <div className="mb-4 flex items-center justify-between">
@@ -1729,7 +1756,7 @@ export function BusinessWorkspace({
                 <button
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)]"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)]"
                   aria-label={labels.close}
                 >
                   <X size={16} />
@@ -1761,7 +1788,7 @@ export function BusinessWorkspace({
                         setActiveModule(id);
                         setMoreOpen(false);
                       }}
-                      className="flex items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4 text-left text-sm font-semibold"
+                      className="flex min-h-14 items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4 text-left text-sm font-semibold"
                     >
                       <Icon size={18} className="text-[#8F0000]" />
                       {labels.nav[id]}
@@ -2874,8 +2901,9 @@ function MobileNavButton({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={
-        "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold " +
+        "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold transition-colors " +
         (active
           ? "bg-[#8F0000]/12 text-[#8F0000]"
           : "text-[var(--apex-muted)]")
