@@ -60,7 +60,9 @@ export default function PrivacyPage() {
         <p>
           Cuando Global Intelligence está habilitada, la consulta del usuario y
           el contexto necesario para responder pueden enviarse al proveedor de
-          IA configurado por la plataforma. Ese contexto puede incluir, cuando
+          IA configurado por la plataforma. La configuración prevista para el
+          lanzamiento inicial utiliza la API de OpenAI mediante una clave
+          almacenada exclusivamente del lado del servidor. Ese contexto puede incluir, cuando
           sea pertinente, inventario, ventas, actividad, notas, pedidos online y
           métricas del negocio. Global Stock procura enviar únicamente la
           información necesaria para la función solicitada.
