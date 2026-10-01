@@ -264,10 +264,18 @@ export const BarcodeScanner = forwardRef<
   ref
 ) {
   const copy = scannerCopy[language];
+  const locale = {
+    es: "es-AR",
+    en: "en-US",
+    pt: "pt-BR",
+    fr: "fr-FR",
+    de: "de-DE"
+  }[language];
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const frameRef = useRef<number | null>(null);
+  const lastNativeScanRef = useRef(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resolvedRef = useRef(false);
 
@@ -372,8 +380,8 @@ export const BarcodeScanner = forwardRef<
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
         facingMode: { ideal: "environment" },
-        width: { ideal: 1280 },
-        height: { ideal: 720 }
+        width: { ideal: 960 },
+        height: { ideal: 540 }
       },
       audio: false
     });
@@ -397,17 +405,23 @@ export const BarcodeScanner = forwardRef<
     setStatus("scanning");
     setMessage(copy.aim);
 
-    const tick = async () => {
-      if (!videoRef.current || !streamRef.current || resolvedRef.current) return;
+    const tick = async (timestamp: number) => {
+      if (!videoRef.current || !streamRef.current || resolvedRef.current) {
+        return;
+      }
 
-      try {
-        const codes = await detector.detect(videoRef.current);
-        if (codes[0]?.rawValue) {
-          await resolveBarcode(codes[0].rawValue);
-          return;
+      if (timestamp - lastNativeScanRef.current >= 90) {
+        lastNativeScanRef.current = timestamp;
+
+        try {
+          const codes = await detector.detect(videoRef.current);
+          if (codes[0]?.rawValue) {
+            await resolveBarcode(codes[0].rawValue);
+            return;
+          }
+        } catch {
+          // Retry on the next throttled scan frame.
         }
-      } catch {
-        // Retry on the next video frame.
       }
 
       frameRef.current = window.requestAnimationFrame(tick);
@@ -465,6 +479,8 @@ export const BarcodeScanner = forwardRef<
   }
 
   function stopCameraOnly() {
+    lastNativeScanRef.current = 0;
+
     if (frameRef.current !== null) {
       cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
@@ -630,7 +646,9 @@ export const BarcodeScanner = forwardRef<
               <input
                 value={manualCode}
                 onChange={(event) => setManualCode(event.target.value)}
-                inputMode="numeric"
+                inputMode="text"
+                autoCapitalize="none"
+                autoCorrect="off"
                 placeholder={copy.manualPlaceholder}
                 className="apex-input min-w-0 flex-1 px-3 py-2.5 text-sm"
               />
@@ -650,8 +668,8 @@ export const BarcodeScanner = forwardRef<
               {[
                 [copy.product, product.name],
                 [copy.category, product.category],
-                [copy.cost, product.cost.toLocaleString("es-AR")],
-                [copy.price, product.price.toLocaleString("es-AR")],
+                [copy.cost, product.cost.toLocaleString(locale)],
+                [copy.price, product.price.toLocaleString(locale)],
                 [copy.stock, String(product.stock)],
                 [copy.supplier, product.supplier]
               ].map(([label, value]) => (
