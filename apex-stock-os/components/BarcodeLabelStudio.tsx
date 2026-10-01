@@ -138,9 +138,16 @@ function normalizeCode(value: string) {
   return value.trim().replace(/\s+/g, "");
 }
 
+function isValidEan13(code: string) {
+  return (
+    /^\d{13}$/.test(code) &&
+    ean13Checksum(code.slice(0, 12)) === code.slice(12)
+  );
+}
+
 function renderBarcode(target: SVGSVGElement, code: string) {
   JsBarcode(target, code, {
-    format: /^\d{13}$/.test(code) ? "EAN13" : "CODE128",
+    format: isValidEan13(code) ? "EAN13" : "CODE128",
     displayValue: true,
     font: "-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif",
     fontSize: 15,
