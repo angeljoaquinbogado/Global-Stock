@@ -159,7 +159,7 @@ const ui: Record<
 };
 
 const currencies = Object.keys(currencyLabels);
-const spring = { type: "spring", stiffness: 320, damping: 30 } as const;
+const spring = { type: "spring", bounce: 0, duration: 0.34 } as const;
 
 export function GlobalPreferences({
   language,
@@ -177,10 +177,19 @@ export function GlobalPreferences({
 
   useEffect(() => {
     if (!open) return;
+
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(null);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
     return () => {
       document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onKeyDown);
     };
   }, [open]);
 
@@ -195,7 +204,7 @@ export function GlobalPreferences({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 p-0 backdrop-blur-sm sm:items-center sm:p-4"
+          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4 sm:backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -229,7 +238,7 @@ export function GlobalPreferences({
               <button
                 type="button"
                 onClick={() => setOpen(null)}
-                className="grid h-10 w-10 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
                 aria-label={labels.close}
               >
                 <X size={16} />
@@ -250,7 +259,7 @@ export function GlobalPreferences({
                           subtitle={item.code.toUpperCase()}
                           onClick={() => {
                             onLanguageChange(item.code);
-                            window.setTimeout(() => setOpen(null), 130);
+                            setOpen(null);
                           }}
                         />
                       );
@@ -267,7 +276,7 @@ export function GlobalPreferences({
                           subtitle={item.labels[language]}
                           onClick={() => {
                             onCurrencyChange(code);
-                            window.setTimeout(() => setOpen(null), 130);
+                            setOpen(null);
                           }}
                         />
                       );
@@ -378,7 +387,7 @@ function PreferenceButton({
       whileTap={{ scale: 0.975 }}
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex h-10 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition hover:-translate-y-px hover:shadow-md"
+      className="flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition-colors hover:bg-[var(--apex-bg)]"
     >
       <span className="text-[#8F0000]">{icon}</span>
       <span className="text-xs font-bold">{primary}</span>
