@@ -70,10 +70,16 @@ export default function LegalHubPage() {
             <div>
               <h2 className="text-sm font-semibold">Información del operador</h2>
               <p className="mt-2 text-sm leading-7 text-white/54">
-                “Global Stock” identifica actualmente el producto de software.
-                Antes de una comercialización pública definitiva, los datos
-                legales del operador, domicilio y canal formal de contacto deben
-                configurarse y publicarse en estas páginas.
+                “Global Stock” identifica actualmente el producto de software
+                creado y operado por <strong className="text-white">Angel Joaquin Bogado</strong>,
+                con base en la Provincia de Buenos Aires, Argentina. Global Stock
+                no constituye hoy una sociedad separada del operador. Soporte:{" "}
+                <a className="text-white" href="mailto:angeljoaquinbogado@gmail.com">
+                  angeljoaquinbogado@gmail.com
+                </a>. Contacto legal y de privacidad:{" "}
+                <a className="text-white" href="mailto:joaquinbogado555@gmail.com">
+                  joaquinbogado555@gmail.com
+                </a>.
               </p>
             </div>
           </div>
