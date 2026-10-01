@@ -104,6 +104,13 @@ export function ApexShell() {
     if (!ready) return;
 
     document.documentElement.classList.toggle("dark", dark);
+
+    document
+      .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+      .forEach((meta) => {
+        meta.content = dark ? "#000000" : "#F5F5F7";
+      });
+
     window.localStorage.setItem(
       "global-stock-theme",
       dark ? "dark" : "light"
