@@ -820,8 +820,6 @@ export function ConnectedCommerceHub({
         )}
       </section>
       <section>
-        <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">      </section>
-      <section>
         <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
           {t.eyebrow}
         </p>
