@@ -540,12 +540,6 @@ export function ApexIntelligence({
                 <button
                   type="button"
                   disabled={!input.trim() || pending}
-                  onPointerUp={(event) => {
-                    if (event.pointerType !== "touch") return;
-                    event.preventDefault();
-                    lastTouchSendRef.current = performance.now();
-                    void ask(input);
-                  }}
                   onClick={() => {
                     if (
                       performance.now() - lastTouchSendRef.current <
@@ -553,6 +547,12 @@ export function ApexIntelligence({
                     ) {
                       return;
                     }
+                    void ask(input);
+                  }}
+                  onPointerUp={(event) => {
+                    if (event.pointerType !== "touch") return;
+                    event.preventDefault();
+                    lastTouchSendRef.current = performance.now();
                     void ask(input);
                   }}
                   className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
