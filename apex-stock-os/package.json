@@ -9,13 +9,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "dev:lan": "next dev -H 0.0.0.0",
-    "start:lan": "next start -H 0.0.0.0",
-    "prepare:cesium": "node scripts/copy-cesium.mjs",
-    "predev": "npm run prepare:cesium",
-    "predev:lan": "npm run prepare:cesium",
-    "prebuild": "npm run prepare:cesium",
-    "prestart": "npm run prepare:cesium",
-    "prestart:lan": "npm run prepare:cesium"
+    "start:lan": "next start -H 0.0.0.0"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.45.4",
@@ -25,8 +19,7 @@
     "next": "16.3.8",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "recharts": "^2.12.7",
-    "cesium": "^1.132.0"
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
