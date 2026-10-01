@@ -87,6 +87,33 @@ export async function authorizeApiRequest(
       };
     }
 
+    const membership = createClient(url, anonKey, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    });
+
+    const { data: profile, error: profileError } = await membership
+      .from("global_stock_profiles")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (profileError || !profile?.user_id) {
+      return {
+        ok: false,
+        code: "AUTH_REQUIRED",
+        status: 401
+      };
+    }
+
     return {
       ok: true,
       userId: user.id,
