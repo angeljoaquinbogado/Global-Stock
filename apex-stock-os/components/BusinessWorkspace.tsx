@@ -58,6 +58,7 @@ import {
 } from "./GlobalPreferences";
 import { InstallAppButton } from "./InstallAppButton";
 import { Logo } from "./Logo";
+import { FxCenter } from "./FxCenter";
 import { PremiumCharts } from "./PremiumCharts";
 import { NotesHub } from "./NotesHub";
 import {
@@ -1684,14 +1685,7 @@ export function BusinessWorkspace({
                 onToggleTheme={onToggleTheme}
                 onSignOut={onSignOut}
                 saveBusinessName={saveBusinessName}
-                fxStatus={fxStatus}
-                fxUpdatedAt={fxUpdatedAt}
-                currencyRate={currencyRate}
                 locale={locale}
-                fxHistory={fxHistory}
-                fxMarket={fxMarket}
-                fxQuote={fxQuote}
-                setFxMarket={setFxMarket}
               />
             )}
           </motion.div>
@@ -2565,47 +2559,6 @@ function ActivitiesModule({
   );
 }
 
-const fxSettingsCopy: Record<
-  LanguageCode,
-  {
-    buy: string;
-    sell: string;
-    sourceTime: string;
-    conversion: string;
-  }
-> = {
-  es: {
-    buy: "Compra",
-    sell: "Venta",
-    sourceTime: "Hora informada por DolarHoy",
-    conversion: "Conversión aplicada"
-  },
-  en: {
-    buy: "Buy",
-    sell: "Sell",
-    sourceTime: "Time reported by DolarHoy",
-    conversion: "Applied conversion"
-  },
-  pt: {
-    buy: "Compra",
-    sell: "Venda",
-    sourceTime: "Horário informado pelo DolarHoy",
-    conversion: "Conversão aplicada"
-  },
-  fr: {
-    buy: "Achat",
-    sell: "Vente",
-    sourceTime: "Heure indiquée par DolarHoy",
-    conversion: "Conversion appliquée"
-  },
-  de: {
-    buy: "Kauf",
-    sell: "Verkauf",
-    sourceTime: "Von DolarHoy gemeldete Zeit",
-    conversion: "Angewandte Umrechnung"
-  }
-};
-
 function SettingsModule({
   labels,
   language,
@@ -2613,21 +2566,18 @@ function SettingsModule({
   dark,
   businessName,
   businessType,
+  businessCountry,
+  businessDescription,
   setBusinessName,
   setBusinessType,
+  setBusinessCountry,
+  setBusinessDescription,
   onLanguageChange,
   onCurrencyChange,
   onToggleTheme,
   onSignOut,
   saveBusinessName,
-  fxStatus,
-  fxUpdatedAt,
-  currencyRate,
-  locale,
-  fxHistory,
-  fxMarket,
-  fxQuote,
-  setFxMarket
+  locale
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -2635,31 +2585,86 @@ function SettingsModule({
   dark: boolean;
   businessName: string;
   businessType: BusinessType;
+  businessCountry: string;
+  businessDescription: string;
   setBusinessName: (value: string) => void;
   setBusinessType: (value: BusinessType) => void;
+  setBusinessCountry: (value: string) => void;
+  setBusinessDescription: (value: string) => void;
   onLanguageChange: (language: LanguageCode) => void;
   onCurrencyChange: (currency: string) => void;
   onToggleTheme: () => void;
   onSignOut: () => void;
   saveBusinessName: () => void;
-  fxStatus: "live" | "error";
-  fxUpdatedAt: string;
-  currencyRate: number;
   locale: string;
-  fxHistory: FxHistoryEntry[];
-  fxMarket: FxMarket;
-  fxQuote: FxQuote;
-  setFxMarket: (market: FxMarket) => void;
 }) {
-  const fxLabels = fxSettingsCopy[language];
-  const ars = (value: number | null) =>
-    value === null
-      ? "—"
-      : new Intl.NumberFormat(locale, {
-          style: "currency",
-          currency: "ARS",
-          maximumFractionDigits: 2
-        }).format(value);
+  const settingsCopy = {
+    es: {
+      profile: "Perfil operativo",
+      profileHelp:
+        "Definí el tipo de operación para que Global Stock pueda adaptar análisis, IA y flujos a tu negocio.",
+      activity: "Actividad",
+      country: "País de operación",
+      countryPlaceholder: "Ej.: Argentina",
+      description: "¿A qué se dedica el negocio?",
+      descriptionPlaceholder:
+        "Ej.: local de pesca con ventas presenciales y ecommerce",
+      industry: "Industria / fabricación",
+      save: "Guardar perfil"
+    },
+    en: {
+      profile: "Operating profile",
+      profileHelp:
+        "Define the operation so Global Stock can adapt analytics, AI and workflows to your business.",
+      activity: "Activity",
+      country: "Operating country",
+      countryPlaceholder: "Example: United States",
+      description: "What does the business do?",
+      descriptionPlaceholder:
+        "Example: fishing retailer with in-store and online sales",
+      industry: "Industry / manufacturing",
+      save: "Save profile"
+    },
+    pt: {
+      profile: "Perfil operacional",
+      profileHelp:
+        "Defina a operação para que o Global Stock adapte análises, IA e fluxos ao seu negócio.",
+      activity: "Atividade",
+      country: "País de operação",
+      countryPlaceholder: "Ex.: Brasil",
+      description: "Qual é a atividade do negócio?",
+      descriptionPlaceholder:
+        "Ex.: loja de pesca com vendas físicas e ecommerce",
+      industry: "Indústria / fabricação",
+      save: "Salvar perfil"
+    },
+    fr: {
+      profile: "Profil opérationnel",
+      profileHelp:
+        "Définissez l’activité afin que Global Stock adapte analyses, IA et flux à votre entreprise.",
+      activity: "Activité",
+      country: "Pays d’activité",
+      countryPlaceholder: "Ex. : France",
+      description: "Que fait l’entreprise ?",
+      descriptionPlaceholder:
+        "Ex. : magasin de pêche avec ventes physiques et ecommerce",
+      industry: "Industrie / fabrication",
+      save: "Enregistrer"
+    },
+    de: {
+      profile: "Betriebsprofil",
+      profileHelp:
+        "Definiere den Betrieb, damit Global Stock Analysen, KI und Abläufe an dein Unternehmen anpassen kann.",
+      activity: "Tätigkeit",
+      country: "Betriebsland",
+      countryPlaceholder: "Beispiel: Deutschland",
+      description: "Was macht das Unternehmen?",
+      descriptionPlaceholder:
+        "Beispiel: Angelgeschäft mit Filial- und Onlineverkauf",
+      industry: "Industrie / Fertigung",
+      save: "Profil speichern"
+    }
+  }[language];
 
   return (
     <div className="space-y-5">
@@ -2669,49 +2674,139 @@ function SettingsModule({
       />
 
       <div className="grid gap-4 xl:grid-cols-2">
-        <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.businessName}
-          </h3>
-          <input
-            value={businessName}
-            onChange={(event) =>
-              setBusinessName(event.target.value)
-            }
-            className="apex-input mt-4 px-4 py-3"
-          />
-          <select
-            value={businessType}
-            onChange={(event) =>
-              setBusinessType(event.target.value as BusinessType)
-            }
-            className="apex-input mt-3 px-4 py-3 text-sm"
-          >
-            <option value="retail">
-              {language === "en" ? "Retail" : language === "pt" ? "Varejo" : language === "fr" ? "Commerce" : language === "de" ? "Einzelhandel" : "Comercio"}
-            </option>
-            <option value="restaurant">
-              {language === "en" ? "Restaurant / gastronomy" : language === "pt" ? "Restaurante / gastronomia" : language === "fr" ? "Restaurant / restauration" : language === "de" ? "Restaurant / Gastronomie" : "Restaurante / gastronomía"}
-            </option>
-            <option value="services">
-              {language === "en" ? "Services" : language === "pt" ? "Serviços" : language === "fr" ? "Services" : language === "de" ? "Dienstleistungen" : "Servicios"}
-            </option>
-            <option value="wholesale">
-              {language === "en" ? "Wholesale / distribution" : language === "pt" ? "Atacado / distribuição" : language === "fr" ? "Grossiste / distribution" : language === "de" ? "Großhandel / Vertrieb" : "Mayorista / distribución"}
-            </option>
-            <option value="ecommerce">
-              Ecommerce
-            </option>
-            <option value="other">
-              {language === "en" ? "Other" : language === "pt" ? "Outro" : language === "fr" ? "Autre" : language === "de" ? "Andere" : "Otro"}
-            </option>
-          </select>
+        <section className="apex-card p-5 xl:col-span-2">
+          <div className="max-w-3xl">
+            <h3 className="text-sm font-semibold">
+              {settingsCopy.profile}
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
+              {settingsCopy.profileHelp}
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {labels.businessName}
+              </span>
+              <input
+                value={businessName}
+                onChange={(event) =>
+                  setBusinessName(event.target.value)
+                }
+                className="apex-input mt-2 px-4 py-3"
+              />
+            </label>
+
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {settingsCopy.activity}
+              </span>
+              <select
+                value={businessType}
+                onChange={(event) =>
+                  setBusinessType(event.target.value as BusinessType)
+                }
+                className="apex-input mt-2 px-4 py-3 text-sm"
+              >
+                <option value="retail">
+                  {language === "en"
+                    ? "Retail"
+                    : language === "pt"
+                      ? "Comércio / varejo"
+                      : language === "fr"
+                        ? "Commerce"
+                        : language === "de"
+                          ? "Einzelhandel"
+                          : "Comercio / retail"}
+                </option>
+                <option value="restaurant">
+                  {language === "en"
+                    ? "Restaurant / hospitality"
+                    : language === "pt"
+                      ? "Restaurante / gastronomia"
+                      : language === "fr"
+                        ? "Restaurant / restauration"
+                        : language === "de"
+                          ? "Restaurant / Gastronomie"
+                          : "Restaurante / gastronomía"}
+                </option>
+                <option value="services">
+                  {language === "en"
+                    ? "Services"
+                    : language === "pt"
+                      ? "Serviços"
+                      : language === "fr"
+                        ? "Services"
+                        : language === "de"
+                          ? "Dienstleistungen"
+                          : "Servicios"}
+                </option>
+                <option value="wholesale">
+                  {language === "en"
+                    ? "Wholesale / distribution"
+                    : language === "pt"
+                      ? "Atacado / distribuição"
+                      : language === "fr"
+                        ? "Grossiste / distribution"
+                        : language === "de"
+                          ? "Großhandel / Vertrieb"
+                          : "Mayorista / distribución"}
+                </option>
+                <option value="ecommerce">Ecommerce</option>
+                <option value="industry">
+                  {settingsCopy.industry}
+                </option>
+                <option value="other">
+                  {language === "en"
+                    ? "Other"
+                    : language === "pt"
+                      ? "Outro"
+                      : language === "fr"
+                        ? "Autre"
+                        : language === "de"
+                          ? "Andere"
+                          : "Otro"}
+                </option>
+              </select>
+            </label>
+
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {settingsCopy.country}
+              </span>
+              <input
+                value={businessCountry}
+                onChange={(event) =>
+                  setBusinessCountry(event.target.value)
+                }
+                placeholder={settingsCopy.countryPlaceholder}
+                className="apex-input mt-2 px-4 py-3"
+              />
+            </label>
+
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {settingsCopy.description}
+              </span>
+              <textarea
+                value={businessDescription}
+                onChange={(event) =>
+                  setBusinessDescription(event.target.value)
+                }
+                rows={2}
+                placeholder={settingsCopy.descriptionPlaceholder}
+                className="apex-input mt-2 resize-none px-4 py-3 text-sm"
+              />
+            </label>
+          </div>
+
           <button
             type="button"
             onClick={saveBusinessName}
-            className="mt-3 rounded-2xl bg-[#8F0000] px-4 py-3 text-sm font-semibold text-white"
+            className="mt-4 rounded-2xl bg-[#8F0000] px-5 py-3 text-sm font-semibold text-white"
           >
-            {labels.save}
+            {settingsCopy.save}
           </button>
         </section>
 
@@ -2730,126 +2825,6 @@ function SettingsModule({
         </section>
 
         <section className="apex-card p-5">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h3 className="text-sm font-semibold">
-                {labels.exchangeRate}
-              </h3>
-              <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-                DolarHoy.com · ARS
-              </p>
-            </div>
-            <select
-              value={fxMarket}
-              onChange={(event) =>
-                setFxMarket(event.target.value as FxMarket)
-              }
-              className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-semibold outline-none"
-            >
-              <option value="oficial">Oficial</option>
-              <option value="blue">Blue</option>
-              <option value="mep">MEP</option>
-              <option value="ccl">CCL</option>
-              <option value="tarjeta">Tarjeta</option>
-            </select>
-          </div>
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {fxLabels.buy}
-              </p>
-              <p className="mt-1 text-lg font-semibold">
-                {ars(fxQuote.buy)}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {fxLabels.sell}
-              </p>
-              <p className="mt-1 text-lg font-semibold">
-                {ars(fxQuote.sell)}
-              </p>
-            </div>
-          </div>
-
-          {currency !== "ARS" && (
-            <div className="mt-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {fxLabels.conversion}
-              </p>
-              <p className="mt-1 text-sm font-semibold">
-                1 ARS ={" "}
-                {currencyRate.toLocaleString(locale, {
-                  maximumFractionDigits: 8
-                })}{" "}
-                {currency}
-              </p>
-            </div>
-          )}
-
-          <p
-            className={
-              "mt-3 text-xs " +
-              (fxStatus === "live"
-                ? "text-emerald-600"
-                : "text-red-500")
-            }
-          >
-            {fxStatus === "live"
-              ? labels.liveRate
-              : labels.rateUnavailable}
-          </p>
-
-          {fxQuote.sourceUpdatedAt && (
-            <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-              {fxLabels.sourceTime}: {fxQuote.sourceUpdatedAt}
-            </p>
-          )}
-
-          {fxUpdatedAt && (
-            <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-              {labels.updated}:{" "}
-              {new Intl.DateTimeFormat(locale, {
-                dateStyle: "medium",
-                timeStyle: "short"
-              }).format(new Date(fxUpdatedAt))}
-            </p>
-          )}
-
-          <div className="mt-5 border-t border-[var(--apex-border)] pt-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
-              {labels.rateHistory}
-            </p>
-            <div className="mt-3 space-y-2">
-              {fxHistory
-                .filter(
-                  (item) =>
-                    item.currency === currency &&
-                    item.market === fxMarket
-                )
-                .slice(0, 7)
-                .map((item) => (
-                  <div
-                    key={item.date + item.currency + item.market}
-                    className="flex items-center justify-between gap-3 text-xs"
-                  >
-                    <span className="text-[var(--apex-muted)]">
-                      {new Intl.DateTimeFormat(locale, {
-                        dateStyle: "medium"
-                      }).format(new Date(item.date + "T12:00:00"))}
-                    </span>
-                    <strong>
-                      {item.rate.toLocaleString(locale, {
-                        maximumFractionDigits: 8
-                      })} {item.currency}
-                    </strong>
-                  </div>
-                ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="apex-card p-5">
           <h3 className="text-sm font-semibold">
             {labels.appearance}
           </h3>
@@ -2863,21 +2838,29 @@ function SettingsModule({
           </button>
         </section>
 
-        <section className="apex-card p-5">
+        <div className="xl:col-span-2">
+          <FxCenter
+            language={language}
+            locale={locale}
+            defaultCurrency={currency}
+          />
+        </div>
+
+        <section className="apex-card p-5 xl:col-span-2">
           <h3 className="text-sm font-semibold">
             {labels.install}
           </h3>
-          <div className="mt-4">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
             <InstallAppButton language={language} />
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="flex items-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-sm font-semibold text-[var(--apex-muted)]"
+            >
+              <LogOut size={16} />
+              {labels.signOut}
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onSignOut}
-            className="mt-4 flex items-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-sm font-semibold text-[var(--apex-muted)]"
-          >
-            <LogOut size={16} />
-            {labels.signOut}
-          </button>
         </section>
       </div>
     </div>
