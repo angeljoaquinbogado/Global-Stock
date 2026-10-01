@@ -296,6 +296,21 @@ export function ApexIntelligence({
       const timeZone =
         Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
 
+      const localModules: Record<string, unknown> = {};
+      for (const [name, key] of [
+        ["freeNotes", "global-stock-free-notes-v1"],
+        ["onlineOrders", "global-stock-online-orders-v1"],
+        ["onlineConnections", "global-stock-online-connections-v1"],
+        ["documents", "global-stock-documents-v1"]
+      ] as const) {
+        try {
+          const raw = window.localStorage.getItem(key);
+          if (raw) localModules[name] = JSON.parse(raw);
+        } catch {
+          // Corrupt optional local context must never block the assistant.
+        }
+      }
+
       const response = await fetch("/api/intelligence", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -312,7 +327,10 @@ export function ApexIntelligence({
               timeZone
             }).format(now),
             clientTimeZone: timeZone,
-            appContext
+            appContext: {
+              ...appContext,
+              ...localModules
+            }
           }
         })
       });
