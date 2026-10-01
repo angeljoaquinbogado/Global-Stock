@@ -201,7 +201,7 @@ textarea:focus-visible {
   display: block;
   pointer-events: none;
   transform: translateZ(0);
-  filter: drop-shadow(0 0 28px rgba(44, 94, 190, 0.16));
+  backface-visibility: hidden;
 }
 
 .gs-earth-shade {
