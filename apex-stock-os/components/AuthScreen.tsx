@@ -477,12 +477,49 @@ export function AuthScreen({
       }
 
       if (mode === "signin") {
-        const { error: authError } = await supabase.auth.signInWithPassword({
+        const { data, error: authError } = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
           password
         });
 
         if (authError) throw authError;
+
+        if (data.user?.id) {
+          const metadata = data.user.user_metadata ?? {};
+          const { error: profileError } = await supabase
+            .from("global_stock_profiles")
+            .upsert(
+              {
+                user_id: data.user.id,
+                full_name:
+                  typeof metadata.full_name === "string"
+                    ? metadata.full_name
+                    : null,
+                business_name:
+                  typeof metadata.business_name === "string"
+                    ? metadata.business_name
+                    : null,
+                industry:
+                  typeof metadata.industry === "string"
+                    ? metadata.industry
+                    : null,
+                country:
+                  typeof metadata.country === "string"
+                    ? metadata.country
+                    : null,
+                business_description:
+                  typeof metadata.business_description === "string"
+                    ? metadata.business_description
+                    : null,
+                default_currency: currency,
+                language
+              },
+              { onConflict: "user_id" }
+            );
+
+          if (profileError) throw profileError;
+        }
+
         onAuthenticated();
         return;
       }
@@ -492,6 +529,7 @@ export function AuthScreen({
         password,
         options: {
           data: {
+            app: "global_stock",
             full_name: name.trim(),
             business_name: businessName.trim(),
             industry,
