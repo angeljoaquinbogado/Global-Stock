@@ -41,15 +41,20 @@ export class IntelligenceNotConfiguredError extends Error {
 
 function providerConfig() {
   const vercelOidc = process.env.VERCEL_OIDC_TOKEN?.trim();
+  const openAiKey = process.env.OPENAI_API_KEY?.trim();
   const endpoint =
     process.env.AI_API_URL?.trim() ||
-    (vercelOidc
-      ? "https://ai-gateway.vercel.sh/v1/chat/completions"
-      : "");
+    (openAiKey
+      ? "https://api.openai.com/v1/chat/completions"
+      : vercelOidc
+        ? "https://ai-gateway.vercel.sh/v1/chat/completions"
+        : "");
   const model =
+    process.env.OPENAI_MODEL?.trim() ||
     process.env.AI_MODEL?.trim() ||
     (vercelOidc ? "openai/gpt-5.6-sol" : "");
   const apiKey =
+    openAiKey ||
     process.env.AI_API_KEY?.trim() ||
     process.env.AI_GATEWAY_API_KEY?.trim() ||
     vercelOidc ||
