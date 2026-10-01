@@ -4,11 +4,14 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   ArrowRight,
+  Building2,
+  BriefcaseBusiness,
   Eye,
   EyeOff,
   Loader2,
   LockKeyhole,
   Mail,
+  MapPin,
   Moon,
   Sparkles,
   Sun,
@@ -251,6 +254,118 @@ const copy: Record<
   }
 };
 
+const signupExtra: Record<
+  LanguageCode,
+  {
+    businessName: string;
+    businessNamePlaceholder: string;
+    industry: string;
+    industryRetail: string;
+    industryRestaurant: string;
+    industryServices: string;
+    industryWholesale: string;
+    industryEcommerce: string;
+    industryIndustry: string;
+    industryOther: string;
+    country: string;
+    countryPlaceholder: string;
+    businessDescription: string;
+    businessDescriptionPlaceholder: string;
+    invalidBusinessName: string;
+  }
+> = {
+  es: {
+    businessName: "Nombre del negocio",
+    businessNamePlaceholder: "Ej.: Global Pesca",
+    industry: "Actividad del negocio",
+    industryRetail: "Comercio / retail",
+    industryRestaurant: "Restaurante / gastronomía",
+    industryServices: "Servicios",
+    industryWholesale: "Mayorista / distribución",
+    industryEcommerce: "Ecommerce",
+    industryIndustry: "Industria / fabricación",
+    industryOther: "Otro",
+    country: "País de operación",
+    countryPlaceholder: "Ej.: Argentina",
+    businessDescription: "¿A qué se dedica?",
+    businessDescriptionPlaceholder:
+      "Ej.: venta de artículos de pesca en local físico y online",
+    invalidBusinessName: "Ingresá el nombre del negocio."
+  },
+  en: {
+    businessName: "Business name",
+    businessNamePlaceholder: "Example: Global Fishing",
+    industry: "Business activity",
+    industryRetail: "Retail",
+    industryRestaurant: "Restaurant / hospitality",
+    industryServices: "Services",
+    industryWholesale: "Wholesale / distribution",
+    industryEcommerce: "Ecommerce",
+    industryIndustry: "Industry / manufacturing",
+    industryOther: "Other",
+    country: "Operating country",
+    countryPlaceholder: "Example: United States",
+    businessDescription: "What does the business do?",
+    businessDescriptionPlaceholder:
+      "Example: fishing goods sold in-store and online",
+    invalidBusinessName: "Enter the business name."
+  },
+  pt: {
+    businessName: "Nome do negócio",
+    businessNamePlaceholder: "Ex.: Global Pesca",
+    industry: "Atividade do negócio",
+    industryRetail: "Comércio / varejo",
+    industryRestaurant: "Restaurante / gastronomia",
+    industryServices: "Serviços",
+    industryWholesale: "Atacado / distribuição",
+    industryEcommerce: "Ecommerce",
+    industryIndustry: "Indústria / fabricação",
+    industryOther: "Outro",
+    country: "País de operação",
+    countryPlaceholder: "Ex.: Brasil",
+    businessDescription: "Qual é a atividade?",
+    businessDescriptionPlaceholder:
+      "Ex.: venda de artigos de pesca em loja física e online",
+    invalidBusinessName: "Digite o nome do negócio."
+  },
+  fr: {
+    businessName: "Nom de l’entreprise",
+    businessNamePlaceholder: "Ex. : Global Pêche",
+    industry: "Activité de l’entreprise",
+    industryRetail: "Commerce",
+    industryRestaurant: "Restaurant / restauration",
+    industryServices: "Services",
+    industryWholesale: "Grossiste / distribution",
+    industryEcommerce: "Ecommerce",
+    industryIndustry: "Industrie / fabrication",
+    industryOther: "Autre",
+    country: "Pays d’activité",
+    countryPlaceholder: "Ex. : France",
+    businessDescription: "Que fait l’entreprise ?",
+    businessDescriptionPlaceholder:
+      "Ex. : vente d’articles de pêche en magasin et en ligne",
+    invalidBusinessName: "Saisissez le nom de l’entreprise."
+  },
+  de: {
+    businessName: "Unternehmensname",
+    businessNamePlaceholder: "Beispiel: Global Angeln",
+    industry: "Geschäftstätigkeit",
+    industryRetail: "Einzelhandel",
+    industryRestaurant: "Restaurant / Gastronomie",
+    industryServices: "Dienstleistungen",
+    industryWholesale: "Großhandel / Vertrieb",
+    industryEcommerce: "Ecommerce",
+    industryIndustry: "Industrie / Fertigung",
+    industryOther: "Andere",
+    country: "Betriebsland",
+    countryPlaceholder: "Beispiel: Deutschland",
+    businessDescription: "Was macht das Unternehmen?",
+    businessDescriptionPlaceholder:
+      "Beispiel: Angelbedarf im Laden und online",
+    invalidBusinessName: "Gib den Unternehmensnamen ein."
+  }
+};
+
 export function AuthScreen({
   dark,
   language,
@@ -261,9 +376,14 @@ export function AuthScreen({
   onAuthenticated
 }: AuthScreenProps) {
   const labels = copy[language];
+  const signupLabels = signupExtra[language];
   const configured = useMemo(() => isSupabaseConfigured(), []);
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
+  const [businessName, setBusinessName] = useState("");
+  const [industry, setIndustry] = useState("retail");
+  const [country, setCountry] = useState("");
+  const [businessDescription, setBusinessDescription] = useState("");
   const [email, setEmail] = useState(() =>
     isSupabaseConfigured() ? "" : "demo@globalstock.local"
   );
@@ -316,12 +436,32 @@ export function AuthScreen({
       return;
     }
 
+    if (mode === "signup" && businessName.trim().length < 2) {
+      setError(signupLabels.invalidBusinessName);
+      return;
+    }
+
     setPending(true);
 
     try {
       const supabase = getSupabaseBrowserClient();
 
       if (!supabase) {
+        if (mode === "signup") {
+          localStorage.setItem(
+            "global-stock-business-name",
+            businessName.trim()
+          );
+          localStorage.setItem("global-stock-business-type", industry);
+          localStorage.setItem(
+            "global-stock-business-country",
+            country.trim()
+          );
+          localStorage.setItem(
+            "global-stock-business-description",
+            businessDescription.trim()
+          );
+        }
         await new Promise((resolve) => window.setTimeout(resolve, 450));
         onAuthenticated();
         return;
@@ -342,7 +482,15 @@ export function AuthScreen({
         email: normalizedEmail,
         password,
         options: {
-          data: { full_name: name.trim() }
+          data: {
+            full_name: name.trim(),
+            business_name: businessName.trim(),
+            industry,
+            country: country.trim(),
+            business_description: businessDescription.trim(),
+            default_currency: currency,
+            language
+          }
         }
       });
 
@@ -556,6 +704,86 @@ export function AuthScreen({
                   </div>
 
                   <form onSubmit={submit} className="space-y-4">
+                    {mode === "signup" && (
+                      <div className="grid gap-4 rounded-[24px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-4">
+                        <label className="block">
+                          <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                            {signupLabels.businessName}
+                          </span>
+                          <div className="relative">
+                            <Building2
+                              size={17}
+                              className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
+                            />
+                            <input
+                              value={businessName}
+                              onChange={(event) => setBusinessName(event.target.value)}
+                              className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              placeholder={signupLabels.businessNamePlaceholder}
+                              autoComplete="organization"
+                            />
+                          </div>
+                        </label>
+
+                        <label className="block">
+                          <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                            {signupLabels.industry}
+                          </span>
+                          <div className="relative">
+                            <BriefcaseBusiness
+                              size={17}
+                              className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
+                            />
+                            <select
+                              value={industry}
+                              onChange={(event) => setIndustry(event.target.value)}
+                              className={`w-full appearance-none rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            >
+                              <option value="retail">{signupLabels.industryRetail}</option>
+                              <option value="restaurant">{signupLabels.industryRestaurant}</option>
+                              <option value="services">{signupLabels.industryServices}</option>
+                              <option value="wholesale">{signupLabels.industryWholesale}</option>
+                              <option value="ecommerce">{signupLabels.industryEcommerce}</option>
+                              <option value="industry">{signupLabels.industryIndustry}</option>
+                              <option value="other">{signupLabels.industryOther}</option>
+                            </select>
+                          </div>
+                        </label>
+
+                        <label className="block">
+                          <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                            {signupLabels.country}
+                          </span>
+                          <div className="relative">
+                            <MapPin
+                              size={17}
+                              className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
+                            />
+                            <input
+                              value={country}
+                              onChange={(event) => setCountry(event.target.value)}
+                              className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              placeholder={signupLabels.countryPlaceholder}
+                              autoComplete="country-name"
+                            />
+                          </div>
+                        </label>
+
+                        <label className="block">
+                          <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
+                            {signupLabels.businessDescription}
+                          </span>
+                          <textarea
+                            value={businessDescription}
+                            onChange={(event) => setBusinessDescription(event.target.value)}
+                            rows={2}
+                            className={`w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            placeholder={signupLabels.businessDescriptionPlaceholder}
+                          />
+                        </label>
+                      </div>
+                    )}
+
                     {mode === "signup" && (
                       <label className="block">
                         <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
