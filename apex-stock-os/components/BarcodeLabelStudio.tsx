@@ -172,17 +172,18 @@ export function BarcodeLabelStudio({
     () => products.find((product) => product.id === productId) ?? products[0],
     [productId, products]
   );
-  const [code, setCode] = useState(selectedProduct?.barcode ?? "");
+  const selectedProductId = selectedProduct?.id;
+  const selectedProductBarcode = selectedProduct?.barcode ?? "";
+  const [code, setCode] = useState(selectedProductBarcode);
   const [quantity, setQuantity] = useState(1);
   const [error, setError] = useState("");
   const [assigned, setAssigned] = useState(false);
 
   useEffect(() => {
-    if (!selectedProduct) return;
-    setCode(selectedProduct.barcode || "");
+    if (!selectedProductId) return;
+    setCode(selectedProductBarcode);
     setError("");
-    setAssigned(false);
-  }, [selectedProduct?.id]);
+  }, [selectedProductId, selectedProductBarcode]);
 
   useEffect(() => {
     const normalized = normalizeCode(code);
@@ -331,7 +332,10 @@ export function BarcodeLabelStudio({
             </span>
             <select
               value={selectedProduct?.id ?? ""}
-              onChange={(event) => setProductId(event.target.value)}
+              onChange={(event) => {
+                setProductId(event.target.value);
+                setAssigned(false);
+              }}
               className="apex-input mt-2 px-4 py-3"
             >
               {products.map((product) => (
