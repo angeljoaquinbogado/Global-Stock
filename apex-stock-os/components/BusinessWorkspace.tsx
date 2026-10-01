@@ -91,12 +91,6 @@ type BusinessWorkspaceProps = {
 
 type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
 
-type FxQuote = {
-  buy: number | null;
-  sell: number | null;
-  sourceUpdatedAt: string | null;
-};
-
 type FxHistoryEntry = {
   date: string;
   currency: string;
@@ -256,7 +250,7 @@ const copy: Record<
       online: "Tienda online",
       inventory: "Almacén",
       charts: "Gráficos",
-      purchases: "Reposición",
+      purchases: "Reposição",
       suppliers: "Abastecedores",
       activities: "Actividad",
       documents: "Comprobantes",
@@ -468,7 +462,7 @@ const copy: Record<
       online: "Loja online",
       inventory: "Armazém",
       charts: "Gráficos",
-      purchases: "Reposición",
+      purchases: "Reposição",
       suppliers: "Abastecedores",
       activities: "Atividade",
       documents: "Comprovantes",
@@ -522,8 +516,8 @@ const copy: Record<
     estimatedCost: "Custo estimado",
     receivePurchase: "Receber reposição",
     purchaseApplied: "Reposição aplicada ao estoque.",
-    suppliersTitle: "Fornecedores",
-    suppliersSubtitle: "Veja exposição, estoque e margem por fornecedor.",
+    suppliersTitle: "Abastecedores",
+    suppliersSubtitle: "Compare quem abastece a operação, o estoque associado e a margem gerada por cada abastecedor.",
     products: "Produtos",
     inventoryValue: "Valor do estoque",
     averageMargin: "Margem média",
@@ -603,8 +597,8 @@ const copy: Record<
     completeSale: "Confirmer la vente",
     saleCompleted: "Vente enregistrée et stock mis à jour.",
     add: "Ajouter",
-    inventoryTitle: "Inventaire",
-    inventorySubtitle: "Contrôlez stock, prix, statuts et codes.",
+    inventoryTitle: "Entrepôt et stock",
+    inventorySubtitle: "Contrôlez quantités, minimums, prix, codes et ajustements de stock au même endroit.",
     product: "Produit",
     category: "Catégorie",
     supplier: "Fournisseur",
@@ -620,16 +614,16 @@ const copy: Record<
     stockByProduct: "Stock par produit",
     marginByProduct: "Marge par produit",
     stockHealth: "État du stock",
-    purchasesTitle: "Achats et réapprovisionnement",
-    purchasesSubtitle: "Priorisez les achats selon couverture et rotation.",
+    purchasesTitle: "Réassort intelligent",
+    purchasesSubtitle: "Global Stock estime quoi réapprovisionner, en quelle quantité et avec quel budget selon la couverture et la rotation.",
     suggested: "Suggéré",
     coverage: "Couverture",
     days: "jours",
     estimatedCost: "Coût estimé",
     receivePurchase: "Recevoir le stock",
     purchaseApplied: "Réapprovisionnement appliqué au stock.",
-    suppliersTitle: "Fournisseurs",
-    suppliersSubtitle: "Visualisez exposition, stock et marge par fournisseur.",
+    suppliersTitle: "Approvisionneurs",
+    suppliersSubtitle: "Comparez les fournisseurs, le stock associé et la marge générée par leurs produits.",
     products: "Produits",
     inventoryValue: "Valeur du stock",
     averageMargin: "Marge moyenne",
@@ -709,8 +703,8 @@ const copy: Record<
     completeSale: "Verkauf abschließen",
     saleCompleted: "Verkauf gespeichert und Bestand aktualisiert.",
     add: "Hinzufügen",
-    inventoryTitle: "Bestand",
-    inventorySubtitle: "Bestand, Preise, Status und Barcodes verwalten.",
+    inventoryTitle: "Lager und Bestand",
+    inventorySubtitle: "Bestände, Mindestmengen, Preise, Barcodes und Lagerkorrekturen zentral verwalten.",
     product: "Produkt",
     category: "Kategorie",
     supplier: "Lieferant",
@@ -726,16 +720,16 @@ const copy: Record<
     stockByProduct: "Bestand pro Produkt",
     marginByProduct: "Marge pro Produkt",
     stockHealth: "Bestandsstatus",
-    purchasesTitle: "Einkauf und Nachschub",
-    purchasesSubtitle: "Einkäufe nach Reichweite und Umschlag priorisieren.",
+    purchasesTitle: "Intelligente Nachbestellung",
+    purchasesSubtitle: "Global Stock ermittelt Nachbestellbedarf, Mengen und Budget aus Reichweite und Umschlag.",
     suggested: "Empfohlen",
     coverage: "Reichweite",
     days: "Tage",
     estimatedCost: "Geschätzte Kosten",
     receivePurchase: "Nachschub buchen",
     purchaseApplied: "Nachschub wurde dem Bestand hinzugefügt.",
-    suppliersTitle: "Lieferanten",
-    suppliersSubtitle: "Bestand, Kapital und Marge pro Lieferant.",
+    suppliersTitle: "Bezugsquellen",
+    suppliersSubtitle: "Vergleiche Bezugsquellen, abhängigen Bestand und die durchschnittliche Marge ihrer Produkte.",
     products: "Produkte",
     inventoryValue: "Lagerwert",
     averageMargin: "Durchschnittsmarge",
@@ -887,14 +881,7 @@ export function BusinessWorkspace({
   const [products, setProducts] = useState<Product[]>(demoProducts);
   const [trend, setTrend] = useState<TrendPoint[]>(demoTrend);
   const [currencyRate, setCurrencyRate] = useState(1);
-  const [fxUpdatedAt, setFxUpdatedAt] = useState("");
-  const [fxStatus, setFxStatus] = useState<"live" | "error">("live");
   const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
-  const [fxQuote, setFxQuote] = useState<FxQuote>({
-    buy: null,
-    sell: null,
-    sourceUpdatedAt: null
-  });
   const [fxHistory, setFxHistory] = useState<FxHistoryEntry[]>([]);
   const [storageReady, setStorageReady] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
@@ -1059,30 +1046,11 @@ export function BusinessWorkspace({
 
         const payload = (await response.json()) as {
           rate?: number;
-          checkedAt?: string;
-          sourceUpdatedAt?: string | null;
-          quote?: {
-            buy?: number | null;
-            sell?: number | null;
-          };
         };
         const nextRate = Number(payload.rate);
 
         if (!cancelled && Number.isFinite(nextRate) && nextRate > 0) {
           setCurrencyRate(nextRate);
-          setFxStatus("live");
-          setFxUpdatedAt(payload.checkedAt ?? new Date().toISOString());
-          setFxQuote({
-            buy:
-              payload.quote?.buy === null ||
-              Number.isFinite(Number(payload.quote?.buy))
-                ? payload.quote?.buy ?? null
-                : null,
-            sell: Number.isFinite(Number(payload.quote?.sell))
-              ? Number(payload.quote?.sell)
-              : null,
-            sourceUpdatedAt: payload.sourceUpdatedAt ?? null
-          });
 
           const today = localDateKey(new Date());
           setFxHistory((current) => {
@@ -1115,7 +1083,9 @@ export function BusinessWorkspace({
           });
         }
       } catch {
-        if (!cancelled) setFxStatus("error");
+        if (!cancelled && currency === "ARS") {
+          setCurrencyRate(1);
+        }
       }
     }
 
