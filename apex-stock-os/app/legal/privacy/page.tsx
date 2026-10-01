@@ -126,9 +126,15 @@ export default function PrivacyPage() {
         <h2>10. Derechos y consultas</h2>
         <p>
           Las personas pueden solicitar información, corrección o eliminación
-          de datos cuando corresponda conforme a las normas aplicables. El canal
-          legal y de privacidad del operador debe configurarse antes del
-          lanzamiento comercial definitivo de Global Stock.
+          de datos cuando corresponda conforme a las normas aplicables. El
+          operador actual es Angel Joaquin Bogado, Provincia de Buenos Aires,
+          Argentina. Las consultas de privacidad o eliminación pueden enviarse a{" "}
+          <a href="mailto:joaquinbogado555@gmail.com">
+            joaquinbogado555@gmail.com
+          </a>. Para soporte general puede utilizarse{" "}
+          <a href="mailto:angeljoaquinbogado@gmail.com">
+            angeljoaquinbogado@gmail.com
+          </a>.
         </p>
       </section>
 
