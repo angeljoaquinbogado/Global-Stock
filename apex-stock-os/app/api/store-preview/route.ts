@@ -26,6 +26,23 @@ function cleanText(value: string | null | undefined) {
     .slice(0, 500);
 }
 
+function resolvePublicAsset(
+  value: string | null,
+  base: URL
+) {
+  if (!value) return null;
+
+  try {
+    const resolved = new URL(value, base);
+    if (!["http:", "https:"].includes(resolved.protocol)) {
+      return null;
+    }
+    return resolved.toString();
+  } catch {
+    return null;
+  }
+}
+
 function isPrivateIpv4(address: string) {
   const parts = address.split(".").map(Number);
   if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part))) {
@@ -590,8 +607,8 @@ export async function GET(request: NextRequest) {
       title,
       description,
       platform,
-      image: imageRaw ? new URL(imageRaw, finalUrl).toString() : null,
-      icon: iconRaw ? new URL(iconRaw, finalUrl).toString() : null,
+      image: resolvePublicAsset(imageRaw, finalUrl),
+      icon: resolvePublicAsset(iconRaw, finalUrl),
       currency: sampleCurrency ?? null,
       productCount: catalog?.productCount ?? null,
       sampleProducts: catalog?.samples ?? structuredProducts,
