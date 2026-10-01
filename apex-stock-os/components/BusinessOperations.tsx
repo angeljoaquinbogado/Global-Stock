@@ -943,8 +943,8 @@ export function DocumentsHub({
         subtitle={t.documentsSubtitle}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[.72fr_1.28fr]">
-        <section className="apex-card h-fit p-5">
+      <div className="grid gap-4 xl:grid-cols-[minmax(360px,.68fr)_1.32fr]">
+        <section className="apex-card h-fit p-5 xl:sticky xl:top-24">
           <div className="flex items-center gap-2">
             <FilePlus2 size={17} className="text-[#8F0000]" />
             <h3 className="text-sm font-semibold">
@@ -952,43 +952,72 @@ export function DocumentsHub({
             </h3>
           </div>
 
-          <label className="mt-4 block">
+          <div className="mt-4">
             <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
               {t.type}
             </span>
-            <select
-              value={type}
-              onChange={(event) =>
-                setType(event.target.value as DocumentType)
-              }
-              className="apex-input mt-2 px-4 py-3 text-sm"
-            >
-              <option value="invoice">{t.invoice}</option>
-              <option value="receipt">{t.receipt}</option>
-              <option value="credit_note">{t.creditNote}</option>
-            </select>
-          </label>
+            <div className="mt-2 grid grid-cols-3 gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5">
+              {(
+                [
+                  ["invoice", t.invoice],
+                  ["receipt", t.receipt],
+                  ["credit_note", t.creditNote]
+                ] as Array<[DocumentType, string]>
+              ).map(([value, label]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setType(value)}
+                  className={
+                    "min-h-11 rounded-xl px-2 py-2 text-[10px] font-semibold leading-4 transition " +
+                    (type === value
+                      ? "bg-[#8F0000] text-white shadow-[0_8px_24px_rgba(143,0,0,.22)]"
+                      : "text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]")
+                  }
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <input
             value={customer}
             onChange={(event) => setCustomer(event.target.value)}
             placeholder={t.customer}
-            className="apex-input mt-3 px-4 py-3 text-sm"
+            className="apex-input mt-3 px-4 py-2.5 text-sm"
           />
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             placeholder={t.description}
-            rows={4}
-            className="apex-input mt-3 resize-none px-4 py-3 text-sm"
+            rows={3}
+            className="apex-input mt-3 resize-none px-4 py-2.5 text-sm"
           />
-          <input
-            value={total}
-            onChange={(event) => setTotal(event.target.value)}
-            placeholder={t.total}
-            inputMode="decimal"
-            className="apex-input mt-3 px-4 py-3 text-sm"
-          />
+          <div className="mt-3 grid gap-3 sm:grid-cols-[1fr_190px]">
+            <input
+              value={total}
+              onChange={(event) => setTotal(event.target.value)}
+              placeholder={t.total}
+              inputMode="decimal"
+              className="apex-input px-4 py-2.5 text-sm"
+            />
+            <div className="rounded-2xl border border-[#8F0000]/20 bg-[#8F0000]/[0.05] px-4 py-2.5">
+              <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {typeLabel(type)}
+              </p>
+              <p className="mt-1 truncate text-sm font-semibold">
+                {total.trim()
+                  ? new Intl.NumberFormat(locale, {
+                      style: "currency",
+                      currency
+                    }).format(
+                      Number(total.replace(",", ".")) || 0
+                    )
+                  : "—"}
+              </p>
+            </div>
+          </div>
 
           <button
             type="button"
