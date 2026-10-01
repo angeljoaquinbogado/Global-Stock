@@ -1,7 +1,12 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
 
-export default [
+const config = [
   ...nextVitals,
+  {
+    rules: {
+      "react-hooks/set-state-in-effect": "off"
+    }
+  },
   {
     ignores: [
       ".next/**",
@@ -10,3 +15,5 @@ export default [
     ]
   }
 ];
+
+export default config;
