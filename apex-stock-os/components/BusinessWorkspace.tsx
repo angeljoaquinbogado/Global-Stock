@@ -2014,7 +2014,8 @@ function OverviewModule({
                   fill="url(#workspaceProfit)"
                   dot={false}
                   activeDot={{ r: 4, strokeWidth: 0 }}
-                />
+                
+                isAnimationActive={false}/>
               </AreaChart>
             </ResponsiveContainer>
           </div>
