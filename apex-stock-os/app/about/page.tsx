@@ -71,6 +71,23 @@ export default function AboutPage() {
           </div>
         </section>
 
+        <section className="mx-auto w-full max-w-5xl px-5 pt-20 sm:px-8">
+          <div className="rounded-[30px] border border-white/10 bg-[radial-gradient(circle_at_85%_15%,rgba(143,0,0,.2),transparent_32%),#0B0B0D] p-6 sm:p-8">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-500">
+              Creador
+            </p>
+            <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em]">
+              Angel Joaquin Bogado
+            </h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-white/56">
+              Global Stock es un proyecto independiente creado y desarrollado
+              desde la Provincia de Buenos Aires, Argentina, con el objetivo de
+              construir una plataforma de gestión que pueda servir tanto a un
+              comercio pequeño como a una operación multicanal más compleja.
+            </p>
+          </div>
+        </section>
+
         <section className="mx-auto w-full max-w-5xl px-5 py-20 sm:px-8">
           <h2 className="text-3xl font-semibold tracking-[-0.045em]">
             Cómo trabajamos
