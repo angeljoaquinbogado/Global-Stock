@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
   Building2,
@@ -378,6 +378,7 @@ export function AuthScreen({
   const labels = copy[language];
   const signupLabels = signupExtra[language];
   const configured = useMemo(() => isSupabaseConfigured(), []);
+  const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -397,20 +398,23 @@ export function AuthScreen({
   const [brandVisible, setBrandVisible] = useState(false);
 
   useEffect(() => {
+    const brandDelay = reduceMotion ? 80 : 2350;
+    const completeDelay = reduceMotion ? 950 : 6200;
+
     const brandTimer = window.setTimeout(
       () => setBrandVisible(true),
-      2350
+      brandDelay
     );
     const completeTimer = window.setTimeout(
       () => setIntroComplete(true),
-      6200
+      completeDelay
     );
 
     return () => {
       window.clearTimeout(brandTimer);
       window.clearTimeout(completeTimer);
     };
-  }, []);
+  }, [reduceMotion]);
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
