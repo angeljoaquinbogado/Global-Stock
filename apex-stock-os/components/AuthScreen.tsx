@@ -514,7 +514,7 @@ export function AuthScreen({
                 default_currency: currency,
                 language
               },
-              { onConflict: "user_id" }
+              { onConflict: "user_id", ignoreDuplicates: true }
             );
 
           if (profileError) throw profileError;
