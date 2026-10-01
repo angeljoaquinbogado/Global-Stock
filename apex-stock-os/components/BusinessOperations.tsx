@@ -453,7 +453,7 @@ export function OnlineCommerceHub({
           setOrders(
             parsed.map((order) => ({
               ...order,
-              currency: order.currency || currency
+              currency: order.currency || "ARS"
             }))
           );
         }
@@ -812,7 +812,7 @@ export function DocumentsHub({
         setDocuments(
           parsed.map((document) => ({
             ...document,
-            currency: document.currency || currency
+            currency: document.currency || "ARS"
           }))
         );
       }
