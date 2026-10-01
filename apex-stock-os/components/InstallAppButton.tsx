@@ -121,6 +121,24 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
   }, []);
 
   useEffect(() => {
+    if (!showIosHelp) return;
+
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setShowIosHelp(false);
+    };
+
+    window.addEventListener("keydown", onEscape);
+
+    return () => {
+      document.body.style.overflow = previous;
+      window.removeEventListener("keydown", onEscape);
+    };
+  }, [showIosHelp]);
+
+  useEffect(() => {
     const media = window.matchMedia("(display-mode: standalone)");
     const navigatorStandalone =
       "standalone" in window.navigator &&
@@ -174,7 +192,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       <button
         type="button"
         onClick={install}
-        className="inline-flex h-10 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition active:scale-[.98]"
+        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition active:scale-[.98]"
       >
         <Download size={15} />
         <span className="hidden sm:inline">{labels.install}</span>
@@ -183,7 +201,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       <AnimatePresence>
         {showIosHelp && (
           <motion.div
-            className="fixed inset-0 z-[100] grid place-items-center bg-black/65 p-4 backdrop-blur-sm"
+            className="fixed inset-0 z-[320] grid place-items-center overflow-y-auto bg-black/65 p-4 sm:backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -197,8 +215,8 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
               initial={{ opacity: 0, y: 18, scale: 0.98 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 300, damping: 30 }}
-              className="apex-glass w-full max-w-md rounded-[28px] p-6"
+              transition={{ type: "spring", bounce: 0, duration: 0.34 }}
+              className="apex-glass my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] p-5 sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#8F0000] text-white">
@@ -207,7 +225,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 <button
                   type="button"
                   onClick={() => setShowIosHelp(false)}
-                  className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)]"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)]"
                   aria-label={labels.close}
                 >
                   <X size={15} />
