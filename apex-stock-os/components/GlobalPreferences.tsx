@@ -204,7 +204,7 @@ export function GlobalPreferences({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 p-0 sm:items-center sm:p-4 sm:backdrop-blur-sm"
+          className="fixed inset-0 z-[300] flex items-end justify-center bg-black/55 px-0 pb-0 pt-[max(8px,env(safe-area-inset-top))] sm:items-center sm:p-4 sm:backdrop-blur-sm"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
