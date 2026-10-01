@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import "cesium/Build/Cesium/Widgets/widgets.css";
 import { PwaRegistrar } from "@/components/PwaRegistrar";
 
 export const metadata: Metadata = {
