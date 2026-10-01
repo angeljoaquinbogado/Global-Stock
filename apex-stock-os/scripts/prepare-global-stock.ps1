@@ -8,6 +8,24 @@ Write-Host "Global Stock - preparacion local" -ForegroundColor Red
 Write-Host "Proyecto: $projectRoot"
 Write-Host ""
 
+$envLocal = Join-Path $projectRoot ".env.local"
+if (-not (Test-Path $envLocal)) {
+    New-Item -ItemType File -Path $envLocal | Out-Null
+}
+
+$envText = Get-Content $envLocal -Raw -ErrorAction SilentlyContinue
+if (-not $envText) {
+    $envText = ""
+}
+
+if ($envText -notmatch "(?m)^GLOBAL_STOCK_CONNECTOR_SECRET=") {
+    $bytes = New-Object byte[] 48
+    [System.Security.Cryptography.RandomNumberGenerator]::Fill($bytes)
+    $secret = [Convert]::ToBase64String($bytes)
+    Add-Content $envLocal ("GLOBAL_STOCK_CONNECTOR_SECRET=" + $secret)
+    Write-Host "Se genero un secreto local para conexiones de ecommerce." -ForegroundColor Green
+}
+
 $earthTarget = Join-Path $projectRoot "public\global-stock-earth.png"
 
 Add-Type -AssemblyName System.Drawing
@@ -116,6 +134,16 @@ if ($listener) {
         ForEach-Object {
             Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue
         }
+}
+
+$envText = Get-Content $envLocal -Raw -ErrorAction SilentlyContinue
+if (
+    $envText -notmatch "(?m)^OPENAI_API_KEY=.+$" -and
+    $envText -notmatch "(?m)^AI_API_KEY=.+$"
+) {
+    Write-Host ""
+    Write-Host "Global Intelligence: falta una clave de IA en .env.local." -ForegroundColor Yellow
+    Write-Host "La app funcionara, pero la IA seguira mostrando 'sin conexion' hasta configurarla." -ForegroundColor Yellow
 }
 
 Write-Host ""
