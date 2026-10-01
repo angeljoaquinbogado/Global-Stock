@@ -122,3 +122,28 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+
+/* Cesium is used only as a passive, cinematic authentication background. */
+.cesium-viewer,
+.cesium-viewer-cesiumWidgetContainer,
+.cesium-widget,
+.cesium-widget canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.cesium-viewer {
+  background: #000;
+}
+
+.cesium-viewer-bottom {
+  left: 8px !important;
+  bottom: 6px !important;
+  opacity: 0.68;
+}
+
+.cesium-credit-textContainer,
+.cesium-credit-logoContainer {
+  font-size: 8px !important;
+}
