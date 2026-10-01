@@ -136,7 +136,13 @@ const copy = {
     barcode: "Código",
     available: "disponible",
     missing: "pendiente",
-    connectedAt: "Conexión verificada"
+    connectedAt: "Conexión verificada",
+    syncedProductsTitle: "Productos sincronizados",
+    syncedProductsBody:
+      "Estos son los datos reales recibidos desde la tienda verificada. Los cambios autorizados de stock y precio se sincronizan de vuelta al canal.",
+    noCost: "Costo sin cargar",
+    noSupplier: "Sin proveedor",
+    noBarcode: "Sin código"
   },
   en: {
     eyebrow: "Connected commerce",
@@ -188,7 +194,12 @@ const copy = {
     barcode: "Barcode",
     available: "available",
     missing: "pending",
-    connectedAt: "Connection verified"
+    connectedAt: "Connection verified",
+    syncedProductsTitle: "Synced products",
+    syncedProductsBody: "These are real values returned by the verified store. Authorized stock and price changes sync back to the channel.",
+    noCost: "Cost not recorded",
+    noSupplier: "No supplier",
+    noBarcode: "No barcode"
   },
   pt: {
     eyebrow: "Comércio conectado",
@@ -240,7 +251,12 @@ const copy = {
     barcode: "Código",
     available: "disponível",
     missing: "pendente",
-    connectedAt: "Conexão verificada"
+    connectedAt: "Conexão verificada",
+    syncedProductsTitle: "Produtos sincronizados",
+    syncedProductsBody: "Estes são dados reais recebidos da loja verificada. Alterações autorizadas de estoque e preço são sincronizadas de volta.",
+    noCost: "Custo não informado",
+    noSupplier: "Sem fornecedor",
+    noBarcode: "Sem código"
   },
   fr: {
     eyebrow: "Commerce connecté",
@@ -292,7 +308,12 @@ const copy = {
     barcode: "Code",
     available: "disponible",
     missing: "en attente",
-    connectedAt: "Connexion vérifiée"
+    connectedAt: "Connexion vérifiée",
+    syncedProductsTitle: "Produits synchronisés",
+    syncedProductsBody: "Ces données proviennent réellement de la boutique vérifiée. Les modifications autorisées de stock et de prix sont renvoyées au canal.",
+    noCost: "Coût non renseigné",
+    noSupplier: "Sans fournisseur",
+    noBarcode: "Sans code"
   },
   de: {
     eyebrow: "Vernetzter Handel",
@@ -344,7 +365,12 @@ const copy = {
     barcode: "Barcode",
     available: "vorhanden",
     missing: "ausstehend",
-    connectedAt: "Verbindung verifiziert"
+    connectedAt: "Verbindung verifiziert",
+    syncedProductsTitle: "Synchronisierte Produkte",
+    syncedProductsBody: "Diese Werte stammen aus dem verifizierten Shop. Autorisierte Bestands- und Preisänderungen werden zurück synchronisiert.",
+    noCost: "Kosten nicht erfasst",
+    noSupplier: "Kein Lieferant",
+    noBarcode: "Kein Barcode"
   }
 } satisfies Record<LanguageCode, Record<string, string>>;
 
@@ -371,6 +397,7 @@ export function ConnectedCommerceHub({
   const [syncing, setSyncing] = useState(false);
   const [syncedCount, setSyncedCount] = useState<number | null>(null);
   const [missingCostCount, setMissingCostCount] = useState(0);
+  const [catalogProducts, setCatalogProducts] = useState<ConnectedProduct[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -530,6 +557,7 @@ export function ConnectedCommerceHub({
 
       const catalog = payload as ConnectedCatalogPayload;
       onCatalogSync(currentStore, catalog);
+      setCatalogProducts(catalog.products);
       setSyncedCount(catalog.products.length);
       setMissingCostCount(
         catalog.products.filter(
@@ -559,6 +587,7 @@ export function ConnectedCommerceHub({
       setScopes([]);
       setSyncedCount(null);
       setMissingCostCount(0);
+      setCatalogProducts([]);
       setToken("");
       setMessage("");
       setError("");
@@ -831,6 +860,75 @@ export function ConnectedCommerceHub({
                 </p>
               )}
             </div>
+          </div>
+        </section>
+      )}
+
+      {store && catalogProducts.length > 0 && (
+        <section className="apex-card overflow-hidden">
+          <div className="border-b border-[var(--apex-border)] p-5 sm:p-6">
+            <h3 className="text-sm font-semibold">{t.syncedProductsTitle}</h3>
+            <p className="mt-1 max-w-3xl text-xs leading-5 text-[var(--apex-muted)]">
+              {t.syncedProductsBody}
+            </p>
+          </div>
+
+          <div className="divide-y divide-[var(--apex-border)]">
+            {catalogProducts.slice(0, 24).map((product) => (
+              <article
+                key={product.externalId}
+                className="grid gap-3 p-4 sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:items-center sm:px-6"
+              >
+                <div className="h-14 w-14 overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)]">
+                  {product.image ? (
+                    <img
+                      src={product.image}
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      referrerPolicy="no-referrer"
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="grid h-full w-full place-items-center text-[#8F0000]">
+                      <PackageCheck size={18} />
+                    </span>
+                  )}
+                </div>
+
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-semibold">{product.name}</p>
+                  <p className="mt-1 truncate text-[10px] text-[var(--apex-muted)]">
+                    {product.supplier || t.noSupplier} · {product.barcode || t.noBarcode}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 sm:justify-end">
+                  <span className="rounded-full border border-[var(--apex-border)] px-2.5 py-1.5 text-[10px] font-semibold">
+                    {t.stock}: {product.stock}
+                  </span>
+                  <span className="rounded-full border border-[var(--apex-border)] px-2.5 py-1.5 text-[10px] font-semibold">
+                    {new Intl.NumberFormat(locale, {
+                      style: "currency",
+                      currency: store.currency || "ARS",
+                      maximumFractionDigits: 2
+                    }).format(Number(product.price) || 0)}
+                  </span>
+                </div>
+
+                {product.cost === null && (
+                  <p className="text-[10px] font-semibold text-amber-600 sm:col-start-2 sm:col-span-2">
+                    {t.noCost}
+                  </p>
+                )}
+              </article>
+            ))}
+
+            {catalogProducts.length > 24 && (
+              <div className="px-6 py-4 text-center text-[10px] text-[var(--apex-muted)]">
+                +{catalogProducts.length - 24} {t.products}
+              </div>
+            )}
           </div>
         </section>
       )}
