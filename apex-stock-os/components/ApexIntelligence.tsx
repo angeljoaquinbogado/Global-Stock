@@ -31,7 +31,7 @@ type ApexIntelligenceProps = {
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
 type AiStatus = "checking" | "ready" | "offline";
 
-const spring = { type: "spring", stiffness: 300, damping: 30 } as const;
+const spring = { type: "spring", bounce: 0, duration: 0.36 } as const;
 
 const uiCopy: Record<
   UiLanguage,
@@ -259,15 +259,21 @@ export function ApexIntelligence({
     viewport?.addEventListener("scroll", updateViewport);
     window.addEventListener("resize", updateViewport);
 
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onEscape);
+
     const timer = window.setTimeout(() => {
       if (window.innerWidth >= 640) inputRef.current?.focus();
-    }, 220);
+    }, 120);
 
     return () => {
       window.clearTimeout(timer);
       viewport?.removeEventListener("resize", updateViewport);
       viewport?.removeEventListener("scroll", updateViewport);
       window.removeEventListener("resize", updateViewport);
+      window.removeEventListener("keydown", onEscape);
       document.body.style.overflow = previousOverflow;
     };
   }, [open]);
@@ -420,12 +426,12 @@ export function ApexIntelligence({
           }}
         >
           <motion.section
-            initial={{ y: "100%", opacity: 0.7 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "100%", opacity: 0.7 }}
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
             transition={spring}
             style={panelStyle}
-            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-2xl"
+            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] will-change-transform sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-xl"
           >
             <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
