@@ -48,6 +48,9 @@ export function PublicFooter() {
             Plataforma para stock, punto de venta, ecommerce, reposición,
             proveedores, códigos de barras e inteligencia operativa.
           </p>
+          <p className="mt-3 text-xs text-white/38">
+            Operado por Angel Joaquin Bogado · Provincia de Buenos Aires, Argentina.
+          </p>
         </div>
 
         <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
@@ -68,6 +71,9 @@ export function PublicFooter() {
           </Link>
           <Link href="/download" className="hover:text-white">
             Descargas
+          </Link>
+          <Link href="/support" className="hover:text-white">
+            Soporte
           </Link>
         </div>
       </div>
