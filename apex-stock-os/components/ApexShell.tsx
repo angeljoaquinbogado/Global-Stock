@@ -1,5 +1,6 @@
 "use client";
 
+import { MotionConfig } from "framer-motion";
 import { useEffect, useState } from "react";
 
 import {
@@ -148,37 +149,43 @@ export function ApexShell() {
 
   if (!ready) {
     return (
-      <div className="grid min-h-screen place-items-center bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#8F0000]" />
-      </div>
+      <MotionConfig reducedMotion="user">
+        <div className="grid min-h-[100dvh] place-items-center bg-black">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#8F0000]" />
+        </div>
+      </MotionConfig>
     );
   }
 
   if (!authenticated) {
     return (
-      <AuthScreen
-        dark={dark}
-        language={language}
-        currency={currency}
-        onToggleTheme={() => setDark((value) => !value)}
-        onLanguageChange={setLanguage}
-        onCurrencyChange={setCurrency}
-        onAuthenticated={handleAuthenticated}
-      />
+      <MotionConfig reducedMotion="user">
+        <AuthScreen
+          dark={dark}
+          language={language}
+          currency={currency}
+          onToggleTheme={() => setDark((value) => !value)}
+          onLanguageChange={setLanguage}
+          onCurrencyChange={setCurrency}
+          onAuthenticated={handleAuthenticated}
+        />
+      </MotionConfig>
     );
   }
 
   return (
-    <BusinessWorkspace
-      dark={dark}
-      language={language}
-      currency={currency}
-      onLanguageChange={setLanguage}
-      onCurrencyChange={setCurrency}
-      onToggleTheme={() => setDark((value) => !value)}
-      onSignOut={() => {
-        void handleSignOut();
-      }}
-    />
+    <MotionConfig reducedMotion="user">
+      <BusinessWorkspace
+        dark={dark}
+        language={language}
+        currency={currency}
+        onLanguageChange={setLanguage}
+        onCurrencyChange={setCurrency}
+        onToggleTheme={() => setDark((value) => !value)}
+        onSignOut={() => {
+          void handleSignOut();
+        }}
+      />
+    </MotionConfig>
   );
 }
