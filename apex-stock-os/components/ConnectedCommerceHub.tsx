@@ -76,6 +76,14 @@ type PublicPreview = {
   publicDataOnly: boolean;
 };
 
+type IntegrationReadiness = {
+  shopify: boolean;
+  tiendanube: boolean;
+  mercadolibre: boolean;
+  woocommerce: boolean;
+  custom: boolean;
+};
+
 type Props = {
   language: LanguageCode;
   locale: string;
@@ -383,42 +391,47 @@ function normalizeUrl(value: string) {
 
 const providerMethods: Record<
   LanguageCode,
-  Array<{ name: string; auth: string; detail: string }>
+  Array<{
+    id: keyof IntegrationReadiness;
+    name: string;
+    auth: string;
+    detail: string;
+  }>
 > = {
   es: [
-    { name: "Shopify", auth: "OAuth", detail: "Productos, variantes, stock, pedidos y webhooks con autorización del administrador." },
-    { name: "Tiendanube", auth: "OAuth", detail: "Catálogo, stock, clientes y pedidos mediante una aplicación autorizada." },
-    { name: "WooCommerce", auth: "REST API", detail: "Productos, stock y pedidos usando credenciales generadas por el dueño de la tienda." },
-    { name: "Mercado Libre", auth: "OAuth", detail: "Publicaciones, inventario, órdenes y envíos con permisos de la cuenta." },
-    { name: "API propia", auth: "Token", detail: "Conector Global Stock para sitios propios como Dorado, con token revocable y permisos por alcance." }
+    { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Productos, variantes, stock, pedidos y webhooks con autorización del administrador." },
+    { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, stock, clientes y pedidos mediante una aplicación autorizada." },
+    { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Productos, stock y pedidos usando credenciales generadas por el dueño de la tienda." },
+    { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Publicaciones, inventario, órdenes y envíos con permisos de la cuenta." },
+    { id: "custom", name: "API propia", auth: "Token", detail: "Conector Global Stock para sitios propios como Dorado, con token revocable y permisos por alcance." }
   ],
   en: [
-    { name: "Shopify", auth: "OAuth", detail: "Products, variants, inventory, orders and webhooks with admin authorization." },
-    { name: "Tiendanube", auth: "OAuth", detail: "Catalog, inventory, customers and orders through an authorized app." },
-    { name: "WooCommerce", auth: "REST API", detail: "Products, inventory and orders using credentials issued by the store owner." },
-    { name: "Mercado Libre", auth: "OAuth", detail: "Listings, inventory, orders and shipping with account permissions." },
-    { name: "Custom API", auth: "Token", detail: "Global Stock connector for custom stores such as Dorado, with revocable scoped tokens." }
+    { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Products, variants, inventory, orders and webhooks with admin authorization." },
+    { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalog, inventory, customers and orders through an authorized app." },
+    { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Products, inventory and orders using credentials issued by the store owner." },
+    { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Listings, inventory, orders and shipping with account permissions." },
+    { id: "custom", name: "Custom API", auth: "Token", detail: "Global Stock connector for custom stores such as Dorado, with revocable scoped tokens." }
   ],
   pt: [
-    { name: "Shopify", auth: "OAuth", detail: "Produtos, variantes, estoque, pedidos e webhooks com autorização do administrador." },
-    { name: "Tiendanube", auth: "OAuth", detail: "Catálogo, estoque, clientes e pedidos por aplicativo autorizado." },
-    { name: "WooCommerce", auth: "REST API", detail: "Produtos, estoque e pedidos com credenciais emitidas pelo dono da loja." },
-    { name: "Mercado Libre", auth: "OAuth", detail: "Anúncios, estoque, pedidos e envios com permissões da conta." },
-    { name: "API própria", auth: "Token", detail: "Conector Global Stock para lojas próprias como Dorado, com token revogável." }
+    { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produtos, variantes, estoque, pedidos e webhooks com autorização do administrador." },
+    { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, estoque, clientes e pedidos por aplicativo autorizado." },
+    { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produtos, estoque e pedidos com credenciais emitidas pelo dono da loja." },
+    { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Anúncios, estoque, pedidos e envios com permissões da conta." },
+    { id: "custom", name: "API própria", auth: "Token", detail: "Conector Global Stock para lojas próprias como Dorado, com token revogável." }
   ],
   fr: [
-    { name: "Shopify", auth: "OAuth", detail: "Produits, variantes, stock, commandes et webhooks avec autorisation administrateur." },
-    { name: "Tiendanube", auth: "OAuth", detail: "Catalogue, stock, clients et commandes via une application autorisée." },
-    { name: "WooCommerce", auth: "REST API", detail: "Produits, stock et commandes avec des identifiants émis par le propriétaire." },
-    { name: "Mercado Libre", auth: "OAuth", detail: "Annonces, stock, commandes et expéditions avec les permissions du compte." },
-    { name: "API personnalisée", auth: "Token", detail: "Connecteur Global Stock pour boutiques propriétaires comme Dorado, avec jeton révocable." }
+    { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produits, variantes, stock, commandes et webhooks avec autorisation administrateur." },
+    { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalogue, stock, clients et commandes via une application autorisée." },
+    { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produits, stock et commandes avec des identifiants émis par le propriétaire." },
+    { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Annonces, stock, commandes et expéditions avec les permissions du compte." },
+    { id: "custom", name: "API personnalisée", auth: "Token", detail: "Connecteur Global Stock pour boutiques propriétaires comme Dorado, avec jeton révocable." }
   ],
   de: [
-    { name: "Shopify", auth: "OAuth", detail: "Produkte, Varianten, Bestand, Bestellungen und Webhooks mit Admin-Autorisierung." },
-    { name: "Tiendanube", auth: "OAuth", detail: "Katalog, Bestand, Kunden und Bestellungen über eine autorisierte App." },
-    { name: "WooCommerce", auth: "REST API", detail: "Produkte, Bestand und Bestellungen mit vom Shopinhaber erstellten Zugangsdaten." },
-    { name: "Mercado Libre", auth: "OAuth", detail: "Angebote, Bestand, Bestellungen und Versand mit Kontoberechtigungen." },
-    { name: "Eigene API", auth: "Token", detail: "Global-Stock-Connector für eigene Shops wie Dorado mit widerrufbaren Tokens." }
+    { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produkte, Varianten, Bestand, Bestellungen und Webhooks mit Admin-Autorisierung." },
+    { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Katalog, Bestand, Kunden und Bestellungen über eine autorisierte App." },
+    { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produkte, Bestand und Bestellungen mit vom Shopinhaber erstellten Zugangsdaten." },
+    { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Angebote, Bestand, Bestellungen und Versand mit Kontoberechtigungen." },
+    { id: "custom", name: "Eigene API", auth: "Token", detail: "Global-Stock-Connector für eigene Shops wie Dorado mit widerrufbaren Tokens." }
   ]
 };
 
@@ -441,6 +454,7 @@ export function ConnectedCommerceHub({
   const [catalogProducts, setCatalogProducts] = useState<ConnectedProduct[]>([]);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const [readiness, setReadiness] = useState<IntegrationReadiness | null>(null);
 
   const adminUrl = useMemo(() => {
     const value = store?.url || preview?.url || url;
@@ -450,6 +464,23 @@ export function ConnectedCommerceHub({
       return "";
     }
   }, [preview?.url, store?.url, url]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetch("/api/integrations/status", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (!cancelled && payload) {
+          setReadiness(payload as IntegrationReadiness);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -653,22 +684,56 @@ export function ConnectedCommerceHub({
         </div>
 
         <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
-          {providerMethods[language].map((provider) => (
-            <article
-              key={provider.name}
-              className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-semibold">{provider.name}</p>
-                <span className="rounded-full border border-[var(--apex-border)] px-2 py-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
-                  {provider.auth}
-                </span>
-              </div>
-              <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
-                {provider.detail}
-              </p>
-            </article>
-          ))}
+          {providerMethods[language].map((provider) => {
+            const ready = readiness?.[provider.id] ?? false;
+
+            return (
+              <article
+                key={provider.name}
+                className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4"
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">{provider.name}</p>
+                    <p className="mt-1 text-[9px] font-bold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+                      {provider.auth}
+                    </p>
+                  </div>
+                  <span
+                    className={
+                      "rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] " +
+                      (ready
+                        ? "border-emerald-500/25 bg-emerald-500/8 text-emerald-500"
+                        : "border-amber-500/20 bg-amber-500/8 text-amber-500")
+                    }
+                  >
+                    {ready
+                      ? language === "es"
+                        ? "Listo"
+                        : language === "pt"
+                          ? "Pronto"
+                          : language === "fr"
+                            ? "Prêt"
+                            : language === "de"
+                              ? "Bereit"
+                              : "Ready"
+                      : language === "es"
+                        ? "Falta configurar"
+                        : language === "pt"
+                          ? "Configurar"
+                          : language === "fr"
+                            ? "À configurer"
+                            : language === "de"
+                              ? "Konfigurieren"
+                              : "Needs setup"}
+                  </span>
+                </div>
+                <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
+                  {provider.detail}
+                </p>
+              </article>
+            );
+          })}
         </div>
       </section>
       <section>
