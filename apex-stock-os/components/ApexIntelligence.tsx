@@ -20,7 +20,7 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 
-import { calculateMetrics } from "@/lib/analytics";
+import { calculateMetrics, formatMoney } from "@/lib/analytics";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 
@@ -31,7 +31,7 @@ type ApexIntelligenceProps = {
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
-type AiStatus = "checking" | "ready" | "offline";
+type AiStatus = "checking" | "ready" | "local" | "offline";
 
 const spring = { type: "spring", bounce: 0, duration: 0.36 } as const;
 
@@ -179,6 +179,169 @@ function languageFromLocale(locale: string): UiLanguage {
   return "es";
 }
 
+const localStatusCopy: Record<UiLanguage, string> = {
+  es: "Análisis local activo",
+  en: "Local analysis active",
+  pt: "Análise local ativa",
+  fr: "Analyse locale active",
+  de: "Lokale Analyse aktiv"
+};
+
+function normalizeIntent(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9%]+/g, " ")
+    .trim();
+}
+
+function localBusinessAnswer({
+  message,
+  snapshot,
+  now
+}: {
+  message: string;
+  snapshot: BusinessSnapshot;
+  now: Date;
+}) {
+  const language = languageFromLocale(snapshot.locale);
+  const text = normalizeIntent(message);
+  const metrics = calculateMetrics(snapshot);
+  const money = (value: number) =>
+    formatMoney(value, snapshot.currency, snapshot.locale);
+
+  const wantsDate =
+    /\b(hoy|dia|fecha|today|date|hoje|jour|date|heute|datum)\b/.test(text);
+  const wantsProfit =
+    /\b(gane|ganancia|ganancias|beneficio|beneficios|profit|profits|lucro|ganho|ganhei|benefice|gewinn|verdient)\b/.test(text);
+  const wantsRevenue =
+    /\b(ingreso|ingresos|ventas|facturacion|revenue|sales|receita|vendas|chiffre|umsatz)\b/.test(text);
+  const wantsMargin =
+    /\b(margen|margin|margem|marge)\b/.test(text);
+  const wantsStock =
+    /\b(stock|inventario|inventory|estoque|bestand)\b/.test(text);
+  const wantsUnits =
+    /\b(unidades|units|unitades|unidades|einheiten)\b/.test(text);
+  const wantsBest =
+    /\b(mejor|best|melhor|meilleur|beste)\b/.test(text);
+  const wantsWorst =
+    /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text);
+
+  const weekdayKey = normalizeIntent(
+    new Intl.DateTimeFormat(snapshot.locale, {
+      weekday: "short"
+    }).format(now)
+  ).slice(0, 3);
+
+  const todayPoint = snapshot.trend.find(
+    (point) => normalizeIntent(point.label).slice(0, 3) === weekdayKey
+  );
+
+  const formattedDate = new Intl.DateTimeFormat(snapshot.locale, {
+    dateStyle: "full"
+  }).format(now);
+
+  if (wantsDate && wantsProfit) {
+    if (todayPoint) {
+      const profit =
+        Number.isFinite(todayPoint.profit)
+          ? todayPoint.profit
+          : todayPoint.revenue - todayPoint.cost;
+
+      const answers: Record<UiLanguage, string> = {
+        es: `Hoy es ${formattedDate}. La ganancia bruta registrada para hoy es ${money(profit)} (ingresos ${money(todayPoint.revenue)} menos costos ${money(todayPoint.cost)}).`,
+        en: `Today is ${formattedDate}. Recorded gross profit for today is ${money(profit)} (revenue ${money(todayPoint.revenue)} minus costs ${money(todayPoint.cost)}).`,
+        pt: `Hoje é ${formattedDate}. O lucro bruto registrado hoje é ${money(profit)} (receita ${money(todayPoint.revenue)} menos custos ${money(todayPoint.cost)}).`,
+        fr: `Nous sommes le ${formattedDate}. Le bénéfice brut enregistré aujourd’hui est de ${money(profit)} (revenus ${money(todayPoint.revenue)} moins coûts ${money(todayPoint.cost)}).`,
+        de: `Heute ist ${formattedDate}. Der erfasste Bruttogewinn für heute beträgt ${money(profit)} (Umsatz ${money(todayPoint.revenue)} minus Kosten ${money(todayPoint.cost)}).`
+      };
+      return answers[language];
+    }
+
+    const answers: Record<UiLanguage, string> = {
+      es: `Hoy es ${formattedDate}. Todavía no hay un punto de ventas identificado para hoy en los datos cargados, así que no voy a inventar una ganancia diaria.`,
+      en: `Today is ${formattedDate}. There is no sales point identified for today in the loaded data yet, so I will not invent a daily profit figure.`,
+      pt: `Hoje é ${formattedDate}. Ainda não há um ponto de vendas identificado para hoje nos dados carregados, então não vou inventar um lucro diário.`,
+      fr: `Nous sommes le ${formattedDate}. Aucune donnée de vente n’est identifiée pour aujourd’hui dans les données chargées, donc je n’inventerai pas de bénéfice quotidien.`,
+      de: `Heute ist ${formattedDate}. Für heute ist in den geladenen Daten noch kein Verkaufspunkt vorhanden, daher erfinde ich keinen Tagesgewinn.`
+    };
+    return answers[language];
+  }
+
+  if (wantsDate) {
+    const answers: Record<UiLanguage, string> = {
+      es: `Hoy es ${formattedDate}.`,
+      en: `Today is ${formattedDate}.`,
+      pt: `Hoje é ${formattedDate}.`,
+      fr: `Nous sommes le ${formattedDate}.`,
+      de: `Heute ist ${formattedDate}.`
+    };
+    return answers[language];
+  }
+
+  if (wantsProfit) {
+    const answers: Record<UiLanguage, string> = {
+      es: `La ganancia bruta acumulada en el período cargado es ${money(metrics.grossProfit)}. No la llamo ganancia neta porque Global Stock no tiene todos los gastos del negocio cargados.`,
+      en: `Gross profit for the loaded period is ${money(metrics.grossProfit)}. I am not calling it net profit because Global Stock does not have every business expense recorded.`,
+      pt: `O lucro bruto acumulado no período carregado é ${money(metrics.grossProfit)}. Não é lucro líquido porque o Global Stock não tem todas as despesas do negócio registradas.`,
+      fr: `Le bénéfice brut cumulé sur la période chargée est de ${money(metrics.grossProfit)}. Ce n’est pas un bénéfice net, car toutes les dépenses ne sont pas enregistrées.`,
+      de: `Der Bruttogewinn im geladenen Zeitraum beträgt ${money(metrics.grossProfit)}. Das ist kein Nettogewinn, da nicht alle Betriebsausgaben erfasst sind.`
+    };
+    return answers[language];
+  }
+
+  if (wantsRevenue) {
+    const answers: Record<UiLanguage, string> = {
+      es: `Los ingresos acumulados del período cargado son ${money(metrics.revenue)}.`,
+      en: `Revenue for the loaded period is ${money(metrics.revenue)}.`,
+      pt: `A receita acumulada do período carregado é ${money(metrics.revenue)}.`,
+      fr: `Le chiffre d’affaires cumulé sur la période chargée est de ${money(metrics.revenue)}.`,
+      de: `Der Umsatz im geladenen Zeitraum beträgt ${money(metrics.revenue)}.`
+    };
+    return answers[language];
+  }
+
+  if (wantsMargin) {
+    const answers: Record<UiLanguage, string> = {
+      es: `El margen bruto promedio del período cargado es ${metrics.marginPct.toFixed(1)}%.`,
+      en: `Gross margin for the loaded period is ${metrics.marginPct.toFixed(1)}%.`,
+      pt: `A margem bruta do período carregado é ${metrics.marginPct.toFixed(1)}%.`,
+      fr: `La marge brute sur la période chargée est de ${metrics.marginPct.toFixed(1)}%.`,
+      de: `Die Bruttomarge im geladenen Zeitraum beträgt ${metrics.marginPct.toFixed(1)}%.`
+    };
+    return answers[language];
+  }
+
+  if (wantsStock || wantsUnits) {
+    const alerts = metrics.lowStockCount + metrics.outOfStockCount;
+    const answers: Record<UiLanguage, string> = {
+      es: `Tenés ${metrics.inventoryUnits} unidades en inventario y ${alerts} alertas de stock (${metrics.lowStockCount} con stock bajo y ${metrics.outOfStockCount} sin stock).`,
+      en: `You have ${metrics.inventoryUnits} inventory units and ${alerts} stock alerts (${metrics.lowStockCount} low-stock and ${metrics.outOfStockCount} out-of-stock).`,
+      pt: `Você tem ${metrics.inventoryUnits} unidades em estoque e ${alerts} alertas (${metrics.lowStockCount} com estoque baixo e ${metrics.outOfStockCount} sem estoque).`,
+      fr: `Vous avez ${metrics.inventoryUnits} unités en stock et ${alerts} alertes (${metrics.lowStockCount} en stock faible et ${metrics.outOfStockCount} en rupture).`,
+      de: `Du hast ${metrics.inventoryUnits} Einheiten im Bestand und ${alerts} Warnungen (${metrics.lowStockCount} niedrig, ${metrics.outOfStockCount} ausverkauft).`
+    };
+    return answers[language];
+  }
+
+  if ((wantsBest || wantsWorst) && snapshot.trend.length) {
+    const point = [...snapshot.trend].sort((a, b) =>
+      wantsWorst ? a.profit - b.profit : b.profit - a.profit
+    )[0];
+    const answers: Record<UiLanguage, string> = {
+      es: `El ${wantsWorst ? "día más débil" : "mejor día"} del período cargado es ${point.label}, con ${money(point.profit)} de ganancia bruta.`,
+      en: `The ${wantsWorst ? "weakest" : "best"} day in the loaded period is ${point.label}, with ${money(point.profit)} in gross profit.`,
+      pt: `O ${wantsWorst ? "dia mais fraco" : "melhor dia"} do período carregado é ${point.label}, com ${money(point.profit)} de lucro bruto.`,
+      fr: `Le ${wantsWorst ? "jour le plus faible" : "meilleur jour"} de la période chargée est ${point.label}, avec ${money(point.profit)} de bénéfice brut.`,
+      de: `Der ${wantsWorst ? "schwächste" : "beste"} Tag im geladenen Zeitraum ist ${point.label} mit ${money(point.profit)} Bruttogewinn.`
+    };
+    return answers[language];
+  }
+
+  return null;
+}
+
 export function ApexIntelligence({
   snapshot,
   appContext = {},
@@ -223,7 +386,7 @@ export function ApexIntelligence({
         });
         const payload = (await response.json()) as { configured?: boolean };
         if (!cancelled) {
-          setStatus(payload.configured ? "ready" : "offline");
+          setStatus(payload.configured ? "ready" : "local");
         }
       } catch {
         if (!cancelled) setStatus("offline");
@@ -375,18 +538,28 @@ export function ApexIntelligence({
 
       let content = payload.answer;
 
-      if (!content && payload.code === "AI_NOT_CONNECTED") {
-        setStatus("offline");
-        content = copy.disconnected;
-      }
-
       if (
         !content &&
-        (payload.code === "AUTH_REQUIRED" ||
+        (payload.code === "AI_NOT_CONNECTED" ||
+          payload.code === "AUTH_REQUIRED" ||
           payload.code === "AUTH_NOT_CONFIGURED")
       ) {
-        setStatus("offline");
-        content = authErrorCopy[language];
+        const localAnswer = localBusinessAnswer({
+          message: text,
+          snapshot,
+          now
+        });
+
+        if (localAnswer) {
+          setStatus("local");
+          content = localAnswer;
+        } else if (payload.code === "AI_NOT_CONNECTED") {
+          setStatus("local");
+          content = copy.disconnected;
+        } else {
+          setStatus("local");
+          content = authErrorCopy[language];
+        }
       }
 
       if (!content && payload.code === "AI_PROVIDER_ERROR") {
@@ -407,12 +580,18 @@ export function ApexIntelligence({
         }
       ]);
     } catch {
+      const localAnswer = localBusinessAnswer({
+        message: text,
+        snapshot,
+        now: new Date()
+      });
+      setStatus(localAnswer ? "local" : "offline");
       setMessages((current) => [
         ...current,
         {
           id: crypto.randomUUID(),
           role: "assistant",
-          content: copy.providerError
+          content: localAnswer || copy.providerError
         }
       ]);
     } finally {
@@ -481,14 +660,20 @@ export function ApexIntelligence({
                         "h-2 w-2 shrink-0 rounded-full " +
                         (status === "ready"
                           ? "bg-emerald-500"
-                          : status === "checking"
+                          : status === "local" || status === "checking"
                             ? "bg-amber-500"
                             : "bg-red-500")
                       }
                     />
                   </div>
                   <p className="mt-0.5 truncate text-[10px] font-medium text-[var(--apex-muted)]">
-                    {status === "ready" ? copy.online : status === "offline" ? copy.offline : copy.subtitle}
+                    {status === "ready"
+                      ? copy.online
+                      : status === "local"
+                        ? localStatusCopy[language]
+                        : status === "offline"
+                          ? copy.offline
+                          : copy.subtitle}
                   </p>
                 </div>
               </div>
