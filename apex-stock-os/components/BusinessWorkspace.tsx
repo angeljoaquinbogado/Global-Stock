@@ -1483,7 +1483,7 @@ export function BusinessWorkspace({
 
       <section className="min-w-0 pb-28 lg:pb-0">
         <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-2xl">
-          <div className="flex items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:px-8">
             <div className="lg:hidden">
               <Logo withWordmark />
             </div>
@@ -1813,7 +1813,7 @@ export function BusinessWorkspace({
       <div
         className={
           scannerOpen
-            ? "fixed inset-0 z-[130] overflow-y-auto bg-[var(--apex-bg)] p-3 pb-24 sm:p-6"
+            ? "fixed inset-0 z-[130] overflow-y-auto bg-[var(--apex-bg)] px-3 pb-[max(24px,env(safe-area-inset-bottom))] pt-[max(12px,env(safe-area-inset-top))] sm:p-6"
             : "hidden"
         }
       >
