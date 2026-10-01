@@ -107,9 +107,9 @@ export function AuthScene() {
         );
         viewerRef.current = viewer;
 
-        viewer.targetFrameRate = mobile ? 45 : 60;
+        viewer.targetFrameRate = 60;
         viewer.resolutionScale = mobile
-          ? Math.min(window.devicePixelRatio || 1, 0.9)
+          ? Math.min(window.devicePixelRatio || 1, 0.78)
           : Math.min(window.devicePixelRatio || 1, 1.15);
 
         viewer.scene.backgroundColor = Cesium.Color.BLACK;
@@ -120,7 +120,7 @@ export function AuthScene() {
         viewer.scene.globe.enableLighting = true;
         viewer.scene.globe.showGroundAtmosphere = true;
         viewer.scene.globe.depthTestAgainstTerrain = false;
-        viewer.scene.globe.maximumScreenSpaceError = mobile ? 3.1 : 1.8;
+        viewer.scene.globe.maximumScreenSpaceError = mobile ? 3.8 : 1.8;
         viewer.scene.fog.enabled = false;
         viewer.scene.requestRenderMode = false;
         viewer.scene.highDynamicRange = !mobile;
