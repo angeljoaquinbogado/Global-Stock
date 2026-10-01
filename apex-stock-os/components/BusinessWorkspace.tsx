@@ -63,10 +63,12 @@ import { FxCenter } from "./FxCenter";
 import { PremiumCharts } from "./PremiumCharts";
 import { NotesHub } from "./NotesHub";
 import { SupplierDirectory } from "./SupplierDirectory";
+import { DocumentsHub } from "./BusinessOperations";
 import {
-  DocumentsHub,
-  OnlineCommerceHub
-} from "./BusinessOperations";
+  ConnectedCommerceHub,
+  type ConnectedCatalogPayload,
+  type ConnectedStore
+} from "./ConnectedCommerceHub";
 
 type ModuleId =
   | "overview"
@@ -897,6 +899,7 @@ export function BusinessWorkspace({
   const [moreOpen, setMoreOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
+  const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
   const [notes, setNotes] = useState<BusinessNote[]>([]);
   const [selectedDate, setSelectedDate] = useState(localDateKey(new Date()));
@@ -1279,6 +1282,148 @@ export function BusinessWorkspace({
     ].slice(0, 200));
   }
 
+  function connectedSyncErrorText() {
+    return language === "es"
+      ? "El cambio quedó en Global Stock, pero no pudo sincronizarse con la tienda online. Revisá la conexión."
+      : language === "pt"
+        ? "A alteração ficou no Global Stock, mas não pôde ser sincronizada com a loja online."
+        : language === "fr"
+          ? "La modification est enregistrée dans Global Stock mais n’a pas pu être synchronisée avec la boutique."
+          : language === "de"
+            ? "Die Änderung wurde in Global Stock gespeichert, konnte aber nicht mit dem Shop synchronisiert werden."
+            : "The change is saved in Global Stock but could not be synchronized with the online store.";
+  }
+
+  async function writeConnectedProduct(
+    product: Product,
+    patch: Record<string, unknown>
+  ) {
+    if (
+      product.source !== "connected" ||
+      !product.externalId
+    ) {
+      return true;
+    }
+
+    try {
+      const response = await fetch("/api/store-connector/product", {
+        method: "PATCH",
+        cache: "no-store",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          externalId: product.externalId,
+          ...patch
+        })
+      });
+
+      if (!response.ok) throw new Error("remote write failed");
+      return true;
+    } catch {
+      setNotice(connectedSyncErrorText());
+      window.setTimeout(() => setNotice(""), 4200);
+      return false;
+    }
+  }
+
+  function scheduleConnectedWrite(
+    product: Product,
+    patch: Record<string, unknown>
+  ) {
+    if (
+      product.source !== "connected" ||
+      !product.externalId
+    ) {
+      return;
+    }
+
+    const key = product.id;
+    const existing = remoteWriteTimersRef.current.get(key);
+    if (existing) window.clearTimeout(existing);
+
+    const timer = window.setTimeout(() => {
+      remoteWriteTimersRef.current.delete(key);
+      void writeConnectedProduct(product, patch);
+    }, 420);
+
+    remoteWriteTimersRef.current.set(key, timer);
+  }
+
+  function importConnectedCatalog(
+    store: ConnectedStore,
+    catalog: ConnectedCatalogPayload
+  ) {
+    const mapped: Product[] = catalog.products.map((product) => {
+      const costKnown =
+        product.cost !== null &&
+        Number.isFinite(Number(product.cost));
+
+      return {
+        id: `connected:${store.id}:${product.externalId}`,
+        externalId: product.externalId,
+        sourceStoreId: store.id,
+        sourceStoreUrl: store.url,
+        source: "connected",
+        barcode: product.barcode?.trim() ?? "",
+        name: product.name,
+        description: product.description ?? "",
+        category: product.category?.trim() ?? "",
+        brand: product.brand?.trim() ?? "",
+        supplier: product.supplier?.trim() ?? "",
+        stock: Math.max(0, Number(product.stock) || 0),
+        minStock: Math.max(0, Number(product.minStock) || 0),
+        cost: costKnown ? Math.max(0, Number(product.cost)) : 0,
+        costKnown,
+        price: Math.max(0, Number(product.price) || 0),
+        originalPrice: Number.isFinite(Number(product.originalPrice))
+          ? Math.max(0, Number(product.originalPrice))
+          : undefined,
+        discountPercent: Number.isFinite(Number(product.discountPercent))
+          ? Math.max(0, Number(product.discountPercent))
+          : undefined,
+        sold30d: Math.max(0, Number(product.sold30d) || 0),
+        image: product.image ?? "",
+        images: Array.isArray(product.images) ? product.images : [],
+        active: product.active !== false,
+        updatedAt: product.updatedAt ?? null
+      };
+    });
+
+    setProducts(mapped);
+    setCart({});
+
+    // Demo financial trend must never survive after a real business catalog
+    // is connected. New POS sales build real local activity from zero.
+    setTrend(
+      dayLabels.es.map((label) => ({
+        label,
+        revenue: 0,
+        cost: 0,
+        profit: 0
+      }))
+    );
+
+    if (
+      businessName.trim() === "" ||
+      businessName === "Global Stock Demo"
+    ) {
+      setBusinessName(store.name);
+      localStorage.setItem("global-stock-business-name", store.name);
+    }
+
+    setNotice(
+      language === "es"
+        ? `${mapped.length} productos reales sincronizados desde ${store.name}.`
+        : language === "pt"
+          ? `${mapped.length} produtos reais sincronizados de ${store.name}.`
+          : language === "fr"
+            ? `${mapped.length} produits réels synchronisés depuis ${store.name}.`
+            : language === "de"
+              ? `${mapped.length} echte Produkte aus ${store.name} synchronisiert.`
+              : `${mapped.length} real products synchronized from ${store.name}.`
+    );
+    window.setTimeout(() => setNotice(""), 3200);
+  }
+
   function setQuantity(id: string, quantity: number) {
     const product = products.find((item) => item.id === id);
     if (!product) return;
@@ -1295,6 +1440,11 @@ export function BusinessWorkspace({
   function completeSale() {
     if (!cartLines.length) return;
 
+    const remoteChanges = cartLines.map(({ product, quantity }) => ({
+      product,
+      stock: Math.max(0, product.stock - quantity)
+    }));
+
     setProducts((current) =>
       current.map((product) => {
         const quantity = cart[product.id] ?? 0;
@@ -1306,6 +1456,12 @@ export function BusinessWorkspace({
         };
       })
     );
+
+    for (const change of remoteChanges) {
+      void writeConnectedProduct(change.product, {
+        stock: change.stock
+      });
+    }
 
     const dayIndex = (new Date().getDay() + 6) % 7;
     setTrend((current) =>
@@ -1331,24 +1487,37 @@ export function BusinessWorkspace({
   }
 
   function updateStock(id: string, nextStock: number) {
+    const safeStock = Math.max(0, Math.round(nextStock));
+    const product = products.find((item) => item.id === id);
+
     setProducts((current) =>
-      current.map((product) =>
-        product.id === id
+      current.map((item) =>
+        item.id === id
           ? {
-              ...product,
-              stock: Math.max(0, Math.round(nextStock))
+              ...item,
+              stock: safeStock
             }
-          : product
+          : item
       )
     );
+
+    if (product) {
+      scheduleConnectedWrite(product, { stock: safeStock });
+    }
   }
 
   function updateBarcode(id: string, barcode: string) {
+    const product = products.find((item) => item.id === id);
+
     setProducts((current) =>
-      current.map((product) =>
-        product.id === id ? { ...product, barcode } : product
+      current.map((item) =>
+        item.id === id ? { ...item, barcode } : item
       )
     );
+
+    if (product) {
+      void writeConnectedProduct(product, { barcode });
+    }
     setNotice(
       language === "es"
         ? "Código de barras asignado."
@@ -1382,6 +1551,7 @@ export function BusinessWorkspace({
 
   function receiveRestock(id: string, units: number) {
     const product = products.find((item) => item.id === id);
+    const nextStock = Math.max(0, (product?.stock ?? 0) + units);
 
     setProducts((current) =>
       current.map((item) =>
@@ -1390,6 +1560,10 @@ export function BusinessWorkspace({
           : item
       )
     );
+
+    if (product) {
+      void writeConnectedProduct(product, { stock: nextStock });
+    }
 
     addActivity("restock", {
       product: product?.name,
@@ -1595,10 +1769,10 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "online" && (
-              <OnlineCommerceHub
+              <ConnectedCommerceHub
                 language={language}
-                currency={currency}
                 locale={locale}
+                onCatalogSync={importConnectedCatalog}
               />
             )}
 
