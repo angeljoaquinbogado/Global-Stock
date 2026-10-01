@@ -247,7 +247,11 @@ export function PremiumCharts({
     .sort((a, b) => b.stock - a.stock)
     .slice(0, 12);
 
-  const marginData = products
+  const costedProducts = products.filter(
+    (product) => product.costKnown !== false
+  );
+
+  const marginData = costedProducts
     .map((product) => ({
       name: product.name.split(" ").slice(0, 2).join(" "),
       margin:
@@ -268,7 +272,7 @@ export function PremiumCharts({
     (product) => getStockStatus(product) === "out"
   ).length;
 
-  const inventoryCost = products.reduce(
+  const inventoryCost = costedProducts.reduce(
     (sum, product) => sum + product.stock * product.cost,
     0
   );
@@ -276,20 +280,24 @@ export function PremiumCharts({
     (sum, product) => sum + product.stock * product.price,
     0
   );
-  const potentialGross = retailValue - inventoryCost;
+  const costedRetailValue = costedProducts.reduce(
+    (sum, product) => sum + product.stock * product.price,
+    0
+  );
+  const potentialGross = costedRetailValue - inventoryCost;
   const totalUnits = products.reduce(
     (sum, product) => sum + product.stock,
     0
   );
   const avgMargin =
-    products.length > 0
-      ? products.reduce((sum, product) => {
+    costedProducts.length > 0
+      ? costedProducts.reduce((sum, product) => {
           const margin =
             product.price > 0
               ? ((product.price - product.cost) / product.price) * 100
               : 0;
           return sum + margin;
-        }, 0) / products.length
+        }, 0) / costedProducts.length
       : 0;
 
   const bestDay =
