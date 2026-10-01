@@ -196,6 +196,7 @@ export function ApexIntelligence({
 
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const lastTouchSendRef = useRef(0);
 
   useEffect(() => setMounted(true), []);
 
@@ -536,8 +537,23 @@ export function ApexIntelligence({
                   className="apex-input max-h-28 min-h-12 flex-1 resize-none px-4 py-3 text-[16px] sm:text-sm"
                 />
                 <button
-                  type="submit"
+                  type="button"
                   disabled={!input.trim() || pending}
+                  onPointerUp={(event) => {
+                    if (event.pointerType !== "touch") return;
+                    event.preventDefault();
+                    lastTouchSendRef.current = performance.now();
+                    void ask(input);
+                  }}
+                  onClick={() => {
+                    if (
+                      performance.now() - lastTouchSendRef.current <
+                      700
+                    ) {
+                      return;
+                    }
+                    void ask(input);
+                  }}
                   className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
                   aria-label={copy.send}
                 >
