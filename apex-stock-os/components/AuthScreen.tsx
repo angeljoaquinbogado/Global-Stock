@@ -549,7 +549,7 @@ export function AuthScreen({
 
   return (
     <main className="relative h-[100dvh] min-h-[100svh] overflow-hidden bg-black">
-      <AuthScene />
+      <AuthScene active={!introComplete} />
 
       <AnimatePresence mode="wait">
         {!introComplete ? (
