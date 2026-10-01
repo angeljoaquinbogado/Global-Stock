@@ -28,6 +28,39 @@ type CompatibleChatResponse = {
   };
 };
 
+type GeminiResponse = {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{
+        text?: string;
+      }>;
+    };
+  }>;
+  error?: {
+    message?: string;
+  };
+};
+
+type ProviderConfig =
+  | {
+      provider: "gemini";
+      endpoint: string;
+      model: string;
+      apiKey: string;
+    }
+  | {
+      provider: "openai-compatible";
+      endpoint: string;
+      model: string;
+      apiKey: string;
+    }
+  | {
+      provider: "none";
+      endpoint: "";
+      model: "";
+      apiKey: "";
+    };
+
 const MAX_HISTORY_MESSAGES = 20;
 const MAX_CONTEXT_PRODUCTS = 300;
 const MODEL_TIMEOUT_MS = 60000;
@@ -39,7 +72,24 @@ export class IntelligenceNotConfiguredError extends Error {
   }
 }
 
-function providerConfig() {
+function providerConfig(): ProviderConfig {
+  const geminiKey = process.env.GEMINI_API_KEY?.trim();
+  const geminiModel = process.env.GEMINI_MODEL?.trim();
+
+  if (geminiKey && geminiModel) {
+    const configuredEndpoint = process.env.GEMINI_API_URL?.trim();
+    const endpoint =
+      configuredEndpoint ||
+      `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(geminiModel)}:generateContent`;
+
+    return {
+      provider: "gemini",
+      endpoint,
+      model: geminiModel,
+      apiKey: geminiKey
+    };
+  }
+
   const vercelOidc = process.env.VERCEL_OIDC_TOKEN?.trim();
   const openAiKey = process.env.OPENAI_API_KEY?.trim();
   const endpoint =
@@ -60,12 +110,29 @@ function providerConfig() {
     vercelOidc ||
     "";
 
-  return { endpoint, model, apiKey };
+  if (!endpoint || !model) {
+    return {
+      provider: "none",
+      endpoint: "",
+      model: "",
+      apiKey: ""
+    };
+  }
+
+  return {
+    provider: "openai-compatible",
+    endpoint,
+    model,
+    apiKey
+  };
+}
+
+export function getIntelligenceProvider() {
+  return providerConfig().provider;
 }
 
 export function isIntelligenceConfigured() {
-  const { endpoint, model } = providerConfig();
-  return Boolean(endpoint && model);
+  return providerConfig().provider !== "none";
 }
 
 export async function generateIntelligenceAnswer({
@@ -79,11 +146,13 @@ export async function generateIntelligenceAnswer({
   history: IntelligenceHistoryMessage[];
   runtime: IntelligenceRuntimeContext;
 }) {
-  const { endpoint, model, apiKey } = providerConfig();
+  const config = providerConfig();
 
-  if (!endpoint || !model) {
+  if (config.provider === "none") {
     throw new IntelligenceNotConfiguredError();
   }
+
+  const { endpoint, model, apiKey } = config;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS);
@@ -93,10 +162,6 @@ export async function generateIntelligenceAnswer({
       "Content-Type": "application/json",
       Accept: "application/json"
     };
-
-    if (apiKey) {
-      headers.Authorization = `Bearer ${apiKey}`;
-    }
 
     const conversation = history
       .filter(
@@ -120,6 +185,51 @@ export async function generateIntelligenceAnswer({
         role: "user",
         content: message
       });
+    }
+
+    if (config.provider === "gemini") {
+      headers["x-goog-api-key"] = apiKey;
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers,
+        signal: controller.signal,
+        cache: "no-store",
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{ text: buildSystemPrompt(snapshot, runtime) }]
+          },
+          contents: conversation.map((item) => ({
+            role: item.role === "assistant" ? "model" : "user",
+            parts: [{ text: item.content }]
+          }))
+        })
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as GeminiResponse;
+
+      if (!response.ok) {
+        const providerMessage =
+          payload.error?.message ||
+          `Gemini returned HTTP ${response.status}`;
+        throw new Error(providerMessage);
+      }
+
+      const answer = payload.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text?.trim())
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+
+      if (!answer) {
+        throw new Error("Gemini returned an empty response.");
+      }
+
+      return answer;
+    }
+
+    if (apiKey) {
+      headers.Authorization = `Bearer ${apiKey}`;
     }
 
     const response = await fetch(endpoint, {
