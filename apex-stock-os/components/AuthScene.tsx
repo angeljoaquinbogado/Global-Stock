@@ -204,7 +204,6 @@ export function AuthScene() {
         if (creditContainer) {
           creditContainer.style.fontSize = "8px";
           creditContainer.style.opacity = "0.55";
-          creditContainer.style.pointerEvents = "none";
         }
       } catch {
         if (!cancelled) setFailed(true);
@@ -228,7 +227,7 @@ export function AuthScene() {
     <div className="absolute inset-0 overflow-hidden bg-black">
       <div
         ref={containerRef}
-        className="absolute inset-0 pointer-events-none"
+        className="absolute inset-0"
         aria-hidden="true"
       />
 
