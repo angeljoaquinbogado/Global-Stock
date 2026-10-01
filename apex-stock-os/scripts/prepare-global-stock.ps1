@@ -10,9 +10,10 @@ Write-Host ""
 
 $earthTarget = Join-Path $projectRoot "public\global-stock-earth.png"
 
+Add-Type -AssemblyName System.Drawing
+
 if (-not (Test-Path $earthTarget)) {
     Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
 
     $dialog = New-Object System.Windows.Forms.OpenFileDialog
     $dialog.Title = "Selecciona la imagen realista de la Tierra para Global Stock"
@@ -48,6 +49,54 @@ if (-not (Test-Path $earthTarget)) {
 }
 else {
     Write-Host "Imagen de la Tierra ya instalada." -ForegroundColor Green
+}
+
+# Keep the cinematic Earth sharp without decoding an unnecessarily huge image
+# on phones. The UI never displays it above ~760px, so 1600px preserves Retina
+# quality while reducing memory and animation cost substantially.
+$image = [System.Drawing.Image]::FromFile($earthTarget)
+try {
+    $maxDimension = 1600
+    $largest = [Math]::Max($image.Width, $image.Height)
+
+    if ($largest -gt $maxDimension) {
+        $scale = $maxDimension / [double]$largest
+        $newWidth = [Math]::Max(1, [int][Math]::Round($image.Width * $scale))
+        $newHeight = [Math]::Max(1, [int][Math]::Round($image.Height * $scale))
+        $bitmap = New-Object System.Drawing.Bitmap($newWidth, $newHeight)
+
+        try {
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            try {
+                $graphics.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
+                $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+                $graphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
+                $graphics.DrawImage($image, 0, 0, $newWidth, $newHeight)
+            }
+            finally {
+                $graphics.Dispose()
+            }
+
+            $tempEarth = Join-Path $projectRoot "public\global-stock-earth.optimized.png"
+            $bitmap.Save(
+                $tempEarth,
+                [System.Drawing.Imaging.ImageFormat]::Png
+            )
+        }
+        finally {
+            $bitmap.Dispose()
+        }
+
+        $image.Dispose()
+        $image = $null
+        Move-Item $tempEarth $earthTarget -Force
+        Write-Host ("Imagen de la Tierra optimizada a " + $newWidth + "x" + $newHeight + ".") -ForegroundColor Green
+    }
+}
+finally {
+    if ($null -ne $image) {
+        $image.Dispose()
+    }
 }
 
 $oldCesium = Join-Path $projectRoot "public\cesium"
