@@ -108,6 +108,7 @@ type BusinessType =
   | "services"
   | "wholesale"
   | "ecommerce"
+  | "industry"
   | "other";
 
 type ActivityKind =
@@ -250,15 +251,15 @@ const copy: Record<
   es: {
     nav: {
       overview: "Inicio",
-      pos: "Tienda física",
+      pos: "Punto de venta",
       online: "Tienda online",
-      inventory: "Inventario",
+      inventory: "Almacén",
       charts: "Gráficos",
-      purchases: "Compras",
-      suppliers: "Proveedores",
+      purchases: "Reposición",
+      suppliers: "Abastecedores",
       activities: "Actividad",
       documents: "Comprobantes",
-      notes: "Notas",
+      notes: "Agenda",
       settings: "Configuración"
     },
     more: "Más",
@@ -274,7 +275,7 @@ const copy: Record<
     salesFlow: "Flujo de ventas",
     revenueVsCost: "Ingresos vs costos",
     posTitle: "Punto de venta",
-    posSubtitle: "Vendé, calculá el total y descontá stock en tiempo real.",
+    posSubtitle: "Caja de mostrador: elegí productos, armá el carrito, registrá el cobro y descontá stock al instante.",
     searchProducts: "Buscar producto",
     cart: "Carrito",
     emptyCart: "Todavía no agregaste productos.",
@@ -283,8 +284,8 @@ const copy: Record<
     completeSale: "Confirmar venta",
     saleCompleted: "Venta registrada y stock actualizado.",
     add: "Agregar",
-    inventoryTitle: "Inventario",
-    inventorySubtitle: "Controlá stock, precios, estados y códigos.",
+    inventoryTitle: "Almacén y stock",
+    inventorySubtitle: "Controlá existencias, mínimos, precios, códigos y ajustes de stock desde un solo lugar.",
     product: "Producto",
     category: "Categoría",
     supplier: "Proveedor",
@@ -300,16 +301,16 @@ const copy: Record<
     stockByProduct: "Stock por producto",
     marginByProduct: "Margen por producto",
     stockHealth: "Estado del stock",
-    purchasesTitle: "Compras y reposición",
-    purchasesSubtitle: "Priorizá compras según cobertura y rotación.",
+    purchasesTitle: "Reposición inteligente",
+    purchasesSubtitle: "Global Stock calcula qué conviene reponer, cuántas unidades y cuánto capital necesitás según cobertura y rotación.",
     suggested: "Sugerido",
     coverage: "Cobertura",
     days: "días",
     estimatedCost: "Costo estimado",
     receivePurchase: "Recibir reposición",
     purchaseApplied: "Reposición aplicada al inventario.",
-    suppliersTitle: "Proveedores",
-    suppliersSubtitle: "Visualizá exposición, stock y margen por proveedor.",
+    suppliersTitle: "Abastecedores",
+    suppliersSubtitle: "Compará quién abastece tu negocio, cuánto stock depende de cada uno y qué margen generan sus productos.",
     products: "Productos",
     inventoryValue: "Valor de inventario",
     averageMargin: "Margen promedio",
@@ -356,15 +357,15 @@ const copy: Record<
   en: {
     nav: {
       overview: "Home",
-      pos: "Physical store",
+      pos: "Point of sale",
       online: "Online store",
-      inventory: "Inventory",
+      inventory: "Warehouse",
       charts: "Charts",
-      purchases: "Purchases",
-      suppliers: "Suppliers",
+      purchases: "Restocking",
+      suppliers: "Vendors",
       activities: "Activity",
       documents: "Documents",
-      notes: "Notes",
+      notes: "Agenda",
       settings: "Settings"
     },
     more: "More",
@@ -389,7 +390,7 @@ const copy: Record<
     completeSale: "Complete sale",
     saleCompleted: "Sale recorded and stock updated.",
     add: "Add",
-    inventoryTitle: "Inventory",
+    inventoryTitle: "Warehouse & stock",
     inventorySubtitle: "Control stock, prices, status and barcodes.",
     product: "Product",
     category: "Category",
@@ -414,8 +415,8 @@ const copy: Record<
     estimatedCost: "Estimated cost",
     receivePurchase: "Receive restock",
     purchaseApplied: "Restock applied to inventory.",
-    suppliersTitle: "Suppliers",
-    suppliersSubtitle: "See exposure, stock and margin by supplier.",
+    suppliersTitle: "Vendors",
+    suppliersSubtitle: "Compare who supplies your operation, stock exposure and the margin produced by each vendor.",
     products: "Products",
     inventoryValue: "Inventory value",
     averageMargin: "Average margin",
@@ -462,15 +463,15 @@ const copy: Record<
   pt: {
     nav: {
       overview: "Início",
-      pos: "Loja física",
+      pos: "Ponto de venda",
       online: "Loja online",
-      inventory: "Estoque",
+      inventory: "Armazém",
       charts: "Gráficos",
-      purchases: "Compras",
-      suppliers: "Fornecedores",
+      purchases: "Reposición",
+      suppliers: "Abastecedores",
       activities: "Atividade",
       documents: "Comprovantes",
-      notes: "Notas",
+      notes: "Agenda",
       settings: "Configurações"
     },
     more: "Mais",
@@ -495,7 +496,7 @@ const copy: Record<
     completeSale: "Confirmar venda",
     saleCompleted: "Venda registrada e estoque atualizado.",
     add: "Adicionar",
-    inventoryTitle: "Estoque",
+    inventoryTitle: "Armazém e estoque",
     inventorySubtitle: "Controle estoque, preços, status e códigos.",
     product: "Produto",
     category: "Categoria",
@@ -512,7 +513,7 @@ const copy: Record<
     stockByProduct: "Estoque por produto",
     marginByProduct: "Margem por produto",
     stockHealth: "Estado do estoque",
-    purchasesTitle: "Compras e reposição",
+    purchasesTitle: "Reposição inteligente",
     purchasesSubtitle: "Priorize compras por cobertura e rotação.",
     suggested: "Sugerido",
     coverage: "Cobertura",
@@ -568,15 +569,15 @@ const copy: Record<
   fr: {
     nav: {
       overview: "Accueil",
-      pos: "Magasin physique",
+      pos: "Point de vente",
       online: "Boutique en ligne",
-      inventory: "Inventaire",
+      inventory: "Entrepôt",
       charts: "Graphiques",
-      purchases: "Achats",
-      suppliers: "Fournisseurs",
+      purchases: "Réassort",
+      suppliers: "Approvisionneurs",
       activities: "Activité",
       documents: "Documents",
-      notes: "Notes",
+      notes: "Agenda",
       settings: "Paramètres"
     },
     more: "Plus",
@@ -674,15 +675,15 @@ const copy: Record<
   de: {
     nav: {
       overview: "Start",
-      pos: "Filiale",
+      pos: "Kasse",
       online: "Onlineshop",
-      inventory: "Bestand",
+      inventory: "Lager",
       charts: "Diagramme",
-      purchases: "Einkauf",
-      suppliers: "Lieferanten",
+      purchases: "Nachbestellung",
+      suppliers: "Bezugsquellen",
       activities: "Aktivität",
       documents: "Belege",
-      notes: "Notizen",
+      notes: "Agenda",
       settings: "Einstellungen"
     },
     more: "Mehr",
@@ -779,6 +780,75 @@ const copy: Record<
   }
 };
 
+const workflowHelp: Record<
+  LanguageCode,
+  {
+    pos: { title: string; steps: string[] };
+    inventory: { title: string; steps: string[] };
+    purchases: { title: string; steps: string[] };
+    suppliers: { title: string; steps: string[] };
+  }
+> = {
+  es: {
+    pos: {
+      title: "Cómo funciona el punto de venta",
+      steps: [
+        "Buscá o escaneá un producto",
+        "Agregalo al carrito y ajustá cantidades",
+        "Confirmá la venta: se registra la operación y baja el stock"
+      ]
+    },
+    inventory: {
+      title: "Qué controlás en Almacén",
+      steps: [
+        "Existencias y stock mínimo por producto",
+        "Costo, precio, categoría y abastecedor",
+        "Ajustes manuales y altas mediante código de barras"
+      ]
+    },
+    purchases: {
+      title: "Qué hace Reposición",
+      steps: [
+        "Detecta riesgo de quiebre de stock",
+        "Sugiere unidades según ventas y cobertura",
+        "Calcula el costo antes de recibir la mercadería"
+      ]
+    },
+    suppliers: {
+      title: "Qué muestra Abastecedores",
+      steps: [
+        "Productos y unidades asociadas a cada proveedor",
+        "Capital inmovilizado por abastecedor",
+        "Margen promedio para comparar conveniencia"
+      ]
+    }
+  },
+  en: {
+    pos: { title: "How point of sale works", steps: ["Search or scan a product", "Add it to the cart and adjust quantities", "Confirm the sale to register it and reduce stock"] },
+    inventory: { title: "What Warehouse controls", steps: ["On-hand and minimum stock", "Cost, price, category and vendor", "Manual adjustments and barcode intake"] },
+    purchases: { title: "What Restocking does", steps: ["Detects stock-out risk", "Suggests units from sales and coverage", "Calculates cost before receiving goods"] },
+    suppliers: { title: "What Vendors shows", steps: ["Products and units by vendor", "Capital tied to each vendor", "Average margin for comparison"] }
+  },
+  pt: {
+    pos: { title: "Como funciona o ponto de venda", steps: ["Busque ou escaneie um produto", "Adicione ao carrinho e ajuste quantidades", "Confirme a venda para registrar e baixar o estoque"] },
+    inventory: { title: "O que o Armazém controla", steps: ["Estoque atual e mínimo", "Custo, preço, categoria e abastecedor", "Ajustes e entrada por código de barras"] },
+    purchases: { title: "O que a Reposição faz", steps: ["Detecta risco de ruptura", "Sugere unidades por vendas e cobertura", "Calcula o custo antes do recebimento"] },
+    suppliers: { title: "O que Abastecedores mostra", steps: ["Produtos e unidades por fornecedor", "Capital por abastecedor", "Margem média para comparação"] }
+  },
+  fr: {
+    pos: { title: "Fonctionnement du point de vente", steps: ["Recherchez ou scannez un produit", "Ajoutez-le au panier et ajustez la quantité", "Validez la vente pour enregistrer et déduire le stock"] },
+    inventory: { title: "Ce que contrôle l’Entrepôt", steps: ["Stock disponible et minimum", "Coût, prix, catégorie et approvisionneur", "Ajustements et entrée par code-barres"] },
+    purchases: { title: "Fonction du Réassort", steps: ["Détecte le risque de rupture", "Suggère les quantités selon ventes et couverture", "Calcule le coût avant réception"] },
+    suppliers: { title: "Vue Approvisionneurs", steps: ["Produits et unités par fournisseur", "Capital lié à chaque fournisseur", "Marge moyenne de comparaison"] }
+  },
+  de: {
+    pos: { title: "So funktioniert die Kasse", steps: ["Produkt suchen oder scannen", "In den Warenkorb legen und Menge anpassen", "Verkauf bestätigen: Vorgang speichern und Bestand reduzieren"] },
+    inventory: { title: "Was das Lager steuert", steps: ["Bestand und Mindestbestand", "Kosten, Preis, Kategorie und Bezugsquelle", "Manuelle Anpassungen und Barcode-Zugang"] },
+    purchases: { title: "Was Nachbestellung macht", steps: ["Erkennt Bestandsrisiken", "Schlägt Mengen aus Verkauf und Reichweite vor", "Berechnet Kosten vor Wareneingang"] },
+    suppliers: { title: "Was Bezugsquellen zeigt", steps: ["Produkte und Einheiten je Lieferant", "Gebundenes Kapital je Quelle", "Durchschnittsmarge zum Vergleich"] }
+  }
+};
+
 const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "overview", icon: Store },
   { id: "pos", icon: ShoppingCart },
@@ -831,6 +901,8 @@ export function BusinessWorkspace({
   const [businessName, setBusinessName] = useState("Global Stock Demo");
   const [businessType, setBusinessType] =
     useState<BusinessType>("retail");
+  const [businessCountry, setBusinessCountry] = useState("");
+  const [businessDescription, setBusinessDescription] = useState("");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
@@ -851,6 +923,12 @@ export function BusinessWorkspace({
       const savedBusinessType = localStorage.getItem(
         "global-stock-business-type"
       ) as BusinessType | null;
+      const savedBusinessCountry = localStorage.getItem(
+        "global-stock-business-country"
+      );
+      const savedBusinessDescription = localStorage.getItem(
+        "global-stock-business-description"
+      );
       const savedActivities = localStorage.getItem("global-stock-activities-v1");
       const savedNotes = localStorage.getItem("global-stock-notes-v1");
       const savedFxHistory = localStorage.getItem("global-stock-fx-history-v1");
@@ -875,10 +953,15 @@ export function BusinessWorkspace({
           "services",
           "wholesale",
           "ecommerce",
+          "industry",
           "other"
         ].includes(savedBusinessType)
       ) {
         setBusinessType(savedBusinessType);
+      }
+      if (savedBusinessCountry) setBusinessCountry(savedBusinessCountry);
+      if (savedBusinessDescription) {
+        setBusinessDescription(savedBusinessDescription);
       }
       if (savedActivities) {
         const parsed = JSON.parse(savedActivities) as ActivityRecord[];
@@ -1306,6 +1389,14 @@ export function BusinessWorkspace({
       "global-stock-business-type",
       businessType
     );
+    localStorage.setItem(
+      "global-stock-business-country",
+      businessCountry.trim()
+    );
+    localStorage.setItem(
+      "global-stock-business-description",
+      businessDescription.trim()
+    );
     addActivity("settings");
     setNotice(labels.saved);
     window.setTimeout(() => setNotice(""), 2200);
@@ -1470,6 +1561,7 @@ export function BusinessWorkspace({
             {activeModule === "pos" && (
               <PosModule
                 labels={labels}
+                language={language}
                 products={filteredPosProducts}
                 query={posQuery}
                 setQuery={setPosQuery}
@@ -1520,6 +1612,7 @@ export function BusinessWorkspace({
             {activeModule === "purchases" && (
               <PurchasesModule
                 labels={labels}
+                language={language}
                 restock={restock}
                 money={money}
                 receiveRestock={receiveRestock}
@@ -1529,6 +1622,7 @@ export function BusinessWorkspace({
             {activeModule === "suppliers" && (
               <SuppliersModule
                 labels={labels}
+                language={language}
                 stats={supplierStats}
                 money={money}
               />
@@ -1579,8 +1673,12 @@ export function BusinessWorkspace({
                 dark={dark}
                 businessName={businessName}
                 businessType={businessType}
+                businessCountry={businessCountry}
+                businessDescription={businessDescription}
                 setBusinessName={setBusinessName}
                 setBusinessType={setBusinessType}
+                setBusinessCountry={setBusinessCountry}
+                setBusinessDescription={setBusinessDescription}
                 onLanguageChange={onLanguageChange}
                 onCurrencyChange={onCurrencyChange}
                 onToggleTheme={onToggleTheme}
@@ -1777,6 +1875,8 @@ export function BusinessWorkspace({
         appContext={{
           businessName,
           businessType,
+          businessCountry,
+          businessDescription,
           recentActivities: activities.slice(0, 80),
           notes: notes.slice(0, 80),
           fxHistory: fxHistory.slice(0, 60),
@@ -2000,6 +2100,7 @@ function OverviewModule({
 
 function PosModule({
   labels,
+  language,
   products,
   query,
   setQuery,
@@ -2012,6 +2113,7 @@ function PosModule({
   completeSale
 }: {
   labels: (typeof copy)[LanguageCode];
+  language: LanguageCode;
   products: Product[];
   query: string;
   setQuery: (value: string) => void;
@@ -2026,6 +2128,7 @@ function PosModule({
   return (
     <div className="space-y-5">
       <PageIntro title={labels.posTitle} subtitle={labels.posSubtitle} />
+      <WorkflowHelp {...workflowHelp[language].pos} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">
@@ -2183,6 +2286,7 @@ function InventoryModule({
         title={labels.inventoryTitle}
         subtitle={labels.inventorySubtitle}
       />
+      <WorkflowHelp {...workflowHelp[language].inventory} />
 
       <section className="apex-card overflow-hidden">
         <div className="overflow-x-auto">
@@ -2276,11 +2380,13 @@ function InventoryModule({
 
 function PurchasesModule({
   labels,
+  language,
   restock,
   money,
   receiveRestock
 }: {
   labels: (typeof copy)[LanguageCode];
+  language: LanguageCode;
   restock: ReturnType<typeof rankRestockNeeds>;
   money: (value: number) => string;
   receiveRestock: (id: string, units: number) => void;
@@ -2291,6 +2397,7 @@ function PurchasesModule({
         title={labels.purchasesTitle}
         subtitle={labels.purchasesSubtitle}
       />
+      <WorkflowHelp {...workflowHelp[language].purchases} />
 
       <div className="grid gap-3">
         {restock.map(
@@ -2339,10 +2446,12 @@ function PurchasesModule({
 
 function SuppliersModule({
   labels,
+  language,
   stats,
   money
 }: {
   labels: (typeof copy)[LanguageCode];
+  language: LanguageCode;
   stats: Array<{
     supplier: string;
     products: number;
@@ -2358,6 +2467,7 @@ function SuppliersModule({
         title={labels.suppliersTitle}
         subtitle={labels.suppliersSubtitle}
       />
+      <WorkflowHelp {...workflowHelp[language].suppliers} />
 
       <div className="grid gap-4 lg:grid-cols-2 2xl:grid-cols-3">
         {stats.map((supplier) => (
@@ -2887,6 +2997,35 @@ function Kpi({
         </p>
       )}
     </article>
+  );
+}
+
+function WorkflowHelp({
+  title,
+  steps
+}: {
+  title: string;
+  steps: string[];
+}) {
+  return (
+    <section className="rounded-[22px] border border-[#8F0000]/18 bg-[#8F0000]/[0.045] p-4">
+      <p className="text-xs font-semibold text-[var(--apex-text)]">{title}</p>
+      <div className="mt-3 grid gap-2 md:grid-cols-3">
+        {steps.map((step, index) => (
+          <div
+            key={step}
+            className="flex items-start gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 py-3"
+          >
+            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#8F0000] text-[10px] font-bold text-white">
+              {index + 1}
+            </span>
+            <p className="text-[11px] leading-5 text-[var(--apex-muted)]">
+              {step}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
