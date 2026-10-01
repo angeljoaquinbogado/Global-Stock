@@ -43,6 +43,7 @@ html.dark {
 
 body {
   min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--apex-bg);
   color: var(--apex-text);
@@ -66,7 +67,27 @@ textarea {
 }
 
 button {
+  cursor: pointer;
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+button:not(:disabled):active {
+  opacity: 0.78;
+  transition: opacity 90ms ease-out;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--apex-crimson) 78%, white);
+  outline-offset: 2px;
 }
 
 ::selection {
@@ -124,26 +145,263 @@ button {
 }
 
 
-/* Cesium is used only as a passive, cinematic authentication background. */
-.cesium-viewer,
-.cesium-viewer-cesiumWidgetContainer,
-.cesium-widget,
-.cesium-widget canvas {
-  width: 100%;
-  height: 100%;
+/* Global Stock cinematic intro — optimized for compositor-only motion. */
+.gs-auth-scene {
+  contain: layout paint style;
+  isolation: isolate;
 }
 
-.cesium-viewer {
-  background: #000;
+.gs-space-layer {
+  pointer-events: none;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
 }
 
-.cesium-viewer-bottom {
-  left: 8px !important;
-  bottom: 6px !important;
-  opacity: 0.68;
+.gs-space-layer-a {
+  opacity: 0.78;
+  background-image:
+    radial-gradient(circle at 8% 16%, rgba(255,255,255,.92) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 23% 70%, rgba(255,255,255,.66) 0 .8px, transparent 1px),
+    radial-gradient(circle at 37% 28%, rgba(255,255,255,.75) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 58% 18%, rgba(255,255,255,.58) 0 .8px, transparent 1px),
+    radial-gradient(circle at 72% 62%, rgba(255,255,255,.78) 0 1px, transparent 1.2px),
+    radial-gradient(circle at 91% 31%, rgba(255,255,255,.64) 0 .8px, transparent 1px),
+    radial-gradient(circle at 14% 84%, rgba(255,255,255,.56) 0 .8px, transparent 1px),
+    radial-gradient(circle at 84% 86%, rgba(255,255,255,.9) 0 1px, transparent 1.2px);
+  background-size: 260px 230px, 330px 300px, 290px 260px, 380px 340px,
+    310px 280px, 350px 320px, 410px 360px, 280px 250px;
+  animation: gs-space-drift-a 34s linear infinite;
 }
 
-.cesium-credit-textContainer,
-.cesium-credit-logoContainer {
-  font-size: 8px !important;
+.gs-space-layer-b {
+  opacity: 0.36;
+  background:
+    radial-gradient(circle at 46% 44%, rgba(39,66,124,.32), transparent 30%),
+    radial-gradient(circle at 16% 24%, rgba(143,0,0,.15), transparent 23%),
+    radial-gradient(circle at 82% 32%, rgba(64,91,154,.18), transparent 22%);
+  animation: gs-space-drift-b 42s ease-in-out infinite alternate;
+}
+
+.gs-earth-stage {
+  perspective: 1200px;
+}
+
+.gs-earth-wrap {
+  width: min(76vw, 760px);
+  height: min(76vw, 760px);
+  min-width: 340px;
+  min-height: 340px;
+  will-change: transform, opacity;
+  transform: translate3d(0, 0, 0);
+  animation: gs-earth-enter 1.15s cubic-bezier(.16,1,.3,1) both,
+    gs-earth-float 10s 1.15s ease-in-out infinite;
+}
+
+.gs-earth-image {
+  display: block;
+  pointer-events: none;
+  transform: translateZ(0);
+  filter: drop-shadow(0 0 28px rgba(44, 94, 190, 0.16));
+}
+
+.gs-earth-shade {
+  box-shadow:
+    inset -38px -18px 76px rgba(0,0,0,.22),
+    0 0 52px rgba(72,128,255,.10);
+}
+
+.gs-orbit-plane {
+  position: absolute;
+  inset: -3%;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  will-change: transform;
+  transform: translate3d(0,0,0);
+}
+
+.gs-orbit-line {
+  position: absolute;
+  inset: 11%;
+  border-radius: 50%;
+  opacity: .82;
+  background:
+    conic-gradient(
+      from 8deg,
+      transparent 0 8%,
+      rgba(255,38,38,.94) 10% 16%,
+      transparent 18% 35%,
+      rgba(189,0,0,.72) 38% 50%,
+      transparent 52% 75%,
+      rgba(255,105,105,.72) 78% 84%,
+      transparent 86% 100%
+    );
+  -webkit-mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 calc(100% - 1.5px)
+  );
+  mask: radial-gradient(
+    farthest-side,
+    transparent calc(100% - 2px),
+    #000 calc(100% - 1.5px)
+  );
+}
+
+.gs-orbit-node {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ff2b2b;
+  box-shadow: 0 0 12px rgba(255,43,43,.72);
+}
+
+.gs-orbit-plane-a {
+  transform: rotate(-12deg) scaleY(.54);
+  animation: gs-orbit-a 7.5s linear infinite;
+}
+
+.gs-orbit-plane-b {
+  transform: rotate(57deg) scaleY(.62);
+  animation: gs-orbit-b 9.8s linear infinite reverse;
+}
+
+.gs-orbit-plane-c {
+  transform: rotate(108deg) scaleY(.48);
+  animation: gs-orbit-c 12.2s linear infinite;
+}
+
+.gs-orbit-line-b {
+  inset: 16%;
+  opacity: .62;
+}
+
+.gs-orbit-line-c {
+  inset: 22%;
+  opacity: .5;
+}
+
+.gs-orbit-node-a {
+  top: 10.5%;
+  left: 49%;
+}
+
+.gs-orbit-node-b {
+  right: 15%;
+  top: 44%;
+}
+
+.gs-orbit-node-c {
+  bottom: 17%;
+  left: 35%;
+}
+
+.gs-auth-horizon {
+  opacity: .24;
+  background: linear-gradient(90deg, transparent, #ff2c2c 50%, transparent);
+  box-shadow: 0 0 14px rgba(255, 0, 0, .3);
+  animation: gs-horizon 3.4s cubic-bezier(.16,1,.3,1) both;
+}
+
+@keyframes gs-earth-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(.84);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes gs-earth-float {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(-.25deg); }
+  50% { transform: translate3d(0, -5px, 0) rotate(.25deg); }
+}
+
+@keyframes gs-space-drift-a {
+  from { transform: translate3d(-1.5%, -1%, 0); }
+  to { transform: translate3d(1.5%, 1%, 0); }
+}
+
+@keyframes gs-space-drift-b {
+  from { transform: translate3d(-1%, .5%, 0) scale(1); }
+  to { transform: translate3d(1%, -.5%, 0) scale(1.02); }
+}
+
+@keyframes gs-orbit-a {
+  from { transform: rotate(-12deg) scaleY(.54) rotateZ(0deg); }
+  to { transform: rotate(-12deg) scaleY(.54) rotateZ(360deg); }
+}
+
+@keyframes gs-orbit-b {
+  from { transform: rotate(57deg) scaleY(.62) rotateZ(0deg); }
+  to { transform: rotate(57deg) scaleY(.62) rotateZ(360deg); }
+}
+
+@keyframes gs-orbit-c {
+  from { transform: rotate(108deg) scaleY(.48) rotateZ(0deg); }
+  to { transform: rotate(108deg) scaleY(.48) rotateZ(360deg); }
+}
+
+@keyframes gs-horizon {
+  0%, 35% { opacity: 0; transform: translate3d(-50%, 0, 0) scaleX(.12); }
+  70% { opacity: .68; transform: translate3d(-50%, 0, 0) scaleX(1); }
+  100% { opacity: .18; transform: translate3d(-50%, 0, 0) scaleX(.78); }
+}
+
+@media (max-width: 640px) {
+  .gs-earth-wrap {
+    width: min(104vw, 620px);
+    height: min(104vw, 620px);
+    min-width: 330px;
+    min-height: 330px;
+  }
+
+  .gs-space-layer-a {
+    opacity: .58;
+  }
+
+  .gs-orbit-node {
+    width: 6px;
+    height: 6px;
+  }
+
+  .apex-glass {
+    backdrop-filter: blur(18px) saturate(125%);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .apex-glass {
+    background: var(--apex-surface-strong);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  :root {
+    --apex-border: rgba(0,0,0,.34);
+  }
+
+  .dark {
+    --apex-border: rgba(255,255,255,.34);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-space-layer,
+  .gs-earth-wrap,
+  .gs-orbit-plane,
+  .gs-auth-horizon {
+    animation: none !important;
+    transform: none !important;
+  }
+
+  .gs-orbit-plane-a { transform: rotate(-12deg) scaleY(.54) !important; }
+  .gs-orbit-plane-b { transform: rotate(57deg) scaleY(.62) !important; }
+  .gs-orbit-plane-c { transform: rotate(108deg) scaleY(.48) !important; }
 }
