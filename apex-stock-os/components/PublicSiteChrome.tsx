@@ -25,6 +25,9 @@ export function PublicHeader() {
           <Link className="transition hover:text-white" href="/legal">
             Legal
           </Link>
+          <Link className="transition hover:text-white" href="/support">
+            Soporte
+          </Link>
         </nav>
 
         <Link
