@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export function AuthScene({ active = true }: { active?: boolean }) {
   return (
     <div
@@ -14,12 +16,14 @@ export function AuthScene({ active = true }: { active?: boolean }) {
 
       <div className="gs-earth-stage absolute inset-0 grid place-items-center">
         <div className="gs-earth-wrap relative">
-          <img
+          <Image
             src="/global-stock-earth.png"
             alt=""
+            width={1254}
+            height={1254}
+            sizes="(max-width: 640px) 104vw, (max-width: 1000px) 76vw, 760px"
             draggable={false}
-            decoding="async"
-            fetchPriority="high"
+            preload
             className="gs-earth-image h-full w-full select-none object-contain"
           />
 

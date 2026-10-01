@@ -10,28 +10,38 @@ on:
       - "apex-stock-os/**"
       - ".github/workflows/apex-stock-os-ci.yml"
 
+permissions:
+  contents: read
+
+concurrency:
+  group: global-stock-web-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
     defaults:
       run:
         working-directory: apex-stock-os
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: npm
           cache-dependency-path: apex-stock-os/package.json
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --no-audit --no-fund
 
       - name: Audit production dependencies
-        run: npm audit --omit=dev || true
+        run: npm audit --omit=dev --audit-level=critical
 
       - name: Typecheck
         run: npm run typecheck
