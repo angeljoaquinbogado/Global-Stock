@@ -83,7 +83,7 @@ const copy: Record<
 > = {
   es: {
     eyebrow: "Organización",
-    title: "Notas",
+    title: "Agenda",
     subtitle:
       "Bloc libre, recordatorios y calendario en un solo lugar, sin obligarte a poner fecha a todo.",
     bloc: "Bloc",
@@ -110,7 +110,7 @@ const copy: Record<
   },
   en: {
     eyebrow: "Organization",
-    title: "Notes",
+    title: "Agenda",
     subtitle:
       "Free-form notes, reminders and calendar in one place without forcing a date on everything.",
     bloc: "Notebook",
@@ -137,7 +137,7 @@ const copy: Record<
   },
   pt: {
     eyebrow: "Organização",
-    title: "Notas",
+    title: "Agenda",
     subtitle:
       "Bloco livre, lembretes e calendário em um só lugar sem obrigar tudo a ter data.",
     bloc: "Bloco",
@@ -164,7 +164,7 @@ const copy: Record<
   },
   fr: {
     eyebrow: "Organisation",
-    title: "Notes",
+    title: "Agenda",
     subtitle:
       "Bloc libre, rappels et calendrier au même endroit sans imposer une date à tout.",
     bloc: "Bloc",
@@ -191,7 +191,7 @@ const copy: Record<
   },
   de: {
     eyebrow: "Organisation",
-    title: "Notizen",
+    title: "Agenda",
     subtitle:
       "Freie Notizen, Erinnerungen und Kalender an einem Ort, ohne alles datieren zu müssen.",
     bloc: "Notizblock",
