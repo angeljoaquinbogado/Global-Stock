@@ -17,7 +17,10 @@ export function calculateMetrics(snapshot: BusinessSnapshot): DashboardMetrics {
   const grossProfit = revenue - costOfSales;
 
   const inventoryCost = snapshot.products.reduce(
-    (sum, product) => sum + product.stock * product.cost,
+    (sum, product) =>
+      product.costKnown === false
+        ? sum
+        : sum + product.stock * product.cost,
     0
   );
 
