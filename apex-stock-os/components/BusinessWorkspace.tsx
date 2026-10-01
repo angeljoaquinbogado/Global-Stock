@@ -307,7 +307,7 @@ const copy: Record<
     receivePurchase: "Recibir reposición",
     purchaseApplied: "Reposición aplicada al inventario.",
     suppliersTitle: "Proveedores",
-    suppliersSubtitle: "Administrá tus proveedores, contactos y condiciones, y compará cuánto stock depende de cada uno."
+    suppliersSubtitle: "Administrá tus proveedores, contactos y condiciones, y compará cuánto stock depende de cada uno.",
     products: "Productos",
     inventoryValue: "Valor de inventario",
     averageMargin: "Margen promedio",
