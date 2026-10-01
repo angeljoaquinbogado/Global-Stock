@@ -11,14 +11,13 @@ import {
   TrendingUp
 } from "lucide-react";
 import {
-  Area,
-  AreaChart,
   Bar,
   BarChart,
   CartesianGrid,
   Cell,
   Legend,
   Line,
+  LineChart,
   ReferenceLine,
   ResponsiveContainer,
   Tooltip,
@@ -367,21 +366,11 @@ export function PremiumCharts({
 
         <div className="mt-6 h-[360px] sm:h-[420px]">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data} margin={{ left: 0, right: 8, top: 12 }}>
-              <defs>
-                <linearGradient id="premiumRevenue" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#B90000" stopOpacity={0.3} />
-                  <stop offset="100%" stopColor="#B90000" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="premiumProfit" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#7A0000" stopOpacity={0.2} />
-                  <stop offset="100%" stopColor="#7A0000" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid
+            <LineChart data={data} margin={{ left: 8, right: 10, top: 12, bottom: 4 }}>
+       <CartesianGrid
                 stroke="var(--apex-border)"
-                strokeDasharray="2 8"
-                vertical={false}
+                strokeDasharray="1 7"
+                vertical
               />
               <XAxis
                 dataKey="label"
@@ -390,7 +379,19 @@ export function PremiumCharts({
                 stroke="var(--apex-muted)"
                 fontSize={11}
               />
-              <YAxis hide />
+              <YAxis
+                axisLine={false}
+                tickLine={false}
+                stroke="var(--apex-muted)"
+                fontSize={9}
+                width={54}
+                tickFormatter={(value) =>
+                  new Intl.NumberFormat(locale, {
+                    notation: "compact",
+                    maximumFractionDigits: 1
+                  }).format(Number(value))
+                }
+              />
               <Tooltip
                 contentStyle={tooltipStyle()}
                 formatter={(value) =>
@@ -402,34 +403,35 @@ export function PremiumCharts({
                 wrapperStyle={{ fontSize: 11, paddingTop: 8 }}
               />
               <ReferenceLine y={0} stroke="var(--apex-border)" />
-              <Area
-                type="monotone"
+              <Line
+                type="linear"
                 dataKey="revenue"
                 name={t.revenue}
-                stroke="#C00000"
-                strokeWidth={2.6}
-                fill="url(#premiumRevenue)"
+                stroke="#D10A0A"
+                strokeWidth={2.3}
                 dot={false}
-                activeDot={{ r: 5 }}
+                activeDot={{ r: 4, strokeWidth: 0 }}
               />
               <Line
-                type="monotone"
+                type="linear"
                 dataKey="cost"
                 name={t.cost}
                 stroke="#8C8C94"
-                strokeWidth={1.8}
+                strokeWidth={1.35}
+                strokeDasharray="5 5"
                 dot={false}
+                activeDot={{ r: 3, strokeWidth: 0 }}
               />
-              <Area
-                type="monotone"
+              <Line
+                type="linear"
                 dataKey="profit"
                 name={t.profit}
-                stroke="#8F0000"
-                strokeWidth={2}
-                fill="url(#premiumProfit)"
+                stroke="#FFFFFF"
+                strokeWidth={1.55}
                 dot={false}
+                activeDot={{ r: 3, strokeWidth: 0 }}
               />
-            </AreaChart>
+            </LineChart>
           </ResponsiveContainer>
         </div>
       </section>
