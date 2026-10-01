@@ -576,6 +576,8 @@ export function OnlineCommerceHub({
     } finally {
       setOnlineStorageReady(true);
     }
+  // Bootstrap persisted connections once; inspectStore reads the current locale copy.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
