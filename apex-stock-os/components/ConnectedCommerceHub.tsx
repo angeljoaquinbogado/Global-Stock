@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ExternalLink,
   Globe2,
-  KeyRound,
   Link2,
   LockKeyhole,
   PackageCheck,
@@ -109,9 +108,9 @@ const copy = {
       "Estos datos son públicos y todavía no habilitan cambios de stock.",
     ownership: "Verificar propiedad",
     ownershipBody:
-      "Generá un token desde el panel administrador de la tienda. Global Stock lo valida en el servidor y nunca lo guarda en localStorage.",
+      "La contraseña se valida únicamente en la tienda. Dorado además envía un código de 6 dígitos al correo administrador antes de autorizar Global Stock.",
     doradoStep:
-      "Abrí la autorización desde este botón. Dorado no muestra Global Stock en su panel normal: solo abre este permiso cuando la conexión se inicia desde Global Stock.",
+      "Continuá en Dorado: iniciá sesión con la cuenta administradora y confirmá el código de 6 dígitos que llega por email. Después volvés automáticamente a Global Stock.",
     token: "Token de conexión",
     verify: "Verificar y conectar",
     verifying: "Verificando…",
@@ -167,9 +166,9 @@ const copy = {
       "This is public data and does not grant inventory write access.",
     ownership: "Verify ownership",
     ownershipBody:
-      "Create a token from the store admin. Global Stock validates it server-side and never stores it in localStorage.",
+      "The password is validated only by the store. Dorado also sends a six-digit code to the administrator email before authorizing Global Stock.",
     doradoStep:
-      "Open authorization from this button. Dorado keeps Global Stock out of normal admin navigation and exposes the permission only for this connection flow.",
+      "Continue in Dorado: sign in with the administrator account and confirm the six-digit email code. You will then return automatically to Global Stock.",
     token: "Connection token",
     verify: "Verify and connect",
     verifying: "Verifying…",
@@ -224,7 +223,7 @@ const copy = {
       "Esses dados são públicos e ainda não permitem alterar estoque.",
     ownership: "Verificar propriedade",
     ownershipBody:
-      "Crie um token no painel administrador da loja. O Global Stock valida no servidor e não guarda o token no localStorage.",
+      "A senha é validada somente pela loja. O Dorado também envia um código de seis dígitos ao e-mail do administrador antes de autorizar o Global Stock.",
     doradoStep:
       "Abra a autorização por este botão. O Dorado não exibe Global Stock na navegação normal do administrador; o acesso aparece apenas neste fluxo.",
     token: "Token de conexão",
@@ -281,7 +280,7 @@ const copy = {
       "Ces données sont publiques et n’autorisent pas encore la modification du stock.",
     ownership: "Vérifier la propriété",
     ownershipBody:
-      "Créez un jeton depuis l’administration de la boutique. Global Stock le valide côté serveur sans le stocker dans localStorage.",
+      "Le mot de passe est validé uniquement par la boutique. Dorado envoie aussi un code à six chiffres à l’e-mail administrateur avant d’autoriser Global Stock.",
     doradoStep:
       "Ouvrez l’autorisation avec ce bouton. Dorado masque Global Stock dans l’administration normale et ne l’affiche que pour ce flux de connexion.",
     token: "Jeton de connexion",
@@ -338,7 +337,7 @@ const copy = {
       "Diese Daten sind öffentlich und erlauben noch keine Bestandsänderung.",
     ownership: "Eigentümerschaft prüfen",
     ownershipBody:
-      "Erstelle im Shop-Admin ein Token. Global Stock prüft es serverseitig und speichert es nicht im localStorage.",
+      "Das Passwort wird nur vom Shop geprüft. Dorado sendet zusätzlich einen sechsstelligen Code an die Administrator-E-Mail, bevor Global Stock autorisiert wird.",
     doradoStep:
       "Öffne die Freigabe über diese Schaltfläche. Dorado blendet Global Stock in der normalen Administration aus und zeigt die Freigabe nur in diesem Verbindungsablauf.",
     token: "Verbindungstoken",
@@ -445,9 +444,7 @@ export function ConnectedCommerceHub({
   const [preview, setPreview] = useState<PublicPreview | null>(null);
   const [store, setStore] = useState<ConnectedStore | null>(null);
   const [scopes, setScopes] = useState<string[]>([]);
-  const [token, setToken] = useState("");
   const [detecting, setDetecting] = useState(false);
-  const [verifying, setVerifying] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncedCount, setSyncedCount] = useState<number | null>(null);
   const [missingCostCount, setMissingCostCount] = useState(0);
@@ -470,6 +467,9 @@ export function ConnectedCommerceHub({
       const admin = new URL("/admin.html", normalizeUrl(value));
       admin.searchParams.set("source", "global-stock");
       admin.searchParams.set("intent", "authorize");
+      if (typeof window !== "undefined") {
+        admin.searchParams.set("return_to", window.location.origin);
+      }
       admin.hash = "global-stock-panel";
       return admin.toString();
     } catch {
@@ -564,59 +564,6 @@ export function ConnectedCommerceHub({
     }
   }
 
-  async function verifyOwnership() {
-    setError("");
-    setMessage("");
-
-    let normalized: string;
-    try {
-      normalized = normalizeUrl(url || preview?.url || "");
-      if (!normalized) throw new Error("missing");
-    } catch {
-      setError(t.invalidUrl);
-      return;
-    }
-
-    if (!token.trim()) {
-      setError(t.noToken);
-      return;
-    }
-
-    setVerifying(true);
-    try {
-      const response = await fetch("/api/store-connector/verify", {
-        method: "POST",
-        cache: "no-store",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          url: normalized,
-          token: token.trim()
-        })
-      });
-
-      const payload = (await response.json().catch(() => ({}))) as {
-        verified?: boolean;
-        store?: ConnectedStore;
-        scopes?: string[];
-      };
-
-      if (!response.ok || payload.verified !== true || !payload.store) {
-        throw new Error("verification");
-      }
-
-      setStore(payload.store);
-      setScopes(Array.isArray(payload.scopes) ? payload.scopes : []);
-      setUrl(payload.store.url);
-      setToken("");
-      setMessage(t.verified);
-      await syncCatalog(payload.store);
-    } catch {
-      setError(t.verifyError);
-    } finally {
-      setVerifying(false);
-    }
-  }
-
   async function syncCatalog(currentStore = store) {
     if (!currentStore) return;
 
@@ -672,7 +619,6 @@ export function ConnectedCommerceHub({
       setSyncedCount(null);
       setMissingCostCount(0);
       setCatalogProducts([]);
-      setToken("");
       setMessage("");
       setError("");
     }
@@ -934,49 +880,21 @@ export function ConnectedCommerceHub({
 
           <div className="mt-4 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
             <p className="text-xs font-semibold">{t.doradoStep}</p>
+            <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
+              {language === "es"
+                ? "Global Stock nunca recibe ni almacena la contraseña de Dorado. La credencial técnica se crea detrás de escena únicamente después de verificar el código."
+                : "Global Stock never receives or stores the Dorado password. The technical connector credential is created server-side only after code verification."}
+            </p>
             {adminUrl && (
               <a
                 href={adminUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-xs font-semibold"
+                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white"
               >
                 <ExternalLink size={14} />
                 {t.openAdmin}
               </a>
             )}
           </div>
-
-          <label className="mt-4 block">
-            <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-              {t.token}
-            </span>
-            <div className="mt-2 flex gap-2">
-              <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[#8F0000]">
-                <KeyRound size={17} />
-              </span>
-              <input
-                value={token}
-                onChange={(event) => setToken(event.target.value)}
-                type="password"
-                autoCapitalize="none"
-                autoCorrect="off"
-                spellCheck={false}
-                className="apex-input min-h-12 min-w-0 flex-1 px-4 py-3 font-mono text-[16px]"
-                placeholder="gs_dorado_…"
-              />
-            </div>
-          </label>
-
-          <button
-            type="button"
-            onClick={verifyOwnership}
-            disabled={verifying || !token.trim()}
-            className="mt-4 flex min-h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white disabled:opacity-40"
-          >
-            <ShieldCheck size={17} />
-            {verifying ? t.verifying : t.verify}
-          </button>
         </section>
       )}
 
