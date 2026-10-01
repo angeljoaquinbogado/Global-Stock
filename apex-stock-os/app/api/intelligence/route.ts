@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import {
   generateIntelligenceAnswer,
+  getIntelligenceProvider,
   IntelligenceNotConfiguredError,
   isIntelligenceConfigured,
   type IntelligenceHistoryMessage,
@@ -26,12 +27,14 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const providerConfigured = isIntelligenceConfigured();
+  const provider = getIntelligenceProvider();
   const authConfigured = isApiAuthConfigured();
 
   return NextResponse.json(
     {
       configured: providerConfigured && isApiAuthAvailable(),
       providerConfigured,
+      provider,
       authConfigured
     },
     {
