@@ -2,15 +2,20 @@
 
 import {
   Banknote,
-  Building2,  Landmark,  Plus,
+  Building2,
+  Landmark,
+  Plus,
   ReceiptText,
   RefreshCw,
+  Settings2,
   ShoppingBag,
   Store,
-  UsersRound,} from "lucide-react";
+  UsersRound
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
+import { AdvancedOperations } from "./AdvancedOperations";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -18,6 +23,7 @@ type Props = {
   language: LanguageCode;
   currency: string;
   locale: string;
+  businessType: string;
   demoMode?: boolean;
 };
 
@@ -27,7 +33,8 @@ type Tab =
   | "expenses"
   | "locations"
   | "purchases"
-  | "team";
+  | "team"
+  | "advanced";
 
 type CashSession = {
   id: string;
@@ -97,6 +104,7 @@ const words: Record<
     locations: string;
     purchases: string;
     team: string;
+    advanced: string;
     cloudRequired: string;
     demo: string;
     openCash: string;
@@ -132,6 +140,7 @@ const words: Record<
     locations: "Sucursales",
     purchases: "Compras",
     team: "Equipo",
+    advanced: "Herramientas",
     cloudRequired: "La gestión cloud se activa al iniciar sesión con una cuenta real.",
     demo: "La cuenta demo no escribe datos reales en la nube.",
     openCash: "Abrir caja",
@@ -166,6 +175,7 @@ const words: Record<
     locations: "Locations",
     purchases: "Purchasing",
     team: "Team",
+    advanced: "Tools",
     cloudRequired: "Cloud operations activate after signing in with a real account.",
     demo: "The demo account never writes real cloud data.",
     openCash: "Open cash",
@@ -194,7 +204,7 @@ const words: Record<
     title: "Gestão do negócio",
     subtitle: "Caixa, clientes, despesas, filiais, compras e equipe em um só lugar.",
     cash: "Caixa", customers: "Clientes", expenses: "Despesas", locations: "Filiais",
-    purchases: "Compras", team: "Equipe", cloudRequired: "A gestão cloud ativa ao entrar com uma conta real.",
+    purchases: "Compras", team: "Equipe", advanced: "Ferramentas", cloudRequired: "A gestão cloud ativa ao entrar com uma conta real.",
     demo: "A conta demo não grava dados reais na nuvem.", openCash: "Abrir caixa", closeCash: "Fechar caixa",
     openingAmount: "Fundo inicial", closingAmount: "Dinheiro contado", currentCash: "Dinheiro esperado",
     movement: "Movimento", amount: "Valor", description: "Descrição", add: "Adicionar", name: "Nome",
@@ -206,7 +216,7 @@ const words: Record<
     title: "Gestion de l’activité",
     subtitle: "Caisse, clients, dépenses, sites, achats et équipe au même endroit.",
     cash: "Caisse", customers: "Clients", expenses: "Dépenses", locations: "Sites",
-    purchases: "Achats", team: "Équipe", cloudRequired: "La gestion cloud s’active avec un compte réel.",
+    purchases: "Achats", team: "Équipe", advanced: "Outils", cloudRequired: "La gestion cloud s’active avec un compte réel.",
     demo: "Le compte démo n’écrit aucune donnée réelle dans le cloud.", openCash: "Ouvrir la caisse", closeCash: "Fermer la caisse",
     openingAmount: "Fond initial", closingAmount: "Espèces comptées", currentCash: "Espèces attendues",
     movement: "Mouvement", amount: "Montant", description: "Description", add: "Ajouter", name: "Nom",
@@ -218,7 +228,7 @@ const words: Record<
     title: "Betriebsverwaltung",
     subtitle: "Kasse, Kunden, Ausgaben, Standorte, Einkauf und Team an einem Ort.",
     cash: "Kasse", customers: "Kunden", expenses: "Ausgaben", locations: "Standorte",
-    purchases: "Einkauf", team: "Team", cloudRequired: "Cloud-Verwaltung wird mit einem echten Konto aktiviert.",
+    purchases: "Einkauf", team: "Team", advanced: "Werkzeuge", cloudRequired: "Cloud-Verwaltung wird mit einem echten Konto aktiviert.",
     demo: "Das Demokonto schreibt keine echten Cloud-Daten.", openCash: "Kasse öffnen", closeCash: "Kasse schließen",
     openingAmount: "Startbestand", closingAmount: "Gezähltes Bargeld", currentCash: "Erwartetes Bargeld",
     movement: "Bewegung", amount: "Betrag", description: "Beschreibung", add: "Hinzufügen", name: "Name",
@@ -242,7 +252,8 @@ const tabs: Array<{ id: Tab; icon: typeof Store }> = [
   { id: "expenses", icon: ReceiptText },
   { id: "locations", icon: Building2 },
   { id: "purchases", icon: ShoppingBag },
-  { id: "team", icon: Landmark }
+  { id: "team", icon: Landmark },
+  { id: "advanced", icon: Settings2 }
 ];
 
 export function OperationsCenter({
@@ -250,6 +261,7 @@ export function OperationsCenter({
   language,
   currency,
   locale,
+  businessType,
   demoMode = false
 }: Props) {
   const t = words[language];
@@ -770,6 +782,16 @@ export function OperationsCenter({
             )) : <p className="p-5 text-sm text-[var(--apex-muted)]">{t.empty}</p>}
           </div>
         </section>
+      )}
+
+      {tab === "advanced" && (
+        <AdvancedOperations
+          businessId={businessId}
+          businessType={businessType}
+          language={language}
+          currency={currency}
+          locale={locale}
+        />
       )}
     </div>
   );
