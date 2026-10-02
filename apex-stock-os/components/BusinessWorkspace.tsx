@@ -45,6 +45,7 @@ import {
 } from "@/lib/analytics";
 import {
   ensureCloudBusiness,
+  flushOfflineBusinessOperations,
   loadCloudWorkspace,
   mirrorProductsToCloud,
   recordPosSale,
@@ -123,6 +124,60 @@ type BusinessType =
   | "ecommerce"
   | "industry"
   | "other";
+
+type PendingConnectedWrite = {
+  externalId: string;
+  patch: Record<string, unknown>;
+  updatedAt: string;
+};
+
+const CONNECTED_WRITE_QUEUE_KEY =
+  "global-stock-connected-write-queue-v1";
+
+function readConnectedWriteQueue(): PendingConnectedWrite[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(CONNECTED_WRITE_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as PendingConnectedWrite[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveConnectedWriteQueue(queue: PendingConnectedWrite[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    CONNECTED_WRITE_QUEUE_KEY,
+    JSON.stringify(queue.slice(-500))
+  );
+}
+
+function queueConnectedWrite(
+  externalId: string,
+  patch: Record<string, unknown>
+) {
+  const queue = readConnectedWriteQueue();
+  const index = queue.findIndex(
+    (item) => item.externalId === externalId
+  );
+
+  const next: PendingConnectedWrite = {
+    externalId,
+    patch:
+      index >= 0
+        ? { ...queue[index].patch, ...patch }
+        : patch,
+    updatedAt: new Date().toISOString()
+  };
+
+  if (index >= 0) queue[index] = next;
+  else queue.push(next);
+
+  saveConnectedWriteQueue(queue);
+}
 
 type ActivityKind =
   | "sale"
@@ -1404,19 +1459,23 @@ export function BusinessWorkspace({
     if (!cloudBusinessId || demoMode) return;
 
     const syncWhenOnline = () => {
-      void saveCloudWorkspace(cloudBusinessId, {
-        products,
-        trend,
-        businessName,
-        businessType,
-        businessCountry,
-        businessDescription,
-        activities,
-        notes,
-        fxHistory,
-        fxMarket
-      });
-      void mirrorProductsToCloud(cloudBusinessId, products);
+      void Promise.all([
+        saveCloudWorkspace(cloudBusinessId, {
+          products,
+          trend,
+          businessName,
+          businessType,
+          businessCountry,
+          businessDescription,
+          activities,
+          notes,
+          fxHistory,
+          fxMarket
+        }),
+        mirrorProductsToCloud(cloudBusinessId, products),
+        flushOfflineBusinessOperations(cloudBusinessId),
+        flushConnectedProductWrites()
+      ]);
     };
 
     window.addEventListener("online", syncWhenOnline);
@@ -1435,6 +1494,22 @@ export function BusinessWorkspace({
     products,
     trend
   ]);
+
+  useEffect(() => {
+    if (
+      !cloudBusinessId ||
+      demoMode ||
+      typeof navigator === "undefined" ||
+      navigator.onLine === false
+    ) {
+      return;
+    }
+
+    void Promise.all([
+      flushOfflineBusinessOperations(cloudBusinessId),
+      flushConnectedProductWrites()
+    ]);
+  }, [cloudBusinessId, demoMode]);
 
   useEffect(() => {
     if (!storageReady) return;
@@ -1702,6 +1777,36 @@ export function BusinessWorkspace({
             : "The change is saved in Global Stock but could not be synchronized with the online store.";
   }
 
+  async function flushConnectedProductWrites() {
+    const queue = readConnectedWriteQueue();
+    if (!queue.length) return 0;
+
+    const remaining: PendingConnectedWrite[] = [];
+    let flushed = 0;
+
+    for (const item of queue) {
+      try {
+        const response = await fetch("/api/store-connector/product", {
+          method: "PATCH",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            externalId: item.externalId,
+            ...item.patch
+          })
+        });
+
+        if (!response.ok) throw new Error("remote write failed");
+        flushed += 1;
+      } catch {
+        remaining.push(item);
+      }
+    }
+
+    saveConnectedWriteQueue(remaining);
+    return flushed;
+  }
+
   async function writeConnectedProduct(
     product: Product,
     patch: Record<string, unknown>
@@ -1729,6 +1834,7 @@ export function BusinessWorkspace({
       if (!response.ok) throw new Error("remote write failed");
       return true;
     } catch {
+      queueConnectedWrite(product.externalId, patch);
       setNotice(connectedSyncErrorText());
       window.setTimeout(() => setNotice(""), 4200);
       return false;

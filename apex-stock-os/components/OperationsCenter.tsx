@@ -552,18 +552,35 @@ export function OperationsCenter({
     if (!supabase || !businessId) return;
     const { data: session } = await supabase.auth.getSession();
 
-    const { data: supplier } = await supabase
+    const supplierName = purchaseSupplier.trim();
+
+    const { data: existingSupplier } = await supabase
       .from("global_stock_suppliers")
-      .insert({
-        business_id: businessId,
-        name: purchaseSupplier.trim()
-      })
       .select("id")
-      .single();
+      .eq("business_id", businessId)
+      .eq("name", supplierName)
+      .eq("active", true)
+      .limit(1)
+      .maybeSingle();
+
+    let supplierId = existingSupplier?.id ?? null;
+
+    if (!supplierId) {
+      const { data: createdSupplier } = await supabase
+        .from("global_stock_suppliers")
+        .insert({
+          business_id: businessId,
+          name: supplierName
+        })
+        .select("id")
+        .single();
+
+      supplierId = createdSupplier?.id ?? null;
+    }
 
     await supabase.from("global_stock_purchase_orders").insert({
       business_id: businessId,
-      supplier_id: supplier?.id ?? null,
+      supplier_id: supplierId,
       user_id: session.session?.user.id ?? null,
       status: "draft",
       currency,
