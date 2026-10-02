@@ -932,6 +932,66 @@ export function BusinessWorkspace({
   const cloudSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
+    const handleImportedProducts = (event: Event) => {
+      const detail = (event as CustomEvent<Product[]>).detail;
+      if (!Array.isArray(detail) || !detail.length) return;
+
+      setProducts((current) => {
+        const next = [...current];
+
+        for (const imported of detail) {
+          const existingIndex = next.findIndex(
+            (item) =>
+              (imported.barcode &&
+                item.barcode &&
+                imported.barcode === item.barcode) ||
+              (!imported.barcode &&
+                item.name.trim().toLocaleLowerCase() ===
+                  imported.name.trim().toLocaleLowerCase())
+          );
+
+          if (existingIndex >= 0) {
+            next[existingIndex] = {
+              ...next[existingIndex],
+              ...imported,
+              id: next[existingIndex].id
+            };
+          } else {
+            next.unshift(imported);
+          }
+        }
+
+        return next;
+      });
+
+      setNotice(
+        language === "es"
+          ? `${detail.length} productos importados.`
+          : language === "pt"
+            ? `${detail.length} produtos importados.`
+            : language === "fr"
+              ? `${detail.length} produits importés.`
+              : language === "de"
+                ? `${detail.length} Produkte importiert.`
+                : `${detail.length} products imported.`
+      );
+      window.setTimeout(() => setNotice(""), 2800);
+    };
+
+    window.addEventListener(
+      "global-stock-import-products",
+      handleImportedProducts
+    );
+
+    return () => {
+      window.removeEventListener(
+        "global-stock-import-products",
+        handleImportedProducts
+      );
+    };
+  }, [language]);
+
+  useEffect(() => {
     if (!moreOpen && !scannerOpen) return;
 
     const previousOverflow = document.body.style.overflow;
@@ -2207,6 +2267,7 @@ export function BusinessWorkspace({
               <ConnectedCommerceHub
                 language={language}
                 locale={locale}
+                businessType={businessType}
                 demoMode={demoMode}
                 onCatalogSync={importConnectedCatalog}
               />
