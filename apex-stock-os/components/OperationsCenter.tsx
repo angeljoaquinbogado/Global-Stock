@@ -2,18 +2,12 @@
 
 import {
   Banknote,
-  Building2,
-  CreditCard,
-  Landmark,
-  PackageCheck,
-  Plus,
+  Building2,  Landmark,  Plus,
   ReceiptText,
   RefreshCw,
   ShoppingBag,
   Store,
-  UsersRound,
-  WalletCards
-} from "lucide-react";
+  UsersRound,} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
