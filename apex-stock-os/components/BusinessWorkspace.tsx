@@ -1016,9 +1016,10 @@ export function BusinessWorkspace({
     let cancelled = false;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
+    const client = supabase;
 
     async function loadRecipes() {
-      const { data } = await supabase
+      const { data } = await client
         .from("global_stock_recipes")
         .select("product_key,component_key,quantity,wastage_pct")
         .eq("business_id", cloudBusinessId);
@@ -1058,10 +1059,11 @@ export function BusinessWorkspace({
     let cancelled = false;
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
+    const client = supabase;
 
     async function loadPromotions() {
       const now = new Date().toISOString();
-      const { data } = await supabase
+      const { data } = await client
         .from("global_stock_promotions")
         .select("id,name,kind,value,starts_at,ends_at")
         .eq("business_id", cloudBusinessId)
