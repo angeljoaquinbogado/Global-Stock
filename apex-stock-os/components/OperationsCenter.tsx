@@ -256,6 +256,15 @@ function money(value: number, currency: string, locale: string) {
   }).format(Number(value) || 0);
 }
 
+function demoId(prefix: string) {
+  const id =
+    typeof crypto !== "undefined" && "randomUUID" in crypto
+      ? crypto.randomUUID()
+      : String(Date.now()) + "-" + Math.random().toString(36).slice(2);
+
+  return prefix + "-" + id;
+}
+
 const tabs: Array<{ id: Tab; icon: typeof Store }> = [
   { id: "cash", icon: Banknote },
   { id: "customers", icon: UsersRound },
@@ -443,16 +452,18 @@ export function OperationsCenter({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [businessId, demoMode]);
 
-  if (demoMode || !businessId) {
+  if (!businessId && !demoMode) {
     return (
       <div className="space-y-5">
         <section>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
             Business OS
           </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em]">{t.title}</h2>
+          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em]">
+            {t.title}
+          </h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
-            {demoMode ? t.demo : t.cloudRequired}
+            {t.cloudRequired}
           </p>
         </section>
       </div>
@@ -460,6 +471,17 @@ export function OperationsCenter({
   }
 
   async function openCash() {
+    if (demoMode) {
+      setCashSession({
+        id: demoId("cash"),
+        opening_amount: Math.max(0, Number(opening) || 0),
+        opened_at: new Date().toISOString(),
+        status: "open"
+      });
+      setOpening("0");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     const { data: session } = await supabase.auth.getSession();
@@ -475,11 +497,45 @@ export function OperationsCenter({
 
   async function addMovement() {
     if (!cashSession || !movementAmount) return;
+    const amount = Math.max(0, Number(movementAmount) || 0);
+    if (!amount) return;
+
+    if (demoMode) {
+      const createdAt = new Date().toISOString();
+      setMovements((current) => [
+        {
+          id: demoId("movement"),
+          kind: movementKind,
+          amount,
+          description: movementDescription.trim() || null,
+          payment_method: paymentMethod,
+          created_at: createdAt
+        },
+        ...current
+      ]);
+
+      if (movementKind === "expense") {
+        setExpenses((current) => [
+          {
+            id: demoId("expense"),
+            category: expenseCategory || "Caja",
+            description: movementDescription.trim() || "Egreso de caja",
+            amount,
+            payment_method: paymentMethod,
+            occurred_at: createdAt
+          },
+          ...current
+        ]);
+      }
+
+      setMovementAmount("");
+      setMovementDescription("");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     const { data: session } = await supabase.auth.getSession();
-    const amount = Math.max(0, Number(movementAmount) || 0);
-    if (!amount) return;
 
     await supabase.from("global_stock_cash_movements").insert({
       business_id: businessId,
@@ -510,6 +566,13 @@ export function OperationsCenter({
 
   async function closeCash() {
     if (!cashSession) return;
+
+    if (demoMode) {
+      setCashSession(null);
+      setClosing("0");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
     const counted = Math.max(0, Number(closing) || 0);
@@ -529,6 +592,25 @@ export function OperationsCenter({
 
   async function addCustomer() {
     if (!customerName.trim()) return;
+
+    if (demoMode) {
+      setCustomers((current) => [
+        {
+          id: demoId("customer"),
+          name: customerName.trim(),
+          phone: customerPhone.trim() || null,
+          email: customerEmail.trim() || null,
+          account_balance: 0,
+          loyalty_points: 0
+        },
+        ...current
+      ]);
+      setCustomerName("");
+      setCustomerPhone("");
+      setCustomerEmail("");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     await supabase.from("global_stock_customers").insert({
@@ -545,6 +627,24 @@ export function OperationsCenter({
 
   async function addExpense() {
     if (!expenseDescription.trim() || !expenseAmount) return;
+
+    if (demoMode) {
+      setExpenses((current) => [
+        {
+          id: demoId("expense"),
+          category: expenseCategory.trim() || "Otros",
+          description: expenseDescription.trim(),
+          amount: Math.max(0, Number(expenseAmount) || 0),
+          payment_method: paymentMethod,
+          occurred_at: new Date().toISOString()
+        },
+        ...current
+      ]);
+      setExpenseDescription("");
+      setExpenseAmount("");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     const { data: session } = await supabase.auth.getSession();
@@ -564,6 +664,22 @@ export function OperationsCenter({
 
   async function addLocation() {
     if (!locationName.trim()) return;
+
+    if (demoMode) {
+      setLocations((current) => [
+        ...current,
+        {
+          id: demoId("location"),
+          name: locationName.trim(),
+          kind: locationKind,
+          address: locationAddress.trim() || null
+        }
+      ]);
+      setLocationName("");
+      setLocationAddress("");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     await supabase.from("global_stock_locations").insert({
@@ -579,6 +695,26 @@ export function OperationsCenter({
 
   async function addPurchase() {
     if (!purchaseSupplier.trim() || !purchaseTotal) return;
+
+    if (demoMode) {
+      setPurchases((current) => [
+        {
+          id: demoId("purchase"),
+          status: "draft",
+          total: Math.max(0, Number(purchaseTotal) || 0),
+          currency,
+          created_at: new Date().toISOString(),
+          notes: purchaseNotes.trim() || purchaseSupplier.trim(),
+          supplier_id: null
+        },
+        ...current
+      ]);
+      setPurchaseSupplier("");
+      setPurchaseTotal("");
+      setPurchaseNotes("");
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
     const { data: session } = await supabase.auth.getSession();
@@ -626,6 +762,17 @@ export function OperationsCenter({
   }
 
   async function changeRole(userId: string, role: string) {
+    if (demoMode) {
+      setMembers((current) =>
+        current.map((member) =>
+          member.user_id === userId && member.role !== "owner"
+            ? { ...member, role }
+            : member
+        )
+      );
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId || role === "owner") return;
     await supabase
@@ -640,6 +787,23 @@ export function OperationsCenter({
   async function inviteMember() {
     const email = inviteEmail.trim().toLocaleLowerCase();
     if (!email || !email.includes("@")) return;
+
+    if (demoMode) {
+      setInvites((current) => [
+        {
+          id: demoId("invite"),
+          email,
+          role: inviteRole,
+          status: "pending",
+          expires_at: new Date(
+            Date.now() + 7 * 24 * 60 * 60 * 1000
+          ).toISOString()
+        },
+        ...current
+      ]);
+      setInviteEmail("");
+      return;
+    }
 
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
@@ -659,6 +823,15 @@ export function OperationsCenter({
   }
 
   async function revokeInvite(id: string) {
+    if (demoMode) {
+      setInvites((current) =>
+        current.map((invite) =>
+          invite.id === id ? { ...invite, status: "revoked" } : invite
+        )
+      );
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
@@ -671,6 +844,17 @@ export function OperationsCenter({
   }
 
   async function setMemberActive(userId: string, active: boolean) {
+    if (demoMode) {
+      setMembers((current) =>
+        current.map((member) =>
+          member.user_id === userId && member.role !== "owner"
+            ? { ...member, active }
+            : member
+        )
+      );
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase || !businessId) return;
 
@@ -697,7 +881,13 @@ export function OperationsCenter({
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
             {t.subtitle}
           </p>
-          {!demoMode && (
+          {demoMode ? (
+            <p className="mt-2 inline-flex rounded-full border border-[#8F0000]/30 bg-[#8F0000]/8 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#B20A0A]">
+              {language === "es"
+                ? "Demo · datos temporales"
+                : "Demo · temporary data"}
+            </p>
+          ) : (
             <p className="mt-2 inline-flex rounded-full border border-[var(--apex-border)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
               {language === "es" ? "Rol" : "Role"}: {memberRole}
             </p>
@@ -705,11 +895,30 @@ export function OperationsCenter({
         </div>
         <button
           type="button"
-          onClick={() => void reload()}
+          onClick={() => {
+            if (demoMode) {
+              setCashSession(null);
+              setMovements([]);
+              setCustomers([]);
+              setExpenses([]);
+              setLocations([]);
+              setPurchases([]);
+              setMembers([]);
+              setInvites([]);
+              setOpening("0");
+              setClosing("0");
+            } else {
+              void reload();
+            }
+          }}
           className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 text-xs font-semibold"
         >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
-          Sync
+          {demoMode
+            ? language === "es"
+              ? "Restablecer demo"
+              : "Reset demo"
+            : "Sync"}
         </button>
       </section>
 
@@ -1024,13 +1233,38 @@ export function OperationsCenter({
       )}
 
       {tab === "advanced" && (
-        <AdvancedOperations
-          businessId={businessId}
-          businessType={businessType}
-          language={language}
-          currency={currency}
-          locale={locale}
-        />
+        demoMode ? (
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {[
+              language === "es" ? "Inventario avanzado" : "Advanced inventory",
+              language === "es" ? "Reportes" : "Reports",
+              language === "es" ? "Automatizaciones" : "Automations",
+              language === "es" ? "Catálogo y variantes" : "Catalog and variants",
+              language === "es" ? "Operaciones comerciales" : "Commercial operations",
+              language === "es" ? "Importar / exportar datos" : "Import / export data"
+            ].map((label) => (
+              <section key={label} className="apex-card p-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8F0000]">
+                  Demo
+                </p>
+                <h3 className="mt-2 text-base font-semibold">{label}</h3>
+                <p className="mt-2 text-xs leading-5 text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Disponible con una cuenta real. La demo no escribe datos cloud."
+                    : "Available with a real account. Demo mode does not write cloud data."}
+                </p>
+              </section>
+            ))}
+          </div>
+        ) : businessId ? (
+          <AdvancedOperations
+            businessId={businessId}
+            businessType={businessType}
+            language={language}
+            currency={currency}
+            locale={locale}
+          />
+        ) : null
       )}
     </div>
   );
