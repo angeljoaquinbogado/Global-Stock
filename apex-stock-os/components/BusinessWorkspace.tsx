@@ -992,6 +992,72 @@ export function BusinessWorkspace({
   }, [language]);
 
   useEffect(() => {
+    const handleReturnRestock = (event: Event) => {
+      const detail = (
+        event as CustomEvent<
+          Array<{ productKey: string; quantity: number }>
+        >
+      ).detail;
+
+      if (!Array.isArray(detail) || !detail.length) return;
+
+      const quantityByProduct = new Map<string, number>();
+      for (const item of detail) {
+        if (!item?.productKey) continue;
+        const quantity = Math.max(0, Number(item.quantity) || 0);
+        quantityByProduct.set(
+          item.productKey,
+          (quantityByProduct.get(item.productKey) ?? 0) + quantity
+        );
+      }
+
+      if (!quantityByProduct.size) return;
+
+      for (const product of products) {
+        const quantity = quantityByProduct.get(product.id);
+        if (!quantity) continue;
+
+        const nextStock = product.stock + quantity;
+        void writeConnectedProduct(product, { stock: nextStock });
+      }
+
+      setProducts((current) =>
+        current.map((product) => {
+          const quantity = quantityByProduct.get(product.id);
+          return quantity
+            ? { ...product, stock: product.stock + quantity }
+            : product;
+        })
+      );
+
+      setNotice(
+        language === "es"
+          ? "Devolución aplicada y stock restaurado."
+          : language === "pt"
+            ? "Devolução aplicada e estoque restaurado."
+            : language === "fr"
+              ? "Retour appliqué et stock restauré."
+              : language === "de"
+                ? "Retoure verbucht und Bestand wiederhergestellt."
+                : "Return applied and stock restored."
+      );
+      window.setTimeout(() => setNotice(""), 2800);
+    };
+
+    window.addEventListener(
+      "global-stock-return-restock",
+      handleReturnRestock
+    );
+
+    return () => {
+      window.removeEventListener(
+        "global-stock-return-restock",
+        handleReturnRestock
+      );
+    };
+  }, [language, products]);
+
+  useEffect(() => {
     if (!moreOpen && !scannerOpen) return;
 
     const previousOverflow = document.body.style.overflow;
