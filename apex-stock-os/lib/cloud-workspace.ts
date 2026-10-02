@@ -275,6 +275,132 @@ export type PosPayment = {
   amount: number;
 };
 
+type SaleQueuePayload = {
+  businessId: string;
+  currency: string;
+  receivedAmount?: number;
+  customerId?: string;
+  total: number;
+  costTotal: number;
+  payments: PosPayment[];
+  lines: Array<{
+    productKey: string;
+    productName: string;
+    unitPrice: number;
+    unitCost: number;
+    quantity: number;
+  }>;
+};
+
+type StockQueuePayload = {
+  businessId: string;
+  productKey: string;
+  previousStock: number;
+  nextStock: number;
+  reason: string;
+};
+
+type OfflineOperation =
+  | {
+      id: string;
+      kind: "sale";
+      createdAt: string;
+      payload: SaleQueuePayload;
+    }
+  | {
+      id: string;
+      kind: "stock";
+      createdAt: string;
+      payload: StockQueuePayload;
+    };
+
+const OFFLINE_QUEUE_KEY = "global-stock-offline-operations-v1";
+
+function readOfflineQueue(): OfflineOperation[] {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const raw = window.localStorage.getItem(OFFLINE_QUEUE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as OfflineOperation[];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeOfflineQueue(queue: OfflineOperation[]) {
+  if (typeof window === "undefined") return;
+  window.localStorage.setItem(
+    OFFLINE_QUEUE_KEY,
+    JSON.stringify(queue.slice(-1000))
+  );
+}
+
+function enqueueOffline(operation: OfflineOperation) {
+  const queue = readOfflineQueue();
+  if (queue.some((item) => item.id === operation.id)) return;
+  queue.push(operation);
+  writeOfflineQueue(queue);
+}
+
+function isOffline() {
+  return typeof navigator !== "undefined" && navigator.onLine === false;
+}
+
+async function executeQueuedSale(
+  operationId: string,
+  payload: SaleQueuePayload
+) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) throw new Error("SUPABASE_UNAVAILABLE");
+
+  const { data, error } = await supabase.rpc(
+    "global_stock_record_pos_sale",
+    {
+      target_business_id: payload.businessId,
+      operation_id: operationId,
+      sale_currency: payload.currency,
+      sale_total: payload.total,
+      sale_cost_total: payload.costTotal,
+      target_customer_id: payload.customerId || null,
+      sale_lines: payload.lines,
+      sale_payments: payload.payments,
+      received_amount: payload.receivedAmount ?? null
+    }
+  );
+
+  if (error || !data) {
+    throw new Error(error?.message || "SALE_SYNC_FAILED");
+  }
+
+  return String(data);
+}
+
+async function executeQueuedStock(
+  operationId: string,
+  payload: StockQueuePayload
+) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) throw new Error("SUPABASE_UNAVAILABLE");
+
+  const { error } = await supabase.rpc(
+    "global_stock_record_stock_adjustment",
+    {
+      target_business_id: payload.businessId,
+      operation_id: operationId,
+      product_key_value: payload.productKey,
+      previous_stock: payload.previousStock,
+      next_stock: payload.nextStock,
+      adjustment_reason: payload.reason
+    }
+  );
+
+  if (error) {
+    throw new Error(error.message || "STOCK_SYNC_FAILED");
+  }
+}
+
 export async function recordPosSale({
   businessId,
   currency,
@@ -296,14 +422,7 @@ export async function recordPosSale({
   total: number;
   costTotal: number;
 }) {
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase || !lines.length) return null;
-
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
-
-  if (!session?.user?.id) return null;
+  if (!lines.length) return null;
 
   const normalizedPayments = (
     payments?.length
@@ -328,140 +447,41 @@ export async function recordPosSale({
     return null;
   }
 
-  const { data: openCash } = await supabase
-    .from("global_stock_cash_sessions")
-    .select("id")
-    .eq("business_id", businessId)
-    .eq("status", "open")
-    .order("opened_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  const payload: SaleQueuePayload = {
+    businessId,
+    currency,
+    receivedAmount,
+    customerId,
+    total,
+    costTotal,
+    payments: normalizedPayments,
+    lines: lines.map(({ product, quantity }) => ({
+      productKey: product.id,
+      productName: product.name,
+      unitPrice: product.price,
+      unitCost: product.costKnown === false ? 0 : product.cost,
+      quantity
+    }))
+  };
 
-  const { data: sale, error: saleError } = await supabase
-    .from("global_stock_sales")
-    .insert({
-      business_id: businessId,
-      cash_session_id: openCash?.id ?? null,
-      customer_id: customerId || null,
-      user_id: session.user.id,
-      channel: "pos",
-      status: "completed",
-      subtotal: total,
-      total,
-      cost_total: costTotal,
-      currency
-    })
-    .select("id")
-    .single();
+  const operation: OfflineOperation = {
+    id: crypto.randomUUID(),
+    kind: "sale",
+    createdAt: new Date().toISOString(),
+    payload
+  };
 
-  if (saleError || !sale?.id) return null;
-
-  await Promise.all([
-    supabase.from("global_stock_sale_items").insert(
-      lines.map(({ product, quantity }) => ({
-        business_id: businessId,
-        sale_id: sale.id,
-        product_key: product.id,
-        product_name: product.name,
-        quantity,
-        unit_price: product.price,
-        unit_cost: product.costKnown === false ? 0 : product.cost
-      }))
-    ),
-    supabase.from("global_stock_payments").insert(
-      normalizedPayments.map((payment) => ({
-        business_id: businessId,
-        sale_id: sale.id,
-        customer_id: customerId || null,
-        method: payment.method,
-        amount: payment.amount,
-        currency
-      }))
-    ),
-    supabase.from("global_stock_stock_movements").insert(
-      lines.map(({ product, quantity }) => ({
-        business_id: businessId,
-        product_key: product.id,
-        user_id: session.user.id,
-        kind: "sale",
-        quantity: -Math.abs(quantity),
-        reason: "POS",
-        reference_id: sale.id
-      }))
-    )
-  ]);
-
-  const cashAmount = normalizedPayments
-    .filter((payment) => payment.method === "cash")
-    .reduce((sum, payment) => sum + payment.amount, 0);
-
-  if (openCash?.id && cashAmount > 0) {
-    await supabase.from("global_stock_cash_movements").insert({
-      business_id: businessId,
-      cash_session_id: openCash.id,
-      user_id: session.user.id,
-      kind: "sale",
-      amount: cashAmount,
-      description: "Venta POS",
-      payment_method: "cash",
-      reference_id: sale.id
-    });
+  if (isOffline()) {
+    enqueueOffline(operation);
+    return null;
   }
 
-  const accountAmount = normalizedPayments
-    .filter((payment) => payment.method === "account")
-    .reduce((sum, payment) => sum + payment.amount, 0);
-
-  if (customerId && accountAmount > 0) {
-    const { data: customer } = await supabase
-      .from("global_stock_customers")
-      .select("account_balance")
-      .eq("id", customerId)
-      .maybeSingle();
-
-    const currentBalance = Number(customer?.account_balance) || 0;
-
-    await Promise.all([
-      supabase.from("global_stock_customer_ledger").insert({
-        business_id: businessId,
-        customer_id: customerId,
-        user_id: session.user.id,
-        kind: "charge",
-        amount: accountAmount,
-        reference_id: sale.id,
-        notes: "Venta POS a cuenta corriente"
-      }),
-      supabase
-        .from("global_stock_customers")
-        .update({ account_balance: currentBalance + accountAmount })
-        .eq("id", customerId)
-    ]);
+  try {
+    return await executeQueuedSale(operation.id, payload);
+  } catch {
+    enqueueOffline(operation);
+    return null;
   }
-
-  const onlyCash =
-    normalizedPayments.length === 1 &&
-    normalizedPayments[0]?.method === "cash";
-
-  await supabase.from("global_stock_audit_events").insert({
-    business_id: businessId,
-    user_id: session.user.id,
-    action: "sale.completed",
-    entity_type: "sale",
-    entity_id: sale.id,
-    metadata: {
-      total,
-      currency,
-      customerId: customerId || null,
-      payments: normalizedPayments,
-      receivedAmount: receivedAmount ?? null,
-      change:
-        onlyCash && Number.isFinite(receivedAmount)
-          ? Math.max(0, Number(receivedAmount) - total)
-          : null
-    }
-  });
-
-  return sale.id as string;
 }
 
 export async function recordStockAdjustment({
@@ -477,33 +497,70 @@ export async function recordStockAdjustment({
   nextStock: number;
   reason?: string;
 }) {
-  const delta = nextStock - previousStock;
-  if (!delta) return;
+  if (nextStock === previousStock) return;
 
-  const supabase = getSupabaseBrowserClient();
-  if (!supabase) return;
+  const operation: OfflineOperation = {
+    id: crypto.randomUUID(),
+    kind: "stock",
+    createdAt: new Date().toISOString(),
+    payload: {
+      businessId,
+      productKey: product.id,
+      previousStock,
+      nextStock,
+      reason
+    }
+  };
 
-  const {
-    data: { session }
-  } = await supabase.auth.getSession();
+  if (isOffline()) {
+    enqueueOffline(operation);
+    return;
+  }
 
-  await supabase.from("global_stock_stock_movements").insert({
-    business_id: businessId,
-    product_key: product.id,
-    user_id: session?.user?.id ?? null,
-    kind: "adjustment",
-    quantity: delta,
-    reason
-  });
+  try {
+    await executeQueuedStock(operation.id, operation.payload);
+  } catch {
+    enqueueOffline(operation);
+  }
+}
 
-  await supabase.from("global_stock_audit_events").insert({
-    business_id: businessId,
-    user_id: session?.user?.id ?? null,
-    action: "inventory.adjusted",
-    entity_type: "product",
-    entity_id: product.id,
-    before_data: { stock: previousStock },
-    after_data: { stock: nextStock },
-    metadata: { reason }
-  });
+export async function flushOfflineBusinessOperations(
+  businessId: string
+) {
+  if (typeof window === "undefined" || isOffline()) return 0;
+
+  const queue = readOfflineQueue();
+  if (!queue.length) return 0;
+
+  const remaining: OfflineOperation[] = [];
+  let flushed = 0;
+
+  for (const operation of queue) {
+    if (operation.payload.businessId !== businessId) {
+      remaining.push(operation);
+      continue;
+    }
+
+    try {
+      if (operation.kind === "sale") {
+        await executeQueuedSale(operation.id, operation.payload);
+      } else {
+        await executeQueuedStock(operation.id, operation.payload);
+      }
+      flushed += 1;
+    } catch {
+      remaining.push(operation);
+    }
+  }
+
+  writeOfflineQueue(remaining);
+  return flushed;
+}
+
+export function offlineBusinessOperationCount(
+  businessId: string
+) {
+  return readOfflineQueue().filter(
+    (operation) => operation.payload.businessId === businessId
+  ).length;
 }
