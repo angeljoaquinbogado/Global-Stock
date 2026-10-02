@@ -47,6 +47,8 @@ import {
   ensureCloudBusiness,
   loadCloudWorkspace,
   mirrorProductsToCloud,
+  recordPosSale,
+  recordStockAdjustment,
   saveCloudWorkspace,
   updateCloudBusiness
 } from "@/lib/cloud-workspace";
@@ -1717,8 +1719,23 @@ export function BusinessWorkspace({
     });
   }
 
-  function completeSale() {
+  function completeSale(
+    paymentMethod = "cash",
+    receivedAmount?: number
+  ) {
     if (!cartLines.length) return;
+
+    if (cloudBusinessId && !demoMode) {
+      void recordPosSale({
+        businessId: cloudBusinessId,
+        currency,
+        paymentMethod,
+        receivedAmount,
+        lines: cartLines,
+        total: cartTotal,
+        costTotal: cartCost
+      });
+    }
 
     const remoteChanges = cartLines.map(({ product, quantity }) => ({
       product,
@@ -1769,6 +1786,16 @@ export function BusinessWorkspace({
   function updateStock(id: string, nextStock: number) {
     const safeStock = Math.max(0, Math.round(nextStock));
     const product = products.find((item) => item.id === id);
+
+    if (product && cloudBusinessId && !demoMode) {
+      void recordStockAdjustment({
+        businessId: cloudBusinessId,
+        product,
+        previousStock: product.stock,
+        nextStock: safeStock,
+        reason: "manual"
+      });
+    }
 
     setProducts((current) =>
       current.map((item) =>
@@ -1961,6 +1988,16 @@ export function BusinessWorkspace({
 
     if (product) {
       void writeConnectedProduct(product, { stock: nextStock });
+
+      if (cloudBusinessId && !demoMode) {
+        void recordStockAdjustment({
+          businessId: cloudBusinessId,
+          product,
+          previousStock: product.stock,
+          nextStock,
+          reason: "purchase"
+        });
+      }
     }
 
     addActivity("restock", {
@@ -2731,7 +2768,7 @@ function PosModule({
   cartTotal: number;
   cartProfit: number | null;
   money: (value: number) => string;
-  completeSale: () => void;
+  completeSale: (paymentMethod?: string, receivedAmount?: number) => void;
 }) {
   return (
     <div className="space-y-5">
