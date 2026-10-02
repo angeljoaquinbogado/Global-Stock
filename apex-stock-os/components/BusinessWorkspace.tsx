@@ -43,6 +43,13 @@ import {
   getStockStatus,
   rankRestockNeeds
 } from "@/lib/analytics";
+import {
+  ensureCloudBusiness,
+  loadCloudWorkspace,
+  mirrorProductsToCloud,
+  saveCloudWorkspace,
+  updateCloudBusiness
+} from "@/lib/cloud-workspace";
 import type {
   BusinessSnapshot,
   Product,
@@ -62,6 +69,7 @@ import { Logo } from "./Logo";
 import { FxCenter } from "./FxCenter";
 import { PremiumCharts } from "./PremiumCharts";
 import { NotesHub } from "./NotesHub";
+import { OperationsCenter } from "./OperationsCenter";
 import { SupplierDirectory } from "./SupplierDirectory";
 import { DocumentsHub } from "./BusinessOperations";
 import {
@@ -81,6 +89,7 @@ type ModuleId =
   | "activities"
   | "documents"
   | "notes"
+  | "operations"
   | "settings";
 
 type BusinessWorkspaceProps = {
@@ -909,6 +918,10 @@ export function BusinessWorkspace({
     new Date(new Date().getFullYear(), new Date().getMonth(), 1)
   );
   const [noteDraft, setNoteDraft] = useState("");
+  const [cloudBusinessId, setCloudBusinessId] = useState<string | null>(null);
+  const [cloudReady, setCloudReady] = useState(demoMode);
+  const cloudHydratedRef = useRef(false);
+  const cloudSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (!moreOpen && !scannerOpen) return;
@@ -1087,6 +1100,205 @@ export function BusinessWorkspace({
       JSON.stringify(products)
     );
   }, [products, storageReady]);
+
+  useEffect(() => {
+    if (!storageReady || demoMode) {
+      if (demoMode) {
+        cloudHydratedRef.current = true;
+        setCloudReady(true);
+      }
+      return;
+    }
+
+    let cancelled = false;
+
+    async function hydrateCloudWorkspace() {
+      const business = await ensureCloudBusiness({
+        name: businessName,
+        businessType,
+        country: businessCountry,
+        currency,
+        locale
+      });
+
+      if (!business || cancelled) {
+        setCloudReady(true);
+        return;
+      }
+
+      setCloudBusinessId(business.id);
+      const remote = await loadCloudWorkspace(business.id);
+
+      if (cancelled) return;
+
+      if (remote?.state) {
+        const state = remote.state;
+
+        if (Array.isArray(state.products)) setProducts(state.products);
+        if (Array.isArray(state.trend)) setTrend(state.trend);
+        if (typeof state.businessName === "string") {
+          setBusinessName(state.businessName);
+        } else if (business.name) {
+          setBusinessName(business.name);
+        }
+        if (
+          typeof state.businessType === "string" &&
+          ["retail","restaurant","services","wholesale","ecommerce","industry","other"].includes(
+            state.businessType
+          )
+        ) {
+          setBusinessType(state.businessType as BusinessType);
+        }
+        if (typeof state.businessCountry === "string") {
+          setBusinessCountry(state.businessCountry);
+        }
+        if (typeof state.businessDescription === "string") {
+          setBusinessDescription(state.businessDescription);
+        }
+        if (Array.isArray(state.activities)) {
+          setActivities(state.activities as ActivityRecord[]);
+        }
+        if (Array.isArray(state.notes)) {
+          setNotes(state.notes as BusinessNote[]);
+        }
+        if (Array.isArray(state.fxHistory)) {
+          setFxHistory(state.fxHistory as FxHistoryEntry[]);
+        }
+        if (
+          typeof state.fxMarket === "string" &&
+          ["oficial","blue","mep","ccl","tarjeta"].includes(state.fxMarket)
+        ) {
+          setFxMarket(state.fxMarket as FxMarket);
+        }
+      } else {
+        await saveCloudWorkspace(business.id, {
+          products,
+          trend,
+          businessName: businessName || business.name,
+          businessType,
+          businessCountry,
+          businessDescription,
+          activities,
+          notes,
+          fxHistory,
+          fxMarket
+        });
+      }
+
+      cloudHydratedRef.current = true;
+      setCloudReady(true);
+    }
+
+    void hydrateCloudWorkspace();
+
+    return () => {
+      cancelled = true;
+    };
+  // Initial cloud hydration must happen once after local cache is ready.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageReady, demoMode]);
+
+  useEffect(() => {
+    if (
+      demoMode ||
+      !storageReady ||
+      !cloudReady ||
+      !cloudBusinessId ||
+      !cloudHydratedRef.current
+    ) {
+      return;
+    }
+
+    if (cloudSaveTimerRef.current) {
+      window.clearTimeout(cloudSaveTimerRef.current);
+    }
+
+    cloudSaveTimerRef.current = window.setTimeout(() => {
+      const state = {
+        products,
+        trend,
+        businessName,
+        businessType,
+        businessCountry,
+        businessDescription,
+        activities,
+        notes,
+        fxHistory,
+        fxMarket
+      };
+
+      void Promise.all([
+        saveCloudWorkspace(cloudBusinessId, state),
+        mirrorProductsToCloud(cloudBusinessId, products),
+        updateCloudBusiness(cloudBusinessId, {
+          name: businessName,
+          businessType,
+          country: businessCountry,
+          currency,
+          locale
+        })
+      ]);
+    }, 900);
+
+    return () => {
+      if (cloudSaveTimerRef.current) {
+        window.clearTimeout(cloudSaveTimerRef.current);
+      }
+    };
+  }, [
+    activities,
+    businessCountry,
+    businessDescription,
+    businessName,
+    businessType,
+    cloudBusinessId,
+    cloudReady,
+    currency,
+    demoMode,
+    fxHistory,
+    fxMarket,
+    locale,
+    notes,
+    products,
+    storageReady,
+    trend
+  ]);
+
+  useEffect(() => {
+    if (!cloudBusinessId || demoMode) return;
+
+    const syncWhenOnline = () => {
+      void saveCloudWorkspace(cloudBusinessId, {
+        products,
+        trend,
+        businessName,
+        businessType,
+        businessCountry,
+        businessDescription,
+        activities,
+        notes,
+        fxHistory,
+        fxMarket
+      });
+      void mirrorProductsToCloud(cloudBusinessId, products);
+    };
+
+    window.addEventListener("online", syncWhenOnline);
+    return () => window.removeEventListener("online", syncWhenOnline);
+  }, [
+    activities,
+    businessCountry,
+    businessDescription,
+    businessName,
+    businessType,
+    cloudBusinessId,
+    demoMode,
+    fxHistory,
+    fxMarket,
+    notes,
+    products,
+    trend
+  ]);
 
   useEffect(() => {
     if (!storageReady) return;
