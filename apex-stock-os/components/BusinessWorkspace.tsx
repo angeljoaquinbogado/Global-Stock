@@ -2339,7 +2339,6 @@ export function BusinessWorkspace({
               <ConnectedCommerceHub
                 language={language}
                 locale={locale}
-                businessType={businessType}
                 demoMode={demoMode}
                 onCatalogSync={importConnectedCatalog}
               />
@@ -2438,6 +2437,7 @@ export function BusinessWorkspace({
                 language={language}
                 currency={currency}
                 locale={locale}
+                businessType={businessType}
                 demoMode={demoMode}
               />
             )}
