@@ -29,9 +29,59 @@ const supportedCurrencies = [
   "JPY"
 ];
 
+const DEMO_ACTIVE_KEY = "__global_stock_demo_active_v1";
+const DEMO_BACKUP_KEY = "__global_stock_demo_backup_v1";
+const APP_STORAGE_PREFIX = "global-stock-";
+
+function captureGlobalStockStorage() {
+  const snapshot: Record<string, string> = {};
+
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (!key || !key.startsWith(APP_STORAGE_PREFIX)) continue;
+    const value = window.localStorage.getItem(key);
+    if (value !== null) snapshot[key] = value;
+  }
+
+  return snapshot;
+}
+
+function clearGlobalStockStorage() {
+  const keys: string[] = [];
+
+  for (let index = 0; index < window.localStorage.length; index += 1) {
+    const key = window.localStorage.key(index);
+    if (key?.startsWith(APP_STORAGE_PREFIX)) keys.push(key);
+  }
+
+  for (const key of keys) {
+    window.localStorage.removeItem(key);
+  }
+}
+
+function restoreGlobalStockStorage() {
+  const raw = window.localStorage.getItem(DEMO_BACKUP_KEY);
+  clearGlobalStockStorage();
+
+  if (raw) {
+    try {
+      const snapshot = JSON.parse(raw) as Record<string, string>;
+      for (const [key, value] of Object.entries(snapshot)) {
+        window.localStorage.setItem(key, value);
+      }
+    } catch {
+      // A corrupt demo backup should never block sign out.
+    }
+  }
+
+  window.localStorage.removeItem(DEMO_ACTIVE_KEY);
+  window.localStorage.removeItem(DEMO_BACKUP_KEY);
+}
+
 export function ApexShell() {
   const [dark, setDark] = useState(true);
   const [authenticated, setAuthenticated] = useState(false);
+  const [demoMode, setDemoMode] = useState(false);
   const [language, setLanguage] = useState<LanguageCode>("es");
   const [currency, setCurrency] = useState("ARS");
   const [ready, setReady] = useState(false);
@@ -68,6 +118,16 @@ export function ApexShell() {
       supportedCurrencies.includes(storedCurrency)
     ) {
       setCurrency(storedCurrency);
+    }
+
+    const demoActive =
+      window.localStorage.getItem(DEMO_ACTIVE_KEY) === "1";
+
+    if (demoActive) {
+      setDemoMode(true);
+      setAuthenticated(true);
+      setReady(true);
+      return;
     }
 
     const client = getSupabaseBrowserClient();
@@ -136,14 +196,38 @@ export function ApexShell() {
     );
   }, [currency, ready]);
 
-  function handleAuthenticated() {
+  function handleAuthenticated(mode: "user" | "demo" = "user") {
+    if (mode === "demo") {
+      if (window.localStorage.getItem(DEMO_ACTIVE_KEY) !== "1") {
+        window.localStorage.setItem(
+          DEMO_BACKUP_KEY,
+          JSON.stringify(captureGlobalStockStorage())
+        );
+        clearGlobalStockStorage();
+        window.localStorage.setItem(DEMO_ACTIVE_KEY, "1");
+      }
+
+      setDemoMode(true);
+      setAuthenticated(true);
+      return;
+    }
+
     if (!isSupabaseConfigured()) {
       window.localStorage.setItem("global-stock-demo-auth", "1");
     }
+
+    setDemoMode(false);
     setAuthenticated(true);
   }
 
   async function handleSignOut() {
+    if (demoMode) {
+      restoreGlobalStockStorage();
+      setDemoMode(false);
+      setAuthenticated(false);
+      return;
+    }
+
     window.localStorage.removeItem("global-stock-demo-auth");
 
     const client = getSupabaseBrowserClient();
@@ -189,6 +273,7 @@ export function ApexShell() {
         onLanguageChange={setLanguage}
         onCurrencyChange={setCurrency}
         onToggleTheme={() => setDark((value) => !value)}
+        demoMode={demoMode}
         onSignOut={() => {
           void handleSignOut();
         }}
