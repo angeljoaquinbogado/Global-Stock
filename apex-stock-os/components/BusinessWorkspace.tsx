@@ -91,6 +91,7 @@ type BusinessWorkspaceProps = {
   onCurrencyChange: (currency: string) => void;
   onToggleTheme: () => void;
   onSignOut: () => void;
+  demoMode?: boolean;
 };
 
 type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
@@ -876,7 +877,8 @@ export function BusinessWorkspace({
   onLanguageChange,
   onCurrencyChange,
   onToggleTheme,
-  onSignOut
+  onSignOut,
+  demoMode = false
 }: BusinessWorkspaceProps) {
   const labels = copy[language];
   const locale = localeByLanguage[language];
@@ -1356,6 +1358,8 @@ export function BusinessWorkspace({
     product: Product,
     patch: Record<string, unknown>
   ) {
+    if (demoMode) return true;
+
     if (
       product.source !== "connected" ||
       !product.externalId
@@ -1948,6 +1952,7 @@ export function BusinessWorkspace({
               <ConnectedCommerceHub
                 language={language}
                 locale={locale}
+                demoMode={demoMode}
                 onCatalogSync={importConnectedCatalog}
               />
             )}
@@ -2240,6 +2245,7 @@ export function BusinessWorkspace({
 
       <ApexIntelligence
         snapshot={snapshot}
+        demoMode={demoMode}
         raiseOnMobile={
           activeModule === "pos" && cartLines.length > 0
         }
