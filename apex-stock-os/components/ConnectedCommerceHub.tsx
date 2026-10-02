@@ -124,7 +124,7 @@ const copy = {
     products: "productos reales",
     missingCost:
       "Algunos productos todavía no tienen costo real cargado. Global Stock no inventará ese dato.",
-    disconnect: "Desconectar loja",
+    disconnect: "Desconectar tienda",
     openAdmin: "Autorizar en Dorado",
     openStore: "Abrir tienda",
     invalidUrl: "Ingresá una URL válida.",
@@ -239,7 +239,7 @@ const copy = {
     products: "produtos reais",
     missingCost:
       "Alguns produtos ainda não têm custo real registrado. O Global Stock não inventará esse dado.",
-    disconnect: "Desconectar",
+    disconnect: "Desconectar loja",
     openAdmin: "Autorizar no Dorado",
     openStore: "Abrir loja",
     invalidUrl: "Digite uma URL válida.",
@@ -424,7 +424,7 @@ const providerMethods: Record<
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalogue, stock, clients et commandes via une application autorisée." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produits, stock et commandes avec des identifiants émis par le propriétaire." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Annonces, stock, commandes et expéditions avec les permissions du compte." },
-    { id: "custom", name: "API personnalisée", auth: "Token", detail: "Connecteur Global Stock pour boutiques propriétaires comme Dorado, avec jeton révocable." }
+    { id: "custom", name: "API personnalisée", auth: "Vérification sécurisée", detail: "Connecteur Global Stock pour boutiques propriétaires comme Dorado, avec autorisation révocable." }
   ],
   de: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produkte, Varianten, Bestand, Bestellungen und Webhooks mit Admin-Autorisierung." },
