@@ -16,6 +16,7 @@ import {
   Store
 } from "lucide-react";
 
+import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
@@ -165,53 +166,8 @@ export default function DownloadPage() {
               </p>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[620px]">
-              <div className="absolute -inset-8 rounded-[64px] bg-red-700/10 blur-3xl" />
-              <div className="relative overflow-hidden rounded-[36px] border border-white/12 bg-[#111214] p-3 shadow-[0_40px_140px_rgba(0,0,0,.5)]">
-                <div className="rounded-[28px] border border-white/8 bg-black p-5">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-red-500">
-                        Global Stock
-                      </p>
-                      <p className="mt-1 text-xl font-semibold">
-                        Centro de control
-                      </p>
-                    </div>
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-[#8F0000]">
-                      GS
-                    </span>
-                  </div>
-
-                  <div className="mt-5 grid grid-cols-3 gap-2">
-                    {["Ventas", "Stock", "Margen"].map((label, index) => (
-                      <div
-                        key={label}
-                        className="rounded-2xl border border-white/8 bg-white/[0.045] p-3"
-                      >
-                        <p className="text-[9px] uppercase text-white/36">
-                          {label}
-                        </p>
-                        <p className="mt-1 text-sm font-semibold">
-                          {index === 0 ? "$ 284K" : index === 1 ? "186" : "42.8%"}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="mt-3 h-44 rounded-2xl border border-white/8 bg-[linear-gradient(180deg,rgba(143,0,0,.09),rgba(255,255,255,.015))] p-4">
-                    <div className="flex h-full items-end gap-2">
-                      {[34, 54, 45, 72, 64, 88, 58].map((height, index) => (
-                        <span
-                          key={index}
-                          className="flex-1 rounded-t-md bg-gradient-to-t from-red-950 to-red-600"
-                          style={{ height: `${height}%` }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <div className="relative mx-auto flex w-full items-center justify-center py-4 lg:py-0">
+              <GlobalStockPhonePreview />
             </div>
           </div>
         </section>

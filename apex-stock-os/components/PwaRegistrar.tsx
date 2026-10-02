@@ -2,6 +2,11 @@
 
 import { useEffect } from "react";
 
+import {
+  rememberInstallPrompt,
+  type BeforeInstallPromptEvent
+} from "@/lib/pwa-install";
+
 export function PwaRegistrar() {
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -29,6 +34,18 @@ export function PwaRegistrar() {
       return;
     }
 
+    const onInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      rememberInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+
+    const onInstalled = () => {
+      rememberInstallPrompt(null);
+    };
+
+    window.addEventListener("beforeinstallprompt", onInstallPrompt);
+    window.addEventListener("appinstalled", onInstalled);
+
     const register = async () => {
       try {
         const registration = await navigator.serviceWorker.register("/sw.js", {
@@ -43,12 +60,15 @@ export function PwaRegistrar() {
 
     if (document.readyState === "complete") {
       void register();
-      return;
+    } else {
+      window.addEventListener("load", register, { once: true });
     }
 
-    window.addEventListener("load", register, { once: true });
-
-    return () => window.removeEventListener("load", register);
+    return () => {
+      window.removeEventListener("load", register);
+      window.removeEventListener("beforeinstallprompt", onInstallPrompt);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
   }, []);
 
   return null;

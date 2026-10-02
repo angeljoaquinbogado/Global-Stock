@@ -1,14 +1,19 @@
 {
+  "id": "/",
   "name": "Global Stock",
   "short_name": "Global Stock",
-  "description": "Sistema empresarial de stock, ventas, analítica e inteligencia operacional.",
+  "description": "Sistema empresarial de stock, ventas, caja, sucursales, analítica e inteligencia operacional.",
+  "lang": "es",
+  "dir": "ltr",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#000000",
   "theme_color": "#8F0000",
   "orientation": "any",
   "categories": ["business", "productivity", "finance"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192.png",

@@ -1,4 +1,4 @@
-const CACHE_NAME = "global-stock-shell-v5";
+const CACHE_NAME = "global-stock-shell-v6";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",

@@ -1,15 +1,23 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Download, Share, Smartphone, X } from "lucide-react";
+import {
+  CheckCircle2,
+  Download,
+  MoreVertical,
+  Share,
+  Smartphone,
+  X
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  getRememberedInstallPrompt,
+  PWA_INSTALL_AVAILABLE_EVENT,
+  rememberInstallPrompt,
+  type BeforeInstallPromptEvent
+} from "@/lib/pwa-install";
 import type { LanguageCode } from "./GlobalPreferences";
-
-type BeforeInstallPromptEvent = Event & {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
 
 type InstallAppButtonProps = {
   language: LanguageCode;
@@ -29,6 +37,8 @@ const copy: Record<
     iosSecond: string;
     browserFallback: string;
     browserInstall: string;
+    ready: string;
+    installNow: string;
   }
 > = {
   es: {
@@ -43,8 +53,10 @@ const copy: Record<
     iosSecond:
       "Después Global Stock se abre desde su propio icono, sin la barra del navegador.",
     browserFallback:
-      "Tu navegador todavía no ofreció la instalación automática. En Chrome o Edge abrí el menú del navegador y elegí",
-    browserInstall: "Instalar Global Stock"
+      "Si Chrome o Edge todavía no muestran el diálogo automático, abrí el menú del navegador y elegí",
+    browserInstall: "Instalar Global Stock",
+    ready: "La instalación nativa está disponible.",
+    installNow: "Instalar ahora"
   },
   en: {
     installed: "App installed",
@@ -58,8 +70,10 @@ const copy: Record<
     iosSecond:
       "Global Stock will then open from its own icon without the browser bar.",
     browserFallback:
-      "Your browser has not offered automatic installation yet. In Chrome or Edge open the browser menu and choose",
-    browserInstall: "Install Global Stock"
+      "If Chrome or Edge does not show the native install dialog yet, open the browser menu and choose",
+    browserInstall: "Install Global Stock",
+    ready: "Native installation is available.",
+    installNow: "Install now"
   },
   pt: {
     installed: "App instalado",
@@ -73,8 +87,10 @@ const copy: Record<
     iosSecond:
       "Depois o Global Stock abre pelo próprio ícone, sem a barra do navegador.",
     browserFallback:
-      "Seu navegador ainda não ofereceu a instalação automática. No Chrome ou Edge abra o menu e escolha",
-    browserInstall: "Instalar Global Stock"
+      "Se o Chrome ou Edge ainda não mostrar o diálogo automático, abra o menu do navegador e escolha",
+    browserInstall: "Instalar Global Stock",
+    ready: "A instalação nativa está disponível.",
+    installNow: "Instalar agora"
   },
   fr: {
     installed: "App installée",
@@ -88,8 +104,10 @@ const copy: Record<
     iosSecond:
       "Global Stock s’ouvrira ensuite depuis sa propre icône, sans la barre du navigateur.",
     browserFallback:
-      "Votre navigateur n’a pas encore proposé l’installation automatique. Dans Chrome ou Edge, ouvrez le menu et choisissez",
-    browserInstall: "Installer Global Stock"
+      "Si Chrome ou Edge n’affiche pas encore l’installation native, ouvrez le menu du navigateur et choisissez",
+    browserInstall: "Installer Global Stock",
+    ready: "L’installation native est disponible.",
+    installNow: "Installer"
   },
   de: {
     installed: "App installiert",
@@ -103,16 +121,31 @@ const copy: Record<
     iosSecond:
       "Danach öffnet sich Global Stock über das eigene Symbol ohne Browserleiste.",
     browserFallback:
-      "Dein Browser hat die automatische Installation noch nicht angeboten. Öffne in Chrome oder Edge das Menü und wähle",
-    browserInstall: "Global Stock installieren"
+      "Wenn Chrome oder Edge den Installationsdialog noch nicht zeigt, öffne das Browsermenü und wähle",
+    browserInstall: "Global Stock installieren",
+    ready: "Die native Installation ist verfügbar.",
+    installNow: "Jetzt installieren"
   }
 };
+
+function isStandaloneMode() {
+  if (typeof window === "undefined") return false;
+
+  const media = window.matchMedia("(display-mode: standalone)").matches;
+  const navigatorStandalone =
+    "standalone" in window.navigator &&
+    Boolean(
+      (window.navigator as Navigator & { standalone?: boolean }).standalone
+    );
+
+  return media || navigatorStandalone;
+}
 
 export function InstallAppButton({ language }: InstallAppButtonProps) {
   const labels = copy[language];
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [showIosHelp, setShowIosHelp] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
 
   const isIos = useMemo(() => {
@@ -121,13 +154,50 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
   }, []);
 
   useEffect(() => {
-    if (!showIosHelp) return;
+    setStandalone(isStandaloneMode());
+    setInstallPrompt(getRememberedInstallPrompt());
+
+    const onPromptAvailable = () => {
+      setInstallPrompt(getRememberedInstallPrompt());
+    };
+
+    const onInstalled = () => {
+      rememberInstallPrompt(null);
+      setInstallPrompt(null);
+      setStandalone(true);
+      setShowHelp(false);
+    };
+
+    const media = window.matchMedia("(display-mode: standalone)");
+    const onDisplayModeChange = () => {
+      setStandalone(isStandaloneMode());
+    };
+
+    window.addEventListener(
+      PWA_INSTALL_AVAILABLE_EVENT,
+      onPromptAvailable
+    );
+    window.addEventListener("appinstalled", onInstalled);
+    media.addEventListener?.("change", onDisplayModeChange);
+
+    return () => {
+      window.removeEventListener(
+        PWA_INSTALL_AVAILABLE_EVENT,
+        onPromptAvailable
+      );
+      window.removeEventListener("appinstalled", onInstalled);
+      media.removeEventListener?.("change", onDisplayModeChange);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!showHelp) return;
 
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
     const onEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowIosHelp(false);
+      if (event.key === "Escape") setShowHelp(false);
     };
 
     window.addEventListener("keydown", onEscape);
@@ -136,70 +206,64 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onEscape);
     };
-  }, [showIosHelp]);
+  }, [showHelp]);
 
-  useEffect(() => {
-    const media = window.matchMedia("(display-mode: standalone)");
-    const navigatorStandalone =
-      "standalone" in window.navigator &&
-      Boolean(
-        (window.navigator as Navigator & { standalone?: boolean }).standalone
-      );
-
-    setStandalone(media.matches || navigatorStandalone);
-
-    const onPrompt = (event: Event) => {
-      event.preventDefault();
-      setInstallPrompt(event as BeforeInstallPromptEvent);
-    };
-
-    const onInstalled = () => {
-      setStandalone(true);
-      setInstallPrompt(null);
-      setShowIosHelp(false);
-    };
-
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
-
-  if (standalone) {
-    return (
-      <span className="hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2 text-[10px] font-semibold text-[var(--apex-muted)] sm:inline-flex">
-        {labels.installed}
-      </span>
-    );
-  }
-
-  async function install() {
-    if (installPrompt) {
-      await installPrompt.prompt();
-      await installPrompt.userChoice;
-      setInstallPrompt(null);
+  async function launchNativeInstall() {
+    const prompt = installPrompt ?? getRememberedInstallPrompt();
+    if (!prompt) {
+      setShowHelp(true);
       return;
     }
 
-    setShowIosHelp(true);
+    try {
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+
+      rememberInstallPrompt(null);
+      setInstallPrompt(null);
+
+      if (choice.outcome === "dismissed") {
+        setShowHelp(true);
+      }
+    } catch {
+      setShowHelp(true);
+    }
+  }
+
+  async function install() {
+    if (standalone) return;
+
+    if (installPrompt || getRememberedInstallPrompt()) {
+      await launchNativeInstall();
+      return;
+    }
+
+    setShowHelp(true);
+  }
+
+  if (standalone) {
+    return (
+      <span className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.07] px-3 text-xs font-semibold text-emerald-500">
+        <CheckCircle2 size={15} />
+        <span className="hidden sm:inline">{labels.installed}</span>
+      </span>
+    );
   }
 
   return (
     <>
       <button
         type="button"
-        onClick={install}
-        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition active:scale-[.98]"
+        onClick={() => void install()}
+        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-xs font-semibold transition hover:border-[#8F0000]/35 active:scale-[.98]"
+        aria-label={labels.install}
       >
         <Download size={15} />
         <span className="hidden sm:inline">{labels.install}</span>
       </button>
 
       <AnimatePresence>
-        {showIosHelp && (
+        {showHelp && (
           <motion.div
             className="fixed inset-0 z-[320] grid place-items-center overflow-y-auto bg-black/65 p-4 sm:backdrop-blur-sm"
             initial={{ opacity: 0 }}
@@ -207,7 +271,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
             exit={{ opacity: 0 }}
             onMouseDown={(event) => {
               if (event.currentTarget === event.target) {
-                setShowIosHelp(false);
+                setShowHelp(false);
               }
             }}
           >
@@ -224,7 +288,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setShowIosHelp(false)}
+                  onClick={() => setShowHelp(false)}
                   className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)]"
                   aria-label={labels.close}
                 >
@@ -236,7 +300,21 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 {labels.title}
               </h3>
 
-              {isIos ? (
+              {installPrompt ? (
+                <div className="mt-4">
+                  <p className="text-sm leading-6 text-[var(--apex-muted)]">
+                    {labels.ready}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void launchNativeInstall()}
+                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white"
+                  >
+                    <Download size={15} />
+                    {labels.installNow}
+                  </button>
+                </div>
+              ) : isIos ? (
                 <div className="mt-3 space-y-3 text-sm leading-6 text-[var(--apex-muted)]">
                   <p>
                     {labels.iosFirst}{" "}
@@ -248,10 +326,16 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                   <p>{labels.iosSecond}</p>
                 </div>
               ) : (
-                <p className="mt-3 text-sm leading-6 text-[var(--apex-muted)]">
-                  {labels.browserFallback}{" "}
-                  <strong>{labels.browserInstall}</strong>.
-                </p>
+                <div className="mt-3 space-y-3 text-sm leading-6 text-[var(--apex-muted)]">
+                  <p>
+                    {labels.browserFallback}{" "}
+                    <strong>{labels.browserInstall}</strong>.
+                  </p>
+                  <p className="flex items-center gap-2 text-xs">
+                    <MoreVertical size={15} />
+                    Menú del navegador → {labels.browserInstall}
+                  </p>
+                </div>
               )}
             </motion.div>
           </motion.div>
