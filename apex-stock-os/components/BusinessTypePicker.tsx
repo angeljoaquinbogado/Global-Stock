@@ -136,7 +136,7 @@ export function BusinessTypePicker({
         <div
           id="global-stock-business-type-options"
           role="listbox"
-          className="apex-scrollbar absolute inset-x-0 top-[calc(100%+8px)] z-[350] max-h-72 overflow-y-auto rounded-[20px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_24px_80px_rgba(0,0,0,.34)] backdrop-blur-xl"
+          className="apex-scrollbar absolute inset-x-0 top-[calc(100%+8px)] z-[350] max-h-72 overflow-y-auto rounded-[20px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_24px_80px_rgba(0,0,0,.34)] backdrop-blur-lg"
         >
           {options.map((option) => {
             const active = option.id === value;

@@ -491,10 +491,13 @@ export function SupplierDirectory({ language, stats, money, onRemoveSupplier }: 
             }}
           >
             <motion.section
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", bounce: 0, duration: 0.34 }}
+              initial={{ transform: "translate3d(0,100%,0)" }}
+              animate={{ transform: "translate3d(0,0,0)" }}
+              exit={{ transform: "translate3d(0,100%,0)" }}
+              transition={{
+                duration: 0.28,
+                ease: [0.32, 0.72, 0, 1]
+              }}
               className="apex-glass apex-scrollbar max-h-[calc(100dvh-8px)] w-full max-w-2xl overflow-y-auto rounded-t-[30px] p-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-32px)] sm:rounded-[30px] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">

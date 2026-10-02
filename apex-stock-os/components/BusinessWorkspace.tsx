@@ -3343,15 +3343,7 @@ export function BusinessWorkspace({
           </div>
         </header>
 
-        <AnimatePresence initial={false}>
-          <motion.div
-            key={activeModule + language}
-            initial={{ opacity: 0, y: 4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7"
-          >
+        <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
             {activeModule === "overview" && (
               <OverviewModule
                 labels={labels}
@@ -3526,8 +3518,7 @@ export function BusinessWorkspace({
                 locale={locale}
               />
             )}
-          </motion.div>
-        </AnimatePresence>
+        </div>
       </section>
 
       <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg lg:hidden">
@@ -3592,10 +3583,13 @@ export function BusinessWorkspace({
             }}
           >
             <motion.div
-              initial={{ y: "100%" }}
-              animate={{ y: 0 }}
-              exit={{ y: "100%" }}
-              transition={{ type: "spring", bounce: 0, duration: 0.34 }}
+              initial={{ transform: "translate3d(0,100%,0)" }}
+              animate={{ transform: "translate3d(0,0,0)" }}
+              exit={{ transform: "translate3d(0,100%,0)" }}
+              transition={{
+                duration: 0.28,
+                ease: [0.32, 0.72, 0, 1]
+              }}
               className="apex-scrollbar max-h-[88dvh] w-full overflow-y-auto rounded-t-[30px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))]"
             >
               <div className="mb-4 flex items-center justify-between">
@@ -3701,10 +3695,23 @@ export function BusinessWorkspace({
       <AnimatePresence>
         {notice && (
           <motion.div
-            initial={{ opacity: 0, y: 16, scale: 0.97 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12 }}
-            className="fixed bottom-28 left-1/2 z-[140] -translate-x-1/2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
+            initial={{
+              opacity: 0,
+              transform: "translate3d(-50%,12px,0) scale(.97)"
+            }}
+            animate={{
+              opacity: 1,
+              transform: "translate3d(-50%,0,0) scale(1)"
+            }}
+            exit={{
+              opacity: 0,
+              transform: "translate3d(-50%,8px,0) scale(.98)"
+            }}
+            transition={{
+              duration: 0.18,
+              ease: [0.23, 1, 0.32, 1]
+            }}
+            className="fixed bottom-28 left-1/2 z-[140] rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
           >
             {notice}
           </motion.div>

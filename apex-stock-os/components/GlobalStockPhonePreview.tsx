@@ -50,7 +50,7 @@ export function GlobalStockPhonePreview() {
 
   return (
     <div className="relative mx-auto flex w-full max-w-[470px] flex-col items-center">
-      <div className="absolute inset-x-[12%] top-[9%] h-[72%] rounded-full bg-red-700/15 blur-3xl" />
+      <div className="absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
 
       <IPhone17ProMax
         batteryLevel={94}
@@ -177,7 +177,7 @@ export function GlobalStockPhonePreview() {
               type="button"
               onClick={() => setFrameColor(color)}
               className={
-                "h-7 w-7 rounded-full border-2 transition-all " +
+                "h-7 w-7 rounded-full border-2 transition-[transform,border-color] duration-150 ease-out " +
                 (frameColor === color
                   ? "scale-110 border-white"
                   : "border-white/10")

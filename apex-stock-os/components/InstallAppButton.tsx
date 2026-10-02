@@ -255,7 +255,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       <button
         type="button"
         onClick={() => void install()}
-        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#A10A0A] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition hover:bg-[#A10A0A] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
+        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#A10A0A] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#A10A0A] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
         aria-label={labels.install}
       >
         <Download size={15} />
@@ -276,10 +276,22 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
             }}
           >
             <motion.div
-              initial={{ opacity: 0, y: 18, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ type: "spring", bounce: 0, duration: 0.34 }}
+              initial={{
+                opacity: 0,
+                transform: "translate3d(0,14px,0) scale(.98)"
+              }}
+              animate={{
+                opacity: 1,
+                transform: "translate3d(0,0,0) scale(1)"
+              }}
+              exit={{
+                opacity: 0,
+                transform: "translate3d(0,8px,0) scale(.985)"
+              }}
+              transition={{
+                duration: 0.28,
+                ease: [0.23, 1, 0.32, 1]
+              }}
               className="my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
@@ -289,7 +301,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 <button
                   type="button"
                   onClick={() => setShowHelp(false)}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-white/[0.04] text-white/75 transition hover:bg-white/[0.08] hover:text-white"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-white/[0.04] text-white/75 transition-colors duration-150 hover:bg-white/[0.08] hover:text-white"
                   aria-label={labels.close}
                 >
                   <X size={15} />

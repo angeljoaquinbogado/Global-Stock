@@ -41,8 +41,6 @@ type AuthScreenProps = {
 
 type Mode = "signin" | "signup";
 
-const spring = { type: "spring", bounce: 0, duration: 0.38 } as const;
-
 const copy: Record<
   LanguageCode,
   {
@@ -606,39 +604,58 @@ export function AuthScreen({
           <motion.section
             key="brand-intro"
             className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-white"
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, transform: "scale(1.02)" }}
+            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
           >
             <AnimatePresence>
               {brandVisible && (
                 <motion.div
-                  initial={{ opacity: 0, y: 22, scale: 0.92 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={spring}
+                  initial={{
+                    opacity: 0,
+                    transform: "translate3d(0,16px,0) scale(.95)"
+                  }}
+                  animate={{
+                    opacity: 1,
+                    transform: "translate3d(0,0,0) scale(1)"
+                  }}
+                  transition={{
+                    duration: 0.3,
+                    ease: [0.23, 1, 0.32, 1]
+                  }}
                   className="text-center"
                 >
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.46, rotate: 26 }}
-                    animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                    transition={{
-                      type: "spring",
-                      bounce: 0,
-                      duration: 0.72,
-                      delay: 0.08
+                    initial={{
+                      opacity: 0,
+                      transform: "scale(.94) rotate(6deg)"
                     }}
-                    className="mx-auto grid h-24 w-24 place-items-center rounded-[30px] border border-white/10 bg-black/35 shadow-[0_28px_100px_rgba(143,0,0,.42)] backdrop-blur-xl"
+                    animate={{
+                      opacity: 1,
+                      transform: "scale(1) rotate(0deg)"
+                    }}
+                    transition={{
+                      duration: 0.28,
+                      delay: 0.08,
+                      ease: [0.23, 1, 0.32, 1]
+                    }}
+                    className="mx-auto grid h-24 w-24 place-items-center rounded-[30px] border border-white/10 bg-black/45 shadow-[0_24px_72px_rgba(143,0,0,.32)] backdrop-blur-md"
                   >
                     <Logo className="h-16 w-16" />
                   </motion.div>
 
                   <motion.div
-                    initial={{ opacity: 0, scaleX: 0.7, y: 8 }}
-                    animate={{ opacity: 1, scaleX: 1, y: 0 }}
+                    initial={{
+                      opacity: 0,
+                      transform: "translate3d(0,8px,0) scaleX(.96)"
+                    }}
+                    animate={{
+                      opacity: 1,
+                      transform: "translate3d(0,0,0) scaleX(1)"
+                    }}
                     transition={{
-                      type: "spring",
-                      bounce: 0,
-                      duration: 0.78,
-                      delay: 0.18
+                      duration: 0.3,
+                      delay: 0.16,
+                      ease: [0.23, 1, 0.32, 1]
                     }}
                     className="mt-7 origin-center text-[clamp(2.55rem,7vw,6.4rem)] font-semibold leading-none tracking-[-0.045em]"
                   >
@@ -647,9 +664,19 @@ export function AuthScreen({
 
                   <motion.p
                     key={language}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.7, delay: 0.55 }}
+                    initial={{
+                      opacity: 0,
+                      transform: "translate3d(0,6px,0)"
+                    }}
+                    animate={{
+                      opacity: 1,
+                      transform: "translate3d(0,0,0)"
+                    }}
+                    transition={{
+                      duration: 0.24,
+                      delay: 0.42,
+                      ease: [0.23, 1, 0.32, 1]
+                    }}
                     className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/58 sm:text-base"
                   >
                     {labels.intro}
@@ -678,10 +705,19 @@ export function AuthScreen({
           >
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
-              initial={{ opacity: 0, y: 28, scale: 0.985 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={spring}
-              className={`relative my-auto w-full max-w-[560px] overflow-visible rounded-[30px] border p-5 backdrop-blur-[14px] sm:rounded-[34px] sm:p-7 sm:backdrop-blur-[22px] ${surfaceClass}`}
+              initial={{
+                opacity: 0,
+                transform: "translate3d(0,18px,0) scale(.985)"
+              }}
+              animate={{
+                opacity: 1,
+                transform: "translate3d(0,0,0) scale(1)"
+              }}
+              transition={{
+                duration: 0.28,
+                ease: [0.23, 1, 0.32, 1]
+              }}
+              className={`relative my-auto w-full max-w-[560px] overflow-visible rounded-[30px] border p-5 backdrop-blur-[12px] sm:rounded-[34px] sm:p-7 sm:backdrop-blur-[16px] ${surfaceClass}`}
             >
               <div className="mb-4 flex items-center justify-between gap-3">
                 <Logo withWordmark />
@@ -726,22 +762,15 @@ export function AuthScreen({
                       onClick={() => selectMode(item)}
                       aria-pressed={active}
                       className={
-                        "relative min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors " +
+                        "relative min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-150 " +
                         (active
-                          ? "text-white"
+                          ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.22)]"
                           : dark
                             ? "text-white/58 hover:text-white"
                             : "text-[#5F6068] hover:text-[#111114]")
                       }
                     >
-                      {active && (
-                        <motion.span
-                          layoutId="auth-tab"
-                          transition={spring}
-                          className="absolute inset-0 rounded-xl bg-[#8F0000] shadow-[0_10px_30px_rgba(143,0,0,.28)]"
-                        />
-                      )}
-                      <span className="relative z-10">
+                      <span>
                         {item === "signin" ? labels.signIn : labels.signUp}
                       </span>
                     </button>
@@ -752,10 +781,28 @@ export function AuthScreen({
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={`${mode}-${language}`}
-                  initial={{ opacity: 0, x: mode === "signup" ? 18 : -18 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: mode === "signup" ? -12 : 12 }}
-                  transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+                  initial={{
+                    opacity: 0,
+                    transform:
+                      mode === "signup"
+                        ? "translate3d(12px,0,0)"
+                        : "translate3d(-12px,0,0)"
+                  }}
+                  animate={{
+                    opacity: 1,
+                    transform: "translate3d(0,0,0)"
+                  }}
+                  exit={{
+                    opacity: 0,
+                    transform:
+                      mode === "signup"
+                        ? "translate3d(-8px,0,0)"
+                        : "translate3d(8px,0,0)"
+                  }}
+                  transition={{
+                    duration: 0.18,
+                    ease: [0.23, 1, 0.32, 1]
+                  }}
                 >
                   <div className="mb-6">
                     <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#ff8d8d]" : "text-[#8F0000]"}`}>
@@ -928,12 +975,10 @@ export function AuthScreen({
                       </div>
                     )}
 
-                    <motion.button
+                    <button
                       type="submit"
-                      whileTap={{ scale: 0.98 }}
-                      transition={spring}
                       disabled={pending}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition hover:bg-[#a40000] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {pending ? (
                         <Loader2 size={17} className="animate-spin" />
@@ -941,7 +986,7 @@ export function AuthScreen({
                         <ArrowRight size={17} />
                       )}
                       {mode === "signin" ? labels.enter : labels.create}
-                    </motion.button>
+                    </button>
 
                     <button
                       type="button"

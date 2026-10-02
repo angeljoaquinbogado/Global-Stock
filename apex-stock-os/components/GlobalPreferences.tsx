@@ -159,8 +159,6 @@ const ui: Record<
 };
 
 const currencies = Object.keys(currencyLabels);
-const spring = { type: "spring", bounce: 0, duration: 0.34 } as const;
-
 export function GlobalPreferences({
   language,
   currency,
@@ -213,22 +211,29 @@ export function GlobalPreferences({
           }}
         >
           <motion.section
-            initial={{ opacity: 0, y: 38, scale: 0.985 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.99 }}
-            transition={spring}
+            initial={{
+              opacity: 0,
+              transform: "translate3d(0,24px,0) scale(.985)"
+            }}
+            animate={{
+              opacity: 1,
+              transform: "translate3d(0,0,0) scale(1)"
+            }}
+            exit={{
+              opacity: 0,
+              transform: "translate3d(0,14px,0) scale(.99)"
+            }}
+            transition={{
+              duration: 0.28,
+              ease: [0.32, 0.72, 0, 1]
+            }}
             className="apex-glass flex max-h-[calc(100dvh-16px)] w-full max-w-[480px] flex-col overflow-hidden rounded-t-[30px] border-x-0 border-b-0 sm:max-h-[calc(100dvh-32px)] sm:rounded-[30px] sm:border"
           >
             <div className="flex shrink-0 items-center justify-between p-5 pb-3">
               <div>
-                <motion.p
-                  key={labels.eyebrow}
-                  initial={{ opacity: 0, y: 4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]"
-                >
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
                   {labels.eyebrow}
-                </motion.p>
+                </p>
                 <h3 className="mt-1 text-xl font-semibold tracking-[-0.035em]">
                   {open === "language"
                     ? labels.language
@@ -327,12 +332,11 @@ function ChoiceButton({
   onClick: () => void;
 }) {
   return (
-    <motion.button
+    <button
       type="button"
-      whileTap={{ scale: 0.985 }}
       onClick={onClick}
       className={
-        "flex min-h-[62px] touch-manipulation items-center gap-3 rounded-[20px] border px-4 py-3 text-left transition " +
+        "flex min-h-[62px] touch-manipulation items-center gap-3 rounded-[20px] border px-4 py-3 text-left transition-colors duration-150 active:scale-[.985] " +
         (selected
           ? "border-[#8F0000]/35 bg-[#8F0000]/10"
           : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)]")
@@ -355,16 +359,11 @@ function ChoiceButton({
         </span>
       </span>
       {selected && (
-        <motion.span
-          initial={{ scale: 0.6, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={spring}
-          className="grid h-7 w-7 place-items-center rounded-full bg-[#8F0000] text-white"
-        >
+        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#8F0000] text-white">
           <Check size={14} />
-        </motion.span>
+        </span>
       )}
-    </motion.button>
+    </button>
   );
 }
 
@@ -382,12 +381,11 @@ function PreferenceButton({
   ariaLabel: string;
 }) {
   return (
-    <motion.button
+    <button
       type="button"
-      whileTap={{ scale: 0.975 }}
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition-colors hover:bg-[var(--apex-bg)]"
+      className="flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition-colors duration-150 hover:bg-[var(--apex-bg)] active:scale-[.975]"
     >
       <span className="text-[#8F0000]">{icon}</span>
       <span className="text-xs font-bold">{primary}</span>
@@ -395,6 +393,6 @@ function PreferenceButton({
         {secondary}
       </span>
       <ChevronDown size={13} className="text-[var(--apex-muted)]" />
-    </motion.button>
+    </button>
   );
 }

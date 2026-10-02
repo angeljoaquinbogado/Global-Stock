@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-lg">
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link
           href="/download"
@@ -16,23 +16,23 @@ export function PublicHeader() {
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm text-white/64 md:flex">
-          <Link className="transition hover:text-white" href="/about">
+          <Link className="transition-colors duration-150 hover:text-white" href="/about">
             Quiénes somos
           </Link>
-          <Link className="transition hover:text-white" href="/download#instalar">
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#instalar">
             Instalar
           </Link>
-          <Link className="transition hover:text-white" href="/legal">
+          <Link className="transition-colors duration-150 hover:text-white" href="/legal">
             Legal
           </Link>
-          <Link className="transition hover:text-white" href="/support">
+          <Link className="transition-colors duration-150 hover:text-white" href="/support">
             Soporte
           </Link>
         </nav>
 
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-black transition hover:bg-white/90"
+          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-black transition-colors duration-150 hover:bg-white/90"
         >
           Abrir app
         </Link>

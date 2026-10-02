@@ -51,11 +51,11 @@ const FRAME: Record<
   }
 };
 
-const ISLAND: Record<DynamicIslandSize, string> = {
-  default: "w-[31%]",
-  expanded: "w-[43%]",
-  large: "w-[58%]",
-  ultra: "w-[76%]"
+const ISLAND_SCALE: Record<DynamicIslandSize, number> = {
+  default: 0.41,
+  expanded: 0.57,
+  large: 0.76,
+  ultra: 1
 };
 
 export function IPhone17ProMax({
@@ -136,12 +136,17 @@ export function IPhone17ProMax({
               type="button"
               onClick={onDynamicIslandTap}
               className={
-                "absolute left-1/2 top-[1.35%] z-40 h-[3.7%] -translate-x-1/2 rounded-full bg-black shadow-[0_1px_0_rgba(255,255,255,.08)] transition-all duration-300 " +
-                ISLAND[dynamicIslandSize] +
+                "absolute left-1/2 top-[1.35%] z-40 h-[3.7%] w-[76%] rounded-full bg-black shadow-[0_1px_0_rgba(255,255,255,.08)] transition-transform duration-200 ease-out " +
                 (onDynamicIslandTap
                   ? " cursor-pointer active:scale-[.98]"
                   : " cursor-default")
               }
+              style={{
+                transform:
+                  "translateX(-50%) scaleX(" +
+                  ISLAND_SCALE[dynamicIslandSize] +
+                  ")"
+              }}
               aria-label={
                 onDynamicIslandTap
                   ? "Change Dynamic Island size"

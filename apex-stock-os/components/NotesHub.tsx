@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import {
   CalendarDays,
   Check,
@@ -343,7 +342,7 @@ export function NotesHub({
             type="button"
             onClick={() => setTab(id)}
             className={
-              "flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition " +
+              "flex min-h-10 items-center gap-2 rounded-xl px-3 text-xs font-semibold transition-colors duration-150 " +
               (tab === id
                 ? "bg-[#8F0000] text-white"
                 : "text-[var(--apex-muted)]")
@@ -355,15 +354,8 @@ export function NotesHub({
         ))}
       </div>
 
-      <AnimatePresence mode="wait" initial={false}>
         {tab === "bloc" && (
-          <motion.div
-            key="bloc"
-            initial={{ opacity: 0, y: 7 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="grid gap-3 xl:grid-cols-[360px_1fr]"
-          >
+          <div className="grid gap-3 xl:grid-cols-[360px_1fr]">
             <section className="apex-card h-fit p-4">
               <div className="flex items-center gap-2">
                 <StickyNote size={17} className="text-[#8F0000]" />
@@ -461,17 +453,11 @@ export function NotesHub({
                 </div>
               )}
             </section>
-          </motion.div>
+          </div>
         )}
 
         {tab === "tasks" && (
-          <motion.div
-            key="tasks"
-            initial={{ opacity: 0, y: 7 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="grid gap-3 xl:grid-cols-[360px_1fr]"
-          >
+          <div className="grid gap-3 xl:grid-cols-[360px_1fr]">
             <CompactCalendar
               t={t}
               locale={locale}
@@ -563,17 +549,11 @@ export function NotesHub({
                 )}
               </div>
             </section>
-          </motion.div>
+          </div>
         )}
 
         {tab === "calendar" && (
-          <motion.div
-            key="calendar"
-            initial={{ opacity: 0, y: 7 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            className="max-w-[430px]"
-          >
+          <div className="max-w-[430px]">
             <CompactCalendar
               t={t}
               locale={locale}
@@ -584,9 +564,8 @@ export function NotesHub({
               setCalendarMonth={setCalendarMonth}
               standalone
             />
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

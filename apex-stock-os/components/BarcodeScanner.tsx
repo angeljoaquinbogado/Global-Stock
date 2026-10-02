@@ -274,8 +274,7 @@ export const BarcodeScanner = forwardRef<
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
-  const frameRef = useRef<number | null>(null);
-  const lastNativeScanRef = useRef(0);
+  const scanTimerRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const resolvedRef = useRef(false);
 
@@ -405,29 +404,29 @@ export const BarcodeScanner = forwardRef<
     setStatus("scanning");
     setMessage(copy.aim);
 
-    const tick = async (timestamp: number) => {
+    const tick = async () => {
       if (!videoRef.current || !streamRef.current || resolvedRef.current) {
         return;
       }
 
-      if (timestamp - lastNativeScanRef.current >= 90) {
-        lastNativeScanRef.current = timestamp;
-
-        try {
-          const codes = await detector.detect(videoRef.current);
-          if (codes[0]?.rawValue) {
-            await resolveBarcode(codes[0].rawValue);
-            return;
-          }
-        } catch {
-          // Retry on the next throttled scan frame.
+      try {
+        const codes = await detector.detect(videoRef.current);
+        if (codes[0]?.rawValue) {
+          await resolveBarcode(codes[0].rawValue);
+          return;
         }
+      } catch {
+        // Retry on the next controlled scan interval.
       }
 
-      frameRef.current = window.requestAnimationFrame(tick);
+      if (!resolvedRef.current && streamRef.current) {
+        scanTimerRef.current = window.setTimeout(() => {
+          void tick();
+        }, 120);
+      }
     };
 
-    frameRef.current = window.requestAnimationFrame(tick);
+    void tick();
   }
 
   async function startZxing() {
@@ -479,11 +478,10 @@ export const BarcodeScanner = forwardRef<
   }
 
   function stopCameraOnly() {
-    lastNativeScanRef.current = 0;
 
-    if (frameRef.current !== null) {
-      cancelAnimationFrame(frameRef.current);
-      frameRef.current = null;
+    if (scanTimerRef.current !== null) {
+      window.clearTimeout(scanTimerRef.current);
+      scanTimerRef.current = null;
     }
 
     readerRef.current?.reset();
@@ -549,7 +547,7 @@ export const BarcodeScanner = forwardRef<
           <button
             type="button"
             onClick={active ? stop : startLiveCamera}
-            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 py-2.5 text-sm font-semibold text-white transition active:scale-[.985]"
+            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 py-2.5 text-sm font-semibold text-white transition-colors duration-150 active:scale-[.985]"
           >
             {status === "requesting" && liveCameraAvailable ? (
               <Loader2 size={16} className="animate-spin" />
@@ -568,7 +566,7 @@ export const BarcodeScanner = forwardRef<
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
-            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2.5 text-sm font-semibold transition active:scale-[.985]"
+            className="inline-flex min-h-11 touch-manipulation items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2.5 text-sm font-semibold transition-colors duration-150 active:scale-[.985]"
           >
             <ImagePlus size={16} />
             {copy.photo}

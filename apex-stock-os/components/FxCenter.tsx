@@ -436,7 +436,7 @@ export function FxCenter({
             <button
               type="button"
               onClick={swap}
-              className="mb-0 grid h-11 w-11 place-items-center rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[#8F0000] transition hover:rotate-180"
+              className="mb-0 grid h-11 w-11 place-items-center rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[#8F0000] transition-colors duration-150 hover:bg-[var(--apex-bg)]"
               aria-label={t.swap}
             >
               <ArrowLeftRight size={16} />

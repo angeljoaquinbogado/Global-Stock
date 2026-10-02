@@ -1,6 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
 import {
   ArrowDownRight,
   ArrowUpRight,
@@ -743,11 +742,7 @@ function Metric({
   positive?: boolean;
 }) {
   return (
-    <motion.article
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="apex-card p-5"
-    >
+    <article className="apex-card p-5">
       <div className="flex items-start justify-between gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
           {icon}
@@ -769,7 +764,7 @@ function Metric({
       <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">
         {value}
       </p>
-    </motion.article>
+    </article>
   );
 }
 

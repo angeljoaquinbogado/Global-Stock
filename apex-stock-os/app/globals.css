@@ -15,6 +15,13 @@
   --apex-warning: #b25000;
   --apex-danger: #c9342f;
   --apex-shadow: 0 24px 80px rgba(0, 0, 0, 0.12);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --duration-press: 140ms;
+  --duration-popover: 180ms;
+  --duration-selection: 180ms;
+  --duration-modal: 280ms;
 }
 
 .dark {
@@ -100,8 +107,8 @@ button:not(:disabled):active,
   opacity: 0.86;
   transform: scale(0.985);
   transition:
-    transform 120ms ease-out,
-    opacity 120ms ease-out;
+    transform var(--duration-press) var(--ease-out),
+    opacity var(--duration-press) var(--ease-out);
 }
 
 button:focus-visible,
@@ -122,8 +129,8 @@ textarea:focus-visible {
     border: 1px solid var(--apex-border);
     background: var(--apex-surface);
     box-shadow: var(--apex-shadow);
-    backdrop-filter: blur(28px) saturate(140%);
-    -webkit-backdrop-filter: blur(28px) saturate(140%);
+    backdrop-filter: blur(16px) saturate(130%);
+    -webkit-backdrop-filter: blur(16px) saturate(130%);
   }
 
   .apex-card {
@@ -157,13 +164,15 @@ textarea:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto !important;
+  }
+
   *,
   *::before,
   *::after {
-    scroll-behavior: auto !important;
-    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: 120ms !important;
   }
 }
 
@@ -176,7 +185,6 @@ textarea:focus-visible {
 
 .gs-space-layer {
   pointer-events: none;
-  will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
 }
 
@@ -193,7 +201,7 @@ textarea:focus-visible {
     radial-gradient(circle at 84% 86%, rgba(255,255,255,.9) 0 1px, transparent 1.2px);
   background-size: 260px 230px, 330px 300px, 290px 260px, 380px 340px,
     310px 280px, 350px 320px, 410px 360px, 280px 250px;
-  animation: gs-space-drift-a 34s linear infinite;
+  animation: none;
 }
 
 .gs-space-layer-b {
@@ -202,7 +210,7 @@ textarea:focus-visible {
     radial-gradient(circle at 46% 44%, rgba(39,66,124,.32), transparent 30%),
     radial-gradient(circle at 16% 24%, rgba(143,0,0,.15), transparent 23%),
     radial-gradient(circle at 82% 32%, rgba(64,91,154,.18), transparent 22%);
-  animation: gs-space-drift-b 42s ease-in-out infinite alternate;
+  animation: none;
 }
 
 .gs-earth-stage {
@@ -214,10 +222,8 @@ textarea:focus-visible {
   height: min(76vw, 760px);
   min-width: 340px;
   min-height: 340px;
-  will-change: transform, opacity;
   transform: translate3d(0, 0, 0);
-  animation: gs-earth-enter 1.15s cubic-bezier(.16,1,.3,1) both,
-    gs-earth-float 10s 1.15s ease-in-out infinite;
+  animation: gs-earth-enter 720ms var(--ease-out) both;
 }
 
 .gs-earth-image {
@@ -235,10 +241,8 @@ textarea:focus-visible {
 
 
 .gs-global-network {
-  opacity: .96;
-  mix-blend-mode: screen;
+  opacity: .94;
   transform: translateZ(0);
-  will-change: opacity;
 }
 
 .gs-global-route {
@@ -248,29 +252,26 @@ textarea:focus-visible {
   stroke-linejoin: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
-  animation-name: gs-route-draw, gs-route-breathe;
-  animation-timing-function: cubic-bezier(.22,1,.36,1), ease-in-out;
-  animation-iteration-count: 1, infinite;
-  animation-fill-mode: forwards, both;
+  animation: gs-route-draw 900ms var(--ease-out) forwards;
 }
 
 .gs-global-route-shadow {
-  stroke: rgba(143,0,0,.34);
-  stroke-width: 5px;
-  opacity: .26;
+  stroke: rgba(143,0,0,.44);
+  stroke-width: 3.4px;
+  opacity: .36;
 }
 
 .gs-global-route-main {
   stroke: url(#gs-route-gradient);
-  stroke-width: 2.15px;
-  opacity: .88;
+  stroke-width: 1.85px;
+  opacity: .9;
 }
 
 .gs-route-particle {
   fill: #fff;
   stroke: #B20A0A;
-  stroke-width: 2.2px;
-  opacity: .92;
+  stroke-width: 1.5px;
+  opacity: .9;
 }
 
 .gs-global-pin {
@@ -288,13 +289,13 @@ textarea:focus-visible {
   stroke-width: 2px;
   transform-box: fill-box;
   transform-origin: center;
-  animation: gs-pin-pulse 2.8s ease-out infinite;
+  opacity: .48;
 }
 
 .gs-global-pin-primary .gs-global-pin-halo {
   fill: rgba(178,10,10,.14);
   stroke: rgba(255,110,110,.5);
-  animation-duration: 2.2s;
+  animation: gs-pin-pulse 2.6s var(--ease-out) infinite;
 }
 
 .gs-global-pin-label {
@@ -313,24 +314,9 @@ textarea:focus-visible {
   }
 }
 
-@keyframes gs-route-breathe {
-  0%, 100% {
-    filter: brightness(.92);
-  }
-  50% {
-    filter: brightness(1.16);
-  }
-}
-
 @keyframes gs-pin-enter {
-  from {
-    opacity: 0;
-    filter: brightness(.72);
-  }
-  to {
-    opacity: 1;
-    filter: brightness(1);
-  }
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
 @keyframes gs-pin-pulse {
@@ -353,21 +339,6 @@ textarea:focus-visible {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
-}
-
-@keyframes gs-earth-float {
-  0%, 100% { transform: translate3d(0, 0, 0) rotate(-.25deg); }
-  50% { transform: translate3d(0, -5px, 0) rotate(.25deg); }
-}
-
-@keyframes gs-space-drift-a {
-  from { transform: translate3d(-1.5%, -1%, 0); }
-  to { transform: translate3d(1.5%, 1%, 0); }
-}
-
-@keyframes gs-space-drift-b {
-  from { transform: translate3d(-1%, .5%, 0) scale(1); }
-  to { transform: translate3d(1%, -.5%, 0) scale(1.02); }
 }
 
 
@@ -408,8 +379,8 @@ textarea:focus-visible {
   }
 
   .apex-glass {
-    backdrop-filter: blur(18px) saturate(125%);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    backdrop-filter: blur(14px) saturate(120%);
+    -webkit-backdrop-filter: blur(14px) saturate(120%);
   }
 }
 

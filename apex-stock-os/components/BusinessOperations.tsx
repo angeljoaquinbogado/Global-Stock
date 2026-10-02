@@ -1,6 +1,5 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import {
   Boxes,
   CheckCircle2,
@@ -937,14 +936,8 @@ export function OnlineCommerceHub({
                   )}
                 </div>
 
-                <AnimatePresence>
-                  {editing === connector.id && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden"
-                    >
+                {editing === connector.id && (
+                    <div>
                       <div className="mt-4 border-t border-[var(--apex-border)] pt-4">
                         <input
                           value={storeUrl}
@@ -971,9 +964,8 @@ export function OnlineCommerceHub({
                           {t.saveConnector}
                         </button>
                       </div>
-                    </motion.div>
+                    </div>
                   )}
-                </AnimatePresence>
               </article>
             );
           })}

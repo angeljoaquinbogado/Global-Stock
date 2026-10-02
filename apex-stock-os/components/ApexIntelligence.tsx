@@ -34,8 +34,6 @@ type ApexIntelligenceProps = {
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
 type AiStatus = "checking" | "ready" | "local" | "offline";
 
-const spring = { type: "spring", bounce: 0, duration: 0.36 } as const;
-
 const uiCopy: Record<
   UiLanguage,
   {
@@ -698,12 +696,15 @@ export function ApexIntelligence({
           }}
         >
           <motion.section
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={spring}
+            initial={{ transform: "translate3d(0,100%,0)" }}
+            animate={{ transform: "translate3d(0,0,0)" }}
+            exit={{ transform: "translate3d(0,100%,0)" }}
+            transition={{
+              duration: 0.28,
+              ease: [0.32, 0.72, 0, 1]
+            }}
             style={panelStyle}
-            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] will-change-transform sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-xl"
+            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-lg"
           >
             <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
@@ -771,8 +772,18 @@ export function ApexIntelligence({
               {messages.map((message) => (
                 <motion.div
                   key={message.id}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{
+                    opacity: 0,
+                    transform: "translate3d(0,6px,0)"
+                  }}
+                  animate={{
+                    opacity: 1,
+                    transform: "translate3d(0,0,0)"
+                  }}
+                  transition={{
+                    duration: 0.18,
+                    ease: [0.23, 1, 0.32, 1]
+                  }}
                   className={
                     message.role === "user"
                       ? "ml-10 rounded-[20px] rounded-br-md bg-[#8F0000] px-4 py-3 text-sm leading-6 text-white sm:ml-12"
@@ -796,7 +807,7 @@ export function ApexIntelligence({
 
             <form
               onSubmit={submit}
-              className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-xl sm:p-3"
+              className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg sm:p-3"
             >
               <div className="mb-2 px-1 text-[10px] leading-4 text-[var(--apex-muted)]">
                 {copy.contextHint}
@@ -846,10 +857,9 @@ export function ApexIntelligence({
 
   return (
     <>
-      <motion.button
+      <button
         type="button"
         onClick={() => setOpen(true)}
-        whileTap={{ scale: 0.97 }}
         className={
           "fixed right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)] lg:bottom-6 lg:right-6 " +
           (raiseOnMobile
@@ -863,7 +873,7 @@ export function ApexIntelligence({
         <span className="hidden text-sm font-semibold sm:inline">
           {copy.title}
         </span>
-      </motion.button>
+      </button>
 
       {mounted ? createPortal(panel, document.body) : null}
     </>
