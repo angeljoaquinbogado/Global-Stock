@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AdvancedOperations } from "./AdvancedOperations";
+import { CatalogAdvanced } from "./CatalogAdvanced";
 import { CommercialFinance } from "./CommercialFinance";
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -983,6 +984,10 @@ export function OperationsCenter({
             language={language}
             currency={currency}
             locale={locale}
+          />
+          <CatalogAdvanced
+            businessId={businessId}
+            language={language}
           />
         </div>
       )}
