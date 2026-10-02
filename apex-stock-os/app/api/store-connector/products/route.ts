@@ -1,18 +1,35 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 
-import { clearConnectorSession, readConnectorSession } from "@/lib/connector-session";
+import {
+  clearConnectorSession,
+  readConnectorSession
+} from "@/lib/connector-session";
 import { connectorFetch } from "@/lib/remote-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   const session = await readConnectorSession();
 
   if (!session) {
     return NextResponse.json(
       { error: "STORE_NOT_VERIFIED" },
       { status: 401 }
+    );
+  }
+
+  const businessId =
+    request.nextUrl.searchParams.get("businessId")?.trim() ?? "";
+
+  if (
+    !businessId ||
+    !session.businessId ||
+    session.businessId !== businessId
+  ) {
+    return NextResponse.json(
+      { error: "STORE_BUSINESS_MISMATCH" },
+      { status: 403 }
     );
   }
 

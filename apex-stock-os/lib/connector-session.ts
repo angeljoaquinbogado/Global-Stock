@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { cookies } from "next/headers";
 
 export type ConnectorSession = {
+  businessId?: string;
   storeUrl: string;
   token: string;
   storeId: string;

@@ -984,7 +984,7 @@ const moduleRoles: Record<ModuleId, string[]> = {
     "viewer"
   ],
   pos: ["owner", "admin", "manager", "cashier", "sales"],
-  online: ["owner", "admin", "manager"],
+  online: ["owner", "admin"],
   inventory: ["owner", "admin", "manager", "warehouse"],
   charts: ["owner", "admin", "manager", "accountant", "viewer"],
   purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
@@ -2621,6 +2621,7 @@ export function BusinessWorkspace({
           cache: "no-store",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            businessId: cloudBusinessId,
             externalId: item.externalId,
             ...item.patch
           })
@@ -2656,6 +2657,7 @@ export function BusinessWorkspace({
         cache: "no-store",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          businessId: cloudBusinessId,
           externalId: product.externalId,
           ...patch
         })
@@ -3395,6 +3397,7 @@ export function BusinessWorkspace({
 
             {activeModule === "online" && (
               <ConnectedCommerceHub
+                businessId={cloudBusinessId}
                 language={language}
                 locale={locale}
                 demoMode={demoMode}

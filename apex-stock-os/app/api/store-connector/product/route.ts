@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { clearConnectorSession, readConnectorSession } from "@/lib/connector-session";
+import {
+  clearConnectorSession,
+  readConnectorSession
+} from "@/lib/connector-session";
 import { connectorFetch } from "@/lib/remote-store";
 
 export const runtime = "nodejs";
@@ -33,13 +36,30 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
+  const businessId =
+    typeof body.businessId === "string" ? body.businessId.trim() : "";
+
+  if (
+    !businessId ||
+    !session.businessId ||
+    session.businessId !== businessId
+  ) {
+    return NextResponse.json(
+      { error: "STORE_BUSINESS_MISMATCH" },
+      { status: 403 }
+    );
+  }
+
+  const remoteBody = { ...body };
+  delete remoteBody.businessId;
+
   try {
     const response = await connectorFetch({
       storeUrl: session.storeUrl,
       token: session.token,
       resource: "product",
       method: "PATCH",
-      body
+      body: remoteBody
     });
 
     const payload = await response.json().catch(() => ({}));

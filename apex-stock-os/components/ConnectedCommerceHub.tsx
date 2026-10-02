@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 
 export type ConnectedStore = {
@@ -83,7 +84,18 @@ type IntegrationReadiness = {
   custom: boolean;
 };
 
+type IntegrationAccount = {
+  id: string;
+  provider: keyof IntegrationReadiness;
+  external_account_id: string | null;
+  display_name: string | null;
+  status: string;
+  scopes: string[];
+  last_synced_at: string | null;
+};
+
 type Props = {
+  businessId: string | null;
   language: LanguageCode;
   locale: string;
   demoMode?: boolean;
@@ -436,6 +448,7 @@ const providerMethods: Record<
 };
 
 export function ConnectedCommerceHub({
+  businessId,
   language,
   locale,
   demoMode = false,
@@ -454,7 +467,11 @@ export function ConnectedCommerceHub({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [readiness, setReadiness] = useState<IntegrationReadiness | null>(null);
-  const [selectedProvider, setSelectedProvider] = useState<keyof IntegrationReadiness>("custom");
+  const [integrationAccounts, setIntegrationAccounts] = useState<
+    IntegrationAccount[]
+  >([]);
+  const [selectedProvider, setSelectedProvider] =
+    useState<keyof IntegrationReadiness>("custom");
 
   const selectedProviderMeta =
     providerMethods[language].find(
@@ -462,6 +479,12 @@ export function ConnectedCommerceHub({
     ) ?? providerMethods[language][0];
   const selectedProviderReady =
     readiness?.[selectedProvider] ?? false;
+  const selectedProviderAccount =
+    integrationAccounts.find(
+      (account) =>
+        account.provider === selectedProvider &&
+        account.status === "connected"
+    ) ?? null;
 
   const adminUrl = useMemo(() => {
     const value = store?.url || preview?.url || url;
@@ -496,6 +519,55 @@ export function ConnectedCommerceHub({
     };
   }, []);
 
+  async function reloadIntegrationAccounts() {
+    if (!businessId || demoMode) {
+      setIntegrationAccounts([]);
+      return;
+    }
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const { data } = await supabase
+      .from("global_stock_integration_accounts")
+      .select(
+        "id,provider,external_account_id,display_name,status,scopes,last_synced_at"
+      )
+      .eq("business_id", businessId)
+      .order("updated_at", { ascending: false });
+
+    setIntegrationAccounts(
+      ((data ?? []) as Array<{
+        id: string;
+        provider: string;
+        external_account_id: string | null;
+        display_name: string | null;
+        status: string;
+        scopes: string[];
+        last_synced_at: string | null;
+      }>)
+        .filter((account) =>
+          [
+            "shopify",
+            "tiendanube",
+            "mercadolibre",
+            "woocommerce",
+            "custom"
+          ].includes(account.provider)
+        )
+        .map((account) => ({
+          ...account,
+          provider: account.provider as keyof IntegrationReadiness,
+          scopes: Array.isArray(account.scopes) ? account.scopes : []
+        }))
+    );
+  }
+
+  useEffect(() => {
+    void reloadIntegrationAccounts();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId, demoMode]);
+
   useEffect(() => {
     if (demoMode) {
       setStore(null);
@@ -509,10 +581,36 @@ export function ConnectedCommerceHub({
     let cancelled = false;
 
     async function restoreVerifiedConnection() {
+      if (!businessId) return;
+
       try {
-        const response = await fetch("/api/store-connector/verify", {
-          cache: "no-store"
+        const supabase = getSupabaseBrowserClient();
+        if (!supabase) return;
+
+        const {
+          data: { session }
+        } = await supabase.auth.getSession();
+
+        if (!session?.access_token) return;
+
+        const bindResponse = await fetch("/api/store-connector/verify", {
+          method: "PATCH",
+          cache: "no-store",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`
+          },
+          body: JSON.stringify({ businessId })
         });
+
+        if (!bindResponse.ok) return;
+
+        const response = await fetch(
+          `/api/store-connector/verify?businessId=${encodeURIComponent(
+            businessId
+          )}`,
+          { cache: "no-store" }
+        );
         const payload = (await response.json().catch(() => ({}))) as {
           verified?: boolean;
           store?: ConnectedStore;
@@ -525,6 +623,7 @@ export function ConnectedCommerceHub({
         setStore(payload.store);
         setScopes(Array.isArray(payload.scopes) ? payload.scopes : []);
         setUrl(payload.store.url);
+        await reloadIntegrationAccounts();
         void syncCatalog(payload.store);
       } catch {
         // No persisted verified store is a valid first-run state.
@@ -535,9 +634,9 @@ export function ConnectedCommerceHub({
     return () => {
       cancelled = true;
     };
-  // Restore when demo mode changes. syncCatalog deliberately uses current callback closure.
+  // Restore only when the active business changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [demoMode]);
+  }, [businessId, demoMode]);
 
   async function inspectStore() {
     setError("");
@@ -582,7 +681,9 @@ export function ConnectedCommerceHub({
     setSyncing(true);
     try {
       const response = await fetch(
-        `/api/store-connector/products?t=${Date.now()}`,
+        `/api/store-connector/products?businessId=${encodeURIComponent(
+          businessId ?? ""
+        )}&t=${Date.now()}`,
         { cache: "no-store" }
       );
       const payload = (await response.json().catch(() => ({}))) as
@@ -618,12 +719,49 @@ export function ConnectedCommerceHub({
     }
   }
 
+  async function disconnectProvider(
+    provider: keyof IntegrationReadiness
+  ) {
+    if (!businessId) return;
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const { error: disconnectError } = await supabase.rpc(
+      "global_stock_disconnect_integration",
+      {
+        target_business_id: businessId,
+        target_provider: provider
+      }
+    );
+
+    if (disconnectError) {
+      setError(
+        language === "es"
+          ? "No se pudo desconectar la integración."
+          : "Could not disconnect the integration."
+      );
+      return;
+    }
+
+    await reloadIntegrationAccounts();
+  }
+
   async function disconnect() {
     try {
-      await fetch("/api/store-connector/verify", {
-        method: "DELETE",
-        cache: "no-store"
-      });
+      await fetch(
+        `/api/store-connector/verify?businessId=${encodeURIComponent(
+          businessId ?? ""
+        )}`,
+        {
+          method: "DELETE",
+          cache: "no-store"
+        }
+      );
+
+      if (businessId) {
+        await disconnectProvider("custom");
+      }
     } finally {
       setStore(null);
       setScopes([]);
@@ -655,6 +793,11 @@ export function ConnectedCommerceHub({
         <div className="mt-5 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
           {providerMethods[language].map((provider) => {
             const ready = readiness?.[provider.id] ?? false;
+            const connected = integrationAccounts.some(
+              (account) =>
+                account.provider === provider.id &&
+                account.status === "connected"
+            );
             const active = selectedProvider === provider.id;
 
             return (
@@ -680,30 +823,30 @@ export function ConnectedCommerceHub({
                   <span
                     className={
                       "rounded-full border px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] " +
-                      (ready
-                        ? "border-emerald-500/25 bg-emerald-500/8 text-emerald-500"
-                        : "border-amber-500/20 bg-amber-500/8 text-amber-500")
+                      (connected
+                        ? "border-emerald-500/25 bg-emerald-500/8 text-emerald-600"
+                        : ready
+                          ? "border-sky-500/25 bg-sky-500/8 text-sky-600"
+                          : "border-amber-500/20 bg-amber-500/8 text-amber-500")
                     }
                   >
-                    {ready
+                    {connected
                       ? language === "es"
-                        ? "Listo"
-                        : language === "pt"
-                          ? "Pronto"
-                          : language === "fr"
-                            ? "Prêt"
-                            : language === "de"
-                              ? "Bereit"
-                              : "Ready"
-                      : language === "es"
-                        ? "Pendiente"
-                        : language === "pt"
-                          ? "Pendente"
-                          : language === "fr"
-                            ? "En attente"
-                            : language === "de"
-                              ? "Ausstehend"
-                              : "Pending"}
+                        ? "Conectado"
+                        : "Connected"
+                      : ready
+                        ? language === "es"
+                          ? "Configurado"
+                          : "Configured"
+                        : language === "es"
+                          ? "Pendiente"
+                          : language === "pt"
+                            ? "Pendente"
+                            : language === "fr"
+                              ? "En attente"
+                              : language === "de"
+                                ? "Ausstehend"
+                                : "Pending"}
                   </span>
                 </div>
                 <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
@@ -752,25 +895,55 @@ export function ConnectedCommerceHub({
               <span
                 className={
                   "shrink-0 rounded-full border px-3 py-2 text-[10px] font-bold uppercase tracking-[0.08em] " +
-                  (selectedProviderReady
+                  (selectedProviderAccount
                     ? "border-emerald-500/25 bg-emerald-500/8 text-emerald-600"
-                    : "border-amber-500/20 bg-amber-500/8 text-amber-600")
+                    : selectedProviderReady
+                      ? "border-sky-500/25 bg-sky-500/8 text-sky-600"
+                      : "border-amber-500/20 bg-amber-500/8 text-amber-600")
                 }
               >
-                {selectedProviderReady
+                {selectedProviderAccount
                   ? language === "es"
-                    ? "Autorización disponible"
-                    : "Authorization available"
-                  : language === "es"
-                    ? "Integración todavía no habilitada"
-                    : "Integration not enabled yet"}
+                    ? "Conectado"
+                    : "Connected"
+                  : selectedProviderReady
+                    ? language === "es"
+                      ? "Aplicación configurada"
+                      : "App configured"
+                    : language === "es"
+                      ? "Configuración pendiente"
+                      : "Setup pending"}
               </span>
             </div>
-            {!selectedProviderReady && (
+            {selectedProviderAccount ? (
+              <div className="mt-3 flex flex-wrap items-center gap-3">
+                <p className="text-[10px] leading-5 text-[var(--apex-muted)]">
+                  {selectedProviderAccount.display_name ||
+                    selectedProviderAccount.external_account_id ||
+                    selectedProviderMeta.name}
+                </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    void disconnectProvider(selectedProvider)
+                  }
+                  className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--apex-border)] px-3 text-xs font-semibold"
+                >
+                  <Unplug size={13} />
+                  {language === "es" ? "Desconectar" : "Disconnect"}
+                </button>
+              </div>
+            ) : !selectedProviderReady ? (
               <p className="mt-3 text-[10px] leading-5 text-[var(--apex-muted)]">
                 {language === "es"
-                  ? "Global Stock no simula esta conexión: el botón se habilitará cuando el flujo oficial del proveedor esté implementado y configurado."
-                  : "Global Stock does not simulate this connection. It becomes available only after the provider's official authorization flow is implemented and configured."}
+                  ? "Global Stock no simula esta conexión: falta configurar la aplicación oficial del proveedor."
+                  : "Global Stock does not simulate this connection. The provider app still needs to be configured."}
+              </p>
+            ) : (
+              <p className="mt-3 text-[10px] leading-5 text-[var(--apex-muted)]">
+                {language === "es"
+                  ? "La aplicación del proveedor está configurada. Falta autorizar esta cuenta comercial."
+                  : "The provider app is configured. This business account still needs authorization."}
               </p>
             )}
           </div>
