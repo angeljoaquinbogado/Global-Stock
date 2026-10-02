@@ -116,12 +116,15 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
       business_id:businessId,product_key:recipeProduct,component_key:componentKey,
       quantity:Math.max(0.0001,Number(recipeQty)||1),unit:recipeUnit,wastage_pct:Math.max(0,Number(wastage)||0)
     },{onConflict:"business_id,product_key,component_key"});
+    window.dispatchEvent(new Event("global-stock-recipes-changed"));
     await reload();
   }
 
   async function removeRecipe(id:string){
     const s=getSupabaseBrowserClient();if(!s)return;
-    await s.from("global_stock_recipes").delete().eq("id",id);await reload();
+    await s.from("global_stock_recipes").delete().eq("id",id);
+    window.dispatchEvent(new Event("global-stock-recipes-changed"));
+    await reload();
   }
 
   async function saveUnit(){

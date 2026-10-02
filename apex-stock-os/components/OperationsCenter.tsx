@@ -16,8 +16,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AdvancedOperations } from "./AdvancedOperations";
-import { CatalogAdvanced } from "./CatalogAdvanced";
-import { CommercialFinance } from "./CommercialFinance";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -988,25 +986,13 @@ export function OperationsCenter({
       )}
 
       {tab === "advanced" && (
-        <div className="space-y-4">
-          <AdvancedOperations
-            businessId={businessId}
-            businessType={businessType}
-            language={language}
-            currency={currency}
-            locale={locale}
-          />
-          <CommercialFinance
-            businessId={businessId}
-            language={language}
-            currency={currency}
-            locale={locale}
-          />
-          <CatalogAdvanced
-            businessId={businessId}
-            language={language}
-          />
-        </div>
+        <AdvancedOperations
+          businessId={businessId}
+          businessType={businessType}
+          language={language}
+          currency={currency}
+          locale={locale}
+        />
       )}
     </div>
   );

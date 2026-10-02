@@ -125,6 +125,22 @@ type BusinessType =
   | "industry"
   | "other";
 
+type RecipeComponent = {
+  product_key: string;
+  component_key: string;
+  quantity: number;
+  wastage_pct: number;
+};
+
+type PosPromotion = {
+  id: string;
+  name: string;
+  kind: string;
+  value: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+};
+
 type PendingConnectedWrite = {
   externalId: string;
   patch: Record<string, unknown>;
@@ -959,6 +975,9 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [products, setProducts] = useState<Product[]>([]);
+  const [recipeComponents, setRecipeComponents] =
+    useState<RecipeComponent[]>([]);
+  const [posPromotions, setPosPromotions] = useState<PosPromotion[]>([]);
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [currencyRate, setCurrencyRate] = useState(1);
   const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
@@ -987,6 +1006,97 @@ export function BusinessWorkspace({
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!cloudBusinessId || demoMode) {
+      setRecipeComponents([]);
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    async function loadRecipes() {
+      const { data } = await supabase
+        .from("global_stock_recipes")
+        .select("product_key,component_key,quantity,wastage_pct")
+        .eq("business_id", cloudBusinessId);
+
+      if (!cancelled) {
+        setRecipeComponents(
+          (data as RecipeComponent[] | null) ?? []
+        );
+      }
+    }
+
+    const handleRecipeChange = () => {
+      void loadRecipes();
+    };
+
+    void loadRecipes();
+    window.addEventListener(
+      "global-stock-recipes-changed",
+      handleRecipeChange
+    );
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        "global-stock-recipes-changed",
+        handleRecipeChange
+      );
+    };
+  }, [cloudBusinessId, demoMode]);
+
+  useEffect(() => {
+    if (!cloudBusinessId || demoMode) {
+      setPosPromotions([]);
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    async function loadPromotions() {
+      const now = new Date().toISOString();
+      const { data } = await supabase
+        .from("global_stock_promotions")
+        .select("id,name,kind,value,starts_at,ends_at")
+        .eq("business_id", cloudBusinessId)
+        .eq("active", true);
+
+      if (cancelled) return;
+
+      const active = ((data as PosPromotion[] | null) ?? []).filter(
+        (promotion) =>
+          (!promotion.starts_at || promotion.starts_at <= now) &&
+          (!promotion.ends_at || promotion.ends_at >= now) &&
+          ["percentage", "fixed"].includes(promotion.kind)
+      );
+
+      setPosPromotions(active);
+    }
+
+    const handlePromotionChange = () => {
+      void loadPromotions();
+    };
+
+    void loadPromotions();
+    window.addEventListener(
+      "global-stock-promotions-changed",
+      handlePromotionChange
+    );
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        "global-stock-promotions-changed",
+        handlePromotionChange
+      );
+    };
+  }, [cloudBusinessId, demoMode]);
 
   useEffect(() => {
     const handleImportedProducts = (event: Event) => {
@@ -1059,13 +1169,34 @@ export function BusinessWorkspace({
       if (!Array.isArray(detail) || !detail.length) return;
 
       const quantityByProduct = new Map<string, number>();
+
       for (const item of detail) {
         if (!item?.productKey) continue;
+
         const quantity = Math.max(0, Number(item.quantity) || 0);
-        quantityByProduct.set(
-          item.productKey,
-          (quantityByProduct.get(item.productKey) ?? 0) + quantity
+        const recipe = recipeComponents.filter(
+          (component) => component.product_key === item.productKey
         );
+
+        if (recipe.length) {
+          for (const component of recipe) {
+            const componentQuantity =
+              quantity *
+              component.quantity *
+              (1 + (Number(component.wastage_pct) || 0) / 100);
+
+            quantityByProduct.set(
+              component.component_key,
+              (quantityByProduct.get(component.component_key) ?? 0) +
+                componentQuantity
+            );
+          }
+        } else {
+          quantityByProduct.set(
+            item.productKey,
+            (quantityByProduct.get(item.productKey) ?? 0) + quantity
+          );
+        }
       }
 
       if (!quantityByProduct.size) return;
@@ -1112,7 +1243,45 @@ export function BusinessWorkspace({
         handleReturnRestock
       );
     };
-  }, [language, products]);
+  }, [language, products, recipeComponents]);
+
+  useEffect(() => {
+    const handleStockDelta = (event: Event) => {
+      const detail = (
+        event as CustomEvent<{ productKey?: string; delta?: number }>
+      ).detail;
+
+      const productKey = detail?.productKey;
+      const delta = Number(detail?.delta) || 0;
+      if (!productKey || !delta) return;
+
+      const product = products.find((item) => item.id === productKey);
+      if (product) {
+        const nextStock = Math.max(0, product.stock + delta);
+        void writeConnectedProduct(product, { stock: nextStock });
+      }
+
+      setProducts((current) =>
+        current.map((item) =>
+          item.id === productKey
+            ? { ...item, stock: Math.max(0, item.stock + delta) }
+            : item
+        )
+      );
+    };
+
+    window.addEventListener(
+      "global-stock-stock-delta",
+      handleStockDelta
+    );
+
+    return () => {
+      window.removeEventListener(
+        "global-stock-stock-delta",
+        handleStockDelta
+      );
+    };
+  }, [products]);
 
   useEffect(() => {
     if (!moreOpen && !scannerOpen) return;
@@ -1646,6 +1815,62 @@ export function BusinessWorkspace({
   const money = (value: number) =>
     formatMoney(value * currencyRate, currency, locale);
 
+  const recipesByProduct = useMemo(() => {
+    const map = new Map<string, RecipeComponent[]>();
+
+    for (const component of recipeComponents) {
+      const current = map.get(component.product_key) ?? [];
+      current.push(component);
+      map.set(component.product_key, current);
+    }
+
+    return map;
+  }, [recipeComponents]);
+
+  const productById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products]
+  );
+
+  const sellableStockById = useMemo(() => {
+    const map = new Map<string, number>();
+
+    for (const product of products) {
+      const recipe = recipesByProduct.get(product.id);
+
+      if (!recipe?.length) {
+        map.set(product.id, product.stock);
+        continue;
+      }
+
+      let available = Number.POSITIVE_INFINITY;
+
+      for (const component of recipe) {
+        const componentProduct = productById.get(component.component_key);
+        const perUnit =
+          component.quantity *
+          (1 + (Number(component.wastage_pct) || 0) / 100);
+
+        if (!componentProduct || perUnit <= 0) {
+          available = 0;
+          break;
+        }
+
+        available = Math.min(
+          available,
+          Math.floor(componentProduct.stock / perUnit)
+        );
+      }
+
+      map.set(
+        product.id,
+        Number.isFinite(available) ? Math.max(0, available) : 0
+      );
+    }
+
+    return map;
+  }, [products, productById, recipesByProduct]);
+
   const filteredPosProducts = useMemo(() => {
     const query = posQuery.trim().toLowerCase();
     if (!query) return products;
@@ -1668,20 +1893,79 @@ export function BusinessWorkspace({
     [cart, products]
   );
 
-  const cartTotal = cartLines.reduce(
+  const cartSubtotal = cartLines.reduce(
     (sum, line) => sum + line.product.price * line.quantity,
     0
   );
+
+  const appliedPromotion = useMemo(() => {
+    if (cartSubtotal <= 0 || !posPromotions.length) return null;
+
+    let best: {
+      id: string;
+      name: string;
+      discount: number;
+    } | null = null;
+
+    for (const promotion of posPromotions) {
+      const rawValue = Math.max(0, Number(promotion.value) || 0);
+      const discount =
+        promotion.kind === "percentage"
+          ? cartSubtotal * Math.min(100, rawValue) / 100
+          : Math.min(cartSubtotal, rawValue);
+
+      if (!best || discount > best.discount) {
+        best = {
+          id: promotion.id,
+          name: promotion.name,
+          discount
+        };
+      }
+    }
+
+    return best;
+  }, [cartSubtotal, posPromotions]);
+
+  const promotionDiscount = Math.min(
+    cartSubtotal,
+    appliedPromotion?.discount ?? 0
+  );
+
+  const cartTotal = Math.max(0, cartSubtotal - promotionDiscount);
+  function effectiveUnitCost(product: Product) {
+    const recipe = recipesByProduct.get(product.id);
+
+    if (!recipe?.length) {
+      return product.costKnown === false ? null : product.cost;
+    }
+
+    let total = 0;
+
+    for (const component of recipe) {
+      const componentProduct = productById.get(component.component_key);
+      if (!componentProduct || componentProduct.costKnown === false) {
+        return null;
+      }
+
+      total +=
+        componentProduct.cost *
+        component.quantity *
+        (1 + (Number(component.wastage_pct) || 0) / 100);
+    }
+
+    return total;
+  }
+
   const cartCostKnown = cartLines.every(
-    (line) => line.product.costKnown !== false
+    (line) => effectiveUnitCost(line.product) !== null
   );
-  const cartCost = cartLines.reduce(
-    (sum, line) =>
-      line.product.costKnown === false
-        ? sum
-        : sum + line.product.cost * line.quantity,
-    0
-  );
+
+  const cartCost = cartLines.reduce((sum, line) => {
+    const unitCost = effectiveUnitCost(line.product);
+    return unitCost === null
+      ? sum
+      : sum + unitCost * line.quantity;
+  }, 0);
 
   const supplierStats = useMemo(() => {
     const groups = new Map<
@@ -1943,7 +2227,9 @@ export function BusinessWorkspace({
   function setQuantity(id: string, quantity: number) {
     const product = products.find((item) => item.id === id);
     if (!product) return;
-    const safe = Math.max(0, Math.min(quantity, product.stock));
+    const available =
+      sellableStockById.get(id) ?? product.stock;
+    const safe = Math.max(0, Math.min(quantity, available));
 
     setCart((current) => {
       const next = { ...current };
@@ -1973,19 +2259,55 @@ export function BusinessWorkspace({
       });
     }
 
-    const remoteChanges = cartLines.map(({ product, quantity }) => ({
-      product,
-      stock: Math.max(0, product.stock - quantity)
-    }));
+    const stockDeltas = new Map<string, number>();
+
+    for (const { product, quantity } of cartLines) {
+      const recipe = recipesByProduct.get(product.id);
+
+      if (recipe?.length) {
+        for (const component of recipe) {
+          const componentQuantity =
+            quantity *
+            component.quantity *
+            (1 + (Number(component.wastage_pct) || 0) / 100);
+
+          stockDeltas.set(
+            component.component_key,
+            (stockDeltas.get(component.component_key) ?? 0) -
+              componentQuantity
+          );
+        }
+      } else {
+        stockDeltas.set(
+          product.id,
+          (stockDeltas.get(product.id) ?? 0) - quantity
+        );
+      }
+    }
+
+    const remoteChanges: Array<{ product: Product; stock: number }> = [];
+
+    for (const product of products) {
+      const delta = stockDeltas.get(product.id);
+      if (!delta) continue;
+
+      remoteChanges.push({
+        product,
+        stock: Math.max(0, product.stock + delta)
+      });
+    }
 
     setProducts((current) =>
       current.map((product) => {
-        const quantity = cart[product.id] ?? 0;
-        if (!quantity) return product;
+        const soldQuantity = cart[product.id] ?? 0;
+        const stockDelta = stockDeltas.get(product.id) ?? 0;
+
+        if (!soldQuantity && !stockDelta) return product;
+
         return {
           ...product,
-          stock: Math.max(0, product.stock - quantity),
-          sold30d: product.sold30d + quantity
+          stock: Math.max(0, product.stock + stockDelta),
+          sold30d: product.sold30d + soldQuantity
         };
       })
     );
@@ -2432,11 +2754,15 @@ export function BusinessWorkspace({
                 cart={cart}
                 setQuantity={setQuantity}
                 cartLines={cartLines}
+                cartSubtotal={cartSubtotal}
+                promotionDiscount={promotionDiscount}
+                promotionLabel={appliedPromotion?.name ?? ""}
                 cartTotal={cartTotal}
                 cartProfit={cartCostKnown ? cartTotal - cartCost : null}
                 money={money}
                 businessId={cloudBusinessId}
                 demoMode={demoMode}
+                sellableStockById={sellableStockById}
                 completeSale={completeSale}
               />
             )}
@@ -2991,11 +3317,15 @@ function PosModule({
   cart,
   setQuantity,
   cartLines,
+  cartSubtotal,
+  promotionDiscount,
+  promotionLabel,
   cartTotal,
   cartProfit,
   money,
   businessId,
   demoMode,
+  sellableStockById,
   completeSale
 }: {
   labels: (typeof copy)[LanguageCode];
@@ -3006,11 +3336,15 @@ function PosModule({
   cart: Record<string, number>;
   setQuantity: (id: string, quantity: number) => void;
   cartLines: Array<{ product: Product; quantity: number }>;
+  cartSubtotal: number;
+  promotionDiscount: number;
+  promotionLabel: string;
   cartTotal: number;
   cartProfit: number | null;
   money: (value: number) => string;
   businessId: string | null;
   demoMode: boolean;
+  sellableStockById: Map<string, number>;
   completeSale: (
     payments?: PosPayment[],
     receivedAmount?: number,
@@ -3143,7 +3477,7 @@ function PosModule({
                     <Store size={17} />
                   </span>
                   <span className="rounded-full border border-[var(--apex-border)] px-2.5 py-1 text-[10px] text-[var(--apex-muted)]">
-                    {product.stock} {labels.stock}
+                    {sellableStockById.get(product.id) ?? product.stock} {labels.stock}
                   </span>
                 </div>
                 <h3 className="mt-4 text-sm font-semibold">
@@ -3157,7 +3491,9 @@ function PosModule({
                 </p>
                 <button
                   type="button"
-                  disabled={product.stock <= 0}
+                  disabled={
+                    (sellableStockById.get(product.id) ?? product.stock) <= 0
+                  }
                   onClick={() =>
                     setQuantity(
                       product.id,
@@ -3227,6 +3563,23 @@ function PosModule({
           )}
 
           <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm">
+            {promotionDiscount > 0 && (
+              <>
+                <div className="flex items-center justify-between">
+                  <span className="text-[var(--apex-muted)]">
+                    {language === "es" ? "Subtotal" : "Subtotal"}
+                  </span>
+                  <span>{money(cartSubtotal)}</span>
+                </div>
+                <div className="flex items-center justify-between text-emerald-600">
+                  <span>
+                    {promotionLabel ||
+                      (language === "es" ? "Promoción" : "Promotion")}
+                  </span>
+                  <strong>-{money(promotionDiscount)}</strong>
+                </div>
+              </>
+            )}
             <div className="flex items-center justify-between">
               <span className="text-[var(--apex-muted)]">
                 {labels.total}

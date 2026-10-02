@@ -224,6 +224,7 @@ export async function mirrorProductsToCloud(
     supplier: product.supplier || null,
     cost: product.costKnown === false ? null : product.cost,
     price: product.price,
+    stock: product.stock,
     min_stock: product.minStock,
     active: product.active !== false,
     source: product.source || "local",
@@ -243,7 +244,13 @@ export async function mirrorProductsToCloud(
     .from("global_stock_products")
     .upsert(rows, { onConflict: "business_id,client_key" });
 
-  return !error;
+  if (error) return false;
+
+  await supabase.rpc("global_stock_seed_inventory_levels", {
+    target_business_id: businessId
+  });
+
+  return true;
 }
 
 export async function writeAuditEvent(

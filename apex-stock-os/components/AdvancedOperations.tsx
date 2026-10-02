@@ -2,6 +2,7 @@
 
 import {
   ArchiveRestore,
+  BarChart3,
   BellRing,
   Boxes,
   ChefHat,
@@ -20,6 +21,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Product } from "@/lib/types";
+import { BusinessReports } from "./BusinessReports";
 import { CatalogTools } from "./CatalogTools";
 import { CommercialOperations } from "./CommercialOperations";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -38,6 +40,7 @@ type ToolId =
   | "catalog"
   | "services"
   | "commercial"
+  | "reports"
   | "automations"
   | "data"
   | "restaurant"
@@ -113,12 +116,38 @@ type PriceList = {
   customer_group: string | null;
 };
 
+type LocationRow = {
+  id: string;
+  name: string;
+  kind: string;
+};
+
+type KitchenTicketRow = {
+  id: string;
+  order_id: string;
+  station: string;
+  status: string;
+  priority: number;
+  created_at: string;
+};
+
+type ShipmentRow = {
+  id: string;
+  order_id: string | null;
+  carrier: string | null;
+  tracking_number: string | null;
+  status: string;
+  shipping_cost: number;
+  created_at: string;
+};
+
 const baseTools: Array<{ id: ToolId; icon: typeof ClipboardCheck }> = [
   { id: "orders", icon: PackageSearch },
   { id: "inventory", icon: ClipboardCheck },
   { id: "catalog", icon: Boxes },
   { id: "services", icon: Wrench },
   { id: "commercial", icon: WalletCards },
+  { id: "reports", icon: BarChart3 },
   { id: "automations", icon: BellRing },
   { id: "data", icon: ArchiveRestore }
 ];
@@ -172,12 +201,24 @@ export function AdvancedOperations({
   const [tables, setTables] = useState<DiningTable[]>([]);
   const [priceLists, setPriceLists] = useState<PriceList[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [locations, setLocations] = useState<LocationRow[]>([]);
+  const [kitchenTickets, setKitchenTickets] = useState<KitchenTicketRow[]>([]);
+  const [shipments, setShipments] = useState<ShipmentRow[]>([]);
 
   const [orderTotal, setOrderTotal] = useState("");
   const [orderFulfillment, setOrderFulfillment] = useState("pickup");
 
   const [countScope, setCountScope] = useState("Conteo general");
+  const [countLocation, setCountLocation] = useState("");
+  const [countProduct, setCountProduct] = useState("");
+  const [countExpected, setCountExpected] = useState("");
+  const [countActual, setCountActual] = useState("");
+
   const [transferNote, setTransferNote] = useState("");
+  const [transferFrom, setTransferFrom] = useState("");
+  const [transferTo, setTransferTo] = useState("");
+  const [transferProduct, setTransferProduct] = useState("");
+  const [transferQuantity, setTransferQuantity] = useState("");
 
   const [lotProductKey, setLotProductKey] = useState("");
   const [lotNumber, setLotNumber] = useState("");
@@ -194,6 +235,13 @@ export function AdvancedOperations({
 
   const [tableName, setTableName] = useState("");
   const [tableSeats, setTableSeats] = useState("2");
+  const [kitchenOrder, setKitchenOrder] = useState("");
+  const [kitchenStation, setKitchenStation] = useState("general");
+
+  const [shipmentOrder, setShipmentOrder] = useState("");
+  const [shipmentCarrier, setShipmentCarrier] = useState("");
+  const [shipmentTracking, setShipmentTracking] = useState("");
+  const [shipmentCost, setShipmentCost] = useState("");
 
   const [priceListName, setPriceListName] = useState("");
   const [customerGroup, setCustomerGroup] = useState("");
@@ -246,6 +294,13 @@ export function AdvancedOperations({
       pt: "Comercial",
       fr: "Commercial",
       de: "Handel"
+    }),
+    reports: tr(language, {
+      es: "Reportes",
+      en: "Reports",
+      pt: "Relatórios",
+      fr: "Rapports",
+      de: "Berichte"
     }),
     automations: tr(language, {
       es: "Automatizaciones",
@@ -364,10 +419,74 @@ export function AdvancedOperations({
       setTables((tableRes.data as DiningTable[] | null) ?? []);
       setPriceLists((priceRes.data as PriceList[] | null) ?? []);
 
+      const [locationRes, kitchenRes, shipmentRes] = await Promise.all([
+        supabase
+          .from("global_stock_locations")
+          .select("id,name,kind")
+          .eq("business_id", businessId)
+          .eq("active", true)
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("global_stock_kitchen_tickets")
+          .select("id,order_id,station,status,priority,created_at")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false })
+          .limit(100),
+        supabase
+          .from("global_stock_shipments")
+          .select("id,order_id,carrier,tracking_number,status,shipping_cost,created_at")
+          .eq("business_id", businessId)
+          .order("created_at", { ascending: false })
+          .limit(100)
+      ]);
+
+      const nextLocations = (locationRes.data as LocationRow[] | null) ?? [];
+      const nextKitchen =
+        (kitchenRes.data as KitchenTicketRow[] | null) ?? [];
+      const nextShipments =
+        (shipmentRes.data as ShipmentRow[] | null) ?? [];
+
+      setLocations(nextLocations);
+      setKitchenTickets(nextKitchen);
+      setShipments(nextShipments);
+
+      setCountLocation((current) => current || nextLocations[0]?.id || "");
+      setTransferFrom((current) => current || nextLocations[0]?.id || "");
+      setTransferTo(
+        (current) =>
+          current ||
+          nextLocations.find((item) => item.id !== nextLocations[0]?.id)?.id ||
+          ""
+      );
+
       const state = (workspaceRes.data?.state ?? {}) as { products?: Product[] };
       const nextProducts = Array.isArray(state.products) ? state.products : [];
       setProducts(nextProducts);
-      setLotProductKey((current) => current || nextProducts[0]?.id || "");
+      const firstProduct = nextProducts[0]?.id || "";
+      setLotProductKey((current) => current || firstProduct);
+      setCountProduct((current) => current || firstProduct);
+      setTransferProduct((current) => current || firstProduct);
+      setCountExpected((current) => {
+        if (current) return current;
+        const first = nextProducts[0];
+        return first ? String(first.stock) : "";
+      });
+      setKitchenOrder(
+        (current) =>
+          current ||
+          ((orderRes.data as OrderRow[] | null) ?? []).find(
+            (order) => !["delivered", "cancelled", "refunded"].includes(order.status)
+          )?.id ||
+          ""
+      );
+      setShipmentOrder(
+        (current) =>
+          current ||
+          ((orderRes.data as OrderRow[] | null) ?? []).find(
+            (order) => !["delivered", "cancelled", "refunded"].includes(order.status)
+          )?.id ||
+          ""
+      );
     } finally {
       setLoading(false);
     }
@@ -406,32 +525,76 @@ export function AdvancedOperations({
   }
 
   async function createCount() {
+    const product = products.find((item) => item.id === countProduct);
+    const expected = Math.max(
+      0,
+      Number(countExpected || product?.stock || 0) || 0
+    );
+    const actual = Math.max(0, Number(countActual) || 0);
+
+    if (!countProduct || countActual.trim() === "") return;
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    const { data: auth } = await supabase.auth.getSession();
 
-    await supabase.from("global_stock_stock_counts").insert({
-      business_id: businessId,
-      user_id: auth.session?.user.id ?? null,
-      status: "open",
-      scope: countScope.trim() || "Conteo general"
-    });
+    const { data, error } = await supabase.rpc(
+      "global_stock_apply_stock_count",
+      {
+        target_business_id: businessId,
+        target_location_id: countLocation || null,
+        target_product_key: countProduct,
+        expected_quantity: expected,
+        counted_quantity: actual,
+        count_reason: countScope.trim() || null
+      }
+    );
 
+    if (error || !data) return;
+
+    const delta = actual - expected;
+    if (delta !== 0) {
+      window.dispatchEvent(
+        new CustomEvent("global-stock-stock-delta", {
+          detail: { productKey: countProduct, delta }
+        })
+      );
+    }
+
+    setCountExpected(String(actual));
+    setCountActual("");
     await reload();
   }
 
   async function createTransfer() {
+    const quantity = Math.max(0, Number(transferQuantity) || 0);
+    if (
+      !transferFrom ||
+      !transferTo ||
+      transferFrom === transferTo ||
+      !transferProduct ||
+      !quantity
+    ) {
+      return;
+    }
+
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
-    const { data: auth } = await supabase.auth.getSession();
 
-    await supabase.from("global_stock_transfers").insert({
-      business_id: businessId,
-      user_id: auth.session?.user.id ?? null,
-      status: "draft",
-      notes: transferNote.trim() || null
-    });
+    const { data, error } = await supabase.rpc(
+      "global_stock_execute_transfer",
+      {
+        target_business_id: businessId,
+        from_location: transferFrom,
+        to_location: transferTo,
+        target_product_key: transferProduct,
+        transfer_quantity: quantity,
+        transfer_notes: transferNote.trim() || null
+      }
+    );
 
+    if (error || !data) return;
+
+    setTransferQuantity("");
     setTransferNote("");
     await reload();
   }
@@ -598,6 +761,116 @@ export function AdvancedOperations({
       .from("global_stock_dining_tables")
       .update({ status })
       .eq("id", id);
+    await reload();
+  }
+
+  async function createKitchenTicket() {
+    if (!kitchenOrder) return;
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const { error } = await supabase
+      .from("global_stock_kitchen_tickets")
+      .insert({
+        business_id: businessId,
+        order_id: kitchenOrder,
+        station: kitchenStation.trim() || "general",
+        status: "queued",
+        priority: 0
+      });
+
+    if (error) return;
+
+    await supabase
+      .from("global_stock_orders")
+      .update({ status: "preparing" })
+      .eq("id", kitchenOrder);
+
+    await reload();
+  }
+
+  async function updateKitchenTicket(id: string, status: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const patch: Record<string, unknown> = { status };
+    if (status === "preparing") {
+      patch.started_at = new Date().toISOString();
+    }
+    if (status === "ready") {
+      patch.ready_at = new Date().toISOString();
+    }
+
+    await supabase
+      .from("global_stock_kitchen_tickets")
+      .update(patch)
+      .eq("id", id);
+
+    const ticket = kitchenTickets.find((item) => item.id === id);
+    if (ticket && status === "ready") {
+      await supabase
+        .from("global_stock_orders")
+        .update({ status: "ready" })
+        .eq("id", ticket.order_id);
+    }
+
+    await reload();
+  }
+
+  async function createShipment() {
+    if (!shipmentOrder || !shipmentCarrier.trim()) return;
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    const cost = Math.max(0, Number(shipmentCost) || 0);
+
+    const { error } = await supabase
+      .from("global_stock_shipments")
+      .insert({
+        business_id: businessId,
+        order_id: shipmentOrder,
+        carrier: shipmentCarrier.trim(),
+        tracking_number: shipmentTracking.trim() || null,
+        status: shipmentTracking.trim() ? "in_transit" : "pending",
+        shipping_cost: cost
+      });
+
+    if (error) return;
+
+    await supabase
+      .from("global_stock_orders")
+      .update({
+        status: shipmentTracking.trim() ? "shipped" : "ready",
+        carrier: shipmentCarrier.trim(),
+        tracking_number: shipmentTracking.trim() || null,
+        shipping_cost: cost
+      })
+      .eq("id", shipmentOrder);
+
+    setShipmentTracking("");
+    setShipmentCost("");
+    await reload();
+  }
+
+  async function updateShipmentStatus(id: string, status: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    await supabase
+      .from("global_stock_shipments")
+      .update({ status })
+      .eq("id", id);
+
+    const shipment = shipments.find((item) => item.id === id);
+    if (shipment?.order_id && status === "delivered") {
+      await supabase
+        .from("global_stock_orders")
+        .update({ status: "delivered" })
+        .eq("id", shipment.order_id);
+    }
+
     await reload();
   }
 
@@ -867,7 +1140,8 @@ export function AdvancedOperations({
 
       <div className="mt-4">
         {tool === "orders" && (
-          <ToolGrid
+          <div className="space-y-4">
+            <ToolGrid
             title={labels.orders}
             form={
               <>
@@ -942,26 +1216,184 @@ export function AdvancedOperations({
               />
             ))}
           </ToolGrid>
+
+            <section className="apex-card p-4 sm:p-5">
+              <div className="flex items-center gap-2">
+                <Truck size={16} />
+                <h4 className="font-semibold">
+                  {tr(language, {
+                    es: "Logística y seguimiento",
+                    en: "Shipping & tracking"
+                  })}
+                </h4>
+              </div>
+              <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_140px_auto]">
+                <select
+                  className="apex-input min-h-11 px-3"
+                  value={shipmentOrder}
+                  onChange={(event) => setShipmentOrder(event.target.value)}
+                >
+                  <option value="">Pedido</option>
+                  {orders
+                    .filter(
+                      (order) =>
+                        !["delivered", "cancelled", "refunded"].includes(
+                          order.status
+                        )
+                    )
+                    .map((order) => (
+                      <option key={order.id} value={order.id}>
+                        {order.id.slice(0, 8)} · {money(
+                          order.total,
+                          order.currency || currency,
+                          locale
+                        )}
+                      </option>
+                    ))}
+                </select>
+                <input
+                  className="apex-input min-h-11 px-3"
+                  placeholder="Transportista"
+                  value={shipmentCarrier}
+                  onChange={(event) => setShipmentCarrier(event.target.value)}
+                />
+                <input
+                  className="apex-input min-h-11 px-3"
+                  placeholder="Tracking"
+                  value={shipmentTracking}
+                  onChange={(event) => setShipmentTracking(event.target.value)}
+                />
+                <input
+                  className="apex-input min-h-11 px-3"
+                  inputMode="decimal"
+                  placeholder="Costo"
+                  value={shipmentCost}
+                  onChange={(event) => setShipmentCost(event.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => void createShipment()}
+                  className="min-h-11 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white"
+                >
+                  Crear envío
+                </button>
+              </div>
+
+              <div className="mt-4 divide-y divide-[var(--apex-border)] rounded-2xl border border-[var(--apex-border)]">
+                {shipments.length ? (
+                  shipments.slice(0, 12).map((shipment) => (
+                    <div
+                      key={shipment.id}
+                      className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">
+                          {shipment.carrier || "Envío"}
+                        </p>
+                        <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                          {shipment.tracking_number || "Sin tracking"} ·{" "}
+                          {money(shipment.shipping_cost, currency, locale)}
+                        </p>
+                      </div>
+                      <select
+                        className="apex-input min-h-9 px-2 text-xs"
+                        value={shipment.status}
+                        onChange={(event) =>
+                          void updateShipmentStatus(
+                            shipment.id,
+                            event.target.value
+                          )
+                        }
+                      >
+                        {[
+                          "pending",
+                          "label_created",
+                          "picked_up",
+                          "in_transit",
+                          "delivered",
+                          "exception",
+                          "returned",
+                          "cancelled"
+                        ].map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))
+                ) : (
+                  <Empty />
+                )}
+              </div>
+            </section>
+          </div>
         )}
 
         {tool === "inventory" && (
           <div className="grid gap-4 xl:grid-cols-3">
             <MiniPanel
               title={tr(language, {
-                es: "Conteo cíclico",
-                en: "Cycle count"
+                es: "Conteo con ajuste",
+                en: "Count & adjust"
               })}
             >
+              <select
+                className="apex-input w-full p-3"
+                value={countLocation}
+                onChange={(event) => setCountLocation(event.target.value)}
+              >
+                <option value="">Ubicación general</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="apex-input w-full p-3"
+                value={countProduct}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setCountProduct(value);
+                  const product = products.find((item) => item.id === value);
+                  setCountExpected(product ? String(product.stock) : "");
+                }}
+              >
+                <option value="">Producto</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
+              <div className="grid grid-cols-2 gap-2">
+                <input
+                  className="apex-input w-full p-3"
+                  inputMode="decimal"
+                  placeholder="Esperado"
+                  value={countExpected}
+                  onChange={(event) => setCountExpected(event.target.value)}
+                />
+                <input
+                  className="apex-input w-full p-3"
+                  inputMode="decimal"
+                  placeholder="Contado"
+                  value={countActual}
+                  onChange={(event) => setCountActual(event.target.value)}
+                />
+              </div>
               <input
                 className="apex-input w-full p-3"
                 value={countScope}
                 onChange={(event) => setCountScope(event.target.value)}
+                placeholder="Motivo / observación"
               />
               <Action
                 onClick={() => void createCount()}
                 label={tr(language, {
-                  es: "Iniciar conteo",
-                  en: "Start count"
+                  es: "Aplicar conteo",
+                  en: "Apply count"
                 })}
               />
               <CompactList
@@ -974,24 +1406,66 @@ export function AdvancedOperations({
 
             <MiniPanel
               title={tr(language, {
-                es: "Transferencias",
-                en: "Transfers"
+                es: "Transferir entre ubicaciones",
+                en: "Transfer locations"
               })}
             >
+              <select
+                className="apex-input w-full p-3"
+                value={transferFrom}
+                onChange={(event) => setTransferFrom(event.target.value)}
+              >
+                <option value="">Origen</option>
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                className="apex-input w-full p-3"
+                value={transferTo}
+                onChange={(event) => setTransferTo(event.target.value)}
+              >
+                <option value="">Destino</option>
+                {locations
+                  .filter((location) => location.id !== transferFrom)
+                  .map((location) => (
+                    <option key={location.id} value={location.id}>
+                      {location.name}
+                    </option>
+                  ))}
+              </select>
+              <select
+                className="apex-input w-full p-3"
+                value={transferProduct}
+                onChange={(event) => setTransferProduct(event.target.value)}
+              >
+                <option value="">Producto</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name}
+                  </option>
+                ))}
+              </select>
               <input
                 className="apex-input w-full p-3"
-                placeholder={tr(language, {
-                  es: "Motivo / referencia",
-                  en: "Reason / reference"
-                })}
+                inputMode="decimal"
+                placeholder="Cantidad"
+                value={transferQuantity}
+                onChange={(event) => setTransferQuantity(event.target.value)}
+              />
+              <input
+                className="apex-input w-full p-3"
+                placeholder="Motivo / referencia"
                 value={transferNote}
                 onChange={(event) => setTransferNote(event.target.value)}
               />
               <Action
                 onClick={() => void createTransfer()}
                 label={tr(language, {
-                  es: "Nueva transferencia",
-                  en: "New transfer"
+                  es: "Transferir",
+                  en: "Transfer"
                 })}
               />
               <CompactList
@@ -1139,6 +1613,15 @@ export function AdvancedOperations({
           </ToolGrid>
         )}
 
+        {tool === "reports" && (
+          <BusinessReports
+            businessId={businessId}
+            language={language}
+            currency={currency}
+            locale={locale}
+          />
+        )}
+
         {tool === "automations" && (
           <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
             <MiniPanel title={labels.automations}>
@@ -1242,62 +1725,153 @@ export function AdvancedOperations({
         )}
 
         {tool === "restaurant" && (
-          <ToolGrid
-            title={labels.restaurant}
-            form={
-              <>
-                <input
-                  className="apex-input w-full p-3"
-                  placeholder="Mesa"
-                  value={tableName}
-                  onChange={(event) => setTableName(event.target.value)}
+          <div className="grid gap-4 xl:grid-cols-2">
+            <ToolGrid
+              title={labels.restaurant}
+              form={
+                <>
+                  <input
+                    className="apex-input w-full p-3"
+                    placeholder="Mesa"
+                    value={tableName}
+                    onChange={(event) => setTableName(event.target.value)}
+                  />
+                  <input
+                    className="apex-input w-full p-3"
+                    inputMode="numeric"
+                    placeholder="Personas"
+                    value={tableSeats}
+                    onChange={(event) => setTableSeats(event.target.value)}
+                  />
+                  <Action
+                    onClick={() => void addDiningTable()}
+                    label={tr(language, {
+                      es: "Agregar mesa",
+                      en: "Add table"
+                    })}
+                  />
+                </>
+              }
+            >
+              {tables.map((table) => (
+                <ListCard
+                  key={table.id}
+                  title={table.name}
+                  subtitle={`${table.seats} personas`}
+                  action={
+                    <select
+                      className="apex-input min-h-9 px-2 text-xs"
+                      value={table.status}
+                      onChange={(event) =>
+                        void updateTableStatus(table.id, event.target.value)
+                      }
+                    >
+                      {[
+                        "available",
+                        "occupied",
+                        "reserved",
+                        "cleaning",
+                        "disabled"
+                      ].map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  }
                 />
-                <input
-                  className="apex-input w-full p-3"
-                  inputMode="numeric"
-                  placeholder="Personas"
-                  value={tableSeats}
-                  onChange={(event) => setTableSeats(event.target.value)}
-                />
-                <Action
-                  onClick={() => void addDiningTable()}
-                  label={tr(language, {
-                    es: "Agregar mesa",
-                    en: "Add table"
-                  })}
-                />
-              </>
-            }
-          >
-            {tables.map((table) => (
-              <ListCard
-                key={table.id}
-                title={table.name}
-                subtitle={`${table.seats} personas`}
-                action={
-                  <select
-                    className="apex-input min-h-9 px-2 text-xs"
-                    value={table.status}
-                    onChange={(event) =>
-                      void updateTableStatus(table.id, event.target.value)
-                    }
-                  >
-                    {[
-                      "available",
-                      "occupied",
-                      "reserved",
-                      "cleaning",
-                      "disabled"
-                    ].map((status) => (
-                      <option key={status} value={status}>
-                        {status}
+              ))}
+            </ToolGrid>
+
+            <section className="apex-card p-4 sm:p-5">
+              <div className="flex items-center gap-2">
+                <ChefHat size={16} />
+                <h4 className="font-semibold">Cocina / KDS</h4>
+              </div>
+
+              <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
+                <select
+                  className="apex-input min-h-11 px-3"
+                  value={kitchenOrder}
+                  onChange={(event) => setKitchenOrder(event.target.value)}
+                >
+                  <option value="">Pedido</option>
+                  {orders
+                    .filter(
+                      (order) =>
+                        !["delivered", "cancelled", "refunded"].includes(
+                          order.status
+                        )
+                    )
+                    .map((order) => (
+                      <option key={order.id} value={order.id}>
+                        {order.id.slice(0, 8)} · {order.status}
                       </option>
                     ))}
-                  </select>
-                }
-              />
-            ))}
-          </ToolGrid>
+                </select>
+                <input
+                  className="apex-input min-h-11 px-3"
+                  placeholder="Estación (barra, cocina...)"
+                  value={kitchenStation}
+                  onChange={(event) => setKitchenStation(event.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => void createKitchenTicket()}
+                  className="min-h-11 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white"
+                >
+                  Enviar
+                </button>
+              </div>
+
+              <div className="mt-4 divide-y divide-[var(--apex-border)] rounded-2xl border border-[var(--apex-border)]">
+                {kitchenTickets.length ? (
+                  kitchenTickets.slice(0, 20).map((ticket) => (
+                    <div
+                      key={ticket.id}
+                      className="flex flex-col gap-3 p-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="text-sm font-semibold">
+                          #{ticket.order_id.slice(0, 8)} · {ticket.station}
+                        </p>
+                        <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                          {new Date(ticket.created_at).toLocaleTimeString(
+                            locale,
+                            { hour: "2-digit", minute: "2-digit" }
+                          )}
+                        </p>
+                      </div>
+                      <select
+                        className="apex-input min-h-9 px-2 text-xs"
+                        value={ticket.status}
+                        onChange={(event) =>
+                          void updateKitchenTicket(
+                            ticket.id,
+                            event.target.value
+                          )
+                        }
+                      >
+                        {[
+                          "queued",
+                          "preparing",
+                          "ready",
+                          "served",
+                          "cancelled"
+                        ].map((status) => (
+                          <option key={status} value={status}>
+                            {status}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  ))
+                ) : (
+                  <Empty />
+                )}
+              </div>
+            </section>
+          </div>
         )}
 
         {tool === "pricing" && (
