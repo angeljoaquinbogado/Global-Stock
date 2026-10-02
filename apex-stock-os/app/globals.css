@@ -233,98 +233,117 @@ textarea:focus-visible {
     0 0 52px rgba(72,128,255,.10);
 }
 
-.gs-orbit-plane {
-  position: absolute;
-  inset: -3%;
-  display: grid;
-  place-items: center;
-  pointer-events: none;
-  will-change: transform;
-  transform: translate3d(0,0,0);
+
+.gs-global-network {
+  opacity: .96;
+  mix-blend-mode: screen;
+  transform: translateZ(0);
+  will-change: opacity;
 }
 
-.gs-orbit-line {
-  position: absolute;
-  inset: 11%;
-  border-radius: 50%;
-  opacity: .82;
-  background:
-    conic-gradient(
-      from 8deg,
-      transparent 0 8%,
-      rgba(255,38,38,.94) 10% 16%,
-      transparent 18% 35%,
-      rgba(189,0,0,.72) 38% 50%,
-      transparent 52% 75%,
-      rgba(255,105,105,.72) 78% 84%,
-      transparent 86% 100%
-    );
-  -webkit-mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 2px),
-    #000 calc(100% - 1.5px)
-  );
-  mask: radial-gradient(
-    farthest-side,
-    transparent calc(100% - 2px),
-    #000 calc(100% - 1.5px)
-  );
+.gs-global-route {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation-name: gs-route-draw, gs-route-breathe;
+  animation-timing-function: cubic-bezier(.22,1,.36,1), ease-in-out;
+  animation-iteration-count: 1, infinite;
+  animation-fill-mode: forwards, both;
 }
 
-.gs-orbit-node {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: #ff2b2b;
-  box-shadow: 0 0 12px rgba(255,43,43,.72);
+.gs-global-route-shadow {
+  stroke: rgba(143,0,0,.34);
+  stroke-width: 5px;
+  opacity: .26;
 }
 
-.gs-orbit-plane-a {
-  transform: rotate(-12deg) scaleY(.54);
-  animation: gs-orbit-a 7.5s linear infinite;
+.gs-global-route-main {
+  stroke: url(#gs-route-gradient);
+  stroke-width: 2.15px;
+  opacity: .88;
 }
 
-.gs-orbit-plane-b {
-  transform: rotate(57deg) scaleY(.62);
-  animation: gs-orbit-b 9.8s linear infinite reverse;
+.gs-route-particle {
+  fill: #fff;
+  stroke: #B20A0A;
+  stroke-width: 2.2px;
+  opacity: .92;
 }
 
-.gs-orbit-plane-c {
-  transform: rotate(108deg) scaleY(.48);
-  animation: gs-orbit-c 12.2s linear infinite;
+.gs-global-pin {
+  transform-box: fill-box;
+  transform-origin: center;
+  opacity: 0;
+  animation: gs-pin-enter .78s cubic-bezier(.16,1,.3,1) forwards;
 }
 
-.gs-orbit-line-b {
-  inset: 16%;
-  opacity: .62;
+.gs-global-pin-primary {
+  filter: saturate(1.08);
 }
 
-.gs-orbit-line-c {
-  inset: 22%;
-  opacity: .5;
+.gs-global-pin-halo {
+  fill: rgba(143,0,0,.08);
+  stroke: rgba(255,75,75,.35);
+  stroke-width: 2px;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: gs-pin-pulse 2.8s ease-out infinite;
 }
 
-.gs-orbit-node-a {
-  top: 10.5%;
-  left: 49%;
+.gs-global-pin-primary .gs-global-pin-halo {
+  fill: rgba(178,10,10,.14);
+  stroke: rgba(255,110,110,.5);
+  animation-duration: 2.2s;
 }
 
-.gs-orbit-node-b {
-  right: 15%;
-  top: 44%;
+.gs-global-pin-label {
+  opacity: .68;
+  transition: opacity 180ms ease;
 }
 
-.gs-orbit-node-c {
-  bottom: 17%;
-  left: 35%;
+@keyframes gs-route-draw {
+  from {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: .88;
+  }
 }
 
-.gs-auth-horizon {
-  opacity: .24;
-  background: linear-gradient(90deg, transparent, #ff2c2c 50%, transparent);
-  box-shadow: 0 0 14px rgba(255, 0, 0, .3);
-  animation: gs-horizon 3.4s cubic-bezier(.16,1,.3,1) both;
+@keyframes gs-route-breathe {
+  0%, 100% {
+    filter: brightness(.92);
+  }
+  50% {
+    filter: brightness(1.16);
+  }
+}
+
+@keyframes gs-pin-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(.72);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gs-pin-pulse {
+  0% {
+    opacity: .72;
+    transform: scale(.76);
+  }
+  72%, 100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
 }
 
 @keyframes gs-earth-enter {
@@ -353,26 +372,13 @@ textarea:focus-visible {
   to { transform: translate3d(1%, -.5%, 0) scale(1.02); }
 }
 
-@keyframes gs-orbit-a {
-  from { transform: rotate(-12deg) scaleY(.54) rotateZ(0deg); }
-  to { transform: rotate(-12deg) scaleY(.54) rotateZ(360deg); }
-}
 
-@keyframes gs-orbit-b {
-  from { transform: rotate(57deg) scaleY(.62) rotateZ(0deg); }
-  to { transform: rotate(57deg) scaleY(.62) rotateZ(360deg); }
-}
 
-@keyframes gs-orbit-c {
-  from { transform: rotate(108deg) scaleY(.48) rotateZ(0deg); }
-  to { transform: rotate(108deg) scaleY(.48) rotateZ(360deg); }
-}
 
-@keyframes gs-horizon {
-  0%, 35% { opacity: 0; transform: translate3d(-50%, 0, 0) scaleX(.12); }
-  70% { opacity: .68; transform: translate3d(-50%, 0, 0) scaleX(1); }
-  100% { opacity: .18; transform: translate3d(-50%, 0, 0) scaleX(.78); }
-}
+
+
+
+
 
 @media (max-width: 640px) {
   .gs-earth-wrap {
@@ -386,9 +392,21 @@ textarea:focus-visible {
     opacity: .58;
   }
 
-  .gs-orbit-node {
-    width: 6px;
-    height: 6px;
+  .gs-global-network {
+    inset: 5.5%;
+    opacity: .9;
+  }
+
+  .gs-global-pin-label {
+    display: none;
+  }
+
+  .gs-global-route-main {
+    stroke-width: 1.7px;
+  }
+
+  .gs-route-particle {
+    opacity: .72;
   }
 
   .apex-glass {
@@ -418,22 +436,28 @@ textarea:focus-visible {
 @media (prefers-reduced-motion: reduce) {
   .gs-space-layer,
   .gs-earth-wrap,
-  .gs-orbit-plane,
-  .gs-auth-horizon {
+  .gs-global-route,
+  .gs-global-pin,
+  .gs-global-pin-halo {
     animation: none !important;
     transform: none !important;
   }
 
-  .gs-orbit-plane-a { transform: rotate(-12deg) scaleY(.54) !important; }
-  .gs-orbit-plane-b { transform: rotate(57deg) scaleY(.62) !important; }
-  .gs-orbit-plane-c { transform: rotate(108deg) scaleY(.48) !important; }
+  .gs-route-particle {
+    display: none !important;
+  }
 }
 
 .gs-auth-scene-rest .gs-space-layer,
 .gs-auth-scene-rest .gs-earth-wrap,
-.gs-auth-scene-rest .gs-orbit-plane,
-.gs-auth-scene-rest .gs-auth-horizon {
+.gs-auth-scene-rest .gs-global-route,
+.gs-auth-scene-rest .gs-global-pin,
+.gs-auth-scene-rest .gs-global-pin-halo {
   animation-play-state: paused !important;
+}
+
+.gs-auth-scene-rest .gs-route-particle {
+  display: none;
 }
 
 @media (pointer: coarse) {
