@@ -3,6 +3,8 @@
 import {
   Banknote,
   Building2,
+  Check,
+  ChevronDown,
   Landmark,
   Plus,
   ReceiptText,
@@ -247,6 +249,114 @@ const words: Record<
     role: "Rolle", empty: "Noch keine Einträge."
   }
 };
+
+const roleLabels: Record<
+  LanguageCode,
+  Record<string, string>
+> = {
+  es: {
+    owner: "Dueño",
+    admin: "Administrador",
+    manager: "Gerente",
+    cashier: "Cajero",
+    warehouse: "Depósito",
+    sales: "Ventas",
+    accountant: "Contador",
+    viewer: "Solo lectura"
+  },
+  en: {
+    owner: "Owner",
+    admin: "Admin",
+    manager: "Manager",
+    cashier: "Cashier",
+    warehouse: "Warehouse",
+    sales: "Sales",
+    accountant: "Accountant",
+    viewer: "Viewer"
+  },
+  pt: {
+    owner: "Proprietário",
+    admin: "Administrador",
+    manager: "Gerente",
+    cashier: "Caixa",
+    warehouse: "Estoque",
+    sales: "Vendas",
+    accountant: "Contador",
+    viewer: "Somente leitura"
+  },
+  fr: {
+    owner: "Propriétaire",
+    admin: "Administrateur",
+    manager: "Responsable",
+    cashier: "Caissier",
+    warehouse: "Stock",
+    sales: "Ventes",
+    accountant: "Comptable",
+    viewer: "Lecture seule"
+  },
+  de: {
+    owner: "Inhaber",
+    admin: "Administrator",
+    manager: "Manager",
+    cashier: "Kasse",
+    warehouse: "Lager",
+    sales: "Verkauf",
+    accountant: "Buchhaltung",
+    viewer: "Nur Lesen"
+  }
+};
+
+const roleValues = [
+  "owner",
+  "admin",
+  "manager",
+  "cashier",
+  "warehouse",
+  "sales",
+  "accountant",
+  "viewer"
+] as const;
+
+function roleLabel(language: LanguageCode, role: string) {
+  return roleLabels[language][role] ?? role;
+}
+
+function inviteStatusLabel(language: LanguageCode, status: string) {
+  const labels: Record<LanguageCode, Record<string, string>> = {
+    es: {
+      pending: "Pendiente",
+      accepted: "Aceptada",
+      revoked: "Revocada",
+      expired: "Vencida"
+    },
+    en: {
+      pending: "Pending",
+      accepted: "Accepted",
+      revoked: "Revoked",
+      expired: "Expired"
+    },
+    pt: {
+      pending: "Pendente",
+      accepted: "Aceita",
+      revoked: "Revogada",
+      expired: "Expirada"
+    },
+    fr: {
+      pending: "En attente",
+      accepted: "Acceptée",
+      revoked: "Révoquée",
+      expired: "Expirée"
+    },
+    de: {
+      pending: "Ausstehend",
+      accepted: "Angenommen",
+      revoked: "Widerrufen",
+      expired: "Abgelaufen"
+    }
+  };
+
+  return labels[language][status] ?? status;
+}
 
 function money(value: number, currency: string, locale: string) {
   return new Intl.NumberFormat(locale, {
@@ -1106,19 +1216,14 @@ export function OperationsCenter({
               onChange={(event) => setInviteEmail(event.target.value)}
             />
 
-            <select
-              className="apex-input mt-2 w-full p-3"
-              value={inviteRole}
-              onChange={(event) => setInviteRole(event.target.value)}
-            >
-              <option value="admin">Admin</option>
-              <option value="manager">Manager</option>
-              <option value="cashier">Cashier</option>
-              <option value="warehouse">Warehouse</option>
-              <option value="sales">Sales</option>
-              <option value="accountant">Accountant</option>
-              <option value="viewer">Viewer</option>
-            </select>
+            <div className="mt-2">
+              <RoleSelect
+                language={language}
+                value={inviteRole}
+                onChange={setInviteRole}
+                excludeOwner
+              />
+            </div>
 
             <PrimaryButton onClick={() => void inviteMember()}>
               {language === "es" ? "Crear invitación" : "Create invite"}
@@ -1137,7 +1242,8 @@ export function OperationsCenter({
                           {invite.email}
                         </p>
                         <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-                          {invite.role} · {invite.status}
+                          {roleLabel(language, invite.role)} ·{" "}
+                          {inviteStatusLabel(language, invite.status)}
                         </p>
                       </div>
                       {invite.status === "pending" && (
@@ -1160,7 +1266,9 @@ export function OperationsCenter({
             <div className="border-b border-[var(--apex-border)] p-5">
               <h3 className="font-semibold">{t.team}</h3>
               <p className="mt-1 text-xs text-[var(--apex-muted)]">
-                Owner, admin, manager, cashier, warehouse, sales, accountant, viewer.
+                {language === "es"
+                  ? "Asigná permisos según la tarea de cada persona. Podés cambiar el rol cuando lo necesites."
+                  : "Assign access based on each person's job. You can change roles at any time."}
               </p>
             </div>
 
@@ -1181,23 +1289,14 @@ export function OperationsCenter({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <select
-                        className="apex-input min-h-10 px-3 text-sm"
+                      <RoleSelect
+                        language={language}
                         value={member.role}
                         disabled={member.role === "owner"}
-                        onChange={(event) =>
-                          void changeRole(member.user_id, event.target.value)
+                        onChange={(nextRole) =>
+                          void changeRole(member.user_id, nextRole)
                         }
-                      >
-                        <option value="owner">Owner</option>
-                        <option value="admin">Admin</option>
-                        <option value="manager">Manager</option>
-                        <option value="cashier">Cashier</option>
-                        <option value="warehouse">Warehouse</option>
-                        <option value="sales">Sales</option>
-                        <option value="accountant">Accountant</option>
-                        <option value="viewer">Viewer</option>
-                      </select>
+                      />
 
                       {member.role !== "owner" && (
                         <button
@@ -1265,6 +1364,98 @@ export function OperationsCenter({
             locale={locale}
           />
         ) : null
+      )}
+    </div>
+  );
+}
+
+function RoleSelect({
+  language,
+  value,
+  onChange,
+  disabled = false,
+  excludeOwner = false
+}: {
+  language: LanguageCode;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  excludeOwner?: boolean;
+}) {
+  const [open, setOpen] = useState(false);
+  const options = roleValues.filter(
+    (role) => !(excludeOwner && role === "owner")
+  );
+
+  return (
+    <div className="relative min-w-[180px]">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+        className={
+          "flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-3.5 text-left text-sm font-semibold transition-[border-color,background-color,box-shadow] duration-150 " +
+          (disabled
+            ? "cursor-not-allowed border-[var(--apex-border)] bg-[var(--apex-bg)] text-[var(--apex-muted)] opacity-70"
+            : open
+              ? "border-[#8F0000]/55 bg-[var(--apex-surface-strong)] shadow-[0_0_0_3px_rgba(143,0,0,.10)]"
+              : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] hover:border-[#8F0000]/35")
+        }
+      >
+        <span className="truncate">{roleLabel(language, value)}</span>
+        <ChevronDown
+          size={15}
+          className={
+            "shrink-0 text-[var(--apex-muted)] transition-transform duration-150 " +
+            (open ? "rotate-180" : "")
+          }
+        />
+      </button>
+
+      {open && !disabled && (
+        <>
+          <button
+            type="button"
+            aria-label={
+              language === "es" ? "Cerrar selector" : "Close selector"
+            }
+            className="fixed inset-0 z-[160] cursor-default"
+            onClick={() => setOpen(false)}
+          />
+
+          <div
+            role="listbox"
+            className="absolute right-0 top-full z-[170] mt-2 w-full min-w-[210px] overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_22px_70px_rgba(0,0,0,.34)]"
+          >
+            {options.map((role) => {
+              const selected = role === value;
+
+              return (
+                <button
+                  key={role}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
+                  onClick={() => {
+                    onChange(role);
+                    setOpen(false);
+                  }}
+                  className={
+                    "flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-3 text-left text-sm transition-colors duration-150 " +
+                    (selected
+                      ? "bg-[#8F0000] font-semibold text-white"
+                      : "text-[var(--apex-text)] hover:bg-[var(--apex-bg)]")
+                  }
+                >
+                  <span>{roleLabel(language, role)}</span>
+                  {selected && <Check size={14} />}
+                </button>
+              );
+            })}
+          </div>
+        </>
       )}
     </div>
   );

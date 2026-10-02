@@ -74,6 +74,10 @@ type PublicPreview = {
   }>;
   inspectedAt: string;
   publicDataOnly: boolean;
+  connector: {
+    available: boolean;
+    authorizationPath: string | null;
+  };
 };
 
 type IntegrationReadiness = {
@@ -119,11 +123,11 @@ const copy = {
     publicProducts: "Productos públicos detectados",
     publicOnly:
       "Estos datos son públicos y todavía no habilitan cambios de stock.",
-    ownership: "Verificar propiedad",
+    ownership: "Conectar tienda propia",
     ownershipBody:
-      "La contraseña se valida únicamente en la tienda. Dorado además envía un código de 6 dígitos al correo administrador antes de autorizar Global Stock.",
+      "Global Stock solo habilita acceso privado cuando el sitio publica su conector seguro. Conocer una URL no demuestra que administrás ese negocio.",
     doradoStep:
-      "Continuá en Dorado: iniciá sesión con la cuenta administradora y confirmá el código de 6 dígitos que llega por email. Después volvés automáticamente a Global Stock.",
+      "Conector seguro detectado. Abrí el panel administrativo del sitio, iniciá sesión con una cuenta autorizada y completá la verificación antes de volver a Global Stock.",
     token: "Token de conexión",
     verify: "Verificar y conectar",
     verifying: "Verificando…",
@@ -137,7 +141,7 @@ const copy = {
     missingCost:
       "Algunos productos todavía no tienen costo real cargado. Global Stock no inventará ese dato.",
     disconnect: "Desconectar tienda",
-    openAdmin: "Autorizar en Dorado",
+    openAdmin: "Autorizar esta tienda",
     openStore: "Abrir tienda",
     invalidUrl: "Ingresá una URL válida.",
     inspectError: "No pude leer la tienda desde esa URL.",
@@ -177,11 +181,11 @@ const copy = {
     publicProducts: "Public products detected",
     publicOnly:
       "This is public data and does not grant inventory write access.",
-    ownership: "Verify ownership",
+    ownership: "Connect your store",
     ownershipBody:
-      "The password is validated only by the store. Dorado also sends a six-digit code to the administrator email before authorizing Global Stock.",
+      "Global Stock enables private access only when the site publishes its secure connector. Knowing a URL does not prove you manage that business.",
     doradoStep:
-      "Continue in Dorado: sign in with the administrator account and confirm the six-digit email code. You will then return automatically to Global Stock.",
+      "Secure connector detected. Open the site's admin panel, sign in with an authorized account and complete verification before returning to Global Stock.",
     token: "Connection token",
     verify: "Verify and connect",
     verifying: "Verifying…",
@@ -195,7 +199,7 @@ const copy = {
     missingCost:
       "Some products still have no recorded real cost. Global Stock will not invent it.",
     disconnect: "Disconnect store",
-    openAdmin: "Authorize in Dorado",
+    openAdmin: "Authorize this store",
     openStore: "Open store",
     invalidUrl: "Enter a valid URL.",
     inspectError: "Could not inspect that store URL.",
@@ -236,9 +240,9 @@ const copy = {
       "Esses dados são públicos e ainda não permitem alterar estoque.",
     ownership: "Verificar propriedade",
     ownershipBody:
-      "A senha é validada somente pela loja. O Dorado também envia um código de seis dígitos ao e-mail do administrador antes de autorizar o Global Stock.",
+      "O Global Stock só libera acesso privado quando o site publica seu conector seguro. Conhecer a URL não prova que você administra a loja.",
     doradoStep:
-      "Abra a autorização por este botão. O Dorado não exibe Global Stock na navegação normal do administrador; o acesso aparece apenas neste fluxo.",
+      "Conector seguro detectado. Abra o painel administrativo do site, entre com uma conta autorizada e conclua a verificação.",
     token: "Token de conexão",
     verify: "Verificar e conectar",
     verifying: "Verificando…",
@@ -252,7 +256,7 @@ const copy = {
     missingCost:
       "Alguns produtos ainda não têm custo real registrado. O Global Stock não inventará esse dado.",
     disconnect: "Desconectar loja",
-    openAdmin: "Autorizar no Dorado",
+    openAdmin: "Autorizar esta loja",
     openStore: "Abrir loja",
     invalidUrl: "Digite uma URL válida.",
     inspectError: "Não foi possível ler a loja dessa URL.",
@@ -293,9 +297,9 @@ const copy = {
       "Ces données sont publiques et n’autorisent pas encore la modification du stock.",
     ownership: "Vérifier la propriété",
     ownershipBody:
-      "Le mot de passe est validé uniquement par la boutique. Dorado envoie aussi un code à six chiffres à l’e-mail administrateur avant d’autoriser Global Stock.",
+      "Global Stock n’active l’accès privé que si le site publie son connecteur sécurisé. Connaître l’URL ne prouve pas que vous gérez la boutique.",
     doradoStep:
-      "Ouvrez l’autorisation avec ce bouton. Dorado masque Global Stock dans l’administration normale et ne l’affiche que pour ce flux de connexion.",
+      "Connecteur sécurisé détecté. Ouvrez l’administration du site, connectez-vous avec un compte autorisé et terminez la vérification.",
     token: "Jeton de connexion",
     verify: "Vérifier et connecter",
     verifying: "Vérification…",
@@ -309,7 +313,7 @@ const copy = {
     missingCost:
       "Certains produits n’ont pas encore de coût réel enregistré. Global Stock ne l’inventera pas.",
     disconnect: "Déconnecter la boutique",
-    openAdmin: "Autoriser dans Dorado",
+    openAdmin: "Autoriser cette boutique",
     openStore: "Ouvrir la boutique",
     invalidUrl: "Saisissez une URL valide.",
     inspectError: "Impossible de lire cette boutique.",
@@ -350,9 +354,9 @@ const copy = {
       "Diese Daten sind öffentlich und erlauben noch keine Bestandsänderung.",
     ownership: "Eigentümerschaft prüfen",
     ownershipBody:
-      "Das Passwort wird nur vom Shop geprüft. Dorado sendet zusätzlich einen sechsstelligen Code an die Administrator-E-Mail, bevor Global Stock autorisiert wird.",
+      "Global Stock aktiviert privaten Zugriff nur, wenn die Website ihren sicheren Connector veröffentlicht. Die URL allein beweist keine Administratorrechte.",
     doradoStep:
-      "Öffne die Freigabe über diese Schaltfläche. Dorado blendet Global Stock in der normalen Administration aus und zeigt die Freigabe nur in diesem Verbindungsablauf.",
+      "Sicherer Connector erkannt. Öffne die Shop-Verwaltung, melde dich mit einem autorisierten Konto an und schließe die Verifizierung ab.",
     token: "Verbindungstoken",
     verify: "Prüfen und verbinden",
     verifying: "Prüfung…",
@@ -366,7 +370,7 @@ const copy = {
     missingCost:
       "Einige Produkte haben noch keine echten Kosten. Global Stock erfindet diesen Wert nicht.",
     disconnect: "Shop trennen",
-    openAdmin: "In Dorado autorisieren",
+    openAdmin: "Diesen Shop autorisieren",
     openStore: "Shop öffnen",
     invalidUrl: "Gib eine gültige URL ein.",
     inspectError: "Der Shop konnte nicht gelesen werden.",
@@ -415,35 +419,35 @@ const providerMethods: Record<
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, stock, clientes y pedidos mediante una aplicación autorizada." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Productos, stock y pedidos usando credenciales generadas por el dueño de la tienda." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Publicaciones, inventario, órdenes y envíos con permisos de la cuenta." },
-    { id: "custom", name: "API propia", auth: "Verificación segura", detail: "Conector Global Stock para sitios propios como Dorado, con autorización revocable y permisos por alcance." }
+    { id: "custom", name: "API propia", auth: "Verificación segura", detail: "Conector Global Stock para sitios propios, con autorización revocable y permisos por alcance." }
   ],
   en: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Products, variants, inventory, orders and webhooks with admin authorization." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalog, inventory, customers and orders through an authorized app." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Products, inventory and orders using credentials issued by the store owner." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Listings, inventory, orders and shipping with account permissions." },
-    { id: "custom", name: "Custom API", auth: "Secure verification", detail: "Global Stock connector for custom stores such as Dorado, with revocable scoped authorization." }
+    { id: "custom", name: "Custom API", auth: "Secure verification", detail: "Global Stock connector for custom stores with revocable scoped authorization." }
   ],
   pt: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produtos, variantes, estoque, pedidos e webhooks com autorização do administrador." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, estoque, clientes e pedidos por aplicativo autorizado." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produtos, estoque e pedidos com credenciais emitidas pelo dono da loja." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Anúncios, estoque, pedidos e envios com permissões da conta." },
-    { id: "custom", name: "API própria", auth: "Verificação segura", detail: "Conector Global Stock para lojas próprias como Dorado, com autorização revogável." }
+    { id: "custom", name: "API própria", auth: "Verificação segura", detail: "Conector Global Stock para lojas próprias, com autorização revogável." }
   ],
   fr: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produits, variantes, stock, commandes et webhooks avec autorisation administrateur." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalogue, stock, clients et commandes via une application autorisée." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produits, stock et commandes avec des identifiants émis par le propriétaire." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Annonces, stock, commandes et expéditions avec les permissions du compte." },
-    { id: "custom", name: "API personnalisée", auth: "Vérification sécurisée", detail: "Connecteur Global Stock pour boutiques propriétaires comme Dorado, avec autorisation révocable." }
+    { id: "custom", name: "API personnalisée", auth: "Vérification sécurisée", detail: "Connecteur Global Stock pour boutiques propriétaires, avec autorisation révocable." }
   ],
   de: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produkte, Varianten, Bestand, Bestellungen und Webhooks mit Admin-Autorisierung." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Katalog, Bestand, Kunden und Bestellungen über eine autorisierte App." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produkte, Bestand und Bestellungen mit vom Shopinhaber erstellten Zugangsdaten." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Angebote, Bestand, Bestellungen und Versand mit Kontoberechtigungen." },
-    { id: "custom", name: "Eigene API", auth: "Sichere Verifizierung", detail: "Global-Stock-Connector für eigene Shops wie Dorado mit widerrufbarer Autorisierung." }
+    { id: "custom", name: "Eigene API", auth: "Sichere Verifizierung", detail: "Global-Stock-Connector für eigene Shops mit widerrufbarer Autorisierung." }
   ]
 };
 
@@ -487,9 +491,18 @@ export function ConnectedCommerceHub({
     ) ?? null;
 
   const adminUrl = useMemo(() => {
-    const value = store?.url || preview?.url || url;
+    if (
+      !preview?.connector?.available ||
+      !preview.connector.authorizationPath
+    ) {
+      return "";
+    }
+
     try {
-      const admin = new URL("/admin.html", normalizeUrl(value));
+      const admin = new URL(
+        preview.connector.authorizationPath,
+        normalizeUrl(preview.url)
+      );
       admin.searchParams.set("source", "global-stock");
       admin.searchParams.set("intent", "authorize");
       if (typeof window !== "undefined") {
@@ -500,7 +513,7 @@ export function ConnectedCommerceHub({
     } catch {
       return "";
     }
-  }, [preview?.url, store?.url, url]);
+  }, [preview]);
 
   useEffect(() => {
     let cancelled = false;
@@ -1048,7 +1061,34 @@ export function ConnectedCommerceHub({
         </section>
       )}
 
-      {!store && selectedProvider === "custom" && preview && (
+      {!store &&
+        selectedProvider === "custom" &&
+        preview &&
+        !preview.connector?.available && (
+          <section className="apex-card p-5 sm:p-6">
+            <div className="flex items-start gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-600">
+                <LockKeyhole size={19} />
+              </span>
+              <div>
+                <h3 className="text-sm font-semibold">
+                  {language === "es"
+                    ? "Análisis público solamente"
+                    : "Public analysis only"}
+                </h3>
+                <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Global Stock puede leer información pública de este sitio, pero no detectó un conector seguro propio. No se mostrará ningún acceso administrativo ni se intentará modificar stock."
+                    : "Global Stock can inspect public information from this site, but no secure Global Stock connector was detected. No admin access will be offered and inventory will not be modified."}
+                </p>
+              </div>
+            </div>
+          </section>
+        )}
+
+      {!store &&
+        selectedProvider === "custom" &&
+        preview?.connector?.available && (
         <section className="apex-card p-5 sm:p-6">
           <div className="flex items-start gap-3">
             <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
@@ -1066,8 +1106,8 @@ export function ConnectedCommerceHub({
             <p className="text-xs font-semibold">{t.doradoStep}</p>
             <p className="mt-2 text-[10px] leading-5 text-[var(--apex-muted)]">
               {language === "es"
-                ? "Global Stock nunca recibe ni almacena la contraseña de Dorado. La credencial técnica se crea detrás de escena únicamente después de verificar el código."
-                : "Global Stock never receives or stores the Dorado password. The technical connector credential is created server-side only after code verification."}
+                ? "Global Stock nunca recibe ni almacena la contraseña del sitio. La credencial técnica se crea detrás de escena únicamente después de completar la verificación."
+                : "Global Stock never receives or stores the site's password. The technical connector credential is created server-side only after verification."}
             </p>
             {adminUrl && (
               <a

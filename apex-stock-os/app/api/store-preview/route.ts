@@ -517,6 +517,52 @@ async function inspectTiendanube(base: URL) {
   }
 }
 
+async function detectGlobalStockConnector(base: URL) {
+  const unavailable = {
+    available: false,
+    authorizationPath: null as string | null
+  };
+
+  try {
+    const endpoint = new URL(
+      "/api/global-stock-connector?resource=store",
+      base.origin
+    );
+    const { response, finalUrl } = await safeFetch(
+      endpoint,
+      "application/json",
+      100_000
+    );
+
+    const baseHost = base.hostname.toLowerCase().replace(/^www\./, "");
+    const finalHost = finalUrl.hostname.toLowerCase().replace(/^www\./, "");
+
+    if (baseHost !== finalHost) return unavailable;
+
+    const contentType = response.headers.get("content-type") ?? "";
+    if (!contentType.includes("application/json")) return unavailable;
+
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      verified?: boolean;
+    };
+
+    const recognized =
+      (response.status === 401 &&
+        payload.error === "INVALID_INTEGRATION_TOKEN") ||
+      payload.verified === true;
+
+    if (!recognized) return unavailable;
+
+    return {
+      available: true,
+      authorizationPath: "/admin.html"
+    };
+  } catch {
+    return unavailable;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const raw = request.nextUrl.searchParams.get("url")?.trim();
 
@@ -600,6 +646,8 @@ export async function GET(request: NextRequest) {
       catalog?.samples.find((item) => item.currency)?.currency ??
       readMeta(html, ["product:price:currency", "og:price:currency"]);
 
+    const connector = await detectGlobalStockConnector(finalUrl);
+
     return NextResponse.json({
       reachable: true,
       url: finalUrl.toString(),
@@ -613,7 +661,8 @@ export async function GET(request: NextRequest) {
       productCount: catalog?.productCount ?? null,
       sampleProducts: catalog?.samples ?? structuredProducts,
       inspectedAt: new Date().toISOString(),
-      publicDataOnly: true
+      publicDataOnly: true,
+      connector
     });
   } catch (error) {
     const code =
