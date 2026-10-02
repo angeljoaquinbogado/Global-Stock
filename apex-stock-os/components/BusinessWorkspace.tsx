@@ -269,6 +269,7 @@ const copy: Record<
       activities: "Actividad",
       documents: "Comprobantes",
       notes: "Agenda",
+      operations: "Gestión",
       settings: "Configuración"
     },
     more: "Más",
@@ -375,6 +376,7 @@ const copy: Record<
       activities: "Activity",
       documents: "Documents",
       notes: "Agenda",
+      operations: "Operations",
       settings: "Settings"
     },
     more: "More",
@@ -481,6 +483,7 @@ const copy: Record<
       activities: "Atividade",
       documents: "Comprovantes",
       notes: "Agenda",
+      operations: "Gestão",
       settings: "Configurações"
     },
     more: "Mais",
@@ -587,6 +590,7 @@ const copy: Record<
       activities: "Activité",
       documents: "Documents",
       notes: "Agenda",
+      operations: "Gestion",
       settings: "Paramètres"
     },
     more: "Plus",
@@ -693,6 +697,7 @@ const copy: Record<
       activities: "Aktivität",
       documents: "Belege",
       notes: "Agenda",
+      operations: "Verwaltung",
       settings: "Einstellungen"
     },
     more: "Mehr",
@@ -869,6 +874,7 @@ const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "activities", icon: ActivityIcon },
   { id: "documents", icon: ReceiptText },
   { id: "notes", icon: ClipboardList },
+  { id: "operations", icon: CircleDollarSign },
   { id: "settings", icon: Settings2 }
 ];
 
@@ -2253,6 +2259,16 @@ export function BusinessWorkspace({
                 removeNote={removeNote}
                 calendarMonth={calendarMonth}
                 setCalendarMonth={setCalendarMonth}
+              />
+            )}
+
+            {activeModule === "operations" && (
+              <OperationsCenter
+                businessId={cloudBusinessId}
+                language={language}
+                currency={currency}
+                locale={locale}
+                demoMode={demoMode}
               />
             )}
 
