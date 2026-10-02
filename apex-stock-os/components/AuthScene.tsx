@@ -5,10 +5,8 @@ import { GlobalStockGlobe } from "./GlobalStockGlobe";
 export function AuthScene({ active = true }: { active?: boolean }) {
   return (
     <div
-      className={
-        "gs-auth-scene absolute inset-0 overflow-hidden bg-black " +
-        (active ? "gs-auth-scene-active" : "gs-auth-scene-rest")
-      }
+      className="gs-auth-scene gs-auth-scene-active absolute inset-0 overflow-hidden bg-black"
+      data-scene-active={active ? "true" : "false"}
       aria-hidden="true"
     >
       <div className="gs-space-layer gs-space-layer-a absolute -inset-[8%]" />
@@ -16,7 +14,7 @@ export function AuthScene({ active = true }: { active?: boolean }) {
 
       <div className="gs-earth-stage absolute inset-0 grid place-items-center">
         <div className="gs-earth-wrap relative">
-          <GlobalStockGlobe active={active} />
+          <GlobalStockGlobe />
         </div>
       </div>
 

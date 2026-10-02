@@ -86,64 +86,62 @@ const markers: GlobeMarker[] = [
 
 const arcs: GlobeArc[] = [
   {
-    id: "gs-ba-sp",
-    label: "BA → SÃO PAULO",
+    id: "gs-ba-brazil",
+    label: "ARGENTINA → BRASIL",
     from: [-34.6037, -58.3816],
-    to: [-23.5505, -46.6333]
+    to: [-23.5505, -46.6333],
+    showLabel: true
   },
   {
-    id: "gs-ba-nyc",
-    label: "BA → NEW YORK",
+    id: "gs-ba-mexico",
+    label: "ARGENTINA → MÉXICO",
+    from: [-34.6037, -58.3816],
+    to: [19.4326, -99.1332],
+    showLabel: true
+  },
+  {
+    id: "gs-ba-new-york",
+    label: "ARGENTINA → USA",
     from: [-34.6037, -58.3816],
     to: [40.7128, -74.006],
     showLabel: true
   },
   {
-    id: "gs-ba-mex",
-    label: "BA → MÉXICO",
+    id: "gs-ba-madrid",
+    label: "ARGENTINA → ESPAÑA",
     from: [-34.6037, -58.3816],
-    to: [19.4326, -99.1332]
-  },
-  {
-    id: "gs-sp-madrid",
-    label: "SÃO PAULO → MADRID",
-    from: [-23.5505, -46.6333],
     to: [40.4168, -3.7038],
     showLabel: true
   },
   {
-    id: "gs-mex-nyc",
-    label: "MÉXICO → NEW YORK",
-    from: [19.4326, -99.1332],
-    to: [40.7128, -74.006]
-  },
-  {
-    id: "gs-nyc-london",
-    label: "NYC → LONDON",
-    from: [40.7128, -74.006],
+    id: "gs-ba-london",
+    label: "ARGENTINA → UK",
+    from: [-34.6037, -58.3816],
     to: [51.5074, -0.1278],
     showLabel: true
   },
   {
-    id: "gs-madrid-berlin",
-    label: "MADRID → BERLIN",
-    from: [40.4168, -3.7038],
-    to: [52.52, 13.405]
+    id: "gs-ba-berlin",
+    label: "ARGENTINA → ALEMANIA",
+    from: [-34.6037, -58.3816],
+    to: [52.52, 13.405],
+    showLabel: true
   },
   {
-    id: "gs-berlin-tokyo",
-    label: "BERLIN → TOKYO",
-    from: [52.52, 13.405],
+    id: "gs-ba-tokyo",
+    label: "ARGENTINA → JAPÓN",
+    from: [-34.6037, -58.3816],
     to: [35.6762, 139.6503],
     showLabel: true
   },
   {
-    id: "gs-tokyo-sydney",
-    label: "TOKYO → SYDNEY",
-    from: [35.6762, 139.6503],
-    to: [-33.8688, 151.2093]
+    id: "gs-ba-sydney",
+    label: "ARGENTINA → AUSTRALIA",
+    from: [-34.6037, -58.3816],
+    to: [-33.8688, 151.2093],
+    showLabel: true
   }
-];
+]
 
 function anchorLabelStyle(
   id: string,
@@ -166,14 +164,14 @@ function anchorLabelStyle(
   } as CSSProperties;
 }
 
-export function GlobalStockGlobe({ active = true }: { active?: boolean }) {
+export function GlobalStockGlobe() {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const globeRef = useRef<CobeGlobeHandle | null>(null);
   const rafRef = useRef<number | null>(null);
   const sizeRef = useRef(680);
-  const phiRef = useRef(-1.42);
-  const thetaRef = useRef(0.13);
+  const phiRef = useRef(-1.08);
+  const thetaRef = useRef(0.08);
   const dragRef = useRef({ phi: 0, theta: 0 });
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const velocityRef = useRef({ phi: 0, theta: 0 });
@@ -340,9 +338,9 @@ export function GlobalStockGlobe({ active = true }: { active?: boolean }) {
         markers: cobeMarkers,
         arcs: cobeArcs,
         arcColor: [0.82, 0.025, 0.035],
-        arcWidth: 0.46,
-        arcHeight: 0.22,
-        markerElevation: 0.018
+        arcWidth: 0.56,
+        arcHeight: 0.38,
+        markerElevation: 0.026
       } as never
     ) as unknown as CobeGlobeHandle;
 
@@ -361,7 +359,6 @@ export function GlobalStockGlobe({ active = true }: { active?: boolean }) {
       if (!globeRef.current) return;
 
       if (
-        active &&
         document.visibilityState === "visible" &&
         timestamp - lastFrameRef.current >= 16
       ) {
@@ -410,7 +407,7 @@ export function GlobalStockGlobe({ active = true }: { active?: boolean }) {
       globe.destroy();
       globeRef.current = null;
     };
-  }, [active, cobeArcs, cobeMarkers, stopAnimation]);
+  }, [cobeArcs, cobeMarkers, stopAnimation]);
 
   return (
     <div

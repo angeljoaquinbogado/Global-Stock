@@ -308,6 +308,7 @@ textarea:focus-visible {
 
 .gs-cobe-route-label {
   padding: 4px 7px;
+  opacity: .92;
   border: 1px solid rgba(214,38,38,.68);
   border-radius: 6px;
   background: rgba(5,5,7,.88);
@@ -521,18 +522,6 @@ textarea:focus-visible {
   .gs-route-particle {
     display: none !important;
   }
-}
-
-.gs-auth-scene-rest .gs-space-layer,
-.gs-auth-scene-rest .gs-earth-wrap,
-.gs-auth-scene-rest .gs-global-route,
-.gs-auth-scene-rest .gs-global-pin,
-.gs-auth-scene-rest .gs-global-pin-halo {
-  animation-play-state: paused !important;
-}
-
-.gs-auth-scene-rest .gs-route-particle {
-  display: none;
 }
 
 @media (pointer: coarse) {
