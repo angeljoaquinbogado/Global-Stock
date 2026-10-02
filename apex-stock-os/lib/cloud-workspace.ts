@@ -270,19 +270,28 @@ export async function writeAuditEvent(
   });
 }
 
+export type PosPayment = {
+  method: string;
+  amount: number;
+};
+
 export async function recordPosSale({
   businessId,
   currency,
   paymentMethod,
+  payments,
   receivedAmount,
+  customerId,
   lines,
   total,
   costTotal
 }: {
   businessId: string;
   currency: string;
-  paymentMethod: string;
+  paymentMethod?: string;
+  payments?: PosPayment[];
   receivedAmount?: number;
+  customerId?: string;
   lines: Array<{ product: Product; quantity: number }>;
   total: number;
   costTotal: number;
@@ -295,6 +304,29 @@ export async function recordPosSale({
   } = await supabase.auth.getSession();
 
   if (!session?.user?.id) return null;
+
+  const normalizedPayments = (
+    payments?.length
+      ? payments
+      : [{ method: paymentMethod || "cash", amount: total }]
+  )
+    .map((payment) => ({
+      method: payment.method,
+      amount: Math.max(0, Number(payment.amount) || 0)
+    }))
+    .filter((payment) => payment.amount > 0);
+
+  const paymentTotal = normalizedPayments.reduce(
+    (sum, payment) => sum + payment.amount,
+    0
+  );
+
+  if (
+    !normalizedPayments.length ||
+    Math.abs(paymentTotal - total) > 0.02
+  ) {
+    return null;
+  }
 
   const { data: openCash } = await supabase
     .from("global_stock_cash_sessions")
@@ -310,6 +342,7 @@ export async function recordPosSale({
     .insert({
       business_id: businessId,
       cash_session_id: openCash?.id ?? null,
+      customer_id: customerId || null,
       user_id: session.user.id,
       channel: "pos",
       status: "completed",
@@ -335,13 +368,16 @@ export async function recordPosSale({
         unit_cost: product.costKnown === false ? 0 : product.cost
       }))
     ),
-    supabase.from("global_stock_payments").insert({
-      business_id: businessId,
-      sale_id: sale.id,
-      method: paymentMethod,
-      amount: total,
-      currency
-    }),
+    supabase.from("global_stock_payments").insert(
+      normalizedPayments.map((payment) => ({
+        business_id: businessId,
+        sale_id: sale.id,
+        customer_id: customerId || null,
+        method: payment.method,
+        amount: payment.amount,
+        currency
+      }))
+    ),
     supabase.from("global_stock_stock_movements").insert(
       lines.map(({ product, quantity }) => ({
         business_id: businessId,
@@ -355,18 +391,56 @@ export async function recordPosSale({
     )
   ]);
 
-  if (openCash?.id && paymentMethod === "cash") {
+  const cashAmount = normalizedPayments
+    .filter((payment) => payment.method === "cash")
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  if (openCash?.id && cashAmount > 0) {
     await supabase.from("global_stock_cash_movements").insert({
       business_id: businessId,
       cash_session_id: openCash.id,
       user_id: session.user.id,
       kind: "sale",
-      amount: total,
+      amount: cashAmount,
       description: "Venta POS",
       payment_method: "cash",
       reference_id: sale.id
     });
   }
+
+  const accountAmount = normalizedPayments
+    .filter((payment) => payment.method === "account")
+    .reduce((sum, payment) => sum + payment.amount, 0);
+
+  if (customerId && accountAmount > 0) {
+    const { data: customer } = await supabase
+      .from("global_stock_customers")
+      .select("account_balance")
+      .eq("id", customerId)
+      .maybeSingle();
+
+    const currentBalance = Number(customer?.account_balance) || 0;
+
+    await Promise.all([
+      supabase.from("global_stock_customer_ledger").insert({
+        business_id: businessId,
+        customer_id: customerId,
+        user_id: session.user.id,
+        kind: "charge",
+        amount: accountAmount,
+        reference_id: sale.id,
+        notes: "Venta POS a cuenta corriente"
+      }),
+      supabase
+        .from("global_stock_customers")
+        .update({ account_balance: currentBalance + accountAmount })
+        .eq("id", customerId)
+    ]);
+  }
+
+  const onlyCash =
+    normalizedPayments.length === 1 &&
+    normalizedPayments[0]?.method === "cash";
 
   await supabase.from("global_stock_audit_events").insert({
     business_id: businessId,
@@ -377,10 +451,11 @@ export async function recordPosSale({
     metadata: {
       total,
       currency,
-      paymentMethod,
+      customerId: customerId || null,
+      payments: normalizedPayments,
       receivedAmount: receivedAmount ?? null,
       change:
-        paymentMethod === "cash" && Number.isFinite(receivedAmount)
+        onlyCash && Number.isFinite(receivedAmount)
           ? Math.max(0, Number(receivedAmount) - total)
           : null
     }
