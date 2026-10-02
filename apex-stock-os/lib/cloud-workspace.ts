@@ -267,3 +267,166 @@ export async function writeAuditEvent(
     metadata
   });
 }
+
+export async function recordPosSale({
+  businessId,
+  currency,
+  paymentMethod,
+  receivedAmount,
+  lines,
+  total,
+  costTotal
+}: {
+  businessId: string;
+  currency: string;
+  paymentMethod: string;
+  receivedAmount?: number;
+  lines: Array<{ product: Product; quantity: number }>;
+  total: number;
+  costTotal: number;
+}) {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase || !lines.length) return null;
+
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  if (!session?.user?.id) return null;
+
+  const { data: openCash } = await supabase
+    .from("global_stock_cash_sessions")
+    .select("id")
+    .eq("business_id", businessId)
+    .eq("status", "open")
+    .order("opened_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: sale, error: saleError } = await supabase
+    .from("global_stock_sales")
+    .insert({
+      business_id: businessId,
+      cash_session_id: openCash?.id ?? null,
+      user_id: session.user.id,
+      channel: "pos",
+      status: "completed",
+      subtotal: total,
+      total,
+      cost_total: costTotal,
+      currency
+    })
+    .select("id")
+    .single();
+
+  if (saleError || !sale?.id) return null;
+
+  await Promise.all([
+    supabase.from("global_stock_sale_items").insert(
+      lines.map(({ product, quantity }) => ({
+        business_id: businessId,
+        sale_id: sale.id,
+        product_key: product.id,
+        product_name: product.name,
+        quantity,
+        unit_price: product.price,
+        unit_cost: product.costKnown === false ? 0 : product.cost
+      }))
+    ),
+    supabase.from("global_stock_payments").insert({
+      business_id: businessId,
+      sale_id: sale.id,
+      method: paymentMethod,
+      amount: total,
+      currency
+    }),
+    supabase.from("global_stock_stock_movements").insert(
+      lines.map(({ product, quantity }) => ({
+        business_id: businessId,
+        product_key: product.id,
+        user_id: session.user.id,
+        kind: "sale",
+        quantity: -Math.abs(quantity),
+        reason: "POS",
+        reference_id: sale.id
+      }))
+    )
+  ]);
+
+  if (openCash?.id && paymentMethod === "cash") {
+    await supabase.from("global_stock_cash_movements").insert({
+      business_id: businessId,
+      cash_session_id: openCash.id,
+      user_id: session.user.id,
+      kind: "sale",
+      amount: total,
+      description: "Venta POS",
+      payment_method: "cash",
+      reference_id: sale.id
+    });
+  }
+
+  await supabase.from("global_stock_audit_events").insert({
+    business_id: businessId,
+    user_id: session.user.id,
+    action: "sale.completed",
+    entity_type: "sale",
+    entity_id: sale.id,
+    metadata: {
+      total,
+      currency,
+      paymentMethod,
+      receivedAmount: receivedAmount ?? null,
+      change:
+        paymentMethod === "cash" && Number.isFinite(receivedAmount)
+          ? Math.max(0, Number(receivedAmount) - total)
+          : null
+    }
+  });
+
+  return sale.id as string;
+}
+
+export async function recordStockAdjustment({
+  businessId,
+  product,
+  previousStock,
+  nextStock,
+  reason = "adjustment"
+}: {
+  businessId: string;
+  product: Product;
+  previousStock: number;
+  nextStock: number;
+  reason?: string;
+}) {
+  const delta = nextStock - previousStock;
+  if (!delta) return;
+
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return;
+
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  await supabase.from("global_stock_stock_movements").insert({
+    business_id: businessId,
+    product_key: product.id,
+    user_id: session?.user?.id ?? null,
+    kind: "adjustment",
+    quantity: delta,
+    reason
+  });
+
+  await supabase.from("global_stock_audit_events").insert({
+    business_id: businessId,
+    user_id: session?.user?.id ?? null,
+    action: "inventory.adjusted",
+    entity_type: "product",
+    entity_id: product.id,
+    before_data: { stock: previousStock },
+    after_data: { stock: nextStock },
+    metadata: { reason }
+  });
+}
