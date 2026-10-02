@@ -4143,8 +4143,8 @@ function PosModule({
               <select
                 className="apex-input min-h-11 min-w-52 px-3 text-sm"
                 value={selectedLocation}
-                disabled={cartLines.length > 0}
                 onChange={(event) => setSelectedLocation(event.target.value)}
+                disabled={Boolean(cartLines.length)}
               >
                 {locations.map((location) => (
                   <option key={location.id} value={location.id}>
