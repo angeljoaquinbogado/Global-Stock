@@ -226,17 +226,102 @@ textarea:focus-visible {
   animation: gs-earth-enter 720ms var(--ease-out) both;
 }
 
-.gs-earth-image {
-  display: block;
+.gs-cobe-globe-shell {
+  contain: layout paint size;
+  isolation: isolate;
+  transform: translateZ(0);
+}
+
+.gs-cobe-globe-shell::before {
+  content: "";
+  position: absolute;
+  inset: 4%;
+  border-radius: 999px;
   pointer-events: none;
+  background:
+    radial-gradient(circle at 34% 28%, rgba(255,255,255,.035), transparent 31%),
+    radial-gradient(circle at 61% 68%, rgba(143,0,0,.075), transparent 44%);
+  box-shadow:
+    inset -22px -16px 58px rgba(0,0,0,.42),
+    0 0 46px rgba(143,0,0,.10);
+  z-index: 1;
+}
+
+.gs-cobe-globe-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
   transform: translateZ(0);
   backface-visibility: hidden;
 }
 
-.gs-earth-shade {
+.gs-cobe-marker,
+.gs-cobe-route-label {
+  pointer-events: none;
+  white-space: nowrap;
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  user-select: none;
+}
+
+.gs-cobe-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 5px 9px 5px 7px;
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 7px;
+  background: rgba(72,0,0,.88);
+  color: rgba(255,255,255,.94);
   box-shadow:
-    inset -38px -18px 76px rgba(0,0,0,.22),
-    0 0 52px rgba(72,128,255,.10);
+    0 8px 24px rgba(0,0,0,.34),
+    inset 0 1px 0 rgba(255,255,255,.08);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.gs-cobe-marker-primary {
+  border-color: rgba(255,103,103,.48);
+  background: #8F0000;
+  box-shadow:
+    0 9px 28px rgba(143,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+.gs-cobe-marker-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  flex: 0 0 auto;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+}
+
+.gs-cobe-route-label {
+  padding: 4px 7px;
+  border: 1px solid rgba(214,38,38,.68);
+  border-radius: 6px;
+  background: rgba(5,5,7,.88);
+  color: #ff7676;
+  box-shadow: 0 7px 20px rgba(0,0,0,.32);
+  font-size: 8px;
+  font-weight: 800;
+}
+
+@supports not (position-anchor: --gs-fallback) {
+  .gs-cobe-marker,
+  .gs-cobe-route-label {
+    display: none;
+  }
 }
 
 
@@ -359,6 +444,20 @@ textarea:focus-visible {
 
   .gs-space-layer-a {
     opacity: .58;
+  }
+
+  .gs-cobe-route-label {
+    display: none;
+  }
+
+  .gs-cobe-marker:not(.gs-cobe-marker-primary) {
+    display: none;
+  }
+
+  .gs-cobe-marker {
+    min-height: 22px;
+    padding: 4px 7px 4px 6px;
+    font-size: 8px;
   }
 
   .gs-global-network {
