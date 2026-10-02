@@ -91,6 +91,15 @@ type Member = {
   user_id: string;
   role: string;
   active: boolean;
+  email: string | null;
+};
+
+type MemberInvite = {
+  id: string;
+  email: string;
+  role: string;
+  status: string;
+  expires_at: string;
 };
 
 const words: Record<
@@ -274,6 +283,7 @@ export function OperationsCenter({
   const [locations, setLocations] = useState<Location[]>([]);
   const [purchases, setPurchases] = useState<PurchaseOrder[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
+  const [invites, setInvites] = useState<MemberInvite[]>([]);
 
   const [opening, setOpening] = useState("0");
   const [closing, setClosing] = useState("0");
@@ -298,6 +308,9 @@ export function OperationsCenter({
   const [purchaseTotal, setPurchaseTotal] = useState("");
   const [purchaseNotes, setPurchaseNotes] = useState("");
 
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState("cashier");
+
   const expectedCash = useMemo(() => {
     if (!cashSession) return 0;
     const delta = movements.reduce((sum, movement) => {
@@ -317,8 +330,16 @@ export function OperationsCenter({
 
     setLoading(true);
     try {
-      const [cashRes, movementRes, customerRes, expenseRes, locationRes, purchaseRes, memberRes] =
-        await Promise.all([
+      const [
+        cashRes,
+        movementRes,
+        customerRes,
+        expenseRes,
+        locationRes,
+        purchaseRes,
+        memberRes,
+        inviteRes
+      ] = await Promise.all([
           supabase
             .from("global_stock_cash_sessions")
             .select("id,opening_amount,opened_at,status")
@@ -360,9 +381,14 @@ export function OperationsCenter({
             .limit(100),
           supabase
             .from("global_stock_members")
-            .select("user_id,role,active")
+            .select("user_id,role,active,email")
             .eq("business_id", businessId)
-            .order("created_at", { ascending: true })
+            .order("created_at", { ascending: true }),
+          supabase
+            .from("global_stock_member_invites")
+            .select("id,email,role,status,expires_at")
+            .eq("business_id", businessId)
+            .order("created_at", { ascending: false })
         ]);
 
       setCashSession((cashRes.data as CashSession | null) ?? null);
@@ -372,6 +398,7 @@ export function OperationsCenter({
       setLocations((locationRes.data as Location[] | null) ?? []);
       setPurchases((purchaseRes.data as PurchaseOrder[] | null) ?? []);
       setMembers((memberRes.data as Member[] | null) ?? []);
+      setInvites((inviteRes.data as MemberInvite[] | null) ?? []);
     } finally {
       setLoading(false);
     }
@@ -557,6 +584,53 @@ export function OperationsCenter({
       .eq("business_id", businessId)
       .eq("user_id", userId)
       .neq("role", "owner");
+    await reload();
+  }
+
+  async function inviteMember() {
+    const email = inviteEmail.trim().toLocaleLowerCase();
+    if (!email || !email.includes("@")) return;
+
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !businessId) return;
+
+    const { data: auth } = await supabase.auth.getSession();
+
+    await supabase.from("global_stock_member_invites").insert({
+      business_id: businessId,
+      email,
+      role: inviteRole,
+      invited_by: auth.session?.user.id ?? null,
+      status: "pending"
+    });
+
+    setInviteEmail("");
+    await reload();
+  }
+
+  async function revokeInvite(id: string) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    await supabase
+      .from("global_stock_member_invites")
+      .update({ status: "revoked" })
+      .eq("id", id);
+
+    await reload();
+  }
+
+  async function setMemberActive(userId: string, active: boolean) {
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase || !businessId) return;
+
+    await supabase
+      .from("global_stock_members")
+      .update({ active })
+      .eq("business_id", businessId)
+      .eq("user_id", userId)
+      .neq("role", "owner");
+
     await reload();
   }
 
@@ -749,39 +823,149 @@ export function OperationsCenter({
       )}
 
       {tab === "team" && (
-        <section className="apex-card overflow-hidden">
-          <div className="border-b border-[var(--apex-border)] p-5">
-            <h3 className="font-semibold">{t.team}</h3>
-            <p className="mt-1 text-xs text-[var(--apex-muted)]">
-              Owner, admin, manager, cashier, warehouse, sales, accountant, viewer.
+        <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
+          <section className="apex-card p-5">
+            <h3 className="text-lg font-semibold">
+              {language === "es" ? "Invitar persona" : "Invite member"}
+            </h3>
+            <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
+              {language === "es"
+                ? "La persona entra con su propia cuenta. Nunca compartas la contraseña del negocio."
+                : "They sign in with their own account. Never share the business password."}
             </p>
-          </div>
-          <div className="divide-y divide-[var(--apex-border)]">
-            {members.length ? members.map((member)=>(
-              <div key={member.user_id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <p className="text-sm font-semibold">{member.user_id.slice(0,8)}…</p>
-                  <p className="mt-1 text-[10px] text-[var(--apex-muted)]">{member.active ? "Activo" : "Inactivo"}</p>
-                </div>
-                <select
-                  className="apex-input min-h-10 px-3 text-sm"
-                  value={member.role}
-                  disabled={member.role === "owner"}
-                  onChange={(e)=>void changeRole(member.user_id,e.target.value)}
-                >
-                  <option value="owner">Owner</option>
-                  <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
-                  <option value="cashier">Cashier</option>
-                  <option value="warehouse">Warehouse</option>
-                  <option value="sales">Sales</option>
-                  <option value="accountant">Accountant</option>
-                  <option value="viewer">Viewer</option>
-                </select>
+
+            <input
+              className="apex-input mt-4 w-full p-3"
+              type="email"
+              placeholder="email@ejemplo.com"
+              value={inviteEmail}
+              onChange={(event) => setInviteEmail(event.target.value)}
+            />
+
+            <select
+              className="apex-input mt-2 w-full p-3"
+              value={inviteRole}
+              onChange={(event) => setInviteRole(event.target.value)}
+            >
+              <option value="admin">Admin</option>
+              <option value="manager">Manager</option>
+              <option value="cashier">Cashier</option>
+              <option value="warehouse">Warehouse</option>
+              <option value="sales">Sales</option>
+              <option value="accountant">Accountant</option>
+              <option value="viewer">Viewer</option>
+            </select>
+
+            <PrimaryButton onClick={() => void inviteMember()}>
+              {language === "es" ? "Crear invitación" : "Create invite"}
+            </PrimaryButton>
+
+            {invites.length > 0 && (
+              <div className="mt-5 space-y-2">
+                {invites.slice(0, 12).map((invite) => (
+                  <div
+                    key={invite.id}
+                    className="rounded-2xl border border-[var(--apex-border)] p-3"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-xs font-semibold">
+                          {invite.email}
+                        </p>
+                        <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                          {invite.role} · {invite.status}
+                        </p>
+                      </div>
+                      {invite.status === "pending" && (
+                        <button
+                          type="button"
+                          onClick={() => void revokeInvite(invite.id)}
+                          className="text-[10px] font-bold uppercase tracking-[0.08em] text-[#8F0000]"
+                        >
+                          {language === "es" ? "Revocar" : "Revoke"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-            )) : <p className="p-5 text-sm text-[var(--apex-muted)]">{t.empty}</p>}
-          </div>
-        </section>
+            )}
+          </section>
+
+          <section className="apex-card overflow-hidden">
+            <div className="border-b border-[var(--apex-border)] p-5">
+              <h3 className="font-semibold">{t.team}</h3>
+              <p className="mt-1 text-xs text-[var(--apex-muted)]">
+                Owner, admin, manager, cashier, warehouse, sales, accountant, viewer.
+              </p>
+            </div>
+
+            <div className="divide-y divide-[var(--apex-border)]">
+              {members.length ? (
+                members.map((member) => (
+                  <div
+                    key={member.user_id}
+                    className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold">
+                        {member.email || `${member.user_id.slice(0, 8)}…`}
+                      </p>
+                      <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
+                        {member.active ? "Activo" : "Inactivo"}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <select
+                        className="apex-input min-h-10 px-3 text-sm"
+                        value={member.role}
+                        disabled={member.role === "owner"}
+                        onChange={(event) =>
+                          void changeRole(member.user_id, event.target.value)
+                        }
+                      >
+                        <option value="owner">Owner</option>
+                        <option value="admin">Admin</option>
+                        <option value="manager">Manager</option>
+                        <option value="cashier">Cashier</option>
+                        <option value="warehouse">Warehouse</option>
+                        <option value="sales">Sales</option>
+                        <option value="accountant">Accountant</option>
+                        <option value="viewer">Viewer</option>
+                      </select>
+
+                      {member.role !== "owner" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            void setMemberActive(
+                              member.user_id,
+                              !member.active
+                            )
+                          }
+                          className="min-h-10 rounded-xl border border-[var(--apex-border)] px-3 text-xs font-semibold"
+                        >
+                          {member.active
+                            ? language === "es"
+                              ? "Desactivar"
+                              : "Disable"
+                            : language === "es"
+                              ? "Activar"
+                              : "Enable"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="p-5 text-sm text-[var(--apex-muted)]">
+                  {t.empty}
+                </p>
+              )}
+            </div>
+          </section>
+        </div>
       )}
 
       {tab === "advanced" && (
