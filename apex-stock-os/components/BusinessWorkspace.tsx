@@ -49,6 +49,7 @@ import {
   mirrorProductsToCloud,
   recordPosSale,
   recordStockAdjustment,
+  type PosPayment,
   saveCloudWorkspace,
   updateCloudBusiness
 } from "@/lib/cloud-workspace";
@@ -57,6 +58,7 @@ import type {
   Product,
   TrendPoint
 } from "@/lib/types";
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 import { ApexIntelligence } from "./ApexIntelligence";
 import { BusinessTypePicker } from "./BusinessTypePicker";
@@ -1846,8 +1848,9 @@ export function BusinessWorkspace({
   }
 
   function completeSale(
-    paymentMethod = "cash",
-    receivedAmount?: number
+    payments: PosPayment[] = [{ method: "cash", amount: cartTotal }],
+    receivedAmount?: number,
+    customerId?: string
   ) {
     if (!cartLines.length) return;
 
@@ -1855,8 +1858,9 @@ export function BusinessWorkspace({
       void recordPosSale({
         businessId: cloudBusinessId,
         currency,
-        paymentMethod,
+        payments,
         receivedAmount,
+        customerId,
         lines: cartLines,
         total: cartTotal,
         costTotal: cartCost
@@ -2325,6 +2329,8 @@ export function BusinessWorkspace({
                 cartTotal={cartTotal}
                 cartProfit={cartCostKnown ? cartTotal - cartCost : null}
                 money={money}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
                 completeSale={completeSale}
               />
             )}
@@ -2882,6 +2888,8 @@ function PosModule({
   cartTotal,
   cartProfit,
   money,
+  businessId,
+  demoMode,
   completeSale
 }: {
   labels: (typeof copy)[LanguageCode];
@@ -2895,24 +2903,110 @@ function PosModule({
   cartTotal: number;
   cartProfit: number | null;
   money: (value: number) => string;
-  completeSale: (paymentMethod?: string, receivedAmount?: number) => void;
+  businessId: string | null;
+  demoMode: boolean;
+  completeSale: (
+    payments?: PosPayment[],
+    receivedAmount?: number,
+    customerId?: string
+  ) => void;
 }) {
   const [paymentMethod, setPaymentMethod] = useState("cash");
   const [receivedAmount, setReceivedAmount] = useState("");
+  const [customers, setCustomers] = useState<
+    Array<{ id: string; name: string; account_balance: number }>
+  >([]);
+  const [customerId, setCustomerId] = useState("");
+  const [splitPayment, setSplitPayment] = useState(false);
+  const [splitFirstAmount, setSplitFirstAmount] = useState("");
+  const [secondPaymentMethod, setSecondPaymentMethod] = useState("debit");
+
+  useEffect(() => {
+    if (!businessId || demoMode) {
+      setCustomers([]);
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+
+    void supabase
+      .from("global_stock_customers")
+      .select("id,name,account_balance")
+      .eq("business_id", businessId)
+      .eq("active", true)
+      .order("name")
+      .then(({ data }) => {
+        if (!cancelled) {
+          setCustomers(
+            (data as Array<{
+              id: string;
+              name: string;
+              account_balance: number;
+            }> | null) ?? []
+          );
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   const received = Math.max(0, Number(receivedAmount.replace(",", ".")) || 0);
-  const change =
-    paymentMethod === "cash" ? Math.max(0, received - cartTotal) : 0;
+  const firstSplit = Math.max(
+    0,
+    Math.min(
+      cartTotal,
+      Number(splitFirstAmount.replace(",", ".")) || 0
+    )
+  );
+  const secondSplit = Math.max(0, cartTotal - firstSplit);
+  const payments: PosPayment[] = splitPayment
+    ? [
+        { method: paymentMethod, amount: firstSplit },
+        { method: secondPaymentMethod, amount: secondSplit }
+      ].filter((payment) => payment.amount > 0)
+    : [{ method: paymentMethod, amount: cartTotal }];
+
+  const accountPaymentUsed = payments.some(
+    (payment) => payment.method === "account"
+  );
+  const splitInvalid =
+    splitPayment &&
+    (firstSplit <= 0 ||
+      secondSplit <= 0 ||
+      paymentMethod === secondPaymentMethod);
   const cashInsufficient =
-    paymentMethod === "cash" && cartLines.length > 0 && received < cartTotal;
+    !splitPayment &&
+    paymentMethod === "cash" &&
+    cartLines.length > 0 &&
+    received < cartTotal;
+  const customerRequired = accountPaymentUsed && !customerId;
+  const change =
+    !splitPayment && paymentMethod === "cash"
+      ? Math.max(0, received - cartTotal)
+      : 0;
 
   function finishSale() {
-    if (!cartLines.length || cashInsufficient) return;
+    if (
+      !cartLines.length ||
+      cashInsufficient ||
+      splitInvalid ||
+      customerRequired
+    ) {
+      return;
+    }
+
     completeSale(
-      paymentMethod,
-      paymentMethod === "cash" ? received : undefined
+      payments,
+      !splitPayment && paymentMethod === "cash" ? received : undefined,
+      customerId || undefined
     );
+
     setReceivedAmount("");
+    setSplitFirstAmount("");
   }
 
   return (
@@ -3044,15 +3138,67 @@ function PosModule({
           <div className="mt-5 border-t border-[var(--apex-border)] pt-4">
             <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
               {language === "es"
-                ? "Medio de pago"
+                ? "Cliente"
                 : language === "pt"
-                  ? "Forma de pagamento"
+                  ? "Cliente"
                   : language === "fr"
-                    ? "Moyen de paiement"
+                    ? "Client"
                     : language === "de"
-                      ? "Zahlungsart"
-                      : "Payment method"}
+                      ? "Kunde"
+                      : "Customer"}
             </p>
+            <select
+              className="apex-input mt-2 min-h-11 w-full px-3 text-sm"
+              value={customerId}
+              onChange={(event) => setCustomerId(event.target.value)}
+            >
+              <option value="">
+                {language === "es"
+                  ? "Consumidor final / sin cliente"
+                  : "Walk-in / no customer"}
+              </option>
+              {customers.map((customer) => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name}
+                  {customer.account_balance
+                    ? ` · ${money(customer.account_balance)}`
+                    : ""}
+                </option>
+              ))}
+            </select>
+
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                {language === "es"
+                  ? "Medio de pago"
+                  : language === "pt"
+                    ? "Forma de pagamento"
+                    : language === "fr"
+                      ? "Moyen de paiement"
+                      : language === "de"
+                        ? "Zahlungsart"
+                        : "Payment method"}
+              </p>
+              <button
+                type="button"
+                onClick={() => setSplitPayment((current) => !current)}
+                className={
+                  "rounded-xl border px-2.5 py-1.5 text-[10px] font-semibold " +
+                  (splitPayment
+                    ? "border-[#8F0000]/50 bg-[#8F0000]/10 text-[#8F0000]"
+                    : "border-[var(--apex-border)] text-[var(--apex-muted)]")
+                }
+              >
+                {language === "es"
+                  ? splitPayment
+                    ? "Pago combinado ON"
+                    : "Pago combinado"
+                  : splitPayment
+                    ? "Split ON"
+                    : "Split payment"}
+              </button>
+            </div>
+
             <div className="mt-2 grid grid-cols-2 gap-2">
               <select
                 className="apex-input min-h-11 px-3 text-sm"
@@ -3110,7 +3256,55 @@ function PosModule({
               )}
             </div>
 
-            {paymentMethod === "cash" && cartLines.length > 0 && (
+            {splitPayment && (
+              <div className="mt-2 grid grid-cols-2 gap-2">
+                <input
+                  className="apex-input min-h-11 px-3 text-sm"
+                  inputMode="decimal"
+                  placeholder={
+                    language === "es"
+                      ? "Importe primer medio"
+                      : "First payment amount"
+                  }
+                  value={splitFirstAmount}
+                  onChange={(event) =>
+                    setSplitFirstAmount(event.target.value)
+                  }
+                />
+                <select
+                  className="apex-input min-h-11 px-3 text-sm"
+                  value={secondPaymentMethod}
+                  onChange={(event) =>
+                    setSecondPaymentMethod(event.target.value)
+                  }
+                >
+                  <option value="cash">Efectivo</option>
+                  <option value="debit">Débito</option>
+                  <option value="credit">Crédito</option>
+                  <option value="transfer">Transferencia</option>
+                  <option value="qr">QR</option>
+                  <option value="account">Cuenta corriente</option>
+                </select>
+                <div className="col-span-2 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-xs">
+                  <span className="text-[var(--apex-muted)]">
+                    {language === "es"
+                      ? "Segundo medio"
+                      : "Second payment"}
+                  </span>
+                  <strong>{money(secondSplit)}</strong>
+                </div>
+              </div>
+            )}
+
+            {accountPaymentUsed && !customerId && (
+              <p className="mt-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 text-[10px] text-amber-600">
+                {language === "es"
+                  ? "Elegí un cliente para usar cuenta corriente."
+                  : "Choose a customer for customer-account payment."}
+              </p>
+            )}
+
+            {!splitPayment && paymentMethod === "cash" && cartLines.length > 0 && (
               <div className="mt-3 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-sm">
                 <span className="text-[var(--apex-muted)]">
                   {language === "es"
@@ -3130,7 +3324,12 @@ function PosModule({
 
           <button
             type="button"
-            disabled={!cartLines.length || cashInsufficient}
+            disabled={
+              !cartLines.length ||
+              cashInsufficient ||
+              splitInvalid ||
+              customerRequired
+            }
             onClick={finishSale}
             className="mt-5 w-full rounded-2xl bg-[#8F0000] px-4 py-3.5 text-sm font-semibold text-white disabled:opacity-35"
           >
@@ -3151,7 +3350,9 @@ function PosModule({
             <button
               type="button"
               onClick={finishSale}
-              disabled={cashInsufficient}
+              disabled={
+                cashInsufficient || splitInvalid || customerRequired
+              }
               className="min-h-12 shrink-0 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(143,0,0,.24)] disabled:opacity-35"
             >
               {labels.completeSale}
