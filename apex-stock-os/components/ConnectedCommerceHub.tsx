@@ -86,6 +86,7 @@ type IntegrationReadiness = {
 type Props = {
   language: LanguageCode;
   locale: string;
+  demoMode?: boolean;
   onCatalogSync: (
     store: ConnectedStore,
     catalog: ConnectedCatalogPayload
@@ -437,6 +438,7 @@ const providerMethods: Record<
 export function ConnectedCommerceHub({
   language,
   locale,
+  demoMode = false,
   onCatalogSync
 }: Props) {
   const t = copy[language];
@@ -495,6 +497,15 @@ export function ConnectedCommerceHub({
   }, []);
 
   useEffect(() => {
+    if (demoMode) {
+      setStore(null);
+      setScopes([]);
+      setSyncedCount(null);
+      setMissingCostCount(0);
+      setCatalogProducts([]);
+      return;
+    }
+
     let cancelled = false;
 
     async function restoreVerifiedConnection() {
@@ -524,9 +535,9 @@ export function ConnectedCommerceHub({
     return () => {
       cancelled = true;
     };
-  // Restore once. syncCatalog deliberately uses current callback closure.
+  // Restore when demo mode changes. syncCatalog deliberately uses current callback closure.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [demoMode]);
 
   async function inspectStore() {
     setError("");
