@@ -28,6 +28,7 @@ type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
   appContext?: Record<string, unknown>;
   raiseOnMobile?: boolean;
+  demoMode?: boolean;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
@@ -211,6 +212,20 @@ function localBusinessAnswer({
   const money = (value: number) =>
     formatMoney(value, snapshot.currency, snapshot.locale);
 
+  const wantsGreeting =
+    /^(hola|buenas|hello|hi|hey|ola|bonjour|salut|hallo|guten tag)\b/.test(text);
+
+  if (wantsGreeting) {
+    const answers: Record<UiLanguage, string> = {
+      es: "Hola. Estoy listo para ayudarte con stock, ventas, margen, compras y el resto de los datos cargados en Global Stock.",
+      en: "Hello. I’m ready to help with inventory, sales, margins, purchases and the rest of the data loaded in Global Stock.",
+      pt: "Olá. Estou pronto para ajudar com estoque, vendas, margens, compras e os demais dados carregados no Global Stock.",
+      fr: "Bonjour. Je suis prêt à vous aider avec le stock, les ventes, les marges, les achats et les autres données chargées dans Global Stock.",
+      de: "Hallo. Ich kann dir mit Bestand, Verkäufen, Margen, Einkäufen und den übrigen in Global Stock geladenen Daten helfen."
+    };
+    return answers[language];
+  }
+
   const wantsDate =
     /\b(hoy|dia|fecha|today|date|hoje|jour|date|heute|datum)\b/.test(text);
   const wantsProfit =
@@ -345,7 +360,8 @@ function localBusinessAnswer({
 export function ApexIntelligence({
   snapshot,
   appContext = {},
-  raiseOnMobile = false
+  raiseOnMobile = false,
+  demoMode = false
 }: ApexIntelligenceProps) {
   const language = languageFromLocale(snapshot.locale);
   const copy = uiCopy[language];
@@ -376,6 +392,11 @@ export function ApexIntelligence({
   useEffect(() => setMounted(true), []);
 
   useEffect(() => {
+    if (demoMode) {
+      setStatus("local");
+      return;
+    }
+
     let cancelled = false;
 
     async function checkStatus() {
@@ -397,7 +418,7 @@ export function ApexIntelligence({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
     setMessages((current) => {
@@ -491,6 +512,27 @@ export function ApexIntelligence({
             id: crypto.randomUUID(),
             role: "assistant",
             content: localAnswer
+          }
+        ]);
+        return;
+      }
+
+      if (demoMode) {
+        const demoReplies: Record<UiLanguage, string> = {
+          es: "La cuenta demo usa únicamente el análisis local para no consumir ninguna API externa. Cargá productos o ventas de prueba y puedo analizar esos datos durante esta sesión.",
+          en: "The demo account uses local analysis only, so it never consumes an external AI API. Add sample products or sales and I can analyze that data during this session.",
+          pt: "A conta demo usa apenas análise local para não consumir nenhuma API externa. Adicione produtos ou vendas de teste e posso analisar esses dados nesta sessão.",
+          fr: "Le compte démo utilise uniquement l’analyse locale afin de ne consommer aucune API d’IA externe. Ajoutez des produits ou des ventes de test et je pourrai analyser ces données pendant cette session.",
+          de: "Das Demokonto nutzt nur die lokale Analyse und verbraucht keine externe KI-API. Füge Testprodukte oder Verkäufe hinzu, dann kann ich diese Daten während der Sitzung analysieren."
+        };
+
+        setStatus("local");
+        setMessages((current) => [
+          ...current,
+          {
+            id: crypto.randomUUID(),
+            role: "assistant",
+            content: demoReplies[language]
           }
         ]);
         return;
