@@ -36,7 +36,7 @@ type AuthScreenProps = {
   onToggleTheme: () => void;
   onLanguageChange: (language: LanguageCode) => void;
   onCurrencyChange: (currency: string) => void;
-  onAuthenticated: () => void;
+  onAuthenticated: (mode?: "user" | "demo") => void;
 };
 
 type Mode = "signin" | "signup";
@@ -468,6 +468,18 @@ export function AuthScreen({
 
     try {
       const supabase = getSupabaseBrowserClient();
+
+      if (
+        mode === "signin" &&
+        normalizedEmail === "demo@globalstock.app" &&
+        password === "GlobalStock2026!"
+      ) {
+        if (supabase) {
+          await supabase.auth.signOut();
+        }
+        onAuthenticated("demo");
+        return;
+      }
 
       if (!supabase) {
         if (mode === "signup") persistBusinessProfile();
