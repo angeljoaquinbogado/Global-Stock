@@ -24,12 +24,21 @@ type Props = {
 type Tab = "quotes" | "returns" | "ledger" | "payables" | "promotions" | "serials";
 
 type Customer = { id:string; name:string; account_balance:number };
-type Sale = { id:string; total:number; currency:string; created_at:string; status:string };
+type Sale = {
+  id:string;
+  total:number;
+  currency:string;
+  created_at:string;
+  status:string;
+  location_id:string|null;
+};
 type SaleItem = {
   id:string;
   sale_id:string;
   product_key:string|null;
   product_name:string;
+  variant_id:string|null;
+  variant_label:string|null;
   quantity:number;
   unit_price:number;
 };
@@ -106,7 +115,7 @@ export function CommercialOperations({businessId,language,currency,locale}:Props
     try{
       const [a,b,c,d,e,f,g,h,i,j]=await Promise.all([
         s.from("global_stock_customers").select("id,name,account_balance").eq("business_id",businessId).eq("active",true).order("name"),
-        s.from("global_stock_sales").select("id,total,currency,created_at,status").eq("business_id",businessId).order("created_at",{ascending:false}).limit(100),
+        s.from("global_stock_sales").select("id,total,currency,created_at,status,location_id").eq("business_id",businessId).order("created_at",{ascending:false}).limit(100),
         s.from("global_stock_suppliers").select("id,name").eq("business_id",businessId).eq("active",true).order("name"),
         s.from("global_stock_quotes").select("id,status,total,currency,valid_until,created_at,customer_id").eq("business_id",businessId).order("created_at",{ascending:false}).limit(100),
         s.from("global_stock_returns").select("id,amount,reason,status,created_at,sale_id").eq("business_id",businessId).order("created_at",{ascending:false}).limit(100),
@@ -156,7 +165,7 @@ export function CommercialOperations({businessId,language,currency,locale}:Props
 
       const [{data:items},{data:returnRows}]=await Promise.all([
         s.from("global_stock_sale_items")
-          .select("id,sale_id,product_key,product_name,quantity,unit_price")
+          .select("id,sale_id,product_key,product_name,variant_id,variant_label,quantity,unit_price")
           .eq("business_id",businessId)
           .eq("sale_id",saleId)
           .order("id"),
@@ -232,7 +241,12 @@ export function CommercialOperations({businessId,language,currency,locale}:Props
     if(returnRestock&&item.product_key){
       window.dispatchEvent(
         new CustomEvent("global-stock-return-restock",{
-          detail:[{productKey:item.product_key,quantity}]
+          detail:[{
+            productKey:item.product_key,
+            variantId:item.variant_id,
+            locationId:sales.find(sale=>sale.id===saleId)?.location_id??null,
+            quantity
+          }]
         })
       );
     }
@@ -243,7 +257,7 @@ export function CommercialOperations({businessId,language,currency,locale}:Props
 
     const {data:items}=await s
       .from("global_stock_sale_items")
-      .select("id,sale_id,product_key,product_name,quantity,unit_price")
+      .select("id,sale_id,product_key,product_name,variant_id,variant_label,quantity,unit_price")
       .eq("business_id",businessId)
       .eq("sale_id",saleId)
       .order("id");
@@ -343,7 +357,7 @@ export function CommercialOperations({businessId,language,currency,locale}:Props
 
     {tab==="returns"&&<Grid title={tr(language,"Devoluciones por producto","Item returns")} form={<>
       <Select value={saleId} onChange={setSaleId} options={sales.filter(s=>s.status==="completed"||s.status==="partially_refunded").map(s=>({value:s.id,label:new Date(s.created_at).toLocaleDateString(locale)+" · "+money(s.total,s.currency||currency,locale)}))} placeholder={tr(language,"Venta","Sale")}/>
-      <Select value={returnItemId} onChange={setReturnItemId} options={saleItems.filter(item=>item.quantity-(returnedByItem[item.id]??0)>0).map(item=>({value:item.id,label:item.product_name+" · disp. "+String(Math.max(0,item.quantity-(returnedByItem[item.id]??0)))}))} placeholder={tr(language,"Producto vendido","Sold item")}/>
+      <Select value={returnItemId} onChange={setReturnItemId} options={saleItems.filter(item=>item.quantity-(returnedByItem[item.id]??0)>0).map(item=>({value:item.id,label:item.product_name+(item.variant_label?" · "+item.variant_label:"")+" · disp. "+String(Math.max(0,item.quantity-(returnedByItem[item.id]??0)))}))} placeholder={tr(language,"Producto vendido","Sold item")}/>
       <Input value={returnQuantity} setValue={setReturnQuantity} placeholder={tr(language,"Cantidad","Quantity")} numeric/>
       <Input value={returnReason} setValue={setReturnReason} placeholder={tr(language,"Motivo","Reason")}/>
       <select className="apex-input w-full p-3" value={refundMethod} onChange={e=>setRefundMethod(e.target.value)}>

@@ -141,6 +141,25 @@ type PosPromotion = {
   ends_at: string | null;
 };
 
+type PosVariant = {
+  id: string;
+  productKey: string;
+  name: string;
+  sku: string;
+  barcode: string;
+  attributes: Record<string, string>;
+  price: number | null;
+  cost: number | null;
+  stock: number;
+  stockByLocation: Record<string, number>;
+};
+
+type PosLocation = {
+  id: string;
+  name: string;
+  kind: string;
+};
+
 type PendingConnectedWrite = {
   externalId: string;
   patch: Record<string, unknown>;
@@ -953,11 +972,85 @@ const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "settings", icon: Settings2 }
 ];
 
+const moduleRoles: Record<ModuleId, string[]> = {
+  overview: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "warehouse",
+    "accountant",
+    "viewer"
+  ],
+  pos: ["owner", "admin", "manager", "cashier", "sales"],
+  online: ["owner", "admin", "manager"],
+  inventory: ["owner", "admin", "manager", "warehouse"],
+  charts: ["owner", "admin", "manager", "accountant", "viewer"],
+  purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
+  suppliers: ["owner", "admin", "manager", "warehouse", "accountant"],
+  activities: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "warehouse",
+    "accountant",
+    "viewer"
+  ],
+  documents: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "accountant",
+    "viewer"
+  ],
+  notes: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "warehouse",
+    "accountant",
+    "viewer"
+  ],
+  operations: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "warehouse",
+    "accountant"
+  ],
+  settings: ["owner", "admin"]
+};
+
 function localDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+const VARIANT_CART_SEPARATOR = "::variant::";
+
+function variantCartKey(productId: string, variantId?: string) {
+  return variantId
+    ? productId + VARIANT_CART_SEPARATOR + variantId
+    : productId;
+}
+
+function parseCartKey(key: string) {
+  const [productId, variantId] = key.split(VARIANT_CART_SEPARATOR);
+  return {
+    productId,
+    variantId: variantId || null
+  };
 }
 
 export function BusinessWorkspace({
@@ -978,6 +1071,11 @@ export function BusinessWorkspace({
   const [recipeComponents, setRecipeComponents] =
     useState<RecipeComponent[]>([]);
   const [posPromotions, setPosPromotions] = useState<PosPromotion[]>([]);
+  const [posVariants, setPosVariants] = useState<PosVariant[]>([]);
+  const [posLocations, setPosLocations] = useState<PosLocation[]>([]);
+  const [posLocationStock, setPosLocationStock] = useState<
+    Record<string, Record<string, number>>
+  >({});
   const [trend, setTrend] = useState<TrendPoint[]>([]);
   const [currencyRate, setCurrencyRate] = useState(1);
   const [fxMarket, setFxMarket] = useState<FxMarket>("oficial");
@@ -1003,9 +1101,54 @@ export function BusinessWorkspace({
   );
   const [noteDraft, setNoteDraft] = useState("");
   const [cloudBusinessId, setCloudBusinessId] = useState<string | null>(null);
+  const [memberRole, setMemberRole] = useState(
+    demoMode ? "owner" : "viewer"
+  );
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (demoMode) {
+      setMemberRole("owner");
+      return;
+    }
+
+    if (!cloudBusinessId) {
+      setMemberRole("viewer");
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    const client = supabase;
+
+    async function loadRole() {
+      const {
+        data: { session }
+      } = await client.auth.getSession();
+
+      if (!session?.user?.id || cancelled) return;
+
+      const { data } = await client
+        .from("global_stock_members")
+        .select("role")
+        .eq("business_id", cloudBusinessId)
+        .eq("user_id", session.user.id)
+        .eq("active", true)
+        .maybeSingle();
+
+      if (!cancelled) {
+        setMemberRole(String(data?.role || "viewer"));
+      }
+    }
+
+    void loadRole();
+    return () => {
+      cancelled = true;
+    };
+  }, [cloudBusinessId, demoMode]);
 
   useEffect(() => {
     if (!cloudBusinessId || demoMode) {
@@ -1101,6 +1244,177 @@ export function BusinessWorkspace({
   }, [cloudBusinessId, demoMode]);
 
   useEffect(() => {
+    if (!cloudBusinessId || demoMode) {
+      setPosVariants([]);
+      setPosLocations([]);
+      setPosLocationStock({});
+      return;
+    }
+
+    let cancelled = false;
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    const client = supabase;
+
+    async function loadVariants() {
+      const [productRes, variantRes, levelRes, locationRes] =
+        await Promise.all([
+          client
+            .from("global_stock_products")
+            .select("id,client_key")
+            .eq("business_id", cloudBusinessId)
+            .eq("active", true),
+          client
+            .from("global_stock_product_variants")
+            .select("id,product_id,name,sku,barcode,attributes,price,cost")
+            .eq("business_id", cloudBusinessId)
+            .eq("active", true),
+          client
+            .from("global_stock_inventory_levels")
+            .select("product_id,variant_id,location_id,on_hand,reserved")
+            .eq("business_id", cloudBusinessId),
+          client
+            .from("global_stock_locations")
+            .select("id,name,kind")
+            .eq("business_id", cloudBusinessId)
+            .eq("active", true)
+            .order("created_at", { ascending: true })
+        ]);
+
+      if (cancelled) return;
+
+      const productKeys = new Map<string, string>();
+      for (const product of productRes.data ?? []) {
+        productKeys.set(String(product.id), String(product.client_key));
+      }
+
+      const stockByVariant = new Map<string, number>();
+      const stockByVariantLocation = new Map<
+        string,
+        Record<string, number>
+      >();
+      const baseStockByProduct: Record<
+        string,
+        Record<string, number>
+      > = {};
+
+      for (const level of levelRes.data ?? []) {
+        const productKey = productKeys.get(String(level.product_id));
+        if (!productKey) continue;
+
+        const locationId = String(level.location_id);
+        const available = Math.max(
+          0,
+          (Number(level.on_hand) || 0) - (Number(level.reserved) || 0)
+        );
+
+        if (level.variant_id) {
+          const variantId = String(level.variant_id);
+          stockByVariant.set(
+            variantId,
+            (stockByVariant.get(variantId) ?? 0) + available
+          );
+
+          const current = stockByVariantLocation.get(variantId) ?? {};
+          current[locationId] = (current[locationId] ?? 0) + available;
+          stockByVariantLocation.set(variantId, current);
+        } else {
+          baseStockByProduct[productKey] ??= {};
+          baseStockByProduct[productKey][locationId] =
+            (baseStockByProduct[productKey][locationId] ?? 0) + available;
+        }
+      }
+
+      const mapped: PosVariant[] = [];
+      for (const variant of variantRes.data ?? []) {
+        const productKey = productKeys.get(String(variant.product_id));
+        if (!productKey) continue;
+
+        mapped.push({
+          id: String(variant.id),
+          productKey,
+          name: String(variant.name || "Variante"),
+          sku: String(variant.sku || ""),
+          barcode: String(variant.barcode || ""),
+          attributes:
+            variant.attributes &&
+            typeof variant.attributes === "object" &&
+            !Array.isArray(variant.attributes)
+              ? (variant.attributes as Record<string, string>)
+              : {},
+          price:
+            variant.price === null || variant.price === undefined
+              ? null
+              : Number(variant.price),
+          cost:
+            variant.cost === null || variant.cost === undefined
+              ? null
+              : Number(variant.cost),
+          stock: stockByVariant.get(String(variant.id)) ?? 0,
+          stockByLocation:
+            stockByVariantLocation.get(String(variant.id)) ?? {}
+        });
+      }
+
+      setPosVariants(mapped);
+      setPosLocationStock(baseStockByProduct);
+      setPosLocations(
+        ((locationRes.data ?? []) as Array<{
+          id: string;
+          name: string;
+          kind: string;
+        }>).map((location) => ({
+          id: String(location.id),
+          name: String(location.name),
+          kind: String(location.kind || "store")
+        }))
+      );
+
+      const totalsByProduct = new Map<string, number>();
+      const variantProducts = new Set<string>();
+
+      for (const variant of mapped) {
+        variantProducts.add(variant.productKey);
+        totalsByProduct.set(
+          variant.productKey,
+          (totalsByProduct.get(variant.productKey) ?? 0) + variant.stock
+        );
+      }
+
+      if (variantProducts.size) {
+        setProducts((current) =>
+          current.map((product) =>
+            variantProducts.has(product.id)
+              ? {
+                  ...product,
+                  stock: totalsByProduct.get(product.id) ?? 0
+                }
+              : product
+          )
+        );
+      }
+    }
+
+    const handleVariantsChanged = () => {
+      void loadVariants();
+    };
+
+    void loadVariants();
+    window.addEventListener(
+      "global-stock-variants-changed",
+      handleVariantsChanged
+    );
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener(
+        "global-stock-variants-changed",
+        handleVariantsChanged
+      );
+    };
+  }, [cloudBusinessId, demoMode]);
+
+  useEffect(() => {
     const handleImportedProducts = (event: Event) => {
       const detail = (event as CustomEvent<Product[]>).detail;
       if (!Array.isArray(detail) || !detail.length) return;
@@ -1164,18 +1478,41 @@ export function BusinessWorkspace({
     const handleReturnRestock = (event: Event) => {
       const detail = (
         event as CustomEvent<
-          Array<{ productKey: string; quantity: number }>
+          Array<{
+            productKey: string;
+            variantId?: string | null;
+            locationId?: string | null;
+            quantity: number;
+          }>
         >
       ).detail;
 
       if (!Array.isArray(detail) || !detail.length) return;
 
       const quantityByProduct = new Map<string, number>();
+      const quantityByVariant = new Map<string, number>();
+      const quantityByProductLocation = new Map<string, number>();
+      const quantityByVariantLocation = new Map<string, number>();
 
       for (const item of detail) {
         if (!item?.productKey) continue;
 
         const quantity = Math.max(0, Number(item.quantity) || 0);
+        if (item.variantId) {
+          quantityByVariant.set(
+            item.variantId,
+            (quantityByVariant.get(item.variantId) ?? 0) + quantity
+          );
+
+          if (item.locationId) {
+            const key = item.variantId + "::" + item.locationId;
+            quantityByVariantLocation.set(
+              key,
+              (quantityByVariantLocation.get(key) ?? 0) + quantity
+            );
+          }
+        }
+
         const recipe = recipeComponents.filter(
           (component) => component.product_key === item.productKey
         );
@@ -1192,12 +1529,30 @@ export function BusinessWorkspace({
               (quantityByProduct.get(component.component_key) ?? 0) +
                 componentQuantity
             );
+
+            if (item.locationId) {
+              const key =
+                component.component_key + "::" + item.locationId;
+              quantityByProductLocation.set(
+                key,
+                (quantityByProductLocation.get(key) ?? 0) +
+                  componentQuantity
+              );
+            }
           }
         } else {
           quantityByProduct.set(
             item.productKey,
             (quantityByProduct.get(item.productKey) ?? 0) + quantity
           );
+
+          if (item.locationId && !item.variantId) {
+            const key = item.productKey + "::" + item.locationId;
+            quantityByProductLocation.set(
+              key,
+              (quantityByProductLocation.get(key) ?? 0) + quantity
+            );
+          }
         }
       }
 
@@ -1219,6 +1574,48 @@ export function BusinessWorkspace({
             : product;
         })
       );
+
+      if (quantityByVariant.size) {
+        setPosVariants((current) =>
+          current.map((variant) => {
+            const quantity = quantityByVariant.get(variant.id);
+            if (!quantity) return variant;
+
+            const nextByLocation = { ...variant.stockByLocation };
+            for (const [key, value] of quantityByVariantLocation) {
+              const [variantId, locationId] = key.split("::");
+              if (variantId !== variant.id || !locationId) continue;
+              nextByLocation[locationId] =
+                (nextByLocation[locationId] ?? 0) + value;
+            }
+
+            return {
+              ...variant,
+              stock: variant.stock + quantity,
+              stockByLocation: nextByLocation
+            };
+          })
+        );
+      }
+
+      if (quantityByProductLocation.size) {
+        setPosLocationStock((current) => {
+          const next = { ...current };
+
+          for (const [key, quantity] of quantityByProductLocation) {
+            const [productKey, locationId] = key.split("::");
+            if (!productKey || !locationId) continue;
+
+            next[productKey] = {
+              ...(next[productKey] ?? {}),
+              [locationId]:
+                (next[productKey]?.[locationId] ?? 0) + quantity
+            };
+          }
+
+          return next;
+        });
+      }
 
       setNotice(
         language === "es"
@@ -1817,6 +2214,51 @@ export function BusinessWorkspace({
   const money = (value: number) =>
     formatMoney(value * currencyRate, currency, locale);
 
+  const visibleModules = useMemo(
+    () =>
+      modules.filter(({ id }) =>
+        demoMode ? true : moduleRoles[id].includes(memberRole)
+      ),
+    [demoMode, memberRole]
+  );
+
+  const visibleModuleIds = useMemo(
+    () => new Set(visibleModules.map((module) => module.id)),
+    [visibleModules]
+  );
+
+  useEffect(() => {
+    if (visibleModuleIds.has(activeModule)) return;
+    const fallback = visibleModules[0]?.id ?? "overview";
+    setActiveModule(fallback);
+  }, [activeModule, visibleModuleIds, visibleModules]);
+
+  const mobileLeftModule: ModuleId = visibleModuleIds.has("pos")
+    ? "pos"
+    : visibleModuleIds.has("inventory")
+      ? "inventory"
+      : "activities";
+
+  const mobileRightModule: ModuleId = visibleModuleIds.has("charts")
+    ? "charts"
+    : visibleModuleIds.has("operations")
+      ? "operations"
+      : "notes";
+
+  const MobileLeftIcon =
+    modules.find((module) => module.id === mobileLeftModule)?.icon ??
+    ActivityIcon;
+
+  const MobileRightIcon =
+    modules.find((module) => module.id === mobileRightModule)?.icon ??
+    ClipboardList;
+
+  const canUseScanner =
+    demoMode ||
+    ["owner", "admin", "manager", "cashier", "sales", "warehouse"].includes(
+      memberRole
+    );
+
   const recipesByProduct = useMemo(() => {
     const map = new Map<string, RecipeComponent[]>();
 
@@ -1873,30 +2315,125 @@ export function BusinessWorkspace({
     return map;
   }, [products, productById, recipesByProduct]);
 
+  const sellableStockByLocation = useMemo(() => {
+    const result: Record<string, Record<string, number>> = {};
+
+    for (const product of products) {
+      const recipe = recipesByProduct.get(product.id);
+
+      if (!recipe?.length) {
+        result[product.id] = {
+          ...(posLocationStock[product.id] ?? {})
+        };
+        continue;
+      }
+
+      const byLocation: Record<string, number> = {};
+
+      for (const location of posLocations) {
+        let available = Number.POSITIVE_INFINITY;
+
+        for (const component of recipe) {
+          const componentStock =
+            posLocationStock[component.component_key]?.[location.id] ?? 0;
+          const perUnit =
+            component.quantity *
+            (1 + (Number(component.wastage_pct) || 0) / 100);
+
+          if (perUnit <= 0) {
+            available = 0;
+            break;
+          }
+
+          available = Math.min(
+            available,
+            Math.floor(componentStock / perUnit)
+          );
+        }
+
+        byLocation[location.id] = Number.isFinite(available)
+          ? Math.max(0, available)
+          : 0;
+      }
+
+      result[product.id] = byLocation;
+    }
+
+    return result;
+  }, [
+    posLocations,
+    posLocationStock,
+    products,
+    recipesByProduct
+  ]);
+
   const filteredPosProducts = useMemo(() => {
     const query = posQuery.trim().toLowerCase();
     if (!query) return products;
-    return products.filter((product) =>
-      [product.name, product.category, product.barcode]
+
+    return products.filter((product) => {
+      const baseMatch = [product.name, product.category, product.barcode]
         .join(" ")
         .toLowerCase()
-        .includes(query)
-    );
-  }, [posQuery, products]);
+        .includes(query);
+
+      if (baseMatch) return true;
+
+      return posVariants
+        .filter((variant) => variant.productKey === product.id)
+        .some((variant) =>
+          [
+            variant.name,
+            variant.sku,
+            variant.barcode,
+            ...Object.values(variant.attributes)
+          ]
+            .join(" ")
+            .toLowerCase()
+            .includes(query)
+        );
+    });
+  }, [posQuery, posVariants, products]);
+
+  const posVariantById = useMemo(
+    () => new Map(posVariants.map((variant) => [variant.id, variant])),
+    [posVariants]
+  );
 
   const cartLines = useMemo(
     () =>
       Object.entries(cart)
-        .map(([id, quantity]) => {
-          const product = products.find((item) => item.id === id);
-          return product ? { product, quantity } : null;
+        .map(([key, quantity]) => {
+          const { productId, variantId } = parseCartKey(key);
+          const product = products.find((item) => item.id === productId);
+          if (!product) return null;
+
+          const variant = variantId
+            ? posVariantById.get(variantId) ?? null
+            : null;
+
+          if (variant && variant.productKey !== product.id) return null;
+
+          return {
+            cartKey: key,
+            product,
+            variant,
+            quantity
+          };
         })
-        .filter(Boolean) as Array<{ product: Product; quantity: number }>,
-    [cart, products]
+        .filter(Boolean) as Array<{
+          cartKey: string;
+          product: Product;
+          variant: PosVariant | null;
+          quantity: number;
+        }>,
+    [cart, posVariantById, products]
   );
 
   const cartSubtotal = cartLines.reduce(
-    (sum, line) => sum + line.product.price * line.quantity,
+    (sum, line) =>
+      sum +
+      (line.variant?.price ?? line.product.price) * line.quantity,
     0
   );
 
@@ -1934,7 +2471,14 @@ export function BusinessWorkspace({
   );
 
   const cartTotal = Math.max(0, cartSubtotal - promotionDiscount);
-  function effectiveUnitCost(product: Product) {
+  function effectiveUnitCost(
+    product: Product,
+    variant: PosVariant | null = null
+  ) {
+    if (variant?.cost !== null && variant?.cost !== undefined) {
+      return variant.cost;
+    }
+
     const recipe = recipesByProduct.get(product.id);
 
     if (!recipe?.length) {
@@ -1959,11 +2503,11 @@ export function BusinessWorkspace({
   }
 
   const cartCostKnown = cartLines.every(
-    (line) => effectiveUnitCost(line.product) !== null
+    (line) => effectiveUnitCost(line.product, line.variant) !== null
   );
 
   const cartCost = cartLines.reduce((sum, line) => {
-    const unitCost = effectiveUnitCost(line.product);
+    const unitCost = effectiveUnitCost(line.product, line.variant);
     return unitCost === null
       ? sum
       : sum + unitCost * line.quantity;
@@ -2226,17 +2770,32 @@ export function BusinessWorkspace({
     window.setTimeout(() => setNotice(""), 3200);
   }
 
-  function setQuantity(id: string, quantity: number) {
-    const product = products.find((item) => item.id === id);
+  function setQuantity(
+    key: string,
+    quantity: number,
+    availableOverride?: number
+  ) {
+    const { productId, variantId } = parseCartKey(key);
+    const product = products.find((item) => item.id === productId);
     if (!product) return;
+
+    const variant = variantId
+      ? posVariantById.get(variantId) ?? null
+      : null;
+
     const available =
-      sellableStockById.get(id) ?? product.stock;
+      availableOverride !== undefined
+        ? Math.max(0, availableOverride)
+        : variant
+          ? variant.stock
+          : sellableStockById.get(productId) ?? product.stock;
+
     const safe = Math.max(0, Math.min(quantity, available));
 
     setCart((current) => {
       const next = { ...current };
-      if (safe <= 0) delete next[id];
-      else next[id] = safe;
+      if (safe <= 0) delete next[key];
+      else next[key] = safe;
       return next;
     });
   }
@@ -2244,7 +2803,8 @@ export function BusinessWorkspace({
   function completeSale(
     payments: PosPayment[] = [{ method: "cash", amount: cartTotal }],
     receivedAmount?: number,
-    customerId?: string
+    customerId?: string,
+    locationId?: string
   ) {
     if (!cartLines.length) return;
 
@@ -2255,6 +2815,7 @@ export function BusinessWorkspace({
         payments,
         receivedAmount,
         customerId,
+        locationId,
         lines: cartLines,
         total: cartTotal,
         costTotal: cartCost
@@ -2262,8 +2823,22 @@ export function BusinessWorkspace({
     }
 
     const stockDeltas = new Map<string, number>();
+    const soldByProduct = new Map<string, number>();
+    const soldByVariant = new Map<string, number>();
 
-    for (const { product, quantity } of cartLines) {
+    for (const { product, variant, quantity } of cartLines) {
+      soldByProduct.set(
+        product.id,
+        (soldByProduct.get(product.id) ?? 0) + quantity
+      );
+
+      if (variant) {
+        soldByVariant.set(
+          variant.id,
+          (soldByVariant.get(variant.id) ?? 0) + quantity
+        );
+      }
+
       const recipe = recipesByProduct.get(product.id);
 
       if (recipe?.length) {
@@ -2301,7 +2876,7 @@ export function BusinessWorkspace({
 
     setProducts((current) =>
       current.map((product) => {
-        const soldQuantity = cart[product.id] ?? 0;
+        const soldQuantity = soldByProduct.get(product.id) ?? 0;
         const stockDelta = stockDeltas.get(product.id) ?? 0;
 
         if (!soldQuantity && !stockDelta) return product;
@@ -2317,6 +2892,47 @@ export function BusinessWorkspace({
     for (const change of remoteChanges) {
       void writeConnectedProduct(change.product, {
         stock: change.stock
+      });
+    }
+
+    if (soldByVariant.size) {
+      setPosVariants((current) =>
+        current.map((variant) => {
+          const sold = soldByVariant.get(variant.id) ?? 0;
+          if (!sold) return variant;
+
+          const nextByLocation = { ...variant.stockByLocation };
+          if (locationId) {
+            nextByLocation[locationId] = Math.max(
+              0,
+              (nextByLocation[locationId] ?? 0) - sold
+            );
+          }
+
+          return {
+            ...variant,
+            stock: Math.max(0, variant.stock - sold),
+            stockByLocation: nextByLocation
+          };
+        })
+      );
+    }
+
+    if (locationId && stockDeltas.size) {
+      setPosLocationStock((current) => {
+        const next = { ...current };
+
+        for (const [productKey, delta] of stockDeltas) {
+          next[productKey] = {
+            ...(next[productKey] ?? {}),
+            [locationId]: Math.max(
+              0,
+              (next[productKey]?.[locationId] ?? 0) + delta
+            )
+          };
+        }
+
+        return next;
       });
     }
 
@@ -2627,7 +3243,7 @@ export function BusinessWorkspace({
         <Logo withWordmark />
 
         <nav className="mt-8 space-y-1.5 overflow-y-auto pr-1">
-          {modules.map(({ id, icon: Icon }) => {
+          {visibleModules.map(({ id, icon: Icon }) => {
             const active = activeModule === id;
             return (
               <button
@@ -2659,6 +3275,11 @@ export function BusinessWorkspace({
             <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
               {metrics.inventoryUnits} {labels.units}
             </p>
+            {!demoMode && (
+              <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+                {language === "es" ? "Rol" : "Role"}: {memberRole}
+              </p>
+            )}
           </div>
 
           <button
@@ -2751,6 +3372,9 @@ export function BusinessWorkspace({
                 labels={labels}
                 language={language}
                 products={filteredPosProducts}
+                posVariants={posVariants}
+                locations={posLocations}
+                sellableStockByLocation={sellableStockByLocation}
                 query={posQuery}
                 setQuery={setPosQuery}
                 cart={cart}
@@ -2872,6 +3496,7 @@ export function BusinessWorkspace({
                 currency={currency}
                 locale={locale}
                 businessType={businessType}
+                memberRole={memberRole}
                 demoMode={demoMode}
               />
             )}
@@ -2911,19 +3536,24 @@ export function BusinessWorkspace({
             onClick={() => setActiveModule("overview")}
           />
           <MobileNavButton
-            active={activeModule === "pos"}
-            icon={<ShoppingCart size={18} />}
-            label={labels.nav.pos}
-            onClick={() => setActiveModule("pos")}
+            active={activeModule === mobileLeftModule}
+            icon={<MobileLeftIcon size={18} />}
+            label={labels.nav[mobileLeftModule]}
+            onClick={() => setActiveModule(mobileLeftModule)}
           />
 
           <button
             type="button"
             onClick={() => {
+              if (!canUseScanner) return;
               setScannerOpen(true);
               scannerRef.current?.openCamera();
             }}
-            className="-mt-8 flex min-h-[72px] flex-col items-center justify-end gap-1 text-[10px] font-semibold text-[#8F0000]"
+            disabled={!canUseScanner}
+            className={
+              "-mt-8 flex min-h-[72px] flex-col items-center justify-end gap-1 text-[10px] font-semibold text-[#8F0000] " +
+              (!canUseScanner ? "pointer-events-none opacity-30" : "")
+            }
             aria-label={labels.scan}
           >
             <span className="grid h-16 w-16 place-items-center rounded-full border-[5px] border-[var(--apex-bg)] bg-[#8F0000] text-white shadow-[0_12px_34px_rgba(143,0,0,.36)]">
@@ -2933,10 +3563,10 @@ export function BusinessWorkspace({
           </button>
 
           <MobileNavButton
-            active={activeModule === "charts"}
-            icon={<BarChart3 size={18} />}
-            label={labels.nav.charts}
-            onClick={() => setActiveModule("charts")}
+            active={activeModule === mobileRightModule}
+            icon={<MobileRightIcon size={18} />}
+            label={labels.nav[mobileRightModule]}
+            onClick={() => setActiveModule(mobileRightModule)}
           />
           <MobileNavButton
             active={false}
@@ -2987,9 +3617,12 @@ export function BusinessWorkspace({
                     "activities",
                     "documents",
                     "notes",
+                    "operations",
                     "settings"
                   ] as ModuleId[]
-                ).map((id) => {
+                )
+                  .filter((id) => visibleModuleIds.has(id))
+                  .map((id) => {
                   const item = modules.find(
                     (module) => module.id === id
                   )!;
@@ -3314,6 +3947,9 @@ function PosModule({
   labels,
   language,
   products,
+  posVariants,
+  locations,
+  sellableStockByLocation,
   query,
   setQuery,
   cart,
@@ -3333,11 +3969,23 @@ function PosModule({
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   products: Product[];
+  posVariants: PosVariant[];
+  locations: PosLocation[];
+  sellableStockByLocation: Record<string, Record<string, number>>;
   query: string;
   setQuery: (value: string) => void;
   cart: Record<string, number>;
-  setQuantity: (id: string, quantity: number) => void;
-  cartLines: Array<{ product: Product; quantity: number }>;
+  setQuantity: (
+    id: string,
+    quantity: number,
+    availableOverride?: number
+  ) => void;
+  cartLines: Array<{
+    cartKey: string;
+    product: Product;
+    variant: PosVariant | null;
+    quantity: number;
+  }>;
   cartSubtotal: number;
   promotionDiscount: number;
   promotionLabel: string;
@@ -3350,7 +3998,8 @@ function PosModule({
   completeSale: (
     payments?: PosPayment[],
     receivedAmount?: number,
-    customerId?: string
+    customerId?: string,
+    locationId?: string
   ) => void;
 }) {
   const [paymentMethod, setPaymentMethod] = useState("cash");
@@ -3362,6 +4011,22 @@ function PosModule({
   const [splitPayment, setSplitPayment] = useState(false);
   const [splitFirstAmount, setSplitFirstAmount] = useState("");
   const [secondPaymentMethod, setSecondPaymentMethod] = useState("debit");
+  const [selectedVariantByProduct, setSelectedVariantByProduct] =
+    useState<Record<string, string>>({});
+  const [selectedLocation, setSelectedLocation] = useState("");
+
+  useEffect(() => {
+    if (!locations.length) {
+      setSelectedLocation("");
+      return;
+    }
+
+    setSelectedLocation((current) =>
+      current && locations.some((location) => location.id === current)
+        ? current
+        : locations[0].id
+    );
+  }, [locations]);
 
   useEffect(() => {
     if (!businessId || demoMode) {
@@ -3444,7 +4109,8 @@ function PosModule({
     completeSale(
       payments,
       !splitPayment && paymentMethod === "cash" ? received : undefined,
-      customerId || undefined
+      customerId || undefined,
+      selectedLocation || undefined
     );
 
     setReceivedAmount("");
@@ -3458,6 +4124,37 @@ function PosModule({
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">
+          {locations.length > 0 && (
+            <div className="apex-card flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+                  {language === "es" ? "Ubicación de venta" : "Sale location"}
+                </p>
+                <p className="mt-1 text-xs text-[var(--apex-muted)]">
+                  {cartLines.length
+                    ? language === "es"
+                      ? "La ubicación queda fija mientras haya productos en el carrito."
+                      : "Location is locked while the cart has items."
+                    : language === "es"
+                      ? "El stock se descuenta de esta sucursal o depósito."
+                      : "Stock is deducted from this store or warehouse."}
+                </p>
+              </div>
+              <select
+                className="apex-input min-h-11 min-w-52 px-3 text-sm"
+                value={selectedLocation}
+                disabled={cartLines.length > 0}
+                onChange={(event) => setSelectedLocation(event.target.value)}
+              >
+                {locations.map((location) => (
+                  <option key={location.id} value={location.id}>
+                    {location.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
           <label className="relative block">
             <Search
               size={16}
@@ -3472,14 +4169,42 @@ function PosModule({
           </label>
 
           <div className="grid gap-3 sm:grid-cols-2 2xl:grid-cols-3">
-            {products.map((product) => (
+            {products.map((product) => {
+              const variants = posVariants.filter(
+                (variant) => variant.productKey === product.id
+              );
+              const selectedVariantId =
+                selectedVariantByProduct[product.id] ||
+                variants[0]?.id ||
+                "";
+              const selectedVariant =
+                variants.find(
+                  (variant) => variant.id === selectedVariantId
+                ) ?? null;
+              const key = variantCartKey(
+                product.id,
+                selectedVariant?.id
+              );
+              const availableStock = selectedVariant
+                ? selectedLocation
+                  ? selectedVariant.stockByLocation[selectedLocation] ?? 0
+                  : selectedVariant.stock
+                : selectedLocation
+                  ? sellableStockByLocation[product.id]?.[
+                      selectedLocation
+                    ] ?? 0
+                  : sellableStockById.get(product.id) ?? product.stock;
+              const displayPrice =
+                selectedVariant?.price ?? product.price;
+
+              return (
               <article key={product.id} className="apex-card p-4">
                 <div className="flex items-start justify-between gap-3">
                   <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
                     <Store size={17} />
                   </span>
                   <span className="rounded-full border border-[var(--apex-border)] px-2.5 py-1 text-[10px] text-[var(--apex-muted)]">
-                    {sellableStockById.get(product.id) ?? product.stock} {labels.stock}
+                    {availableStock} {labels.stock}
                   </span>
                 </div>
                 <h3 className="mt-4 text-sm font-semibold">
@@ -3488,18 +4213,40 @@ function PosModule({
                 <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
                   {product.category}
                 </p>
+
+                {variants.length > 0 && (
+                  <select
+                    className="apex-input mt-3 min-h-10 w-full px-3 text-xs"
+                    value={selectedVariantId}
+                    onChange={(event) =>
+                      setSelectedVariantByProduct((current) => ({
+                        ...current,
+                        [product.id]: event.target.value
+                      }))
+                    }
+                  >
+                    {variants.map((variant) => (
+                      <option key={variant.id} value={variant.id}>
+                        {variant.name}
+                        {variant.stock >= 0
+                          ? " · stock " + String(variant.stock)
+                          : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+
                 <p className="mt-4 text-lg font-semibold">
-                  {money(product.price)}
+                  {money(displayPrice)}
                 </p>
                 <button
                   type="button"
-                  disabled={
-                    (sellableStockById.get(product.id) ?? product.stock) <= 0
-                  }
+                  disabled={availableStock <= 0}
                   onClick={() =>
                     setQuantity(
-                      product.id,
-                      (cart[product.id] ?? 0) + 1
+                      key,
+                      (cart[key] ?? 0) + 1,
+                      availableStock
                     )
                   }
                   className="mt-4 flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white disabled:opacity-35"
@@ -3508,7 +4255,8 @@ function PosModule({
                   {labels.add}
                 </button>
               </article>
-            ))}
+              );
+            })}
           </div>
         </section>
 
@@ -3521,9 +4269,21 @@ function PosModule({
             </p>
           ) : (
             <div className="mt-4 space-y-3">
-              {cartLines.map(({ product, quantity }) => (
+              {cartLines.map(
+                ({ cartKey, product, variant, quantity }) => {
+                  const lineAvailable = variant
+                    ? selectedLocation
+                      ? variant.stockByLocation[selectedLocation] ?? 0
+                      : variant.stock
+                    : selectedLocation
+                      ? sellableStockByLocation[product.id]?.[
+                          selectedLocation
+                        ] ?? 0
+                      : sellableStockById.get(product.id) ?? product.stock;
+
+                  return (
                 <div
-                  key={product.id}
+                  key={cartKey}
                   className="rounded-2xl border border-[var(--apex-border)] p-3"
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -3531,15 +4291,24 @@ function PosModule({
                       <p className="text-sm font-semibold">
                         {product.name}
                       </p>
+                      {variant && (
+                        <p className="mt-1 text-[10px] font-semibold text-[#8F0000]">
+                          {variant.name}
+                        </p>
+                      )}
                       <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-                        {money(product.price)}
+                        {money(variant?.price ?? product.price)}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() =>
-                          setQuantity(product.id, quantity - 1)
+                          setQuantity(
+                            cartKey,
+                            quantity - 1,
+                            lineAvailable
+                          )
                         }
                         className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
                       >
@@ -3551,7 +4320,11 @@ function PosModule({
                       <button
                         type="button"
                         onClick={() =>
-                          setQuantity(product.id, quantity + 1)
+                          setQuantity(
+                            cartKey,
+                            quantity + 1,
+                            lineAvailable
+                          )
                         }
                         className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
                       >
@@ -3560,7 +4333,9 @@ function PosModule({
                     </div>
                   </div>
                 </div>
-              ))}
+                  );
+                }
+              )}
             </div>
           )}
 

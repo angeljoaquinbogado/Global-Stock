@@ -37,6 +37,18 @@ type VariantRow = {
   active: boolean;
 };
 
+type LocationRow = {
+  id: string;
+  name: string;
+};
+
+type VariantLevelRow = {
+  variant_id: string | null;
+  location_id: string;
+  on_hand: number;
+  reserved: number;
+};
+
 type RecipeRow = {
   id: string;
   product_key: string;
@@ -56,6 +68,9 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
   const [products,setProducts]=useState<ProductRow[]>([]);
   const [variants,setVariants]=useState<VariantRow[]>([]);
   const [recipes,setRecipes]=useState<RecipeRow[]>([]);
+  const [locations,setLocations]=useState<LocationRow[]>([]);
+  const [variantLevels,setVariantLevels]=useState<VariantLevelRow[]>([]);
+  const [variantStockDrafts,setVariantStockDrafts]=useState<Record<string,string>>({});
   const [productId,setProductId]=useState("");
   const [variantName,setVariantName]=useState("");
   const [sku,setSku]=useState("");
@@ -63,6 +78,8 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
   const [attrKey,setAttrKey]=useState("Color");
   const [attrValue,setAttrValue]=useState("");
   const [variantPrice,setVariantPrice]=useState("");
+  const [variantStock,setVariantStock]=useState("0");
+  const [variantLocation,setVariantLocation]=useState("");
   const [recipeProduct,setRecipeProduct]=useState("");
   const [componentKey,setComponentKey]=useState("");
   const [recipeQty,setRecipeQty]=useState("1");
@@ -74,20 +91,40 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
 
   const productById=useMemo(()=>new Map(products.map(p=>[p.id,p])),[products]);
   const productByKey=useMemo(()=>new Map(products.map(p=>[p.client_key,p])),[products]);
+  const variantStockById=useMemo(()=>{
+    const map=new Map<string,number>();
+    for(const level of variantLevels){
+      if(!level.variant_id)continue;
+      map.set(
+        level.variant_id,
+        (map.get(level.variant_id)??0)+
+          Math.max(0,(Number(level.on_hand)||0)-(Number(level.reserved)||0))
+      );
+    }
+    return map;
+  },[variantLevels]);
 
   async function reload(){
     const s=getSupabaseBrowserClient();if(!s)return;
-    const [p,v,r]=await Promise.all([
+    const [p,v,r,l,levels]=await Promise.all([
       s.from("global_stock_products").select("id,client_key,name,barcode,unit,price,cost,min_stock,max_stock").eq("business_id",businessId).eq("active",true).order("name"),
       s.from("global_stock_product_variants").select("id,product_id,name,sku,barcode,attributes,price,cost,active").eq("business_id",businessId).order("created_at",{ascending:false}),
-      s.from("global_stock_recipes").select("id,product_key,component_key,quantity,unit,wastage_pct").eq("business_id",businessId)
+      s.from("global_stock_recipes").select("id,product_key,component_key,quantity,unit,wastage_pct").eq("business_id",businessId),
+      s.from("global_stock_locations").select("id,name").eq("business_id",businessId).eq("active",true).order("created_at"),
+      s.from("global_stock_inventory_levels").select("variant_id,location_id,on_hand,reserved").eq("business_id",businessId).not("variant_id","is",null)
     ]);
     const ps=(p.data as ProductRow[]|null)??[];
-    setProducts(ps);setVariants((v.data as VariantRow[]|null)??[]);setRecipes((r.data as RecipeRow[]|null)??[]);
+    const nextLocations=(l.data as LocationRow[]|null)??[];
+    setProducts(ps);
+    setVariants((v.data as VariantRow[]|null)??[]);
+    setRecipes((r.data as RecipeRow[]|null)??[]);
+    setLocations(nextLocations);
+    setVariantLevels((levels.data as VariantLevelRow[]|null)??[]);
     if(!productId&&ps[0]?.id)setProductId(ps[0].id);
     if(!recipeProduct&&ps[0]?.client_key)setRecipeProduct(ps[0].client_key);
     if(!componentKey&&ps[1]?.client_key)setComponentKey(ps[1].client_key);
     if(!unitProduct&&ps[0]?.id)setUnitProduct(ps[0].id);
+    if(!variantLocation&&nextLocations[0]?.id)setVariantLocation(nextLocations[0].id);
   }
 
   useEffect(()=>{void reload();/* eslint-disable-next-line react-hooks/exhaustive-deps */},[businessId]);
@@ -98,15 +135,65 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
     const price=variantPrice.trim()===""?null:Math.max(0,Number(variantPrice)||0);
     const attributes:Record<string,string>={};
     if(attrKey.trim()&&attrValue.trim())attributes[attrKey.trim()]=attrValue.trim();
-    await s.from("global_stock_product_variants").insert({
-      business_id:businessId,product_id:productId,name:variantName.trim(),sku:sku.trim()||null,barcode:barcode.trim()||null,attributes,price,active:true
+
+    const {data,error}=await s.from("global_stock_product_variants").insert({
+      business_id:businessId,
+      product_id:productId,
+      name:variantName.trim(),
+      sku:sku.trim()||null,
+      barcode:barcode.trim()||null,
+      attributes,
+      price,
+      active:true
+    }).select("id").single();
+
+    if(error||!data?.id)return;
+
+    await s.rpc("global_stock_set_variant_stock",{
+      target_business_id:businessId,
+      target_variant_id:String(data.id),
+      target_stock:Math.max(0,Number(variantStock)||0),
+      target_location_id:variantLocation||null
     });
-    setVariantName("");setSku("");setBarcode("");setAttrValue("");setVariantPrice("");await reload();
+
+    setVariantName("");
+    setSku("");
+    setBarcode("");
+    setAttrValue("");
+    setVariantPrice("");
+    setVariantStock("0");
+    window.dispatchEvent(new Event("global-stock-variants-changed"));
+    await reload();
   }
 
   async function toggleVariant(id:string,active:boolean){
     const s=getSupabaseBrowserClient();if(!s)return;
-    await s.from("global_stock_product_variants").update({active}).eq("id",id);await reload();
+    await s.from("global_stock_product_variants").update({active}).eq("id",id);
+    window.dispatchEvent(new Event("global-stock-variants-changed"));
+    await reload();
+  }
+
+  async function saveVariantStock(id:string){
+    const s=getSupabaseBrowserClient();if(!s)return;
+    const current=variantStockById.get(id)??0;
+    const raw=variantStockDrafts[id];
+    const next=Math.max(0,raw===undefined?current:Number(raw)||0);
+
+    const {error}=await s.rpc("global_stock_set_variant_stock",{
+      target_business_id:businessId,
+      target_variant_id:id,
+      target_stock:next,
+      target_location_id:variantLocation||null
+    });
+
+    if(error)return;
+    setVariantStockDrafts(drafts=>{
+      const copy={...drafts};
+      delete copy[id];
+      return copy;
+    });
+    window.dispatchEvent(new Event("global-stock-variants-changed"));
+    await reload();
   }
 
   async function addRecipe(){
@@ -147,10 +234,33 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
       <Input value={variantName} setValue={setVariantName} placeholder={tr(language,"Nombre de variante (ej. Negro / XL)","Variant name")}/>
       <div className="grid grid-cols-2 gap-2"><Input value={sku} setValue={setSku} placeholder="SKU"/><Input value={barcode} setValue={setBarcode} placeholder={tr(language,"Código de barras","Barcode")}/></div>
       <div className="grid grid-cols-2 gap-2"><Input value={attrKey} setValue={setAttrKey} placeholder={tr(language,"Atributo","Attribute")}/><Input value={attrValue} setValue={setAttrValue} placeholder={tr(language,"Valor","Value")}/></div>
-      <Input value={variantPrice} setValue={setVariantPrice} placeholder={tr(language,"Precio opcional","Optional price")} numeric/>
+      <div className="grid grid-cols-2 gap-2">
+        <Input value={variantPrice} setValue={setVariantPrice} placeholder={tr(language,"Precio opcional","Optional price")} numeric/>
+        <Input value={variantStock} setValue={setVariantStock} placeholder={tr(language,"Stock inicial","Initial stock")} numeric/>
+      </div>
+      <Select value={variantLocation} onChange={setVariantLocation} options={locations.map(l=>({value:l.id,label:l.name}))}/>
       <Action label={tr(language,"Agregar variante","Add variant")} onClick={()=>void addVariant()}/>
     </>}>
-      {variants.map(v=><Row key={v.id} title={(productById.get(v.product_id)?.name||"Producto")+" · "+v.name} subtitle={Object.entries(v.attributes||{}).map(([k,val])=>k+": "+val).join(" · ")||v.sku||"Sin atributos"} value={v.price==null?"—":money(v.price,currency,locale)} action={<button type="button" onClick={()=>void toggleVariant(v.id,!v.active)} className="rounded-xl border border-[var(--apex-border)] px-3 py-2 text-xs font-semibold">{v.active?"Desactivar":"Activar"}</button>}/>)}
+      {variants.map(v=>{
+        const available=variantStockById.get(v.id)??0;
+        return <Row
+          key={v.id}
+          title={(productById.get(v.product_id)?.name||"Producto")+" · "+v.name}
+          subtitle={(Object.entries(v.attributes||{}).map(([k,val])=>k+": "+val).join(" · ")||v.sku||"Sin atributos")+" · stock "+String(available)}
+          value={v.price==null?"—":money(v.price,currency,locale)}
+          action={<div className="flex flex-wrap items-center gap-2">
+            <input
+              className="apex-input h-9 w-20 px-2 text-xs"
+              inputMode="decimal"
+              value={variantStockDrafts[v.id]??String(available)}
+              onChange={e=>setVariantStockDrafts(d=>({...d,[v.id]:e.target.value}))}
+              aria-label={tr(language,"Stock de variante","Variant stock")}
+            />
+            <button type="button" onClick={()=>void saveVariantStock(v.id)} className="rounded-xl border border-[var(--apex-border)] px-3 py-2 text-xs font-semibold">{tr(language,"Guardar","Save")}</button>
+            <button type="button" onClick={()=>void toggleVariant(v.id,!v.active)} className="rounded-xl border border-[var(--apex-border)] px-3 py-2 text-xs font-semibold">{v.active?"Desactivar":"Activar"}</button>
+          </div>}
+        />;
+      })}
     </Split>}
 
     {tab==="recipes"&&<Split title={tr(language,"Producto compuesto / receta","Composite product / recipe")} form={<>

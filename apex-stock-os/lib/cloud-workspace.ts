@@ -293,6 +293,9 @@ type SaleQueuePayload = {
   lines: Array<{
     productKey: string;
     productName: string;
+    variantId?: string;
+    variantLabel?: string;
+    locationId?: string;
     unitPrice: number;
     unitCost: number;
     quantity: number;
@@ -415,6 +418,7 @@ export async function recordPosSale({
   payments,
   receivedAmount,
   customerId,
+  locationId,
   lines,
   total,
   costTotal
@@ -425,7 +429,17 @@ export async function recordPosSale({
   payments?: PosPayment[];
   receivedAmount?: number;
   customerId?: string;
-  lines: Array<{ product: Product; quantity: number }>;
+  locationId?: string;
+  lines: Array<{
+    product: Product;
+    quantity: number;
+    variant?: {
+      id: string;
+      name: string;
+      price: number | null;
+      cost: number | null;
+    } | null;
+  }>;
   total: number;
   costTotal: number;
 }) {
@@ -462,11 +476,16 @@ export async function recordPosSale({
     total,
     costTotal,
     payments: normalizedPayments,
-    lines: lines.map(({ product, quantity }) => ({
+    lines: lines.map(({ product, quantity, variant }) => ({
       productKey: product.id,
       productName: product.name,
-      unitPrice: product.price,
-      unitCost: product.costKnown === false ? 0 : product.cost,
+      variantId: variant?.id,
+      variantLabel: variant?.name,
+      locationId,
+      unitPrice: variant?.price ?? product.price,
+      unitCost:
+        variant?.cost ??
+        (product.costKnown === false ? 0 : product.cost),
       quantity
     }))
   };

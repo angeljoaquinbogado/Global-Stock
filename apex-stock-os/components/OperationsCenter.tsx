@@ -24,6 +24,7 @@ type Props = {
   currency: string;
   locale: string;
   businessType: string;
+  memberRole?: string;
   demoMode?: boolean;
 };
 
@@ -265,12 +266,30 @@ const tabs: Array<{ id: Tab; icon: typeof Store }> = [
   { id: "advanced", icon: Settings2 }
 ];
 
+const tabRoles: Record<Tab, string[]> = {
+  cash: ["owner", "admin", "manager", "cashier", "accountant"],
+  customers: [
+    "owner",
+    "admin",
+    "manager",
+    "cashier",
+    "sales",
+    "accountant"
+  ],
+  expenses: ["owner", "admin", "manager", "accountant"],
+  locations: ["owner", "admin", "manager", "warehouse"],
+  purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
+  team: ["owner", "admin"],
+  advanced: ["owner", "admin", "manager"]
+};
+
 export function OperationsCenter({
   businessId,
   language,
   currency,
   locale,
   businessType,
+  memberRole = "owner",
   demoMode = false
 }: Props) {
   const t = words[language];
@@ -310,6 +329,20 @@ export function OperationsCenter({
 
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("cashier");
+
+  const visibleTabs = useMemo(
+    () =>
+      tabs.filter(({ id }) =>
+        demoMode ? true : tabRoles[id].includes(memberRole)
+      ),
+    [demoMode, memberRole]
+  );
+
+  useEffect(() => {
+    if (visibleTabs.some((item) => item.id === tab)) return;
+    const fallback = visibleTabs[0]?.id;
+    if (fallback) setTab(fallback);
+  }, [tab, visibleTabs]);
 
   const expectedCash = useMemo(() => {
     if (!cashSession) return 0;
@@ -664,6 +697,11 @@ export function OperationsCenter({
           <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
             {t.subtitle}
           </p>
+          {!demoMode && (
+            <p className="mt-2 inline-flex rounded-full border border-[var(--apex-border)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
+              {language === "es" ? "Rol" : "Role"}: {memberRole}
+            </p>
+          )}
         </div>
         <button
           type="button"
@@ -676,7 +714,7 @@ export function OperationsCenter({
       </section>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {tabs.map(({ id, icon: Icon }) => (
+        {visibleTabs.map(({ id, icon: Icon }) => (
           <button
             key={id}
             type="button"
