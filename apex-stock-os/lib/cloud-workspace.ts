@@ -56,6 +56,8 @@ export async function ensureCloudBusiness(
   const user = session?.user;
   if (!user?.id) return null;
 
+  await supabase.rpc("global_stock_accept_pending_invites");
+
   const { data: memberships } = await supabase
     .from("global_stock_members")
     .select("business_id,role,created_at")
