@@ -3,6 +3,7 @@
 import {
   ArchiveRestore,
   BellRing,
+  Boxes,
   ChefHat,
   ClipboardCheck,
   Download,
@@ -19,6 +20,7 @@ import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Product } from "@/lib/types";
+import { CatalogTools } from "./CatalogTools";
 import { CommercialOperations } from "./CommercialOperations";
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -33,6 +35,7 @@ type Props = {
 type ToolId =
   | "orders"
   | "inventory"
+  | "catalog"
   | "services"
   | "commercial"
   | "automations"
@@ -113,6 +116,7 @@ type PriceList = {
 const baseTools: Array<{ id: ToolId; icon: typeof ClipboardCheck }> = [
   { id: "orders", icon: PackageSearch },
   { id: "inventory", icon: ClipboardCheck },
+  { id: "catalog", icon: Boxes },
   { id: "services", icon: Wrench },
   { id: "commercial", icon: WalletCards },
   { id: "automations", icon: BellRing },
@@ -221,6 +225,13 @@ export function AdvancedOperations({
       pt: "Controle de estoque",
       fr: "Contrôle du stock",
       de: "Bestandskontrolle"
+    }),
+    catalog: tr(language, {
+      es: "Catálogo avanzado",
+      en: "Advanced catalog",
+      pt: "Catálogo avançado",
+      fr: "Catalogue avancé",
+      de: "Erweiterter Katalog"
     }),
     services: tr(language, {
       es: "Servicios",
@@ -1331,6 +1342,15 @@ export function AdvancedOperations({
               />
             ))}
           </ToolGrid>
+        )}
+
+        {tool === "catalog" && (
+          <CatalogTools
+            businessId={businessId}
+            language={language}
+            currency={currency}
+            locale={locale}
+          />
         )}
 
         {tool === "commercial" && (
