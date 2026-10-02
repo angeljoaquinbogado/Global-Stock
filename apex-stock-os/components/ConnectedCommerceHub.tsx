@@ -124,7 +124,7 @@ const copy = {
     products: "productos reales",
     missingCost:
       "Algunos productos todavía no tienen costo real cargado. Global Stock no inventará ese dato.",
-    disconnect: "Desconectar",
+    disconnect: "Desconectar loja",
     openAdmin: "Autorizar en Dorado",
     openStore: "Abrir tienda",
     invalidUrl: "Ingresá una URL válida.",
@@ -182,7 +182,7 @@ const copy = {
     products: "real products",
     missingCost:
       "Some products still have no recorded real cost. Global Stock will not invent it.",
-    disconnect: "Disconnect",
+    disconnect: "Disconnect store",
     openAdmin: "Authorize in Dorado",
     openStore: "Open store",
     invalidUrl: "Enter a valid URL.",
@@ -296,7 +296,7 @@ const copy = {
     products: "produits réels",
     missingCost:
       "Certains produits n’ont pas encore de coût réel enregistré. Global Stock ne l’inventera pas.",
-    disconnect: "Déconnecter",
+    disconnect: "Déconnecter la boutique",
     openAdmin: "Autoriser dans Dorado",
     openStore: "Ouvrir la boutique",
     invalidUrl: "Saisissez une URL valide.",
@@ -353,7 +353,7 @@ const copy = {
     products: "echte Produkte",
     missingCost:
       "Einige Produkte haben noch keine echten Kosten. Global Stock erfindet diesen Wert nicht.",
-    disconnect: "Trennen",
+    disconnect: "Shop trennen",
     openAdmin: "In Dorado autorisieren",
     openStore: "Shop öffnen",
     invalidUrl: "Gib eine gültige URL ein.",
@@ -403,21 +403,21 @@ const providerMethods: Record<
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, stock, clientes y pedidos mediante una aplicación autorizada." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Productos, stock y pedidos usando credenciales generadas por el dueño de la tienda." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Publicaciones, inventario, órdenes y envíos con permisos de la cuenta." },
-    { id: "custom", name: "API propia", auth: "Token", detail: "Conector Global Stock para sitios propios como Dorado, con token revocable y permisos por alcance." }
+    { id: "custom", name: "API propia", auth: "Verificación segura", detail: "Conector Global Stock para sitios propios como Dorado, con autorización revocable y permisos por alcance." }
   ],
   en: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Products, variants, inventory, orders and webhooks with admin authorization." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catalog, inventory, customers and orders through an authorized app." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Products, inventory and orders using credentials issued by the store owner." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Listings, inventory, orders and shipping with account permissions." },
-    { id: "custom", name: "Custom API", auth: "Token", detail: "Global Stock connector for custom stores such as Dorado, with revocable scoped tokens." }
+    { id: "custom", name: "Custom API", auth: "Secure verification", detail: "Global Stock connector for custom stores such as Dorado, with revocable scoped authorization." }
   ],
   pt: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produtos, variantes, estoque, pedidos e webhooks com autorização do administrador." },
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, estoque, clientes e pedidos por aplicativo autorizado." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produtos, estoque e pedidos com credenciais emitidas pelo dono da loja." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Anúncios, estoque, pedidos e envios com permissões da conta." },
-    { id: "custom", name: "API própria", auth: "Token", detail: "Conector Global Stock para lojas próprias como Dorado, com token revogável." }
+    { id: "custom", name: "API própria", auth: "Verificação segura", detail: "Conector Global Stock para lojas próprias como Dorado, com autorização revogável." }
   ],
   fr: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Produits, variantes, stock, commandes et webhooks avec autorisation administrateur." },
@@ -431,7 +431,7 @@ const providerMethods: Record<
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Katalog, Bestand, Kunden und Bestellungen über eine autorisierte App." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Produkte, Bestand und Bestellungen mit vom Shopinhaber erstellten Zugangsdaten." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Angebote, Bestand, Bestellungen und Versand mit Kontoberechtigungen." },
-    { id: "custom", name: "Eigene API", auth: "Token", detail: "Global-Stock-Connector für eigene Shops wie Dorado mit widerrufbaren Tokens." }
+    { id: "custom", name: "Eigene API", auth: "Sichere Verifizierung", detail: "Global-Stock-Connector für eigene Shops wie Dorado mit widerrufbarer Autorisierung." }
   ]
 };
 
