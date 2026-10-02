@@ -12,12 +12,14 @@ import {
   RefreshCw,
   Tags,
   Truck,
+  WalletCards,
   Wrench
 } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Product } from "@/lib/types";
+import { CommercialOperations } from "./CommercialOperations";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -32,6 +34,7 @@ type ToolId =
   | "orders"
   | "inventory"
   | "services"
+  | "commercial"
   | "automations"
   | "data"
   | "restaurant"
@@ -111,6 +114,7 @@ const baseTools: Array<{ id: ToolId; icon: typeof ClipboardCheck }> = [
   { id: "orders", icon: PackageSearch },
   { id: "inventory", icon: ClipboardCheck },
   { id: "services", icon: Wrench },
+  { id: "commercial", icon: WalletCards },
   { id: "automations", icon: BellRing },
   { id: "data", icon: ArchiveRestore }
 ];
@@ -224,6 +228,13 @@ export function AdvancedOperations({
       pt: "Serviços",
       fr: "Services",
       de: "Services"
+    }),
+    commercial: tr(language, {
+      es: "Comercial",
+      en: "Commercial",
+      pt: "Comercial",
+      fr: "Commercial",
+      de: "Handel"
     }),
     automations: tr(language, {
       es: "Automatizaciones",
@@ -1320,6 +1331,15 @@ export function AdvancedOperations({
               />
             ))}
           </ToolGrid>
+        )}
+
+        {tool === "commercial" && (
+          <CommercialOperations
+            businessId={businessId}
+            language={language}
+            currency={currency}
+            locale={locale}
+          />
         )}
 
         {tool === "data" && (
