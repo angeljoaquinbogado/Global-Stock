@@ -97,7 +97,7 @@ export async function connectorFetch({
   storeUrl: string;
   token: string;
   resource: "store" | "products" | "product";
-  method?: "GET" | "PATCH";
+  method?: "GET" | "PATCH" | "DELETE";
   body?: unknown;
 }) {
   const store = await assertPublicStoreUrl(storeUrl);
