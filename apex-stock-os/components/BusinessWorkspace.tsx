@@ -2770,6 +2770,24 @@ function PosModule({
   money: (value: number) => string;
   completeSale: (paymentMethod?: string, receivedAmount?: number) => void;
 }) {
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+  const [receivedAmount, setReceivedAmount] = useState("");
+
+  const received = Math.max(0, Number(receivedAmount.replace(",", ".")) || 0);
+  const change =
+    paymentMethod === "cash" ? Math.max(0, received - cartTotal) : 0;
+  const cashInsufficient =
+    paymentMethod === "cash" && cartLines.length > 0 && received < cartTotal;
+
+  function finishSale() {
+    if (!cartLines.length || cashInsufficient) return;
+    completeSale(
+      paymentMethod,
+      paymentMethod === "cash" ? received : undefined
+    );
+    setReceivedAmount("");
+  }
+
   return (
     <div className="space-y-5">
       <PageIntro title={labels.posTitle} subtitle={labels.posSubtitle} />
@@ -2896,10 +2914,97 @@ function PosModule({
             </div>
           </div>
 
+          <div className="mt-5 border-t border-[var(--apex-border)] pt-4">
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+              {language === "es"
+                ? "Medio de pago"
+                : language === "pt"
+                  ? "Forma de pagamento"
+                  : language === "fr"
+                    ? "Moyen de paiement"
+                    : language === "de"
+                      ? "Zahlungsart"
+                      : "Payment method"}
+            </p>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <select
+                className="apex-input min-h-11 px-3 text-sm"
+                value={paymentMethod}
+                onChange={(event) => setPaymentMethod(event.target.value)}
+              >
+                <option value="cash">
+                  {language === "es" ? "Efectivo" : language === "pt" ? "Dinheiro" : language === "fr" ? "Espèces" : language === "de" ? "Bargeld" : "Cash"}
+                </option>
+                <option value="debit">
+                  {language === "es" ? "Débito" : language === "pt" ? "Débito" : language === "fr" ? "Débit" : language === "de" ? "Debitkarte" : "Debit"}
+                </option>
+                <option value="credit">
+                  {language === "es" ? "Crédito" : language === "pt" ? "Crédito" : language === "fr" ? "Crédit" : language === "de" ? "Kreditkarte" : "Credit"}
+                </option>
+                <option value="transfer">
+                  {language === "es" ? "Transferencia" : language === "pt" ? "Transferência" : language === "fr" ? "Virement" : language === "de" ? "Überweisung" : "Transfer"}
+                </option>
+                <option value="qr">QR</option>
+                <option value="account">
+                  {language === "es" ? "Cuenta corriente" : language === "pt" ? "Conta corrente" : language === "fr" ? "Compte client" : language === "de" ? "Kundenkonto" : "Customer account"}
+                </option>
+              </select>
+
+              {paymentMethod === "cash" ? (
+                <input
+                  className="apex-input min-h-11 px-3 text-sm"
+                  inputMode="decimal"
+                  placeholder={
+                    language === "es"
+                      ? "Recibido"
+                      : language === "pt"
+                        ? "Recebido"
+                        : language === "fr"
+                          ? "Reçu"
+                          : language === "de"
+                            ? "Erhalten"
+                            : "Received"
+                  }
+                  value={receivedAmount}
+                  onChange={(event) => setReceivedAmount(event.target.value)}
+                />
+              ) : (
+                <div className="flex min-h-11 items-center rounded-2xl border border-[var(--apex-border)] px-3 text-xs text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Cobro electrónico"
+                    : language === "pt"
+                      ? "Pagamento eletrônico"
+                      : language === "fr"
+                        ? "Paiement électronique"
+                        : language === "de"
+                          ? "Elektronische Zahlung"
+                          : "Electronic payment"}
+                </div>
+              )}
+            </div>
+
+            {paymentMethod === "cash" && cartLines.length > 0 && (
+              <div className="mt-3 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-sm">
+                <span className="text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Vuelto"
+                    : language === "pt"
+                      ? "Troco"
+                      : language === "fr"
+                        ? "Monnaie"
+                        : language === "de"
+                          ? "Rückgeld"
+                          : "Change"}
+                </span>
+                <strong>{money(change)}</strong>
+              </div>
+            )}
+          </div>
+
           <button
             type="button"
-            disabled={!cartLines.length}
-            onClick={completeSale}
+            disabled={!cartLines.length || cashInsufficient}
+            onClick={finishSale}
             className="mt-5 w-full rounded-2xl bg-[#8F0000] px-4 py-3.5 text-sm font-semibold text-white disabled:opacity-35"
           >
             {labels.completeSale}
@@ -2918,8 +3023,9 @@ function PosModule({
             </div>
             <button
               type="button"
-              onClick={completeSale}
-              className="min-h-12 shrink-0 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(143,0,0,.24)]"
+              onClick={finishSale}
+              disabled={cashInsufficient}
+              className="min-h-12 shrink-0 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(143,0,0,.24)] disabled:opacity-35"
             >
               {labels.completeSale}
             </button>
