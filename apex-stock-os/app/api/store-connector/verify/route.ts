@@ -165,9 +165,24 @@ export async function GET() {
 }
 
 export async function DELETE() {
+  const session = await readConnectorSession();
+
+  if (session) {
+    try {
+      await connectorFetch({
+        storeUrl: session.storeUrl,
+        token: session.token,
+        resource: "store",
+        method: "DELETE"
+      });
+    } catch {
+      // Local disconnection must still succeed if the remote store is offline.
+    }
+  }
+
   await clearConnectorSession();
   return NextResponse.json(
-    { ok: true },
+    { ok: true, revokedRemote: Boolean(session) },
     { headers: { "Cache-Control": "no-store" } }
   );
 }
