@@ -405,6 +405,29 @@ function normalizeUrl(value: string) {
   return new URL(next).toString();
 }
 
+function providerFromPlatform(
+  platform: string
+): keyof IntegrationReadiness | null {
+  const normalized = platform.toLowerCase();
+
+  if (normalized.includes("shopify")) return "shopify";
+  if (
+    normalized.includes("tiendanube") ||
+    normalized.includes("nuvem")
+  ) {
+    return "tiendanube";
+  }
+  if (normalized.includes("woocommerce")) return "woocommerce";
+  if (
+    normalized.includes("mercado libre") ||
+    normalized.includes("mercadolibre")
+  ) {
+    return "mercadolibre";
+  }
+
+  return null;
+}
+
 const providerMethods: Record<
   LanguageCode,
   Array<{
@@ -419,7 +442,7 @@ const providerMethods: Record<
     { id: "tiendanube", name: "Tiendanube", auth: "OAuth", detail: "Catálogo, stock, clientes y pedidos mediante una aplicación autorizada." },
     { id: "woocommerce", name: "WooCommerce", auth: "REST API", detail: "Productos, stock y pedidos usando credenciales generadas por el dueño de la tienda." },
     { id: "mercadolibre", name: "Mercado Libre", auth: "OAuth", detail: "Publicaciones, inventario, órdenes y envíos con permisos de la cuenta." },
-    { id: "custom", name: "API propia", auth: "Verificación segura", detail: "Conector Global Stock para sitios propios, con autorización revocable y permisos por alcance." }
+    { id: "custom", name: "Sitio propio / API", auth: "Verificación segura", detail: "Conector Global Stock, API empresarial o verificación de dominio para sistemas propios." }
   ],
   en: [
     { id: "shopify", name: "Shopify", auth: "OAuth", detail: "Products, variants, inventory, orders and webhooks with admin authorization." },
@@ -476,6 +499,8 @@ export function ConnectedCommerceHub({
   >([]);
   const [selectedProvider, setSelectedProvider] =
     useState<keyof IntegrationReadiness>("custom");
+  const [enterpriseOpen, setEnterpriseOpen] = useState(false);
+  const [requestingIntegration, setRequestingIntegration] = useState(false);
 
   const selectedProviderMeta =
     providerMethods[language].find(
@@ -489,6 +514,10 @@ export function ConnectedCommerceHub({
         account.provider === selectedProvider &&
         account.status === "connected"
     ) ?? null;
+
+  const detectedProvider = preview
+    ? providerFromPlatform(preview.platform)
+    : null;
 
   const adminUrl = useMemo(() => {
     if (
@@ -729,6 +758,53 @@ export function ConnectedCommerceHub({
       setError(t.syncError);
     } finally {
       setSyncing(false);
+    }
+  }
+
+  async function requestIntegration(
+    kind: "platform" | "enterprise" | "public-site"
+  ) {
+    if (!preview) return;
+
+    setRequestingIntegration(true);
+    setError("");
+
+    const requestId = crypto.randomUUID().slice(0, 8).toUpperCase();
+    const description = [
+      "Solicitud de integración",
+      "tipo=" + kind,
+      "dominio=" + preview.domain,
+      "plataforma=" + preview.platform,
+      "solicitud=" + requestId
+    ].join(" · ");
+
+    try {
+      const supabase = getSupabaseBrowserClient();
+
+      if (supabase && businessId && !demoMode) {
+        await supabase.from("global_stock_notifications").insert({
+          business_id: businessId,
+          kind: "integration_request",
+          title: "Integración solicitada · " + preview.domain,
+          body: description,
+          severity: "info",
+          entity_type: "integration"
+        });
+      }
+
+      setMessage(
+        language === "es"
+          ? `Solicitud ${requestId} registrada para ${preview.domain}. La web sigue en modo público hasta que exista una autorización válida.`
+          : `Request ${requestId} registered for ${preview.domain}. The site remains public-only until valid authorization exists.`
+      );
+    } catch {
+      setMessage(
+        language === "es"
+          ? `Solicitud ${requestId} preparada para ${preview.domain}. La tienda sigue en modo público hasta que se complete una autorización válida.`
+          : `Request ${requestId} prepared for ${preview.domain}. The store stays public-only until valid authorization is completed.`
+      );
+    } finally {
+      setRequestingIntegration(false);
     }
   }
 
