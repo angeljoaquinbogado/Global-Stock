@@ -3529,14 +3529,26 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "operations" && (
-              <BusinessSuite
-                language={language}
-                currency={currency}
-                locale={locale}
-                businessId={cloudBusinessId}
-                demoMode={demoMode}
-                memberRole={memberRole}
-              >
+              demoMode || ["owner", "admin"].includes(memberRole) ? (
+                <BusinessSuite
+                  language={language}
+                  currency={currency}
+                  locale={locale}
+                  businessId={cloudBusinessId}
+                  demoMode={demoMode}
+                  memberRole={memberRole}
+                >
+                  <OperationsCenter
+                    businessId={cloudBusinessId}
+                    language={language}
+                    currency={currency}
+                    locale={locale}
+                    businessType={businessType}
+                    memberRole={memberRole}
+                    demoMode={demoMode}
+                  />
+                </BusinessSuite>
+              ) : (
                 <OperationsCenter
                   businessId={cloudBusinessId}
                   language={language}
@@ -3546,7 +3558,7 @@ export function BusinessWorkspace({
                   memberRole={memberRole}
                   demoMode={demoMode}
                 />
-              </BusinessSuite>
+              )
             )}
 
             {activeModule === "settings" && (
