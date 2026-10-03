@@ -568,8 +568,12 @@ export function BusinessSuite({
     }
   ];
 
-  const visibleTabs = tabs.filter(({ id }) =>
-    canAccessBusinessSuiteTab(id, memberRole, demoMode)
+  const visibleTabs = useMemo(
+    () =>
+      tabs.filter(({ id }) =>
+        canAccessBusinessSuiteTab(id, memberRole, demoMode)
+      ),
+    [demoMode, memberRole, tabs]
   );
 
   useEffect(() => {
