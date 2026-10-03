@@ -3,13 +3,9 @@
 import {
   Boxes,
   ChevronDown,
-  CircleHelp,
   Link2,
   MonitorSmartphone,
-  ScanLine,
-  ShieldCheck,
-  Sparkles,
-  UsersRound
+  ShieldCheck
 } from "lucide-react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
@@ -20,7 +16,7 @@ type CategoryId = "start" | "operation" | "connections" | "security";
 const categories: Array<{
   id: CategoryId;
   label: string;
-  icon: typeof CircleHelp;
+  icon: typeof MonitorSmartphone;
 }> = [
   { id: "start", label: "Empezar", icon: MonitorSmartphone },
   { id: "operation", label: "Operación", icon: Boxes },
@@ -37,79 +33,61 @@ const faqs: Array<{
     category: "start",
     q: "¿En qué dispositivos puedo usar Global Stock?",
     a:
-      "Podés abrirlo desde el navegador y también instalar la versión PWA. En iPhone y iPad se agrega desde Safari; en Android desde Chrome; y en Windows desde Chrome o Edge. Las tiendas nativas se mostrarán como disponibles únicamente cuando exista una publicación aprobada."
+      "Podés usarlo desde el navegador y también instalar la versión PWA. En iPhone y iPad se agrega desde Safari; en Android desde Chrome; y en Windows desde Chrome o Edge."
   },
   {
     category: "start",
-    q: "¿Sirve solo para comercios?",
+    q: "¿Sirve para distintos tipos de negocio?",
     a:
-      "No. Global Stock está pensado para comercios, gastronomía, ecommerce, distribución, industria, servicios, pymes, autónomos y también asesorías o estudios que trabajen con clientes, documentos, finanzas y agenda."
+      "Sí. La estructura contempla comercios, gastronomía, ecommerce, distribución, industria, servicios, pymes, autónomos y asesorías. El perfil del negocio permite adaptar la forma de presentar la operación."
   },
   {
     category: "start",
     q: "¿Tengo que configurar todo antes de empezar?",
     a:
-      "No. Podés empezar con lo esencial y sumar funciones después. El perfil del negocio permite adaptar la operación, el análisis y el contexto de Global Intelligence a cómo trabaja cada empresa."
+      "No. Podés empezar con lo esencial y sumar funciones a medida que las necesitás. La idea es que la aplicación crezca con la operación, no que te obligue a configurar módulos que todavía no usás."
   },
   {
     category: "operation",
-    q: "¿El punto de venta descuenta stock automáticamente?",
+    q: "¿El punto de venta actualiza el inventario?",
     a:
-      "Sí. Al registrar una venta, el flujo de caja y el inventario quedan conectados para actualizar existencias dentro de la misma operación."
+      "Sí. El flujo está pensado para que una venta pueda actualizar existencias dentro de la misma operación y dejar registro en la actividad correspondiente."
   },
   {
     category: "operation",
-    q: "¿Puedo usar códigos de barras sin comprar una pistola?",
+    q: "¿Puedo usar la cámara para leer códigos de barras?",
     a:
-      "Sí. Global Stock incluye escaneo con cámara y herramientas para asignar y generar etiquetas de códigos de barras. También puede convivir con lectores físicos que funcionen como entrada de teclado."
+      "Sí. Global Stock incluye escaneo con cámara y herramientas para trabajar con códigos de barras y etiquetas. También puede convivir con lectores físicos que funcionen como entrada de teclado."
   },
   {
     category: "operation",
-    q: "¿Puedo manejar caja, clientes, gastos, compras y sucursales?",
+    q: "¿Qué áreas del negocio puedo gestionar?",
     a:
-      "Sí. La gestión incluye caja, movimientos, clientes, gastos, compras, proveedores, ubicaciones y equipo, además del inventario y el punto de venta."
+      "Además de ventas e inventario, la plataforma contempla caja, clientes, gastos, compras, proveedores, ubicaciones, documentos, proyectos, equipo, agenda y análisis."
   },
   {
     category: "connections",
     q: "¿Puedo conectar una tienda online?",
     a:
-      "Sí, cuando exista una integración compatible. Global Stock puede reconocer información pública de una tienda, pero la sincronización privada de stock o datos sensibles requiere una autorización adicional."
+      "Cuando exista una integración compatible, sí. Global Stock puede reconocer información pública de una tienda, pero la sincronización privada de stock o datos sensibles requiere autorización adicional."
   },
   {
     category: "connections",
-    q: "¿Global Intelligence usa los datos de mi negocio?",
+    q: "¿Qué contexto usa Global Intelligence?",
     a:
-      "Está diseñada para trabajar con el contexto disponible dentro de Global Stock, como inventario, ventas, costos, márgenes, actividad, notas y otros datos operativos a los que tu cuenta tenga acceso."
+      "Está diseñada para trabajar con la información disponible dentro de Global Stock a la que tu cuenta tenga acceso, como inventario, ventas, costos, márgenes, actividad y notas."
   },
   {
     category: "security",
-    q: "¿Una URL alcanza para acceder a los datos de una tienda?",
+    q: "¿Una URL alcanza para acceder a datos privados?",
     a:
-      "No. Detectar una web o leer información pública no otorga permisos para administrar el negocio. Las acciones privadas requieren una conexión autorizada."
+      "No. Detectar una web o leer información pública no otorga permisos para administrar ese negocio. Las acciones privadas requieren una conexión autorizada."
   },
   {
     category: "security",
     q: "¿Puedo limitar lo que ve cada persona?",
     a:
-      "Sí. La aplicación contempla perfiles como dueño, administrador, gerente, caja, depósito, ventas, contador y solo lectura, con acceso diferente según el rol."
-  }
-];
-
-const quickFacts = [
-  {
-    icon: ScanLine,
-    title: "Escáner incluido",
-    text: "Cámara o lector físico"
-  },
-  {
-    icon: UsersRound,
-    title: "Acceso por rol",
-    text: "Cada persona ve lo necesario"
-  },
-  {
-    icon: Sparkles,
-    title: "IA con contexto",
-    text: "Trabaja sobre la operación"
+      "Sí. La aplicación contempla perfiles como dueño, administrador, gerente, caja, depósito, ventas, contador y solo lectura, con accesos distintos según el rol."
   }
 ];
 
@@ -130,124 +108,103 @@ export function DownloadFAQ() {
   }
 
   return (
-    <section className="border-t border-[#24171a] bg-[#0b0b0c] text-white">
-      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-        <div className="grid gap-10 lg:grid-cols-[.72fr_1.28fr] lg:gap-16">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
-              Preguntas frecuentes
-            </p>
-            <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-              Antes de empezar.
-            </h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/50">
-              Respuestas cortas sobre instalación, operación, conexiones y
-              seguridad. Sin letra chica escondida.
-            </p>
+    <section className="border-t border-[#211417] bg-[#080809] text-white">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
+            Ayuda
+          </p>
+          <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+            Antes de empezar.
+          </h2>
+          <p className="mt-5 max-w-lg text-base leading-7 text-white/46">
+            Respuestas concretas sobre instalación, operación, conexiones y
+            acceso. Si necesitás algo más específico, podés ir directo a soporte.
+          </p>
 
-            <div className="mt-8 grid gap-2 sm:grid-cols-3 lg:grid-cols-1">
-              {quickFacts.map(({ icon: Icon, title, text }) => (
-                <div
-                  key={title}
-                  className="grid grid-cols-[38px_1fr] items-center gap-3 rounded-2xl bg-white/[0.03] px-3.5 py-3"
+          <Link
+            href="/support"
+            className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition hover:text-white"
+          >
+            Ir a soporte
+            <span aria-hidden="true">→</span>
+          </Link>
+        </div>
+
+        <div>
+          <div className="flex gap-6 overflow-x-auto border-b border-[#211417]">
+            {categories.map(({ id, label, icon: Icon }) => {
+              const selected = category === id;
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => chooseCategory(id)}
+                  className={
+                    "relative inline-flex min-h-12 shrink-0 items-center gap-2 pb-3 text-sm font-semibold transition " +
+                    (selected ? "text-white" : "text-white/34 hover:text-white/62")
+                  }
                 >
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-red-500/8 text-red-300">
-                    <Icon size={16} />
-                  </span>
-                  <div>
-                    <p className="text-xs font-semibold text-white/78">{title}</p>
-                    <p className="mt-0.5 text-[11px] text-white/34">{text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-7">
-              <p className="text-xs text-white/32">¿No encontraste tu duda?</p>
-              <Link
-                href="/support"
-                className="mt-2 inline-flex items-center gap-2 text-sm font-semibold text-red-300 transition hover:text-red-200"
-              >
-                Ir a soporte →
-              </Link>
-            </div>
+                  <Icon size={15} />
+                  {label}
+                  {selected && (
+                    <motion.span
+                      layoutId="faq-category"
+                      className="absolute inset-x-0 bottom-[-1px] h-px bg-[#ed4c5c]"
+                    />
+                  )}
+                </button>
+              );
+            })}
           </div>
 
           <div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {categories.map(({ id, label, icon: Icon }) => {
-                const selected = category === id;
-                return (
+            {visible.map((item, index) => {
+              const open = openQuestion === item.q;
+
+              return (
+                <div
+                  key={item.q}
+                  className={index > 0 ? "border-t border-[#211417]" : ""}
+                >
                   <button
-                    key={id}
                     type="button"
-                    onClick={() => chooseCategory(id)}
-                    className={
-                      "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-4 text-sm font-semibold transition " +
-                      (selected
-                        ? "bg-white text-black shadow-[0_10px_28px_rgba(0,0,0,.22)]"
-                        : "bg-white/[0.035] text-white/48 hover:bg-white/[0.07] hover:text-white")
-                    }
+                    onClick={() => setOpenQuestion(open ? "" : item.q)}
+                    className="flex w-full items-center justify-between gap-6 py-5 text-left"
+                    aria-expanded={open}
                   >
-                    <Icon size={14} />
-                    {label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div className="mt-5 space-y-2">
-              {visible.map((item) => {
-                const open = openQuestion === item.q;
-
-                return (
-                  <div
-                    key={item.q}
-                    className={
-                      "overflow-hidden rounded-[20px] transition " +
-                      (open
-                        ? "bg-[#141416] shadow-[0_18px_45px_rgba(0,0,0,.20)]"
-                        : "bg-white/[0.025] hover:bg-white/[0.045]")
-                    }
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setOpenQuestion(open ? "" : item.q)}
-                      className="flex min-h-16 w-full items-center justify-between gap-5 px-4 py-4 text-left sm:px-5"
-                      aria-expanded={open}
+                    <span className="text-base font-semibold leading-6 text-white/82 sm:text-lg">
+                      {item.q}
+                    </span>
+                    <span
+                      className={
+                        "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.035] text-white/38 transition " +
+                        (open ? "rotate-180 text-[#ed4c5c]" : "")
+                      }
                     >
-                      <span className="text-sm font-semibold leading-5 text-white/82 sm:text-base">
-                        {item.q}
-                      </span>
-                      <span
-                        className={
-                          "grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/[0.045] text-white/42 transition-transform " +
-                          (open ? "rotate-180 text-red-300" : "")
-                        }
-                      >
-                        <ChevronDown size={15} />
-                      </span>
-                    </button>
+                      <ChevronDown size={16} />
+                    </span>
+                  </button>
 
-                    <AnimatePresence initial={false}>
-                      {open && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: "auto", opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
-                          className="overflow-hidden"
-                        >
-                          <p className="px-4 pb-5 text-sm leading-7 text-white/48 sm:px-5">
-                            {item.a}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                );
-              })}
-            </div>
+                  <AnimatePresence initial={false}>
+                    {open && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
+                        className="overflow-hidden"
+                      >
+                        <p className="max-w-3xl pb-6 pr-10 text-sm leading-7 text-white/44 sm:text-base">
+                          {item.a}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
