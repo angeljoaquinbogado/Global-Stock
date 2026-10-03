@@ -43,6 +43,8 @@ const frameColors: IPhone17ProMaxFrameColor[] = [
 ];
 
 type DemoScreen = "dashboard" | "pos" | "inventory" | "ai";
+type PhoneNavAction = "overview" | "pos" | "scan" | "charts" | "more";
+type PhoneOverlay = "scan" | "charts" | "more" | null;
 
 const screens: Array<{ id: DemoScreen; label: string }> = [
   { id: "dashboard", label: "Inicio" },
@@ -57,6 +59,7 @@ export function GlobalStockPhonePreview() {
   const [frameColor, setFrameColor] =
     useState<IPhone17ProMaxFrameColor>("graphite");
   const [screenIndex, setScreenIndex] = useState(0);
+  const [overlay, setOverlay] = useState<PhoneOverlay>(null);
   const [paused, setPaused] = useState(false);
 
   const manualPauseTimerRef = useRef<number | null>(null);
@@ -101,6 +104,7 @@ export function GlobalStockPhonePreview() {
 
     navLockRef.current = true;
     pauseForManualNavigation();
+    setOverlay(null);
 
     setScreenIndex(
       (current) =>
@@ -114,8 +118,37 @@ export function GlobalStockPhonePreview() {
 
   const chooseScreen = (next: DemoScreen) => {
     pauseForManualNavigation();
+    setOverlay(null);
     const index = screens.findIndex((item) => item.id === next);
     if (index >= 0) setScreenIndex(index);
+  };
+
+  const handlePhoneNav = (action: PhoneNavAction) => {
+    pauseForManualNavigation();
+
+    if (action === "overview") {
+      setOverlay(null);
+      setScreenIndex(0);
+      return;
+    }
+
+    if (action === "pos") {
+      setOverlay(null);
+      setScreenIndex(1);
+      return;
+    }
+
+    if (action === "charts") {
+      setOverlay("charts");
+      return;
+    }
+
+    if (action === "more") {
+      setOverlay("more");
+      return;
+    }
+
+    setOverlay("scan");
   };
 
   const cycleDynamicIsland = () => {
@@ -156,12 +189,31 @@ export function GlobalStockPhonePreview() {
             className="relative"
           >
             <div className="h-full min-h-0 overflow-hidden bg-[#050506] text-white">
-              {screen === "dashboard" && (
-                <DashboardDemo onNavigate={chooseScreen} />
+              {overlay === "charts" ? (
+                <ChartsDemo onNavigate={handlePhoneNav} />
+              ) : overlay === "more" ? (
+                <MoreDemo
+                  onNavigate={handlePhoneNav}
+                  onOpenScreen={chooseScreen}
+                />
+              ) : overlay === "scan" ? (
+                <ScannerPreview onNavigate={handlePhoneNav} />
+              ) : (
+                <>
+                  {screen === "dashboard" && (
+                    <DashboardDemo onNavigate={handlePhoneNav} />
+                  )}
+                  {screen === "pos" && (
+                    <PosDemo onNavigate={handlePhoneNav} />
+                  )}
+                  {screen === "inventory" && (
+                    <InventoryDemo onNavigate={handlePhoneNav} />
+                  )}
+                  {screen === "ai" && (
+                    <IntelligenceDemo onNavigate={handlePhoneNav} />
+                  )}
+                </>
               )}
-              {screen === "pos" && <PosDemo />}
-              {screen === "inventory" && <InventoryDemo />}
-              {screen === "ai" && <IntelligenceDemo />}
             </div>
           </IPhone17ProMax>
         </div>
@@ -285,8 +337,8 @@ function PhoneBottomNav({
   active,
   onNavigate
 }: {
-  active: "overview" | "pos" | "inventory";
-  onNavigate?: (screen: DemoScreen) => void;
+  active: PhoneNavAction;
+  onNavigate: (action: PhoneNavAction) => void;
 }) {
   return (
     <nav className="grid shrink-0 grid-cols-5 items-end gap-1 border-t border-white/10 bg-black/92 px-1.5 pb-1 pt-1.5">
@@ -294,17 +346,18 @@ function PhoneBottomNav({
         active={active === "overview"}
         icon={<Store size={12} />}
         label="Inicio"
-        onClick={() => onNavigate?.("dashboard")}
+        onClick={() => onNavigate("overview")}
       />
       <PhoneNavButton
         active={active === "pos"}
         icon={<ShoppingCart size={12} />}
         label="P. venta"
-        onClick={() => onNavigate?.("pos")}
+        onClick={() => onNavigate("pos")}
       />
 
       <button
         type="button"
+        onClick={() => onNavigate("scan")}
         className="-mt-5 flex flex-col items-center justify-end gap-0.5 text-[6.5px] font-semibold text-red-400"
       >
         <span className="grid h-10 w-10 place-items-center rounded-full border-[3px] border-[#050506] bg-[#8F0000] text-white shadow-[0_7px_20px_rgba(143,0,0,.35)]">
@@ -314,15 +367,16 @@ function PhoneBottomNav({
       </button>
 
       <PhoneNavButton
-        active={false}
+        active={active === "charts"}
         icon={<BarChart3 size={12} />}
         label="Gráficos"
+        onClick={() => onNavigate("charts")}
       />
       <PhoneNavButton
-        active={active === "inventory"}
+        active={active === "more"}
         icon={<Menu size={12} />}
         label="Más"
-        onClick={() => onNavigate?.("inventory")}
+        onClick={() => onNavigate("more")}
       />
     </nav>
   );
@@ -357,7 +411,7 @@ function PhoneNavButton({
 function DashboardDemo({
   onNavigate
 }: {
-  onNavigate: (screen: DemoScreen) => void;
+  onNavigate: (action: PhoneNavAction) => void;
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
@@ -499,65 +553,35 @@ function ActivityLine({ text }: { text: string }) {
   );
 }
 
-function PosDemo() {
-  const [cart, setCart] = useState<Record<string, number>>({
-    "Reel frontal 5000": 1
-  });
-  const [payment, setPayment] = useState("Efectivo");
-  const [done, setDone] = useState(false);
-
+function PosDemo({
+  onNavigate
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+}) {
   const products = [
     { name: "Reel frontal 5000", category: "Reels", stock: 8, price: 89900 },
     { name: "Señuelo minnow", category: "Señuelos", stock: 23, price: 15900 }
   ];
-
-  const total = products.reduce(
-    (sum, product) => sum + (cart[product.name] ?? 0) * product.price,
-    0
-  );
-
   const money = (value: number) =>
     "$ " + new Intl.NumberFormat("es-AR").format(value);
-
-  const add = (name: string, stock: number) => {
-    setCart((current) => ({
-      ...current,
-      [name]: Math.min(stock, (current[name] ?? 0) + 1)
-    }));
-  };
-
-  const change = (name: string, delta: number, stock: number) => {
-    setCart((current) => {
-      const next = Math.max(0, Math.min(stock, (current[name] ?? 0) + delta));
-      const result = { ...current };
-      if (next === 0) delete result[name];
-      else result[name] = next;
-      return result;
-    });
-  };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <PhoneAppBar />
 
-      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+      <div className="gs-phone-readonly min-h-0 flex-1 overflow-hidden px-3.5 py-3">
         <PageHeading
           title="Punto de venta"
           subtitle="Elegí productos, armá el carrito, registrá el cobro y descontá stock."
         />
 
-        <label className="relative mt-2.5 block">
+        <div className="relative mt-2.5 flex h-8 items-center rounded-[10px] border border-white/10 bg-white/[0.035] pl-7 pr-2 text-[8px] text-white/30">
           <Search
             size={11}
             className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"
           />
-          <input
-            readOnly
-            value=""
-            placeholder="Buscar producto"
-            className="h-8 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-7 pr-2 text-[8px] text-white outline-none placeholder:text-white/30"
-          />
-        </label>
+          Buscar producto
+        </div>
 
         <div className="mt-2 grid grid-cols-2 gap-1.5">
           {products.map((product) => (
@@ -582,14 +606,10 @@ function PosDemo() {
               <p className="mt-1.5 text-[9px] font-semibold">
                 {money(product.price)}
               </p>
-              <button
-                type="button"
-                onClick={() => add(product.name, product.stock)}
-                className="mt-2 min-h-8 w-full rounded-[9px] bg-[#8F0000] px-2 text-[7px] font-semibold text-white"
-              >
-                <Plus size={9} className="mr-1 inline" />
+              <div className="mt-2 flex min-h-8 w-full items-center justify-center rounded-[9px] bg-[#8F0000] px-2 text-[7px] font-semibold text-white">
+                <Plus size={9} className="mr-1" />
                 Agregar
-              </button>
+              </div>
             </article>
           ))}
         </div>
@@ -597,94 +617,56 @@ function PosDemo() {
         <section className="mt-2 rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
           <div className="flex items-center justify-between">
             <p className="text-[9px] font-semibold">Carrito</p>
-            <span className="text-[7px] text-white/38">
-              {Object.values(cart).reduce((sum, value) => sum + value, 0)} u.
-            </span>
+            <span className="text-[7px] text-white/38">1 u.</span>
           </div>
 
-          <div className="mt-1.5 space-y-1.5">
-            {Object.entries(cart).map(([name, quantity]) => {
-              const product = products.find((item) => item.name === name)!;
-              return (
-                <div
-                  key={name}
-                  className="flex items-center justify-between gap-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-[7px] font-semibold">{name}</p>
-                    <p className="text-[6px] text-white/38">{money(product.price)}</p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => change(name, -1, product.stock)}
-                      className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10"
-                    >
-                      <Minus size={9} />
-                    </button>
-                    <span className="w-3 text-center text-[7px] font-semibold">
-                      {quantity}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => change(name, 1, product.stock)}
-                      className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10"
-                    >
-                      <Plus size={9} />
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="mt-1.5 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <p className="truncate text-[7px] font-semibold">
+                  Reel frontal 5000
+                </p>
+                <p className="text-[6px] text-white/38">$ 89.900</p>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10">
+                  <Minus size={9} />
+                </span>
+                <span className="w-3 text-center text-[7px] font-semibold">1</span>
+                <span className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10">
+                  <Plus size={9} />
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="mt-2 flex items-center justify-between border-t border-white/8 pt-2">
             <span className="text-[7px] text-white/45">Total</span>
-            <strong className="text-[10px]">{money(total)}</strong>
+            <strong className="text-[10px]">$ 89.900</strong>
           </div>
 
           <div className="mt-2 grid grid-cols-2 gap-1.5">
-            <select
-              value={payment}
-              onChange={(event) => setPayment(event.target.value)}
-              className="h-8 rounded-[9px] border border-white/10 bg-[#111] px-2 text-[7px] text-white outline-none"
-            >
-              <option>Efectivo</option>
-              <option>Débito</option>
-              <option>Crédito</option>
-              <option>Transferencia</option>
-              <option>QR</option>
-            </select>
-            <button
-              type="button"
-              disabled={!total}
-              onClick={() => {
-                setDone(true);
-                window.setTimeout(() => setDone(false), 1400);
-              }}
-              className={
-                "h-8 rounded-[9px] px-2 text-[7px] font-semibold text-white transition " +
-                (done ? "bg-emerald-600" : "bg-[#8F0000]")
-              }
-            >
-              {done ? "Venta registrada" : "Confirmar venta"}
-            </button>
+            <div className="flex h-8 items-center justify-between rounded-[9px] border border-white/10 bg-[#111] px-2 text-[7px] text-white">
+              <span>Efectivo</span>
+              <span className="text-white/35">⌄</span>
+            </div>
+            <div className="flex h-8 items-center justify-center rounded-[9px] bg-[#8F0000] px-2 text-[7px] font-semibold text-white">
+              Confirmar venta
+            </div>
           </div>
         </section>
       </div>
 
-      <PhoneBottomNav active="pos" />
+      <PhoneBottomNav active="pos" onNavigate={onNavigate} />
     </div>
   );
 }
 
-function InventoryDemo() {
-  const [stock, setStock] = useState<Record<string, number>>({
-    "Reel frontal 5000": 8,
-    "Señuelo minnow": 4,
-    "Anzuelo 3/0 x10": 73
-  });
-
+function InventoryDemo({
+  onNavigate
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+}) {
   const products = [
     {
       name: "Reel frontal 5000",
@@ -693,6 +675,7 @@ function InventoryDemo() {
       supplier: "Río Sur",
       cost: "$ 52.000",
       price: "$ 89.900",
+      stock: 8,
       min: 5
     },
     {
@@ -702,6 +685,7 @@ function InventoryDemo() {
       supplier: "Delta",
       cost: "$ 8.700",
       price: "$ 15.900",
+      stock: 4,
       min: 8
     }
   ];
@@ -710,7 +694,7 @@ function InventoryDemo() {
     <div className="flex h-full min-h-0 flex-col">
       <PhoneAppBar />
 
-      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+      <div className="gs-phone-readonly min-h-0 flex-1 overflow-hidden px-3.5 py-3">
         <PageHeading
           title="Almacén y stock"
           subtitle="Controlá existencias, mínimos, precios, códigos y ajustes desde un solo lugar."
@@ -725,9 +709,12 @@ function InventoryDemo() {
 
           <div className="divide-y divide-white/8">
             {products.map((product) => {
-              const value = stock[product.name] ?? 0;
               const status =
-                value <= 0 ? "Agotado" : value <= product.min ? "Bajo" : "Normal";
+                product.stock <= 0
+                  ? "Agotado"
+                  : product.stock <= product.min
+                    ? "Bajo"
+                    : "Normal";
 
               return (
                 <div key={product.name} className="px-2.5 py-2.5">
@@ -742,21 +729,9 @@ function InventoryDemo() {
                     </div>
 
                     <div className="flex items-center gap-1">
-                      <input
-                        type="number"
-                        min={0}
-                        value={value}
-                        onChange={(event) =>
-                          setStock((current) => ({
-                            ...current,
-                            [product.name]: Math.max(
-                              0,
-                              Number(event.target.value) || 0
-                            )
-                          }))
-                        }
-                        className="h-7 w-10 rounded-[7px] border border-white/10 bg-black/35 px-1 text-center text-[7px] font-semibold text-white outline-none"
-                      />
+                      <span className="grid h-7 w-10 place-items-center rounded-[7px] border border-white/10 bg-black/35 px-1 text-center text-[7px] font-semibold text-white">
+                        {product.stock}
+                      </span>
                       <span className="text-[6px] text-white/30">
                         / {product.min}
                       </span>
@@ -804,7 +779,7 @@ function InventoryDemo() {
         </div>
       </div>
 
-      <PhoneBottomNav active="inventory" />
+      <PhoneBottomNav active="more" onNavigate={onNavigate} />
     </div>
   );
 }
@@ -822,20 +797,11 @@ function MetaCell({ label, value }: { label: string; value: string }) {
   );
 }
 
-function IntelligenceDemo() {
-  const [input, setInput] = useState("");
-  const [reply, setReply] = useState(
-    "Preguntame lo que quieras. Puedo usar los datos reales de Global Stock para analizar stock, ventas, compras, margen, actividad, notas y escenarios."
-  );
-
-  const send = () => {
-    if (!input.trim()) return;
-    setReply(
-      "Tenés 12 alertas de stock: 9 productos con stock bajo y 3 agotados. Revisaría primero los artículos con mayor rotación."
-    );
-    setInput("");
-  };
-
+function IntelligenceDemo({
+  onNavigate
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+}) {
   return (
     <div className="flex h-full min-h-0 flex-col bg-black/35">
       <section className="flex h-full min-h-0 flex-col bg-[#050506]">
@@ -851,9 +817,7 @@ function IntelligenceDemo() {
                 </h3>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               </div>
-              <p className="mt-0.5 text-[6.5px] text-white/42">
-                IA conectada
-              </p>
+              <p className="mt-0.5 text-[6.5px] text-white/42">IA conectada</p>
             </div>
           </div>
 
@@ -862,64 +826,186 @@ function IntelligenceDemo() {
           </span>
         </header>
 
-        <div className="grid shrink-0 grid-cols-3 gap-1.5 border-b border-white/10 px-3 py-2.5">
-          <InsightChip
-            icon={<PackageSearch size={10} />}
-            value="12"
-            label="alertas"
-          />
-          <InsightChip
-            icon={<TrendingUp size={10} />}
-            value="31,0%"
-            label="margen"
-          />
-          <InsightChip
-            icon={<ChartNoAxesCombined size={10} />}
-            value="1.248"
-            label="unidades"
-          />
+        <div className="gs-phone-readonly flex min-h-0 flex-1 flex-col">
+          <div className="grid shrink-0 grid-cols-3 gap-1.5 border-b border-white/10 px-3 py-2.5">
+            <InsightChip icon={<PackageSearch size={10} />} value="12" label="alertas" />
+            <InsightChip icon={<TrendingUp size={10} />} value="31,0%" label="margen" />
+            <InsightChip icon={<ChartNoAxesCombined size={10} />} value="1.248" label="unidades" />
+          </div>
+
+          <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
+            <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
+              Preguntame lo que quieras. Puedo usar los datos reales de Global Stock para analizar stock, ventas, compras, margen, actividad, notas y escenarios.
+            </div>
+
+            <div className="ml-7 rounded-[12px] rounded-br-[4px] bg-[#8F0000] px-2.5 py-2 text-[7px] leading-[1.45] text-white">
+              ¿Cómo está mi stock?
+            </div>
+
+            <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
+              Tenés 1.248 unidades en inventario y 12 alertas de stock.
+            </div>
+          </div>
+
+          <div className="shrink-0 border-t border-white/10 px-3 pb-3 pt-2">
+            <p className="mb-1.5 text-[6px] leading-3 text-white/34">
+              Usa inventario, ventas, costos, márgenes, actividad, notas y escenarios.
+            </p>
+            <div className="flex items-center gap-1.5">
+              <div className="flex h-9 min-w-0 flex-1 items-center rounded-[10px] border border-white/10 bg-white/[0.035] px-2.5 text-[7px] text-white/28">
+                Preguntá algo sobre tu negocio…
+              </div>
+              <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#8F0000] text-white">
+                <ArrowUp size={12} />
+              </span>
+            </div>
+          </div>
         </div>
 
-        <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
-          <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
-            {reply}
-          </div>
-
-          <div className="ml-7 rounded-[12px] rounded-br-[4px] bg-[#8F0000] px-2.5 py-2 text-[7px] leading-[1.45] text-white">
-            ¿Cómo está mi stock?
-          </div>
-
-          <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
-            Tenés 1.248 unidades en inventario y 12 alertas de stock.
-          </div>
-        </div>
-
-        <form
-          className="shrink-0 border-t border-white/10 px-3 pb-3 pt-2"
-          onSubmit={(event) => {
-            event.preventDefault();
-            send();
-          }}
-        >
-          <p className="mb-1.5 text-[6px] leading-3 text-white/34">
-            Usa inventario, ventas, costos, márgenes, actividad, notas y escenarios.
-          </p>
-          <div className="flex items-center gap-1.5">
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Preguntá algo sobre tu negocio…"
-              className="h-9 min-w-0 flex-1 rounded-[10px] border border-white/10 bg-white/[0.035] px-2.5 text-[7px] text-white outline-none placeholder:text-white/28"
-            />
-            <button
-              type="submit"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#8F0000] text-white"
-            >
-              <ArrowUp size={12} />
-            </button>
-          </div>
-        </form>
+        <PhoneBottomNav active="more" onNavigate={onNavigate} />
       </section>
+    </div>
+  );
+}
+
+function ChartsDemo({
+  onNavigate
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PhoneAppBar />
+      <div className="gs-phone-readonly min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Gráficos"
+          subtitle="Seguimiento de ventas, costos, ganancias y pérdidas del negocio."
+        />
+
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+          <KpiCard icon={<CircleDollarSign size={11} />} label="Ingresos" value="$ 2,4 M" />
+          <KpiCard icon={<TrendingUp size={11} />} label="Ganancia" value="$ 742 mil" />
+        </div>
+
+        <section className="mt-2.5 rounded-[12px] border border-white/10 bg-white/[0.025] p-2.5">
+          <div className="flex items-center justify-between">
+            <p className="text-[8px] font-semibold">Ventas de los últimos días</p>
+            <BarChart3 size={12} className="text-red-400" />
+          </div>
+          <div className="mt-3 flex h-[110px] items-end gap-2">
+            {[42, 58, 47, 72, 65, 86, 76].map((height, index) => (
+              <span
+                key={index}
+                className="flex-1 rounded-t-[4px] bg-gradient-to-t from-red-950 to-red-600"
+                style={{ height: height + "%" }}
+              />
+            ))}
+          </div>
+          <div className="mt-1 flex justify-between text-[5px] text-white/28">
+            <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span>
+            <span>Vie</span><span>Sáb</span><span>Dom</span>
+          </div>
+        </section>
+
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+          <div className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+            <p className="text-[6px] uppercase tracking-[0.08em] text-white/32">Costos</p>
+            <p className="mt-1 text-[10px] font-semibold">$ 1,18 M</p>
+          </div>
+          <div className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+            <p className="text-[6px] uppercase tracking-[0.08em] text-white/32">Margen</p>
+            <p className="mt-1 text-[10px] font-semibold">31,0%</p>
+          </div>
+        </div>
+      </div>
+      <PhoneBottomNav active="charts" onNavigate={onNavigate} />
+    </div>
+  );
+}
+
+function MoreDemo({
+  onNavigate,
+  onOpenScreen
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+  onOpenScreen: (screen: DemoScreen) => void;
+}) {
+  const staticItems = ["Tienda online", "Reposición", "Proveedores", "Actividad"];
+
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PhoneAppBar />
+      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Más"
+          subtitle="Accesos adicionales de Global Stock."
+        />
+
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <button
+            type="button"
+            onClick={() => onOpenScreen("inventory")}
+            className="rounded-[12px] border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-red-500/35 hover:bg-red-500/[0.05]"
+          >
+            <Boxes size={14} className="text-red-400" />
+            <p className="mt-2 text-[8px] font-semibold">Almacén</p>
+            <p className="mt-1 text-[6px] leading-3 text-white/36">Stock, mínimos, precios y códigos.</p>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onOpenScreen("ai")}
+            className="rounded-[12px] border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-red-500/35 hover:bg-red-500/[0.05]"
+          >
+            <BrainCircuit size={14} className="text-red-400" />
+            <p className="mt-2 text-[8px] font-semibold">Global Intelligence</p>
+            <p className="mt-1 text-[6px] leading-3 text-white/36">Análisis y contexto del negocio.</p>
+          </button>
+
+          {staticItems.map((item) => (
+            <div
+              key={item}
+              className="rounded-[12px] border border-white/10 bg-white/[0.025] p-3"
+            >
+              <Menu size={13} className="text-white/35" />
+              <p className="mt-2 text-[7.5px] font-semibold">{item}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+      <PhoneBottomNav active="more" onNavigate={onNavigate} />
+    </div>
+  );
+}
+
+function ScannerPreview({
+  onNavigate
+}: {
+  onNavigate: (action: PhoneNavAction) => void;
+}) {
+  return (
+    <div className="flex h-full min-h-0 flex-col">
+      <PhoneAppBar />
+      <div className="gs-phone-readonly min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Escáner"
+          subtitle="Vista previa del lector de códigos de barras y QR."
+        />
+        <div className="mt-4 rounded-[18px] border border-white/10 bg-black/40 p-3">
+          <div className="relative aspect-square overflow-hidden rounded-[14px] border border-white/10 bg-[radial-gradient(circle_at_center,rgba(143,0,0,.12),rgba(255,255,255,.015)_48%,rgba(0,0,0,.65))]">
+            <span className="absolute left-4 top-4 h-7 w-7 border-l-2 border-t-2 border-red-500" />
+            <span className="absolute right-4 top-4 h-7 w-7 border-r-2 border-t-2 border-red-500" />
+            <span className="absolute bottom-4 left-4 h-7 w-7 border-b-2 border-l-2 border-red-500" />
+            <span className="absolute bottom-4 right-4 h-7 w-7 border-b-2 border-r-2 border-red-500" />
+            <span className="absolute left-[12%] right-[12%] top-1/2 h-px bg-red-500 shadow-[0_0_12px_rgba(239,68,68,.7)]" />
+            <ScanLine size={34} className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-white/20" />
+          </div>
+          <p className="mt-3 text-center text-[7px] text-white/38">
+            La demo pública no solicita acceso a la cámara.
+          </p>
+        </div>
+      </div>
+      <PhoneBottomNav active="scan" onNavigate={onNavigate} />
     </div>
   );
 }
