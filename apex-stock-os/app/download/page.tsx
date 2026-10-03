@@ -3,15 +3,12 @@ import Link from "next/link";
 import {
   ArrowRight,
   Boxes,
-  BrainCircuit,
   Check,
   CircleDollarSign,
   Download,
   Globe2,
-  PackagePlus,
   ShieldCheck,
-  ShoppingCart,
-  Sparkles
+  ShoppingCart
 } from "lucide-react";
 
 import {
