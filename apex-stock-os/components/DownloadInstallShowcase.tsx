@@ -234,7 +234,7 @@ export function DownloadInstallShowcase({
       </div>
 
       <div
-        className="relative mt-6 overflow-hidden rounded-[30px] border border-white/10 p-6 sm:p-8"
+        className="relative mt-6 overflow-hidden rounded-[30px] border border-[#2f1d21] p-6 sm:p-8"
         style={{
           background:
             "radial-gradient(circle at 86% 8%, " +
@@ -293,13 +293,13 @@ export function DownloadInstallShowcase({
                     href={nativeLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/12 bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#382126] bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
                   >
                     <Download size={15} />
                     Abrir tienda oficial
                   </a>
                 ) : (
-                  <span className="inline-flex h-11 items-center rounded-xl border border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/42">
+                  <span className="inline-flex h-11 items-center rounded-xl border border-[#2f1d21] bg-white/[0.035] px-4 text-xs font-semibold text-white/42">
                     Publicación nativa · Próximamente
                   </span>
                 ))}
@@ -310,7 +310,7 @@ export function DownloadInstallShowcase({
             {currentDetail.steps.map((step, index) => (
               <div
                 key={step}
-                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-black/20 px-3.5 py-3.5"
+                className="flex items-center gap-3 rounded-2xl border border-[#25191b] bg-black/20 px-3.5 py-3.5"
               >
                 <span
                   className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold"
