@@ -194,18 +194,18 @@ export default function DownloadPage() {
         <section
           id="download-features"
           data-download-section
-          className="scroll-mt-20 bg-[#f2f0ec] text-[#101012]"
+          className="scroll-mt-20 border-t border-white/[0.06] bg-[#0a0a0c] text-white"
         >
           <DownloadMetricStrip />
           <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
             <div className="max-w-4xl">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a80000]">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
                 Producto
               </p>
               <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
                 Cada módulo tiene que explicar solo lo que importa.
               </h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-black/55 sm:text-lg">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white/52 sm:text-lg">
                 Menos botones compitiendo entre sí, números que se leen de un
                 vistazo y una jerarquía visual clara para trabajar sin buscar
                 funciones escondidas.
@@ -218,7 +218,7 @@ export default function DownloadPage() {
                   <article
                     key={title}
                     className={
-                      "relative overflow-hidden rounded-[32px] border border-black/8 bg-white p-6 shadow-[0_18px_55px_rgba(24,24,27,.06)] sm:p-8 " +
+                      "relative overflow-hidden rounded-[32px] border border-white/8 bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.24)] sm:p-8 " +
                       (index === 0 || index === 2 ? "lg:min-h-[360px]" : "")
                     }
                   >
@@ -237,10 +237,10 @@ export default function DownloadPage() {
                         </span>
 
                         <div className="text-right">
-                          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-black/32">
+                          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-white/30">
                             {metric}
                           </p>
-                          <p className="mt-1 text-sm font-semibold text-black/72">
+                          <p className="mt-1 text-sm font-semibold text-white/72">
                             {detail}
                           </p>
                         </div>
@@ -255,16 +255,16 @@ export default function DownloadPage() {
                       <h3 className="mt-3 max-w-xl text-2xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-3xl">
                         {title}
                       </h3>
-                      <p className="mt-4 max-w-xl text-sm leading-6 text-black/52">
+                      <p className="mt-4 max-w-xl text-sm leading-6 text-white/52">
                         {body}
                       </p>
 
-                      <div className="mt-7 rounded-[22px] border border-black/8 bg-[#f8f7f4] p-4">
+                      <div className="mt-7 rounded-[22px] border border-white/8 bg-black/20 p-4">
                         {eyebrow === "Punto de venta" && (
                           <div className="grid grid-cols-[1fr_auto] gap-3">
                             <div className="space-y-2">
-                              <div className="h-2.5 w-28 rounded-full bg-black/12" />
-                              <div className="h-2.5 w-20 rounded-full bg-black/8" />
+                              <div className="h-2.5 w-28 rounded-full bg-white/14" />
+                              <div className="h-2.5 w-20 rounded-full bg-white/9" />
                             </div>
                             <div className="rounded-xl bg-[#8F0000] px-4 py-2 text-xs font-semibold text-white">
                               Cobrar
@@ -279,9 +279,9 @@ export default function DownloadPage() {
                               ["12", "alertas"],
                               ["31%", "margen"]
                             ].map(([value, label]) => (
-                              <div key={label} className="rounded-xl bg-white p-3">
+                              <div key={label} className="rounded-xl border border-white/8 bg-white/[0.04] p-3">
                                 <p className="text-lg font-semibold">{value}</p>
-                                <p className="mt-1 text-[10px] text-black/38">{label}</p>
+                                <p className="mt-1 text-[10px] text-white/38">{label}</p>
                               </div>
                             ))}
                           </div>
@@ -289,7 +289,7 @@ export default function DownloadPage() {
 
                         {eyebrow === "Global Intelligence" && (
                           <div className="space-y-2">
-                            <div className="max-w-[78%] rounded-2xl bg-white px-3 py-2 text-xs text-black/54">
+                            <div className="max-w-[78%] rounded-2xl border border-white/8 bg-white/[0.055] px-3 py-2 text-xs text-white/58">
                               ¿Qué debería reponer esta semana?
                             </div>
                             <div className="ml-auto max-w-[86%] rounded-2xl bg-[#8F0000] px-3 py-2 text-xs text-white">
@@ -302,7 +302,7 @@ export default function DownloadPage() {
                           <div className="flex items-center justify-between gap-3">
                             <div>
                               <p className="text-xs font-semibold">Sitio detectado</p>
-                              <p className="mt-1 text-[10px] text-black/38">
+                              <p className="mt-1 text-[10px] text-white/38">
                                 Datos públicos
                               </p>
                             </div>
@@ -316,13 +316,13 @@ export default function DownloadPage() {
                           <div className="space-y-2">
                             {[84, 61, 38].map((width, row) => (
                               <div key={row} className="flex items-center gap-3">
-                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/6">
+                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/8">
                                   <div
                                     className="h-full rounded-full"
                                     style={{ width: width + "%", background: accent }}
                                   />
                                 </div>
-                                <span className="text-[10px] font-semibold text-black/38">
+                                <span className="text-[10px] font-semibold text-white/38">
                                   {width}%
                                 </span>
                               </div>
@@ -335,7 +335,7 @@ export default function DownloadPage() {
                             {["Dueño", "Caja", "Depósito"].map((role, roleIndex) => (
                               <div
                                 key={role}
-                                className="rounded-xl bg-white px-3 py-3 text-center"
+                                className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-3 text-center"
                               >
                                 <span
                                   className="mx-auto grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold"
