@@ -1,15 +1,11 @@
 "use client";
 
-import {
-  Check,
-  Download,
-  Laptop
-} from "lucide-react";
+import { Check, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@/components/InstallAppButton";
 
-type PlatformId = "web" | "iphone" | "android" | "windows";
+type PlatformId = "web" | "iphone" | "android";
 
 type Props = {
   appStoreUrl: string;
@@ -22,40 +18,29 @@ const PLATFORM_EVENT = "global-stock-platform-change";
 const platforms: Array<{
   id: PlatformId;
   label: string;
-  shortLabel: string;
   eyebrow: string;
-  icon?: typeof Laptop;
-  logoSrc?: string;
-  accent: string;
-  surface: string;
+  logoSrc: string;
+  logoClassName?: string;
 }> = [
   {
     id: "web",
     label: "Navegador",
-    shortLabel: "Navegador",
     eyebrow: "Disponible ahora",
-    logoSrc: "/platforms/windows.svg",
-    accent: "#00adef",
-    surface: "rgba(59,130,246,.10)"
+    logoSrc: "/platforms/windows.svg"
   },
   {
     id: "iphone",
     label: "iOS",
-    shortLabel: "iOS",
     eyebrow: "Safari",
     logoSrc: "/platforms/apple.svg",
-    accent: "#111827",
-    surface: "rgba(17,24,39,.08)"
+    logoClassName: "invert"
   },
   {
     id: "android",
     label: "Android",
-    shortLabel: "Android",
     eyebrow: "Chrome",
-    logoSrc: "/platforms/android.svg",
-    accent: "#a4c639",
-    surface: "rgba(34,197,94,.10)"
-  },
+    logoSrc: "/platforms/android.svg"
+  }
 ];
 
 const detail: Record<
@@ -67,19 +52,19 @@ const detail: Record<
   }
 > = {
   web: {
-    title: "Instalá Global Stock directamente desde el navegador.",
+    title: "Instalalo desde el navegador y abrilo como una aplicación.",
     body:
-      "La PWA abre como una aplicación independiente, con su propio icono y sin depender de una tienda nativa.",
+      "La PWA queda disponible con su propio icono y se abre en una ventana independiente.",
     steps: [
-      "Hacé click en Instalar app.",
-      "Confirmá la instalación del navegador.",
-      "Abrila desde su propio icono."
+      "Abrí Global Stock desde Chrome o Edge.",
+      "Elegí Instalar app en el navegador.",
+      "Abrilo desde Inicio o desde su propio acceso."
     ]
   },
   iphone: {
-    title: "Llevá Global Stock a tu iPhone o iPad.",
+    title: "Agregá Global Stock a tu iPhone o iPad desde Safari.",
     body:
-      "En iOS la instalación web se hace desde Safari y queda disponible desde la pantalla de inicio.",
+      "iOS permite guardar la aplicación web en la pantalla de inicio y usarla como acceso independiente.",
     steps: [
       "Abrí Global Stock en Safari.",
       "Tocá Compartir.",
@@ -89,21 +74,11 @@ const detail: Record<
   android: {
     title: "Instalá Global Stock en Android desde Chrome.",
     body:
-      "Android permite instalar la PWA y abrirla como una app independiente desde el dispositivo.",
+      "La aplicación web puede quedar instalada en el dispositivo y abrirse desde su propio icono.",
     steps: [
       "Abrí Global Stock en Chrome.",
       "Elegí Instalar app.",
       "Confirmá para agregarla al dispositivo."
-    ]
-  },
-  windows: {
-    title: "Usá Global Stock como aplicación de escritorio.",
-    body:
-      "Chrome y Edge pueden instalar la PWA en Windows para abrirla en una ventana propia.",
-    steps: [
-      "Abrí Global Stock en Chrome o Edge.",
-      "Usá Instalar en la barra del navegador.",
-      "Abrila desde Inicio o el escritorio."
     ]
   }
 };
@@ -120,14 +95,15 @@ function PlatformTabs({
   return (
     <div
       className={
-        "inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-black/8 bg-[#f8f9fb] p-1 shadow-[0_12px_32px_rgba(15,23,42,.10)] " +
+        "inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-[#101012] p-1 ring-1 ring-[#28171b] " +
         (compact ? "mx-auto" : "")
       }
       role="tablist"
       aria-label="Plataforma"
     >
-      {platforms.map(({ id, shortLabel, icon: Icon, logoSrc, accent }) => {
+      {platforms.map(({ id, label, logoSrc, logoClassName }) => {
         const selected = active === id;
+
         return (
           <button
             key={id}
@@ -136,27 +112,19 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition duration-200 " +
+              "flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold transition " +
               (selected
-                ? "bg-white text-[#172033] shadow-[0_4px_14px_rgba(15,23,42,.10)]"
-                : "text-[#5e6675] hover:bg-white/70 hover:text-[#172033]")
+                ? "bg-[#1b1b1e] text-white shadow-[0_8px_20px_rgba(0,0,0,.25)]"
+                : "text-white/38 hover:bg-white/[0.04] hover:text-white/70")
             }
           >
-            {logoSrc ? (
-              <img
-                src={logoSrc}
-                alt=""
-                className="h-[15px] w-[15px] object-contain"
-                aria-hidden="true"
-              />
-            ) : Icon ? (
-              <Icon
-                size={15}
-                strokeWidth={selected ? 2.2 : 1.9}
-                style={{ color: accent }}
-              />
-            ) : null}
-            <span>{shortLabel}</span>
+            <img
+              src={logoSrc}
+              alt=""
+              className={"h-[15px] w-[15px] object-contain " + (logoClassName ?? "")}
+              aria-hidden="true"
+            />
+            <span>{label}</span>
           </button>
         );
       })}
@@ -182,7 +150,7 @@ export function DownloadPlatformQuickTabs() {
   };
 
   return (
-    <div className="flex w-full justify-center">
+    <div className="flex w-full justify-start">
       <PlatformTabs active={active} onChange={choose} compact />
     </div>
   );
@@ -190,8 +158,7 @@ export function DownloadPlatformQuickTabs() {
 
 export function DownloadInstallShowcase({
   appStoreUrl,
-  playStoreUrl,
-  microsoftStoreUrl
+  playStoreUrl
 }: Props) {
   const [active, setActive] = useState<PlatformId>("web");
 
@@ -202,8 +169,7 @@ export function DownloadInstallShowcase({
       if (
         platform === "web" ||
         platform === "iphone" ||
-        platform === "android" ||
-        platform === "windows"
+        platform === "android"
       ) {
         setActive(platform);
       }
@@ -215,7 +181,6 @@ export function DownloadInstallShowcase({
   }, []);
 
   const current = platforms.find((item) => item.id === active)!;
-  const CurrentIcon = current.icon;
   const currentDetail = detail[active];
 
   const nativeLink =
@@ -223,115 +188,90 @@ export function DownloadInstallShowcase({
       ? appStoreUrl
       : active === "android"
         ? playStoreUrl
-        : active === "windows"
-          ? microsoftStoreUrl
-          : "";
+        : "";
 
   return (
     <div>
-      <div className="flex justify-center">
-        <PlatformTabs active={active} onChange={setActive} />
-      </div>
+      <PlatformTabs active={active} onChange={setActive} />
 
-      <div
-        className="relative mt-6 overflow-hidden rounded-[30px] border border-[#2f1d21] p-6 sm:p-8"
-        style={{
-          background:
-            "radial-gradient(circle at 86% 8%, " +
-            current.surface +
-            ", transparent 34%), rgba(255,255,255,.035)"
-        }}
-      >
-        <div
-          className="absolute right-[-8%] top-[-22%] h-56 w-56 rounded-full blur-3xl"
-          style={{ background: current.surface }}
-        />
+      <div className="mt-5 overflow-hidden rounded-[30px] bg-[#111113] shadow-[0_30px_80px_rgba(0,0,0,.30)] ring-1 ring-[#2a171b]">
+        <div className="grid lg:grid-cols-[1.05fr_.95fr]">
+          <div className="relative overflow-hidden p-6 sm:p-8">
+            <div className="absolute right-[-10%] top-[-30%] h-64 w-64 rounded-full bg-[#c91527]/10 blur-[90px]" />
 
-        <div className="relative grid gap-8 lg:grid-cols-[1fr_.92fr] lg:items-start">
-          <div>
-            <span
-              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.13em]"
-              style={{
-                color:
-                  active === "iphone" ? "rgba(255,255,255,.72)" : current.accent,
-                borderColor:
-                  active === "iphone"
-                    ? "rgba(255,255,255,.14)"
-                    : current.accent + "38",
-                background:
-                  active === "iphone"
-                    ? "rgba(255,255,255,.05)"
-                    : current.surface
-              }}
-            >
-              {current.logoSrc ? (
-                <img
-                  src={current.logoSrc}
-                  alt=""
-                  className="h-[13px] w-[13px] object-contain"
-                  aria-hidden="true"
-                />
-              ) : CurrentIcon ? (
-                <CurrentIcon size={13} />
-              ) : null}
-              {current.eyebrow}
-            </span>
+            <div className="relative">
+              <div className="flex items-center gap-3">
+                <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.04]">
+                  <img
+                    src={current.logoSrc}
+                    alt=""
+                    className={"h-5 w-5 object-contain " + (current.logoClassName ?? "")}
+                    aria-hidden="true"
+                  />
+                </span>
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#ed4c5c]">
+                    {current.eyebrow}
+                  </p>
+                  <p className="mt-1 text-xs font-medium text-white/34">
+                    {current.label}
+                  </p>
+                </div>
+              </div>
 
-            <h3 className="mt-5 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
-              {currentDetail.title}
-            </h3>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-white/58">
-              {currentDetail.body}
-            </p>
+              <h3 className="mt-6 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
+                {currentDetail.title}
+              </h3>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-white/48">
+                {currentDetail.body}
+              </p>
 
-            <div className="mt-7 flex flex-wrap items-center gap-3">
-              <InstallAppButton language="es" />
+              <div className="mt-7 flex flex-wrap items-center gap-3">
+                <InstallAppButton language="es" />
 
-              {active !== "web" &&
-                (nativeLink ? (
-                  <a
-                    href={nativeLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#382126] bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
-                  >
-                    <Download size={15} />
-                    Abrir tienda oficial
-                  </a>
-                ) : (
-                  <span className="inline-flex h-11 items-center rounded-xl border border-[#2f1d21] bg-white/[0.035] px-4 text-xs font-semibold text-white/42">
-                    Publicación nativa · Próximamente
-                  </span>
-                ))}
+                {active !== "web" &&
+                  (nativeLink ? (
+                    <a
+                      href={nativeLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+                    >
+                      <Download size={15} />
+                      Abrir tienda oficial
+                    </a>
+                  ) : (
+                    <span className="inline-flex h-11 items-center rounded-xl bg-white/[0.04] px-4 text-xs font-semibold text-white/38">
+                      Publicación nativa · Próximamente
+                    </span>
+                  ))}
+              </div>
             </div>
           </div>
 
-          <div className="grid gap-2.5">
-            {currentDetail.steps.map((step, index) => (
-              <div
-                key={step}
-                className="flex items-center gap-3 rounded-2xl border border-[#25191b] bg-black/20 px-3.5 py-3.5"
-              >
-                <span
-                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold"
-                  style={{
-                    color:
-                      active === "iphone"
-                        ? "rgba(255,255,255,.82)"
-                        : current.accent,
-                    background:
-                      active === "iphone"
-                        ? "rgba(255,255,255,.07)"
-                        : current.surface
-                  }}
-                >
-                  {index + 1}
-                </span>
-                <p className="text-sm leading-5 text-white/74">{step}</p>
-              </div>
-            ))}
+          <div className="border-t border-[#211417] bg-[#0d0d0f] p-6 sm:p-8 lg:border-l lg:border-t-0">
+            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-white/28">
+              Instalación
+            </p>
 
-            <div className="mt-1 flex items-center gap-2 rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.055] px-3.5 py-3 text-xs text-emerald-300/78">
+            <div className="mt-5">
+              {currentDetail.steps.map((step, index) => (
+                <div
+                  key={step}
+                  className={
+                    "grid grid-cols-[34px_1fr] gap-3 py-4 " +
+                    (index > 0 ? "border-t border-[#211417]" : "")
+                  }
+                >
+                  <span className="text-[11px] font-bold text-[#ed4c5c]">
+                    0{index + 1}
+                  </span>
+                  <p className="text-sm leading-6 text-white/60">{step}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-5 flex items-center gap-2 text-xs text-emerald-300/70">
               <Check size={14} />
               La versión web instalable está disponible ahora.
             </div>
