@@ -1019,18 +1019,32 @@ export function ConnectedCommerceHub({
           {preview && (
             <div className="mt-5 rounded-[24px] border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4 sm:p-5">
               <div className="flex items-center gap-3">
-                {preview.icon ? (
-                  <img
-                    src={preview.icon}
-                    alt=""
-                    className="h-11 w-11 rounded-xl bg-white object-contain p-1.5"
-                    referrerPolicy="no-referrer"
-                  />
-                ) : (
-                  <span className="grid h-11 w-11 place-items-center rounded-xl bg-[#8F0000]/10 text-[#8F0000]">
-                    <Store size={18} />
-                  </span>
-                )}
+                <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-[#8F0000]/10 text-[#8F0000]">
+                  <Store size={18} />
+                  {(preview.icon || preview.image) && (
+                    <img
+                      src={preview.icon || preview.image || ""}
+                      alt=""
+                      className="absolute inset-0 h-full w-full bg-white object-contain p-1.5"
+                      onError={(event) => {
+                        const image = event.currentTarget;
+                        const fallback = preview.image;
+
+                        if (
+                          fallback &&
+                          image.dataset.fallbackTried !== "true" &&
+                          image.src !== new URL(fallback, window.location.origin).toString()
+                        ) {
+                          image.dataset.fallbackTried = "true";
+                          image.src = fallback;
+                          return;
+                        }
+
+                        image.style.display = "none";
+                      }}
+                    />
+                  )}
+                </span>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-semibold">
                     {preview.title}
