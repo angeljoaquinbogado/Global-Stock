@@ -86,17 +86,26 @@ export function IPhone17ProMax({
       aria-label="iPhone 17 Pro Max preview"
     >
       <div
-        className="relative aspect-[0.474/1] rounded-[15%/7.3%] p-[2.4%] shadow-[0_45px_110px_rgba(0,0,0,.5),inset_0_0_0_1px_rgba(255,255,255,.28)]"
+        className="relative aspect-[0.474/1] rounded-[15%/7.3%] p-[2.4%] shadow-[0_45px_110px_rgba(0,0,0,.5),0_0_0_1px_var(--iphone-edge),inset_0_0_0_1px_rgba(255,255,255,.34)] transition-[background,box-shadow] duration-300"
         style={{
           background:
-            "linear-gradient(110deg,var(--iphone-edge),var(--iphone-frame)_24%,var(--iphone-highlight)_48%,var(--iphone-frame)_70%,var(--iphone-edge))"
+            "linear-gradient(128deg,var(--iphone-edge)_0%,var(--iphone-frame)_15%,var(--iphone-highlight)_39%,var(--iphone-frame)_58%,var(--iphone-edge)_100%)",
+          boxShadow:
+            "0 45px 110px rgba(0,0,0,.5), 0 0 0 1px var(--iphone-edge), inset 0 0 0 1px rgba(255,255,255,.34), inset 0 0 28px color-mix(in srgb, var(--iphone-highlight) 28%, transparent)"
         }}
       >
-        <span className="absolute -left-[1.2%] top-[18%] h-[8.5%] w-[1.5%] rounded-l-full bg-[var(--iphone-edge)]" />
-        <span className="absolute -left-[1.2%] top-[30%] h-[13%] w-[1.5%] rounded-l-full bg-[var(--iphone-edge)]" />
-        <span className="absolute -right-[1.2%] top-[27%] h-[17%] w-[1.5%] rounded-r-full bg-[var(--iphone-edge)]" />
+        <span
+          className="pointer-events-none absolute inset-[.75%] rounded-[14.4%/7%] border transition-colors duration-300"
+          style={{ borderColor: "var(--iphone-highlight)" }}
+        />
+        <span className="absolute -left-[1.2%] top-[18%] h-[8.5%] w-[1.5%] rounded-l-full bg-[var(--iphone-frame)] shadow-[inset_0_0_0_1px_var(--iphone-highlight)] transition-colors duration-300" />
+        <span className="absolute -left-[1.2%] top-[30%] h-[13%] w-[1.5%] rounded-l-full bg-[var(--iphone-frame)] shadow-[inset_0_0_0_1px_var(--iphone-highlight)] transition-colors duration-300" />
+        <span className="absolute -right-[1.2%] top-[27%] h-[17%] w-[1.5%] rounded-r-full bg-[var(--iphone-frame)] shadow-[inset_0_0_0_1px_var(--iphone-highlight)] transition-colors duration-300" />
 
-        <div className="relative h-full overflow-hidden rounded-[13.7%/6.7%] border border-black/80 bg-black shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)]">
+        <div
+          className="relative h-full overflow-hidden rounded-[13.7%/6.7%] border bg-black shadow-[inset_0_0_0_1px_rgba(255,255,255,.08)] transition-colors duration-300"
+          style={{ borderColor: "var(--iphone-edge)" }}
+        >
           <div className="absolute inset-[1.4%] overflow-hidden rounded-[12.7%/6.1%] bg-[#050505]">
             <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-[4.8%] items-center justify-between px-[7%] text-[10px] font-semibold text-white sm:text-[11px]">
               <span className="tabular-nums">{time}</span>
