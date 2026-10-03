@@ -597,7 +597,7 @@ export function AuthScreen({
 
   return (
     <main className="relative h-[100dvh] min-h-[100svh] overflow-hidden bg-black">
-      <AuthScene active />
+      <AuthScene active panelVisible={introComplete} />
 
       <AnimatePresence mode="wait">
         {!introComplete ? (
@@ -701,8 +701,9 @@ export function AuthScreen({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.32 }}
-            className="absolute inset-0 z-20 flex items-start justify-center overflow-y-auto overscroll-contain px-4 pb-[max(20px,env(safe-area-inset-bottom))] pt-[max(20px,env(safe-area-inset-top))] sm:px-6 lg:px-10"
+            className="absolute inset-0 z-20 overflow-y-auto overscroll-contain px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] sm:px-6 lg:px-8 xl:px-12"
           >
+            <div className="mx-auto flex min-h-full w-full max-w-[1440px] items-center justify-center lg:justify-start">
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
               initial={{
@@ -717,15 +718,15 @@ export function AuthScreen({
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              className={`relative my-auto w-full max-w-[560px] overflow-visible rounded-[30px] border p-5 backdrop-blur-[12px] sm:rounded-[34px] sm:p-7 sm:backdrop-blur-[16px] ${surfaceClass}`}
+              className={`relative mx-auto my-auto w-full max-w-[460px] overflow-visible rounded-[26px] border p-4 backdrop-blur-[12px] sm:rounded-[28px] sm:p-5 sm:backdrop-blur-[16px] lg:mx-0 lg:max-w-[430px] xl:max-w-[440px] ${surfaceClass}`}
             >
-              <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="mb-3 flex items-center justify-between gap-3">
                 <Logo withWordmark />
                 <button
                   type="button"
                   onClick={onToggleTheme}
                   className={
-                    "grid h-11 w-11 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
+                    "grid h-10 w-10 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
                     (dark
                       ? "border-white/12 bg-white/[0.07] text-white hover:bg-white/[0.12]"
                       : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
@@ -736,7 +737,7 @@ export function AuthScreen({
                 </button>
               </div>
 
-              <div className="mb-5">
+              <div className="mb-4">
                 <GlobalPreferences
                   language={language}
                   currency={currency}
@@ -747,7 +748,7 @@ export function AuthScreen({
 
               <div
                 className={
-                  "mb-6 grid grid-cols-2 rounded-2xl border p-1 " +
+                  "mb-5 grid grid-cols-2 rounded-2xl border p-1 " +
                   (dark
                     ? "border-white/10 bg-white/[0.05]"
                     : "border-black/10 bg-[#F2F2F4]")
@@ -762,7 +763,7 @@ export function AuthScreen({
                       onClick={() => selectMode(item)}
                       aria-pressed={active}
                       className={
-                        "relative min-h-11 rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors duration-150 " +
+                        "relative min-h-10 rounded-xl px-4 py-2 text-[13px] font-semibold transition-colors duration-150 " +
                         (active
                           ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.22)]"
                           : dark
@@ -804,26 +805,26 @@ export function AuthScreen({
                     ease: [0.23, 1, 0.32, 1]
                   }}
                 >
-                  <div className="mb-6">
+                  <div className="mb-5">
                     <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#ff8d8d]" : "text-[#8F0000]"}`}>
                       <Sparkles size={13} />
                       {labels.ready}
                     </div>
-                    <h1 className={`text-3xl font-semibold tracking-[-0.045em] ${dark ? "text-white" : "text-[#111114]"}`}>
+                    <h1 className={`text-[1.7rem] font-semibold leading-tight tracking-[-0.045em] sm:text-[1.85rem] ${dark ? "text-white" : "text-[#111114]"}`}>
                       {mode === "signin"
                         ? labels.signInTitle
                         : labels.signUpTitle}
                     </h1>
-                    <p className={`mt-2 text-sm leading-6 ${mutedClass}`}>
+                    <p className={`mt-1.5 text-[13px] leading-5 ${mutedClass}`}>
                       {mode === "signin"
                         ? labels.signInDescription
                         : labels.signUpDescription}
                     </p>
                   </div>
 
-                  <form onSubmit={submit} className="space-y-4">
+                  <form onSubmit={submit} className="space-y-3">
                     {mode === "signup" && (
-                      <div className="grid gap-4 rounded-[24px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-4">
+                      <div className="grid gap-3 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-3.5">
                         <label className="block">
                           <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
                             {signupLabels.businessName}
@@ -836,7 +837,7 @@ export function AuthScreen({
                             <input
                               value={businessName}
                               onChange={(event) => setBusinessName(event.target.value)}
-                              className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
                               placeholder={signupLabels.businessNamePlaceholder}
                               autoComplete="organization"
                             />
@@ -866,7 +867,7 @@ export function AuthScreen({
                             <input
                               value={country}
                               onChange={(event) => setCountry(event.target.value)}
-                              className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
                               placeholder={signupLabels.countryPlaceholder}
                               autoComplete="country-name"
                             />
@@ -901,7 +902,7 @@ export function AuthScreen({
                           <input
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
                             placeholder={labels.namePlaceholder}
                             autoComplete="name"
                           />
@@ -921,7 +922,7 @@ export function AuthScreen({
                         <input
                           value={email}
                           onChange={(event) => setEmail(event.target.value)}
-                          className={`w-full rounded-2xl border py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
                           placeholder={labels.emailPlaceholder}
                           type="email"
                           autoComplete="email"
@@ -942,7 +943,7 @@ export function AuthScreen({
                         <input
                           value={password}
                           onChange={(event) => setPassword(event.target.value)}
-                          className={`w-full rounded-2xl border py-3.5 pl-11 pr-12 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          className={`w-full rounded-2xl border py-3 pl-11 pr-12 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
                           placeholder={labels.passwordPlaceholder}
                           type={showPassword ? "text" : "password"}
                           autoComplete={
@@ -978,7 +979,7 @@ export function AuthScreen({
                     <button
                       type="submit"
                       disabled={pending}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3.5 text-sm font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {pending ? (
                         <Loader2 size={17} className="animate-spin" />
@@ -992,7 +993,7 @@ export function AuthScreen({
                       type="button"
                       onClick={signInWithGoogle}
                       className={
-                        "w-full rounded-2xl border px-5 py-3.5 text-sm font-semibold transition active:scale-[.99] " +
+                        "w-full rounded-2xl border px-5 py-3 text-[13px] font-semibold transition active:scale-[.99] " +
                         (dark
                           ? "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.11]"
                           : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
@@ -1004,10 +1005,11 @@ export function AuthScreen({
                 </motion.div>
               </AnimatePresence>
 
-              <p className={`mt-5 text-center text-[10px] leading-5 ${mutedClass}`}>
+              <p className={`mt-4 text-center text-[9px] leading-4 ${mutedClass}`}>
                 {configured ? labels.configured : labels.demo}
               </p>
             </motion.div>
+            </div>
           </motion.section>
         )}
       </AnimatePresence>
