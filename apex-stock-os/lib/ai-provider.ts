@@ -271,6 +271,242 @@ export async function generateIntelligenceAnswer({
   }
 }
 
+
+export type DocumentExtraction = {
+  supplier: string;
+  documentNumber: string;
+  date: string;
+  subtotal: number | null;
+  tax: number | null;
+  total: number | null;
+  currency: string;
+  category: string;
+  confidence: number | null;
+  items: Array<{
+    description: string;
+    quantity: number | null;
+    unitPrice: number | null;
+    total: number | null;
+  }>;
+};
+
+function parseJsonObject(text: string) {
+  const cleaned = text
+    .trim()
+    .replace(/^\`\`\`(?:json)?/i, "")
+    .replace(/\`\`\`$/i, "")
+    .trim();
+
+  try {
+    return JSON.parse(cleaned) as Record<string, unknown>;
+  } catch {
+    const start = cleaned.indexOf("{");
+    const end = cleaned.lastIndexOf("}");
+    if (start >= 0 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1)) as Record<string, unknown>;
+    }
+    throw new Error("Document provider returned invalid JSON.");
+  }
+}
+
+function finiteOrNull(value: unknown) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function textOrEmpty(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function normalizeDocumentExtraction(
+  raw: Record<string, unknown>,
+  fallbackCurrency: string
+): DocumentExtraction {
+  const sourceItems = Array.isArray(raw.items) ? raw.items.slice(0, 60) : [];
+  const confidenceRaw = finiteOrNull(raw.confidence);
+  const confidence =
+    confidenceRaw === null
+      ? null
+      : Math.max(0, Math.min(1, confidenceRaw));
+
+  return {
+    supplier: textOrEmpty(raw.supplier),
+    documentNumber: textOrEmpty(raw.documentNumber),
+    date: textOrEmpty(raw.date),
+    subtotal: finiteOrNull(raw.subtotal),
+    tax: finiteOrNull(raw.tax),
+    total: finiteOrNull(raw.total),
+    currency: textOrEmpty(raw.currency) || fallbackCurrency,
+    category: textOrEmpty(raw.category),
+    confidence,
+    items: sourceItems.map((item) => {
+      const row =
+        item && typeof item === "object"
+          ? (item as Record<string, unknown>)
+          : {};
+      return {
+        description: textOrEmpty(row.description),
+        quantity: finiteOrNull(row.quantity),
+        unitPrice: finiteOrNull(row.unitPrice),
+        total: finiteOrNull(row.total)
+      };
+    })
+  };
+}
+
+export async function extractBusinessDocument({
+  base64,
+  mimeType,
+  filename,
+  language,
+  currency
+}: {
+  base64: string;
+  mimeType: string;
+  filename: string;
+  language: string;
+  currency: string;
+}) {
+  const config = providerConfig();
+
+  if (config.provider === "none") {
+    throw new IntelligenceNotConfiguredError();
+  }
+
+  const prompt = [
+    "You are Global Stock Document Intelligence.",
+    "Read the attached business receipt or invoice.",
+    "Return ONLY one valid JSON object with no markdown.",
+    "Do not invent unreadable data. Use empty strings or null when uncertain.",
+    "Normalize date as YYYY-MM-DD when visible.",
+    "Use ISO 4217 currency codes.",
+    "confidence must be a number from 0 to 1 representing extraction confidence.",
+    "Schema:",
+    '{"supplier":"","documentNumber":"","date":"","subtotal":null,"tax":null,"total":null,"currency":"' +
+      currency +
+      '","category":"","confidence":null,"items":[{"description":"","quantity":null,"unitPrice":null,"total":null}]}',
+    "Preferred UI language: " + language + ".",
+    "Filename: " + filename + "."
+  ].join("\n");
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), MODEL_TIMEOUT_MS);
+
+  try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      Accept: "application/json"
+    };
+
+    if (config.provider === "gemini") {
+      headers["x-goog-api-key"] = config.apiKey;
+
+      const response = await fetch(config.endpoint, {
+        method: "POST",
+        headers,
+        signal: controller.signal,
+        cache: "no-store",
+        body: JSON.stringify({
+          generationConfig: {
+            responseMimeType: "application/json",
+            temperature: 0.1
+          },
+          contents: [
+            {
+              role: "user",
+              parts: [
+                { text: prompt },
+                {
+                  inlineData: {
+                    mimeType,
+                    data: base64
+                  }
+                }
+              ]
+            }
+          ]
+        })
+      });
+
+      const payload = (await response.json().catch(() => ({}))) as GeminiResponse;
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error?.message ||
+            `Gemini returned HTTP ${response.status}`
+        );
+      }
+
+      const text = payload.candidates?.[0]?.content?.parts
+        ?.map((part) => part.text?.trim())
+        .filter(Boolean)
+        .join("\n")
+        .trim();
+
+      if (!text) throw new Error("Gemini returned an empty response.");
+
+      return normalizeDocumentExtraction(
+        parseJsonObject(text),
+        currency
+      );
+    }
+
+    if (mimeType === "application/pdf") {
+      throw new Error("PDF extraction requires the configured Gemini provider.");
+    }
+
+    if (config.apiKey) {
+      headers.Authorization = `Bearer ${config.apiKey}`;
+    }
+
+    const response = await fetch(config.endpoint, {
+      method: "POST",
+      headers,
+      signal: controller.signal,
+      cache: "no-store",
+      body: JSON.stringify({
+        model: config.model,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Extract accounting data from business documents. Return strict JSON only."
+          },
+          {
+            role: "user",
+            content: [
+              { type: "text", text: prompt },
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:${mimeType};base64,${base64}`
+                }
+              }
+            ]
+          }
+        ]
+      })
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as
+      CompatibleChatResponse;
+
+    if (!response.ok) {
+      throw new Error(
+        payload.error?.message ||
+          `AI provider returned HTTP ${response.status}`
+      );
+    }
+
+    const text = payload.choices?.[0]?.message?.content?.trim();
+    if (!text) throw new Error("The AI provider returned an empty response.");
+
+    return normalizeDocumentExtraction(parseJsonObject(text), currency);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
 function buildSystemPrompt(
   snapshot: BusinessSnapshot,
   runtime: IntelligenceRuntimeContext
