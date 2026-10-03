@@ -2,11 +2,18 @@
 
 import { GlobalStockGlobe } from "./GlobalStockGlobe";
 
-export function AuthScene({ active = true }: { active?: boolean }) {
+export function AuthScene({
+  active = true,
+  panelVisible = false
+}: {
+  active?: boolean;
+  panelVisible?: boolean;
+}) {
   return (
     <div
       className="gs-auth-scene gs-auth-scene-active absolute inset-0 overflow-hidden bg-black"
       data-scene-active={active ? "true" : "false"}
+      data-panel-visible={panelVisible ? "true" : "false"}
       aria-hidden="true"
     >
       <div className="gs-space-layer gs-space-layer-a absolute -inset-[8%]" />
