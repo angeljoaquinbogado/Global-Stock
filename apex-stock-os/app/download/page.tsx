@@ -16,6 +16,7 @@ import {
   Store
 } from "lucide-react";
 
+import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { PublicPage } from "@/components/PublicSiteChrome";
@@ -129,8 +130,9 @@ function StoreButton({
 export default function DownloadPage() {
   return (
     <PublicPage>
+      <DownloadScrollNavigator />
       <main>
-        <section className="relative overflow-hidden border-b border-white/10">
+        <section id="download-hero" data-download-section className="relative scroll-mt-20 overflow-hidden border-b border-white/10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(143,0,0,.24),transparent_28%),radial-gradient(circle_at_22%_18%,rgba(38,68,128,.18),transparent_26%)]" />
           <div className="relative mx-auto grid min-h-[76vh] w-full max-w-7xl items-center gap-12 px-5 py-20 sm:px-8 lg:grid-cols-[1.05fr_.95fr]">
             <div>
@@ -172,7 +174,7 @@ export default function DownloadPage() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8">
+        <section id="download-features" data-download-section className="mx-auto w-full max-w-7xl scroll-mt-20 px-5 py-20 sm:px-8">
           <div className="max-w-3xl">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-500">
               Diseñado para operar
@@ -198,7 +200,7 @@ export default function DownloadPage() {
           </div>
         </section>
 
-        <section className="border-y border-white/10 bg-white/[0.02]">
+        <section id="download-install" data-download-section className="scroll-mt-20 border-y border-white/10 bg-white/[0.02]">
           <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8">
             <div className="grid gap-10 lg:grid-cols-[.85fr_1.15fr]">
               <div>
@@ -294,7 +296,7 @@ export default function DownloadPage() {
           </div>
         </section>
 
-        <section className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8">
+        <section id="download-security" data-download-section className="mx-auto w-full max-w-7xl scroll-mt-20 px-5 py-20 sm:px-8">
           <div className="rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_85%_15%,rgba(143,0,0,.22),transparent_32%),#0B0B0D] p-7 sm:p-10">
             <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
               <div>
