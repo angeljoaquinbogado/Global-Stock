@@ -206,17 +206,17 @@ export function DownloadFeatureCatalog() {
   const CurrentIcon = current.icon;
 
   return (
-    <section className="bg-[#f2f0ec] text-[#101012]">
+    <section className="border-t border-white/[0.06] bg-[#08080a] text-white">
       <div className="mx-auto w-full max-w-7xl px-5 pb-24 sm:px-8 sm:pb-32">
         <div className="grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:items-start">
           <div className="lg:sticky lg:top-24">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a80000]">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
               Todas las funcionalidades
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
               Mucho más que stock.
             </h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-black/55">
+            <p className="mt-5 max-w-xl text-base leading-7 text-white/52">
               Global Stock reúne operación, ventas, caja, inventario, proveedores,
               finanzas, clientes, proyectos, documentos, agenda, analítica e IA
               en la misma plataforma.
@@ -226,10 +226,10 @@ export function DownloadFeatureCatalog() {
               {overview.map(({ icon: Icon, label }) => (
                 <div
                   key={label}
-                  className="rounded-2xl border border-black/7 bg-white/72 px-3 py-3 text-center"
+                  className="rounded-2xl border border-white/8 bg-white/[0.035] px-3 py-3 text-center"
                 >
-                  <Icon size={16} className="mx-auto text-black/45" />
-                  <p className="mt-2 text-[11px] font-semibold text-black/55">{label}</p>
+                  <Icon size={16} className="mx-auto text-white/42" />
+                  <p className="mt-2 text-[11px] font-semibold text-white/52">{label}</p>
                 </div>
               ))}
             </div>
@@ -249,8 +249,8 @@ export function DownloadFeatureCatalog() {
                     className={
                       "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition duration-200 " +
                       (selected
-                        ? "border-black/8 bg-white text-black shadow-[0_10px_30px_rgba(24,24,27,.08)]"
-                        : "border-black/6 bg-white/45 text-black/50 hover:bg-white hover:text-black")
+                        ? "border-white/14 bg-white text-black shadow-[0_12px_34px_rgba(0,0,0,.26)]"
+                        : "border-white/8 bg-white/[0.035] text-white/56 hover:border-white/14 hover:bg-white/[0.075] hover:text-white")
                     }
                   >
                     <span
@@ -270,7 +270,7 @@ export function DownloadFeatureCatalog() {
               initial={{ opacity: 0, y: 8, scale: .995 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: .24, ease: [0.23, 1, 0.32, 1] }}
-              className="relative mt-5 overflow-hidden rounded-[34px] border border-black/7 bg-white p-6 shadow-[0_20px_60px_rgba(24,24,27,.06)] sm:p-8"
+              className="relative mt-5 overflow-hidden rounded-[34px] border border-white/9 bg-[#101013] p-6 shadow-[0_24px_70px_rgba(0,0,0,.28)] sm:p-8"
             >
               <div
                 className="absolute right-[-8%] top-[-16%] h-52 w-52 rounded-full blur-3xl"
@@ -292,7 +292,7 @@ export function DownloadFeatureCatalog() {
                   {current.features.map((feature) => (
                     <div
                       key={feature}
-                      className="flex min-h-14 items-center rounded-2xl border border-black/6 bg-[#f8f7f4] px-4 text-sm font-semibold text-black/72"
+                      className="flex min-h-14 items-center rounded-2xl border border-white/8 bg-black/20 px-4 text-sm font-semibold text-white/72"
                     >
                       {feature}
                     </div>
