@@ -12,6 +12,7 @@ export type BusinessTypeValue =
   | "wholesale"
   | "ecommerce"
   | "industry"
+  | "advisory"
   | "other";
 
 const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
@@ -22,6 +23,7 @@ const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
     wholesale: "Mayorista / distribución",
     ecommerce: "Ecommerce",
     industry: "Industria / fabricación",
+    advisory: "Asesoría / estudio contable",
     other: "Otro"
   },
   en: {
@@ -31,6 +33,7 @@ const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
     wholesale: "Wholesale / distribution",
     ecommerce: "Ecommerce",
     industry: "Industry / manufacturing",
+    advisory: "Advisory / accounting firm",
     other: "Other"
   },
   pt: {
@@ -40,6 +43,7 @@ const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
     wholesale: "Atacado / distribuição",
     ecommerce: "Ecommerce",
     industry: "Indústria / fabricação",
+    advisory: "Consultoria / escritório contábil",
     other: "Outro"
   },
   fr: {
@@ -49,6 +53,7 @@ const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
     wholesale: "Grossiste / distribution",
     ecommerce: "Ecommerce",
     industry: "Industrie / fabrication",
+    advisory: "Conseil / cabinet comptable",
     other: "Autre"
   },
   de: {
@@ -58,6 +63,7 @@ const labels: Record<LanguageCode, Record<BusinessTypeValue, string>> = {
     wholesale: "Großhandel / Vertrieb",
     ecommerce: "Ecommerce",
     industry: "Industrie / Fertigung",
+    advisory: "Beratung / Steuerkanzlei",
     other: "Andere"
   }
 };
@@ -69,6 +75,7 @@ const values: BusinessTypeValue[] = [
   "wholesale",
   "ecommerce",
   "industry",
+  "advisory",
   "other"
 ];
 
