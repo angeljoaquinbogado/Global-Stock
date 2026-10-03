@@ -135,9 +135,6 @@ export default function DownloadPage() {
                 ))}
               </div>
 
-              <div className="mt-9">
-                <DownloadPlatformQuickTabs />
-              </div>
             </div>
 
             <div className="relative mx-auto flex w-full min-w-0 items-center justify-center">
@@ -146,6 +143,10 @@ export default function DownloadPage() {
                 <GlobalStockPhonePreview />
               </div>
             </div>
+          </div>
+
+          <div className="relative mx-auto flex w-full max-w-[1240px] justify-center px-5 pb-10 sm:px-8">
+            <DownloadPlatformQuickTabs />
           </div>
         </section>
 
