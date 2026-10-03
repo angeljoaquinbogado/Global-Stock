@@ -896,3 +896,17 @@ textarea:focus-visible {
     right: -52px;
   }
 }
+
+
+.gs-phone-readonly {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.gs-phone-readonly input,
+.gs-phone-readonly select,
+.gs-phone-readonly textarea,
+.gs-phone-readonly button {
+  pointer-events: none;
+}
