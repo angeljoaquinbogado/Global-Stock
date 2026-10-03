@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  BriefcaseBusiness,
   Building2,
   CheckCircle2,
   CircleDollarSign,
@@ -517,7 +516,7 @@ export function BusinessSuite({
   const tabs: Array<{ id: Tab; icon: typeof Landmark; label: string }> = [
     {
       id: "operations",
-      icon: BriefcaseBusiness,
+      icon: Building2,
       label: tr(language, {
         es: "Operación",
         en: "Operations",
