@@ -589,9 +589,9 @@ export function OperationsCenter({
 
   useEffect(() => {
     void reload();
-  // Reload when the current business changes.
+  // Reload and purge inaccessible state when the business or role changes.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [businessId, demoMode]);
+  }, [businessId, demoMode, memberRole]);
 
   if (!businessId && !demoMode) {
     return (
@@ -612,6 +612,7 @@ export function OperationsCenter({
   }
 
   async function openCash() {
+    if (!canAccessOperationTab("cash", memberRole, demoMode)) return;
     if (demoMode) {
       setCashSession({
         id: demoId("cash"),
@@ -637,6 +638,7 @@ export function OperationsCenter({
   }
 
   async function addMovement() {
+    if (!canAccessOperationTab("cash", memberRole, demoMode)) return;
     if (!cashSession || !movementAmount) return;
     const amount = Math.max(0, Number(movementAmount) || 0);
     if (!amount) return;
@@ -706,6 +708,7 @@ export function OperationsCenter({
   }
 
   async function closeCash() {
+    if (!canAccessOperationTab("cash", memberRole, demoMode)) return;
     if (!cashSession) return;
 
     if (demoMode) {
@@ -732,6 +735,7 @@ export function OperationsCenter({
   }
 
   async function addCustomer() {
+    if (!canAccessOperationTab("customers", memberRole, demoMode)) return;
     if (!customerName.trim()) return;
 
     if (demoMode) {
@@ -767,6 +771,7 @@ export function OperationsCenter({
   }
 
   async function addExpense() {
+    if (!canAccessOperationTab("expenses", memberRole, demoMode)) return;
     if (!expenseDescription.trim() || !expenseAmount) return;
 
     if (demoMode) {
@@ -804,6 +809,7 @@ export function OperationsCenter({
   }
 
   async function addLocation() {
+    if (!canAccessOperationTab("locations", memberRole, demoMode)) return;
     if (!locationName.trim()) return;
 
     if (demoMode) {
@@ -835,6 +841,7 @@ export function OperationsCenter({
   }
 
   async function addPurchase() {
+    if (!canAccessOperationTab("purchases", memberRole, demoMode)) return;
     if (!purchaseSupplier.trim() || !purchaseTotal) return;
 
     if (demoMode) {
@@ -903,6 +910,7 @@ export function OperationsCenter({
   }
 
   async function changeRole(userId: string, role: string) {
+    if (!canAccessOperationTab("team", memberRole, demoMode)) return;
     if (demoMode) {
       setMembers((current) =>
         current.map((member) =>
@@ -926,6 +934,7 @@ export function OperationsCenter({
   }
 
   async function inviteMember() {
+    if (!canAccessOperationTab("team", memberRole, demoMode)) return;
     const email = inviteEmail.trim().toLocaleLowerCase();
     if (!email || !email.includes("@")) return;
 
@@ -964,6 +973,7 @@ export function OperationsCenter({
   }
 
   async function revokeInvite(id: string) {
+    if (!canAccessOperationTab("team", memberRole, demoMode)) return;
     if (demoMode) {
       setInvites((current) =>
         current.map((invite) =>
@@ -985,6 +995,7 @@ export function OperationsCenter({
   }
 
   async function setMemberActive(userId: string, active: boolean) {
+    if (!canAccessOperationTab("team", memberRole, demoMode)) return;
     if (demoMode) {
       setMembers((current) =>
         current.map((member) =>
