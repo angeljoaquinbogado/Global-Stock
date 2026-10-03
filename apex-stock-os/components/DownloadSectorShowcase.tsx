@@ -1,170 +1,129 @@
-"use client";
-
 import {
   BriefcaseBusiness,
   Building2,
   Factory,
   ShoppingBag,
-  ShoppingCart,
   Store,
-  UtensilsCrossed
+  UtensilsCrossed,
+  Warehouse
 } from "lucide-react";
-import { motion } from "framer-motion";
-import { useState } from "react";
 
-const sectors = [
+const bySector = [
   {
-    id: "retail",
-    label: "Comercios y retail",
     icon: Store,
-    accent: "#ef4444",
-    bg: "rgba(239,68,68,.09)",
-    title: "Vendé, cobrá y controlá stock sin separar caja e inventario.",
-    features: ["Punto de venta", "Stock y mínimos", "Códigos de barras", "Sucursales"]
+    label: "Comercios y retail",
+    body: "Caja, stock, códigos, clientes y sucursales.",
+    accent: "#ff4d57"
   },
   {
-    id: "gastronomy",
-    label: "Gastronomía",
     icon: UtensilsCrossed,
-    accent: "#f59e0b",
-    bg: "rgba(245,158,11,.10)",
-    title: "Centralizá compras, costos, caja, proveedores y operación diaria.",
-    features: ["Caja", "Compras", "Proveedores", "Equipo"]
+    label: "Gastronomía",
+    body: "Compras, costos, caja, proveedores y equipo.",
+    accent: "#f7b955"
   },
   {
-    id: "ecommerce",
-    label: "Ecommerce",
     icon: ShoppingBag,
-    accent: "#3b82f6",
-    bg: "rgba(59,130,246,.10)",
-    title: "Conectá tu tienda online con el stock y la operación del negocio.",
-    features: ["Tienda online", "Catálogo", "Stock sincronizado", "Actividad"]
+    label: "Ecommerce",
+    body: "Catálogo, stock sincronizado y operación conectada.",
+    accent: "#7aa2ff"
   },
   {
-    id: "wholesale",
+    icon: Warehouse,
     label: "Mayoristas y distribución",
-    icon: Building2,
-    accent: "#8b5cf6",
-    bg: "rgba(139,92,246,.10)",
-    title: "Manejá volumen, proveedores, reposición y múltiples ubicaciones.",
-    features: ["Reposición", "Proveedores", "Sucursales", "Compras"]
+    body: "Volumen, ubicaciones, compras y reposición.",
+    accent: "#b28cff"
   },
   {
-    id: "advisory",
-    label: "Asesorías y estudios contables",
-    icon: BriefcaseBusiness,
-    accent: "#0f766e",
-    bg: "rgba(15,118,110,.10)",
-    title: "Organizá clientes, documentos, finanzas, agenda y seguimiento desde un mismo lugar.",
-    features: ["Clientes", "Comprobantes", "Finanzas", "Agenda y CRM"]
-  },
-  {
-    id: "services",
-    label: "Servicios profesionales",
-    icon: ShoppingCart,
-    accent: "#ec4899",
-    bg: "rgba(236,72,153,.09)",
-    title: "Controlá clientes, proyectos, cobros y equipo sin perder contexto.",
-    features: ["CRM", "Proyectos", "Cobros", "Equipo"]
-  },
-  {
-    id: "industry",
-    label: "Industria y fabricación",
     icon: Factory,
-    accent: "#64748b",
-    bg: "rgba(100,116,139,.10)",
-    title: "Seguí insumos, existencias, costos, reposición y trazabilidad operativa.",
-    features: ["Inventario", "Costos", "Reposición", "Actividad"]
+    label: "Industria y fabricación",
+    body: "Insumos, costos, existencias y trazabilidad.",
+    accent: "#7dd3fc"
   }
 ];
 
-export function DownloadSectorShowcase() {
-  const [active, setActive] = useState("retail");
-  const current = sectors.find((sector) => sector.id === active) ?? sectors[0];
-  const CurrentIcon = current.icon;
+const byBusiness = [
+  {
+    icon: BriefcaseBusiness,
+    label: "Autónomos",
+    body: "Una operación simple que puede crecer.",
+    accent: "#4fd39a"
+  },
+  {
+    icon: Building2,
+    label: "Pymes",
+    body: "Más responsables, roles y procesos conectados.",
+    accent: "#ff7c9c"
+  },
+  {
+    icon: BriefcaseBusiness,
+    label: "Asesorías y estudios contables",
+    body: "Clientes, documentos, finanzas, agenda y seguimiento.",
+    accent: "#67e8f9"
+  }
+];
 
+function SectorList({
+  title,
+  items
+}: {
+  title: string;
+  items: typeof bySector;
+}) {
   return (
-    <section className="bg-[#0b0b0c] text-white">
+    <div>
+      <p className="text-[11px] font-bold uppercase tracking-[.14em] text-white/34">
+        {title}
+      </p>
+
+      <div className="mt-4 grid gap-2">
+        {items.map(({ icon: Icon, label, body, accent }) => (
+          <div
+            key={label}
+            className="grid grid-cols-[42px_1fr] items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3.5"
+          >
+            <span
+              className="grid h-10 w-10 place-items-center rounded-xl"
+              style={{
+                background: accent + "18",
+                color: accent
+              }}
+            >
+              <Icon size={17} />
+            </span>
+
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-white/84">{label}</p>
+              <p className="mt-1 text-xs leading-5 text-white/40">{body}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function DownloadSectorShowcase() {
+  return (
+    <section className="border-t border-white/[0.06] bg-[#0b0b0c] text-white">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-        <div className="max-w-4xl">
+        <div className="max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
             Sectores
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Global Stock se adapta al negocio.
-            <span className="block text-white/38">No al revés.</span>
+            Distintos negocios.
+            <span className="block text-white/36">La misma base conectada.</span>
           </h2>
-          <p className="mt-5 max-w-2xl text-base leading-7 text-white/54">
-            Las mismas herramientas se combinan de forma distinta según cómo trabaja cada sector.
+          <p className="mt-5 max-w-2xl text-base leading-7 text-white/52">
+            Global Stock no obliga a trabajar igual a todos. La operación se
+            organiza según el tipo de negocio y las funciones que realmente usa.
           </p>
         </div>
 
-        <div className="mt-10 flex flex-wrap gap-2">
-          {sectors.map(({ id, label, icon: Icon, accent, bg }) => {
-            const selected = active === id;
-            return (
-              <button
-                key={id}
-                type="button"
-                onMouseEnter={() => setActive(id)}
-                onFocus={() => setActive(id)}
-                onClick={() => setActive(id)}
-                className={
-                  "inline-flex min-h-11 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition duration-200 " +
-                  (selected
-                    ? "border-white/16 bg-white text-black shadow-[0_10px_28px_rgba(0,0,0,.22)]"
-                    : "border-white/8 bg-white/[0.035] text-white/62 hover:border-white/14 hover:bg-white/[0.07] hover:text-white")
-                }
-              >
-                <span
-                  className="grid h-7 w-7 place-items-center rounded-full"
-                  style={{ background: selected ? bg : "rgba(255,255,255,.06)", color: accent }}
-                >
-                  <Icon size={14} />
-                </span>
-                {label}
-              </button>
-            );
-          })}
+        <div className="mt-12 grid gap-8 lg:grid-cols-2 lg:gap-12">
+          <SectorList title="Por sector" items={bySector} />
+          <SectorList title="Por tipo de negocio" items={byBusiness as typeof bySector} />
         </div>
-
-        <motion.div
-          key={current.id}
-          initial={{ opacity: 0, y: 8, scale: .99 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: .26, ease: [0.23, 1, 0.32, 1] }}
-          className="relative mt-6 overflow-hidden rounded-[32px] border border-white/10 bg-white/[0.035] p-6 sm:p-8"
-        >
-          <div
-            className="absolute right-[-8%] top-[-30%] h-60 w-60 rounded-full blur-3xl"
-            style={{ background: current.bg }}
-          />
-          <div className="relative grid gap-8 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-            <div>
-              <span
-                className="grid h-12 w-12 place-items-center rounded-2xl"
-                style={{ background: current.bg, color: current.accent }}
-              >
-                <CurrentIcon size={21} />
-              </span>
-              <p className="mt-5 text-sm font-semibold text-white/45">{current.label}</p>
-              <h3 className="mt-2 max-w-2xl text-3xl font-semibold leading-[1.03] tracking-[-.045em] sm:text-4xl">
-                {current.title}
-              </h3>
-            </div>
-
-            <div className="grid gap-2 sm:grid-cols-2">
-              {current.features.map((feature) => (
-                <div
-                  key={feature}
-                  className="rounded-2xl border border-white/8 bg-black/20 px-4 py-4 text-sm font-semibold text-white/76"
-                >
-                  {feature}
-                </div>
-              ))}
-            </div>
-          </div>
-        </motion.div>
       </div>
     </section>
   );
