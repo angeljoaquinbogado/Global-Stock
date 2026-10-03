@@ -20,7 +20,7 @@ export const MODULE_ACCESS: Record<string, readonly GlobalStockRole[]> = {
   inventory: ["owner", "admin", "manager", "warehouse", "viewer"],
   charts: ["owner", "admin", "manager", "accountant"],
   purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
-  suppliers: ["owner", "admin", "manager", "warehouse", "accountant"],
+  suppliers: ["owner", "admin", "manager", "accountant"],
   activities: ALL_ROLES,
   documents: ["owner", "admin", "manager", "accountant"],
   notes: [
