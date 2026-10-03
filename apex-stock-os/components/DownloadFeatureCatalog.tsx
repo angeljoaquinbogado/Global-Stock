@@ -74,7 +74,7 @@ const groups = [
 
 export function DownloadFeatureCatalog() {
   return (
-    <section className="border-t border-white/[0.06] bg-[#08080a] text-white">
+    <section className="border-t border-[#24171a] bg-[#08080a] text-white">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
@@ -93,7 +93,7 @@ export function DownloadFeatureCatalog() {
           {groups.map(({ eyebrow, title, body, icon: Icon, accent, surface, features }) => (
             <article
               key={title}
-              className="relative overflow-hidden rounded-[30px] border border-white/8 bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-8"
+              className="relative overflow-hidden rounded-[30px] border border-[#2b1b1e] bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-8"
             >
               <div
                 className="absolute right-[-10%] top-[-22%] h-52 w-52 rounded-full blur-3xl"
@@ -127,7 +127,7 @@ export function DownloadFeatureCatalog() {
                   {features.map(({ icon: FeatureIcon, label }) => (
                     <div
                       key={label}
-                      className="flex min-h-20 flex-col justify-between rounded-2xl border border-white/8 bg-black/20 p-3.5"
+                      className="flex min-h-20 flex-col justify-between rounded-2xl border border-[#25191b] bg-black/20 p-3.5"
                     >
                       <FeatureIcon size={16} className="text-white/38" />
                       <p className="mt-4 text-xs font-semibold leading-5 text-white/70">
