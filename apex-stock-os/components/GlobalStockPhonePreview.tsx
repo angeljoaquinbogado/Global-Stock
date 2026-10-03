@@ -13,7 +13,7 @@ import {
   Sparkles,
   TrendingUp
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   IPhone17ProMax,
@@ -54,24 +54,32 @@ export function GlobalStockPhonePreview() {
     useState<IPhone17ProMaxFrameColor>("graphite");
   const [screen, setScreen] = useState<DemoScreen>("dashboard");
   const [paused, setPaused] = useState(false);
-
-  const screenIndex = useMemo(
-    () => screens.findIndex((item) => item.id === screen),
-    [screen]
-  );
+  const manualPauseTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (paused) return;
 
     const timer = window.setInterval(() => {
       setScreen((current) => {
-        const currentIndex = screens.findIndex((item) => item.id === current);
+        const currentIndex = Math.max(
+          0,
+          screens.findIndex((item) => item.id === current)
+        );
         return screens[(currentIndex + 1) % screens.length].id;
       });
     }, 4200);
 
     return () => window.clearInterval(timer);
   }, [paused]);
+
+  useEffect(
+    () => () => {
+      if (manualPauseTimerRef.current !== null) {
+        window.clearTimeout(manualPauseTimerRef.current);
+      }
+    },
+    []
+  );
 
   const cycleDynamicIsland = () => {
     const sizes: DynamicIslandSize[] = [
@@ -84,17 +92,48 @@ export function GlobalStockPhonePreview() {
     setDynamicIslandSize(sizes[(index + 1) % sizes.length]);
   };
 
+  const pauseForManualNavigation = () => {
+    setPaused(true);
+
+    if (manualPauseTimerRef.current !== null) {
+      window.clearTimeout(manualPauseTimerRef.current);
+    }
+
+    manualPauseTimerRef.current = window.setTimeout(() => {
+      setPaused(false);
+      manualPauseTimerRef.current = null;
+    }, 6500);
+  };
+
   const moveScreen = (direction: -1 | 1) => {
-    const nextIndex =
-      (screenIndex + direction + screens.length) % screens.length;
-    setScreen(screens[nextIndex].id);
+    pauseForManualNavigation();
+
+    setScreen((current) => {
+      const currentIndex = Math.max(
+        0,
+        screens.findIndex((item) => item.id === current)
+      );
+      const nextIndex =
+        (currentIndex + direction + screens.length) % screens.length;
+
+      return screens[nextIndex].id;
+    });
+  };
+
+  const chooseScreen = (next: DemoScreen) => {
+    pauseForManualNavigation();
+    setScreen(next);
   };
 
   return (
     <div
       className="relative mx-auto flex w-full max-w-[500px] flex-col items-center"
       onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
+      onMouseLeave={() => {
+        if (manualPauseTimerRef.current === null) {
+          setPaused(false);
+        }
+      }}
     >
       <div className="absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
 
@@ -141,7 +180,7 @@ export function GlobalStockPhonePreview() {
                 <button
                   key={item.id}
                   type="button"
-                  onClick={() => setScreen(item.id)}
+                  onClick={() => chooseScreen(item.id)}
                   className={
                     "rounded-[9px] px-1 py-2 text-center text-[6px] font-semibold transition sm:text-[7px] " +
                     (screen === item.id
@@ -158,16 +197,26 @@ export function GlobalStockPhonePreview() {
 
         <button
           type="button"
-          onClick={() => moveScreen(-1)}
-          className="absolute left-0 top-1/2 z-20 grid h-9 w-9 -translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-black/70 text-white/70 shadow-xl backdrop-blur transition hover:bg-black hover:text-white sm:-translate-x-5"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            moveScreen(-1);
+          }}
+          className="absolute left-0 top-1/2 z-50 grid h-10 w-10 -translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-black/80 text-white/80 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-black hover:text-white active:scale-95 sm:-translate-x-5"
           aria-label="Vista anterior"
         >
           <ChevronLeft size={17} />
         </button>
         <button
           type="button"
-          onClick={() => moveScreen(1)}
-          className="absolute right-0 top-1/2 z-20 grid h-9 w-9 translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/10 bg-black/70 text-white/70 shadow-xl backdrop-blur transition hover:bg-black hover:text-white sm:translate-x-5"
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            moveScreen(1);
+          }}
+          className="absolute right-0 top-1/2 z-50 grid h-10 w-10 translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-black/80 text-white/80 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-black hover:text-white active:scale-95 sm:translate-x-5"
           aria-label="Vista siguiente"
         >
           <ChevronRight size={17} />
@@ -180,7 +229,7 @@ export function GlobalStockPhonePreview() {
             <button
               key={item.id}
               type="button"
-              onClick={() => setScreen(item.id)}
+              onClick={() => chooseScreen(item.id)}
               className={
                 "h-1.5 rounded-full transition-all duration-300 " +
                 (screen === item.id
