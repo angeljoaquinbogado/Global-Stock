@@ -9,7 +9,6 @@ import {
   UtensilsCrossed,
   Warehouse
 } from "lucide-react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const sectors = [
@@ -97,9 +96,12 @@ const sectors = [
 
 export function DownloadSectorShowcase() {
   const [active, setActive] = useState("retail");
-  const reduceMotion = useReducedMotion();
   const current = sectors.find((item) => item.id === active) ?? sectors[0];
   const CurrentIcon = current.icon;
+
+  const activate = (id: string) => {
+    setActive((currentId) => (currentId === id ? currentId : id));
+  };
 
   return (
     <section className="border-t border-white/[0.045] bg-[#0a0a0c] text-white">
@@ -128,13 +130,13 @@ export function DownloadSectorShowcase() {
                   <button
                     key={id}
                     type="button"
-                    onMouseEnter={() => setActive(id)}
-                    onFocus={() => setActive(id)}
-                    onClick={() => setActive(id)}
+                    onMouseEnter={() => activate(id)}
+                    onFocus={() => activate(id)}
+                    onClick={() => activate(id)}
                     className={
-                      "gs-sector-card group flex min-h-[86px] flex-col items-start justify-between rounded-[20px] bg-[#111216] px-3.5 py-3 text-left outline-none transition-[background-color,box-shadow,color] duration-200 [transition-timing-function:var(--ease-out)] " +
+                      "gs-sector-card group flex min-h-[86px] flex-col items-start justify-between rounded-[20px] bg-[#111216] px-3.5 py-3 text-left outline-none transition-[background-color,box-shadow,color] duration-160 [transition-timing-function:var(--ease-out)] " +
                       (selected
-                        ? "text-white shadow-[0_14px_38px_rgba(0,0,0,.24)]"
+                        ? "text-white shadow-[0_14px_38px_rgba(0,0,0,.22)]"
                         : "text-white/58 hover:bg-[#15161b] hover:text-white")
                     }
                     style={
@@ -143,7 +145,7 @@ export function DownloadSectorShowcase() {
                             boxShadow:
                               "inset 0 0 0 1px " +
                               accent +
-                              "4d, 0 14px 38px rgba(0,0,0,.24)"
+                              "45, 0 14px 38px rgba(0,0,0,.22)"
                           }
                         : undefined
                     }
@@ -161,61 +163,39 @@ export function DownloadSectorShowcase() {
               })}
             </div>
 
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={current.id}
-                initial={{
-                  opacity: 0,
-                  transform: reduceMotion
-                    ? "translate3d(0,0,0)"
-                    : "translate3d(0,10px,0)"
-                }}
-                animate={{
-                  opacity: 1,
-                  transform: "translate3d(0,0,0)"
-                }}
-                exit={{
-                  opacity: 0,
-                  transform: reduceMotion
-                    ? "translate3d(0,0,0)"
-                    : "translate3d(0,-6px,0)"
-                }}
-                transition={{
-                  duration: reduceMotion ? 0.12 : 0.22,
-                  ease: [0.23, 1, 0.32, 1]
-                }}
-                className="relative mt-4 overflow-hidden rounded-[30px] bg-[#111217] p-6 shadow-[0_24px_64px_rgba(0,0,0,.24)] sm:p-7"
-              >
-                <div
-                  className="pointer-events-none absolute right-[-10%] top-[-55%] h-64 w-64 rounded-full blur-[90px]"
-                  style={{ background: current.surface }}
-                />
+            <div
+              className="mt-4 overflow-hidden rounded-[30px] bg-[#111217] p-6 shadow-[0_24px_64px_rgba(0,0,0,.22)] sm:p-7"
+              style={{
+                boxShadow:
+                  "inset 0 0 0 1px " +
+                  current.accent +
+                  "24, 0 24px 64px rgba(0,0,0,.22)"
+              }}
+            >
+              <div className="grid gap-5 sm:grid-cols-[56px_1fr] sm:items-start">
+                <span
+                  className="grid h-12 w-12 place-items-center rounded-2xl"
+                  style={{ background: current.surface, color: current.accent }}
+                >
+                  <CurrentIcon size={21} />
+                </span>
 
-                <div className="relative grid gap-5 sm:grid-cols-[56px_1fr] sm:items-start">
-                  <span
-                    className="grid h-12 w-12 place-items-center rounded-2xl"
-                    style={{ background: current.surface, color: current.accent }}
+                <div>
+                  <p
+                    className="text-[10px] font-bold uppercase tracking-[.14em]"
+                    style={{ color: current.accent }}
                   >
-                    <CurrentIcon size={21} />
-                  </span>
-
-                  <div>
-                    <p
-                      className="text-[10px] font-bold uppercase tracking-[.14em]"
-                      style={{ color: current.accent }}
-                    >
-                      {current.group}
-                    </p>
-                    <h3 className="mt-2 max-w-2xl text-2xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-3xl">
-                      {current.title}
-                    </h3>
-                    <p className="mt-3 max-w-2xl text-sm leading-6 text-[#a0a0a9]">
-                      {current.body}
-                    </p>
-                  </div>
+                    {current.group}
+                  </p>
+                  <h3 className="mt-2 max-w-2xl text-2xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-3xl">
+                    {current.title}
+                  </h3>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-[#a0a0a9]">
+                    {current.body}
+                  </p>
                 </div>
-              </motion.div>
-            </AnimatePresence>
+              </div>
+            </div>
           </div>
         </div>
       </div>

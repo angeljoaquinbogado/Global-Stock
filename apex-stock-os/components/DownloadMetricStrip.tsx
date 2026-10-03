@@ -30,6 +30,10 @@ const metrics = [
 export function DownloadMetricStrip() {
   const [active, setActive] = useState<number | null>(null);
 
+  const activate = (index: number) => {
+    setActive((current) => (current === index ? current : index));
+  };
+
   return (
     <div className="border-y border-white/[0.045] bg-[#09090b]">
       <div className="gs-storefront-scroll mx-auto flex w-full max-w-[1240px] items-center justify-start overflow-x-auto px-5 py-6 sm:justify-center sm:px-8 sm:py-7">
@@ -51,21 +55,21 @@ export function DownloadMetricStrip() {
 
                 <button
                   type="button"
-                  onMouseEnter={() => setActive(index)}
-                  onFocus={() => setActive(index)}
+                  onMouseEnter={() => activate(index)}
+                  onFocus={() => activate(index)}
                   onBlur={() => setActive(null)}
                   onClick={() =>
                     setActive((current) =>
                       current === index ? null : index
                     )
                   }
-                  className="relative flex h-14 min-w-[205px] items-center overflow-hidden rounded-xl px-4 text-left outline-none sm:min-w-[218px]"
+                  className="relative flex h-14 min-w-[248px] items-center rounded-xl px-4 text-left outline-none sm:min-w-[270px]"
                   style={{
                     backgroundColor: expanded
                       ? "rgba(255,255,255,.045)"
                       : "transparent",
                     transition:
-                      "background-color 180ms var(--ease-out)"
+                      "background-color 160ms var(--ease-out)"
                   }}
                   aria-pressed={expanded}
                 >
@@ -77,9 +81,9 @@ export function DownloadMetricStrip() {
                       opacity: expanded ? 1 : 0,
                       transform: expanded
                         ? "translate3d(0,0,0) scale(1)"
-                        : "translate3d(-8px,0,0) scale(.92)",
+                        : "translate3d(-6px,0,0) scale(.96)",
                       transition:
-                        "transform 180ms var(--ease-out), opacity 160ms ease"
+                        "transform 160ms var(--ease-out), opacity 140ms ease"
                     }}
                     aria-hidden="true"
                   >
@@ -87,26 +91,26 @@ export function DownloadMetricStrip() {
                   </span>
 
                   <span
-                    className="flex items-baseline"
+                    className="flex items-baseline whitespace-nowrap"
                     style={{
                       transform: expanded
-                        ? "translate3d(40px,0,0)"
+                        ? "translate3d(38px,0,0)"
                         : "translate3d(0,0,0)",
                       transition:
-                        "transform 180ms var(--ease-out)"
+                        "transform 160ms var(--ease-out)"
                     }}
                   >
                     <span
                       className="text-[24px] font-semibold leading-none tracking-[-0.05em] sm:text-[27px]"
                       style={{
                         color: expanded ? accent : "#f5f5f7",
-                        transition: "color 160ms ease"
+                        transition: "color 140ms ease"
                       }}
                     >
                       {value}
                     </span>
 
-                    <span className="ml-2 whitespace-nowrap text-[12px] font-medium text-[#9b9ba4] sm:text-[13px]">
+                    <span className="ml-2 text-[12px] font-medium text-[#9b9ba4] sm:text-[13px]">
                       {label}
                     </span>
                   </span>

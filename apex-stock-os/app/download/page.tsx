@@ -89,7 +89,7 @@ export default function DownloadPage() {
           data-download-section
           className="relative scroll-mt-20 overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(201,21,39,.18),transparent_25%),radial-gradient(circle_at_82%_70%,rgba(110,168,255,.08),transparent_28%),linear-gradient(180deg,#070708_0%,#09090b_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(180deg,#070708_0%,#08090b_100%)]" />
           <div className="pointer-events-none absolute inset-0 opacity-[.11] [background-image:linear-gradient(rgba(255,255,255,.028)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.028)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_82%)]" />
 
           <div className="relative mx-auto grid min-h-[calc(100svh-68px)] w-full max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.04fr_.96fr] lg:gap-16 lg:py-16">
@@ -152,8 +152,6 @@ export default function DownloadPage() {
             </div>
 
             <div className="gs-hero-product relative mx-auto flex w-full min-w-0 items-center justify-center">
-              <div className="absolute left-1/2 top-1/2 h-[76%] w-[76%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#c91527]/10 blur-[96px]" />
-
               <div className="relative">
                 <div className="relative rounded-[46px] bg-[linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.008))] p-4 shadow-[0_42px_120px_rgba(0,0,0,.50)] ring-1 ring-white/[0.055] sm:p-5">
                   <GlobalStockPhonePreview />
@@ -325,9 +323,6 @@ export default function DownloadPage() {
           data-download-section
           className="relative scroll-mt-20 overflow-hidden border-y border-white/[0.045] bg-[#08090b]"
         >
-          <div className="absolute right-[5%] top-[10%] h-72 w-72 rounded-full bg-[#6ea8ff]/[0.07] blur-[100px]" />
-          <div className="absolute left-[3%] bottom-[3%] h-64 w-64 rounded-full bg-[#c91527]/[0.07] blur-[100px]" />
-
           <div className="relative mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
             <div className="max-w-3xl">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6ea8ff]">
@@ -457,8 +452,6 @@ export default function DownloadPage() {
 
         <section className="border-t border-white/[0.045] bg-[#070708] px-5 py-16 sm:px-8 sm:py-20">
           <div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[34px] bg-[linear-gradient(135deg,#121318,#0d0d10)] px-6 py-10 shadow-[0_30px_90px_rgba(0,0,0,.30)] sm:px-10 sm:py-12">
-            <div className="absolute right-[-6%] top-[-80%] h-80 w-80 rounded-full bg-[#b989ff]/[0.08] blur-[100px]" />
-
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/32">

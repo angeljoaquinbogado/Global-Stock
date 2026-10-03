@@ -14,7 +14,7 @@ function PublicBrand({ compact = false }: { compact?: boolean }) {
 
 export function PublicHeader() {
   return (
-    <header className="gs-public-glass sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/88 backdrop-blur-xl">
+    <header className="sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
         <Link href="/download" aria-label="Global Stock" className="shrink-0">
           <span className="sm:hidden">

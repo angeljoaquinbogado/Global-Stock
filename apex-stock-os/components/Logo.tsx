@@ -14,9 +14,9 @@ export function Logo({
     return (
       <div className={`flex items-center gap-3 ${className ?? ""}`}>
         <img
-          src="/icons/icon-512.png"
+          src="/brand/global-stock-logo.png"
           alt=""
-          className="h-10 w-auto shrink-0 object-contain"
+          className="h-10 w-10 shrink-0 object-contain"
           aria-hidden="true"
           draggable={false}
         />
@@ -31,7 +31,7 @@ export function Logo({
 
   return (
     <img
-      src="/icons/icon-512.png"
+      src="/brand/global-stock-logo.png"
       alt={alt}
       className={className}
       draggable={false}

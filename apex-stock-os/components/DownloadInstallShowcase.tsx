@@ -20,29 +20,27 @@ const platforms: Array<{
   label: string;
   eyebrow: string;
   logoSrc: string;
-  logoClassName?: string;
   accent: string;
 }> = [
   {
     id: "web",
     label: "Navegador",
     eyebrow: "Disponible ahora",
-    logoSrc: "/platforms/windows.svg",
+    logoSrc: "/platforms/windows.png",
     accent: "#46b9ff"
   },
   {
     id: "iphone",
     label: "iOS",
     eyebrow: "Safari",
-    logoSrc: "/platforms/apple.svg",
-    logoClassName: "invert",
+    logoSrc: "/platforms/apple.png",
     accent: "#ffffff"
   },
   {
     id: "android",
     label: "Android",
     eyebrow: "Chrome",
-    logoSrc: "/platforms/android.svg",
+    logoSrc: "/platforms/android.png",
     accent: "#a4c639"
   }
 ];
@@ -100,7 +98,7 @@ function PlatformTabs({
       role="tablist"
       aria-label="Plataforma"
     >
-      {platforms.map(({ id, label, logoSrc, logoClassName, accent }) => {
+      {platforms.map(({ id, label, logoSrc }) => {
         const selected = active === id;
 
         return (
@@ -111,24 +109,20 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-11 min-w-[104px] shrink-0 items-center justify-center gap-2 rounded-[11px] px-3 text-[12px] font-semibold outline-none transition-[background-color,color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[116px] " +
+              "flex min-h-11 min-w-[104px] shrink-0 items-center justify-center gap-2 rounded-[11px] px-3 text-[12px] font-semibold outline-none transition-[background-color,color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[116px] " +
               (selected
                 ? "bg-[#202126] text-white shadow-[0_6px_18px_rgba(0,0,0,.30)]"
-                : "text-white/58 hover:bg-white/[0.04] hover:text-white")
+                : "text-white/72 hover:bg-white/[0.04] hover:text-white")
             }
           >
             <img
               src={logoSrc}
               alt=""
-              className={
-                "h-[17px] w-[17px] shrink-0 object-contain " +
-                (logoClassName ?? "")
-              }
+              className="h-[17px] w-[17px] shrink-0 object-contain"
               aria-hidden="true"
+              draggable={false}
             />
-            <span style={selected ? { color: accent === "#ffffff" ? undefined : accent } : undefined}>
-              {label}
-            </span>
+            <span className="text-white">{label}</span>
           </button>
         );
       })}
@@ -215,84 +209,89 @@ export function DownloadInstallShowcase({
         ? playStoreUrl
         : "";
 
+  const choose = (platform: PlatformId) => {
+    setActive(platform);
+    window.dispatchEvent(
+      new CustomEvent(PLATFORM_EVENT, {
+        detail: { platform }
+      })
+    );
+  };
+
+  const nativeStores = [
+    {
+      name: "App Store",
+      platform: "iPhone y iPad",
+      href: appStoreUrl,
+      logoSrc: "/platforms/apple.png"
+    },
+    {
+      name: "Google Play",
+      platform: "Android",
+      href: playStoreUrl,
+      logoSrc: "/platforms/android.png"
+    }
+  ];
+
   return (
     <div>
       <div className="flex justify-center">
-        <PlatformTabs
-          active={active}
-          onChange={(platform) => {
-            setActive(platform);
-            window.dispatchEvent(
-              new CustomEvent(PLATFORM_EVENT, {
-                detail: { platform }
-              })
-            );
-          }}
-        />
+        <PlatformTabs active={active} onChange={choose} />
       </div>
 
       <div className="mt-6 overflow-hidden rounded-[32px] bg-[#111217] shadow-[0_30px_80px_rgba(0,0,0,.28)]">
         <div className="grid lg:grid-cols-[1.06fr_.94fr]">
-          <div className="relative overflow-hidden p-6 sm:p-8">
-            <div
-              className="pointer-events-none absolute right-[-12%] top-[-36%] h-72 w-72 rounded-full blur-[95px]"
-              style={{ background: current.accent + "18" }}
-            />
+          <div className="p-6 sm:p-8">
+            <div className="flex items-center gap-3">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[0.04]">
+                <img
+                  src={current.logoSrc}
+                  alt=""
+                  className="h-5 w-5 object-contain"
+                  aria-hidden="true"
+                  draggable={false}
+                />
+              </span>
+              <div>
+                <p
+                  className="text-[10px] font-bold uppercase tracking-[.14em]"
+                  style={{ color: current.accent }}
+                >
+                  {current.eyebrow}
+                </p>
+                <p className="mt-1 text-xs font-medium text-white/40">
+                  {current.label}
+                </p>
+              </div>
+            </div>
 
-            <div className="relative">
-              <div className="flex items-center gap-3">
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[0.04]">
-                  <img
-                    src={current.logoSrc}
-                    alt=""
-                    className={
-                      "h-5 w-5 object-contain " +
-                      (current.logoClassName ?? "")
-                    }
-                    aria-hidden="true"
-                  />
-                </span>
-                <div>
-                  <p
-                    className="text-[10px] font-bold uppercase tracking-[.14em]"
-                    style={{ color: current.accent }}
+            <h3 className="mt-6 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
+              {currentDetail.title}
+            </h3>
+
+            <p className="mt-4 max-w-xl text-sm leading-6 text-[#a0a0a9]">
+              {currentDetail.body}
+            </p>
+
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <InstallAppButton language="es" />
+
+              {active !== "web" &&
+                (nativeLink ? (
+                  <a
+                    href={nativeLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
                   >
-                    {current.eyebrow}
-                  </p>
-                  <p className="mt-1 text-xs font-medium text-white/34">
-                    {current.label}
-                  </p>
-                </div>
-              </div>
-
-              <h3 className="mt-6 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
-                {currentDetail.title}
-              </h3>
-
-              <p className="mt-4 max-w-xl text-sm leading-6 text-[#a0a0a9]">
-                {currentDetail.body}
-              </p>
-
-              <div className="mt-7 flex flex-wrap items-center gap-3">
-                <InstallAppButton language="es" />
-
-                {active !== "web" &&
-                  (nativeLink ? (
-                    <a
-                      href={nativeLink}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
-                    >
-                      <Download size={15} />
-                      Abrir tienda oficial
-                    </a>
-                  ) : (
-                    <span className="inline-flex h-11 items-center rounded-xl bg-white/[0.04] px-4 text-xs font-semibold text-white/38">
-                      Publicación nativa · Próximamente
-                    </span>
-                  ))}
-              </div>
+                    <Download size={15} />
+                    Abrir tienda oficial
+                  </a>
+                ) : (
+                  <span className="inline-flex h-11 items-center rounded-xl bg-white/[0.04] px-4 text-xs font-semibold text-white/42">
+                    Publicación nativa · Próximamente
+                  </span>
+                ))}
             </div>
           </div>
 
@@ -327,6 +326,59 @@ export function DownloadInstallShowcase({
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {nativeStores.map((store) =>
+          store.href ? (
+            <a
+              key={store.name}
+              href={store.href}
+              target="_blank"
+              rel="noreferrer"
+              className="flex min-h-16 items-center gap-3 rounded-2xl bg-[#111216] px-4 transition-colors duration-150 hover:bg-[#16171c]"
+            >
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.04]">
+                <img
+                  src={store.logoSrc}
+                  alt=""
+                  className="h-5 w-5 object-contain"
+                  aria-hidden="true"
+                  draggable={false}
+                />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">{store.name}</p>
+                <p className="mt-1 text-xs text-white/40">{store.platform}</p>
+              </div>
+              <span className="ml-auto text-xs font-semibold text-emerald-300">
+                Disponible
+              </span>
+            </a>
+          ) : (
+            <div
+              key={store.name}
+              className="flex min-h-16 items-center gap-3 rounded-2xl bg-[#111216] px-4"
+            >
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.04]">
+                <img
+                  src={store.logoSrc}
+                  alt=""
+                  className="h-5 w-5 object-contain"
+                  aria-hidden="true"
+                  draggable={false}
+                />
+              </span>
+              <div>
+                <p className="text-sm font-semibold text-white">{store.name}</p>
+                <p className="mt-1 text-xs text-white/40">{store.platform}</p>
+              </div>
+              <span className="ml-auto text-xs font-semibold text-white/32">
+                Próximamente
+              </span>
+            </div>
+          )
+        )}
       </div>
     </div>
   );
