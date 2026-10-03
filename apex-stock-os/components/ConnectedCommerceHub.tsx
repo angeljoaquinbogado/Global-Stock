@@ -986,8 +986,15 @@ export function ConnectedCommerceHub({
                 <input
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      event.stopPropagation();
+                    }
+                  }}
                   placeholder="https://tu-tienda.com"
                   inputMode="url"
+                  enterKeyHint="done"
                   autoCapitalize="none"
                   autoCorrect="off"
                   className="apex-input min-h-12 flex-1 px-4 py-3 text-[16px]"
