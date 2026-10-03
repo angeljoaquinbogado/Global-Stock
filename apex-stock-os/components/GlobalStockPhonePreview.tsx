@@ -52,21 +52,16 @@ export function GlobalStockPhonePreview() {
     useState<DynamicIslandSize>("default");
   const [frameColor, setFrameColor] =
     useState<IPhone17ProMaxFrameColor>("graphite");
-  const [screen, setScreen] = useState<DemoScreen>("dashboard");
+  const [screenIndex, setScreenIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const screen = screens[screenIndex]?.id ?? "dashboard";
   const manualPauseTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (paused) return;
 
     const timer = window.setInterval(() => {
-      setScreen((current) => {
-        const currentIndex = Math.max(
-          0,
-          screens.findIndex((item) => item.id === current)
-        );
-        return screens[(currentIndex + 1) % screens.length].id;
-      });
+      setScreenIndex((current) => (current + 1) % screens.length);
     }, 4200);
 
     return () => window.clearInterval(timer);
@@ -107,22 +102,16 @@ export function GlobalStockPhonePreview() {
 
   const moveScreen = (direction: -1 | 1) => {
     pauseForManualNavigation();
-
-    setScreen((current) => {
-      const currentIndex = Math.max(
-        0,
-        screens.findIndex((item) => item.id === current)
-      );
-      const nextIndex =
-        (currentIndex + direction + screens.length) % screens.length;
-
-      return screens[nextIndex].id;
-    });
+    setScreenIndex(
+      (current) =>
+        (current + direction + screens.length) % screens.length
+    );
   };
 
   const chooseScreen = (next: DemoScreen) => {
     pauseForManualNavigation();
-    setScreen(next);
+    const nextIndex = screens.findIndex((item) => item.id === next);
+    if (nextIndex >= 0) setScreenIndex(nextIndex);
   };
 
   return (
@@ -197,26 +186,16 @@ export function GlobalStockPhonePreview() {
 
         <button
           type="button"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            moveScreen(-1);
-          }}
-          className="absolute left-0 top-1/2 z-50 grid h-10 w-10 -translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-black/80 text-white/80 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-black hover:text-white active:scale-95 sm:-translate-x-5"
+          onClick={() => moveScreen(-1)}
+          className="absolute left-0 top-1/2 z-[70] grid h-11 w-11 -translate-x-2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/16 bg-black/90 text-white shadow-xl backdrop-blur transition hover:scale-105 hover:border-red-500/70 hover:bg-black active:scale-90 sm:-translate-x-5"
           aria-label="Vista anterior"
         >
           <ChevronLeft size={17} />
         </button>
         <button
           type="button"
-          onPointerDown={(event) => event.stopPropagation()}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            moveScreen(1);
-          }}
-          className="absolute right-0 top-1/2 z-50 grid h-10 w-10 translate-x-2 -translate-y-1/2 place-items-center rounded-full border border-white/12 bg-black/80 text-white/80 shadow-xl backdrop-blur transition hover:scale-105 hover:bg-black hover:text-white active:scale-95 sm:translate-x-5"
+          onClick={() => moveScreen(1)}
+          className="absolute right-0 top-1/2 z-[70] grid h-11 w-11 translate-x-2 -translate-y-1/2 cursor-pointer place-items-center rounded-full border border-white/16 bg-black/90 text-white shadow-xl backdrop-blur transition hover:scale-105 hover:border-red-500/70 hover:bg-black active:scale-90 sm:translate-x-5"
           aria-label="Vista siguiente"
         >
           <ChevronRight size={17} />
