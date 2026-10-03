@@ -263,7 +263,7 @@ const roleLabels: Record<
     warehouse: "Depósito",
     sales: "Ventas",
     accountant: "Contador",
-    viewer: "Solo lectura"
+    viewer: "Control / solo lectura"
   },
   en: {
     owner: "Owner",
