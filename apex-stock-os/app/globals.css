@@ -707,3 +707,19 @@ textarea:focus-visible {
     opacity: 1;
   }
 }
+
+
+@media (min-width: 1024px) {
+  html.gs-download-arrow-scroll,
+  body.gs-download-arrow-scroll {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html.gs-download-arrow-scroll::-webkit-scrollbar,
+  body.gs-download-arrow-scroll::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
