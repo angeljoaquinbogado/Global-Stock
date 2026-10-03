@@ -982,27 +982,27 @@ export function ConnectedCommerceHub({
             </span>
             <div className="min-w-0 flex-1">
               <h3 className="text-sm font-semibold">{t.detected}</h3>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <form
+                className="mt-4 flex flex-col gap-2 sm:flex-row"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  if (detecting || !url.trim()) return;
+                  void inspectStore();
+                }}
+              >
                 <input
                   value={url}
                   onChange={(event) => setUrl(event.target.value)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter") {
-                      event.preventDefault();
-                      event.stopPropagation();
-                    }
-                  }}
                   placeholder="https://tu-tienda.com"
                   inputMode="url"
-                  enterKeyHint="done"
+                  enterKeyHint="search"
                   autoCapitalize="none"
                   autoCorrect="off"
                   className="apex-input min-h-12 flex-1 px-4 py-3 text-[16px]"
                   aria-label={t.url}
                 />
                 <button
-                  type="button"
-                  onClick={inspectStore}
+                  type="submit"
                   disabled={detecting || !url.trim()}
                   className="flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white disabled:opacity-40"
                 >
@@ -1012,7 +1012,7 @@ export function ConnectedCommerceHub({
                   />
                   {detecting ? t.detecting : t.inspect}
                 </button>
-              </div>
+              </form>
             </div>
           </div>
 
