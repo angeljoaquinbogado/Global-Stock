@@ -44,6 +44,23 @@ const segmentCopy: Record<
   }
 };
 
+const comparisonRows = [
+  { feature: "Punto de venta", base: true, pro: true, business: true },
+  { feature: "Inventario y mínimos", base: true, pro: true, business: true },
+  { feature: "Códigos de barras y escáner", base: true, pro: true, business: true },
+  { feature: "Agenda y actividad", base: true, pro: true, business: true },
+  { feature: "Tienda online conectada", base: false, pro: true, business: true },
+  { feature: "Reposición inteligente", base: false, pro: true, business: true },
+  { feature: "Proveedores y compras", base: false, pro: true, business: true },
+  { feature: "Comprobantes y documentos", base: false, pro: true, business: true },
+  { feature: "Sucursales y caja avanzada", base: false, pro: true, business: true },
+  { feature: "Finanzas y conciliación", base: false, pro: false, business: true },
+  { feature: "CRM y oportunidades", base: false, pro: false, business: true },
+  { feature: "Proyectos y equipo", base: false, pro: false, business: true },
+  { feature: "Roles y permisos", base: false, pro: false, business: true },
+  { feature: "Global Intelligence", base: false, pro: false, business: true }
+];
+
 const plans = [
   {
     name: "Base",
@@ -233,6 +250,56 @@ export function DownloadPricing() {
               </a>
             </article>
           ))}
+        </div>
+
+        <div className="mt-14 overflow-hidden rounded-[30px] border border-black/7 bg-white shadow-[0_18px_55px_rgba(24,24,27,.05)]">
+          <div className="border-b border-black/7 px-5 py-5 sm:px-6">
+            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#a80000]">
+              Comparativa
+            </p>
+            <h3 className="mt-2 text-2xl font-semibold tracking-[-.035em]">
+              Compará las funcionalidades principales.
+            </h3>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-black/46">
+              Esta distribución es una vista previa de la estructura de planes.
+              Los límites y precios finales todavía no están publicados.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[720px] border-collapse text-left">
+              <thead>
+                <tr className="border-b border-black/7 bg-[#faf9f7]">
+                  <th className="px-5 py-4 text-xs font-semibold text-black/50 sm:px-6">
+                    Funcionalidad
+                  </th>
+                  <th className="px-4 py-4 text-center text-xs font-semibold">Base</th>
+                  <th className="px-4 py-4 text-center text-xs font-semibold">Pro</th>
+                  <th className="px-4 py-4 text-center text-xs font-semibold">Business</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.feature} className="border-b border-black/[0.055] last:border-b-0">
+                    <td className="px-5 py-3.5 text-sm font-medium text-black/68 sm:px-6">
+                      {row.feature}
+                    </td>
+                    {[row.base, row.pro, row.business].map((included, index) => (
+                      <td key={index} className="px-4 py-3.5 text-center">
+                        {included ? (
+                          <span className="mx-auto grid h-6 w-6 place-items-center rounded-full bg-emerald-500/10 text-emerald-700">
+                            <Check size={12} />
+                          </span>
+                        ) : (
+                          <span className="text-black/18">—</span>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <div className="mt-8 flex justify-center">
