@@ -365,7 +365,6 @@ export function GlobalStockGlobe() {
         mapSamples: samples,
         mapBrightness: 6.6,
         baseColor: [0.04, 0.042, 0.048],
-        markerColor: [0.12, 0.018, 0.022],
         glowColor: [0.28, 0.015, 0.022],
         opacity: 0.95,
         scale: GLOBE_SCALE,
