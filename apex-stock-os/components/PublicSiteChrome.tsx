@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-lg">
+    <header className="sticky top-0 z-50 border-b border-[#24171a] bg-black/80 backdrop-blur-lg">
       <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
         <Link
           href="/download"
@@ -21,9 +21,6 @@ export function PublicHeader() {
           </Link>
           <Link className="transition-colors duration-150 hover:text-white" href="/download#download-sectors">
             Sectores
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-pricing">
-            Precios
           </Link>
           <Link className="transition-colors duration-150 hover:text-white" href="/download#download-install">
             Instalar
@@ -46,7 +43,7 @@ export function PublicHeader() {
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-white/10 bg-black">
+    <footer className="border-t border-[#24171a] bg-black">
       <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-10 text-sm text-white/58 sm:px-8 md:grid-cols-[1fr_auto]">
         <div>
           <p className="font-semibold text-white">Global Stock</p>
