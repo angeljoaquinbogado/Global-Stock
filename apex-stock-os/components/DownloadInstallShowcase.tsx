@@ -56,15 +56,6 @@ const platforms: Array<{
     accent: "#a4c639",
     surface: "rgba(34,197,94,.10)"
   },
-  {
-    id: "windows",
-    label: "Windows",
-    shortLabel: "Windows",
-    eyebrow: "Chrome / Edge",
-    icon: Laptop,
-    accent: "#8b5cf6",
-    surface: "rgba(139,92,246,.10)"
-  }
 ];
 
 const detail: Record<
