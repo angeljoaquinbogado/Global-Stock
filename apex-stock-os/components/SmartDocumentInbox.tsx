@@ -1,19 +1,14 @@
 "use client";
 
 import {
-  CheckCircle2,
   FileUp,
   Loader2,
+  ScanLine,
   Sparkles,
-  Trash2,
-  ScanLine
+  Trash2
 } from "lucide-react";
-import { ChangeEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
-import {
-  loadCloudWorkspace,
-  saveCloudWorkspace
-} from "@/lib/cloud-workspace";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { DocumentsHub } from "./BusinessOperations";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -26,7 +21,7 @@ type Props = {
   demoMode: boolean;
 };
 
-type ExtractedItem = {
+type SmartItem = {
   description: string;
   quantity: number | null;
   unitPrice: number | null;
@@ -45,28 +40,44 @@ type SmartDocument = {
   currency: string;
   category: string;
   confidence: number | null;
-  items: ExtractedItem[];
+  items: SmartItem[];
   createdAt: string;
+};
+
+type ScanResponse = {
+  document?: {
+    supplier?: string;
+    documentNumber?: string;
+    date?: string;
+    subtotal?: number | null;
+    tax?: number | null;
+    total?: number | null;
+    currency?: string;
+    category?: string;
+    confidence?: number | null;
+    items?: SmartItem[];
+  };
+  code?: string;
 };
 
 const STORAGE_KEY = "global-stock-smart-documents-v1";
 const MAX_FILE_BYTES = 8 * 1024 * 1024;
 
-function tr(
-  language: LanguageCode,
-  values: Partial<Record<LanguageCode, string>>
-) {
-  return values[language] ?? values.es ?? values.en ?? "";
+function label(language: LanguageCode, es: string, en: string) {
+  return language === "en" ? en : es;
 }
 
-function fileToBase64(file: File) {
-  return new Promise<string>((resolve, reject) => {
+function readAsBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
     reader.onload = () => {
-      const value = String(reader.result || "");
-      resolve(value.includes(",") ? value.split(",")[1] ?? "" : value);
+      const value = String(reader.result ?? "");
+      const comma = value.indexOf(",");
+      resolve(comma >= 0 ? value.slice(comma + 1) : value);
     };
-    reader.onerror = () => reject(reader.error);
+
+    reader.onerror = () => reject(new Error("FILE_READ_ERROR"));
     reader.readAsDataURL(file);
   });
 }
@@ -75,78 +86,48 @@ export function SmartDocumentInbox({
   language,
   currency,
   locale,
-  businessId,
   demoMode
 }: Props) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<SmartDocument[]>([]);
-  const [ready, setReady] = useState(false);
+  const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function hydrate() {
-      let nextDocuments: SmartDocument[] = [];
-
-      try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as SmartDocument[];
-          if (Array.isArray(parsed)) nextDocuments = parsed;
-        }
-      } catch {
-        nextDocuments = [];
-      }
-
-      if (!demoMode && businessId) {
-        const cloud = await loadCloudWorkspace(businessId);
-        const cloudDocuments = cloud?.state.smartDocuments;
-        if (Array.isArray(cloudDocuments)) {
-          nextDocuments = cloudDocuments as SmartDocument[];
+    try {
+      const raw = window.localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed: unknown = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setDocuments(parsed as SmartDocument[]);
         }
       }
-
-      if (!cancelled) {
-        setDocuments(nextDocuments);
-        setReady(true);
-      }
+    } catch {
+      setDocuments([]);
     }
 
-    void hydrate();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [businessId, demoMode]);
+    setLoaded(true);
+  }, []);
 
   useEffect(() => {
-    if (!ready) return;
+    if (!loaded) return;
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(documents.slice(0, 250))
+    );
+  }, [documents, loaded]);
 
-    const saved = documents.slice(0, 250);
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
-
-    if (demoMode || !businessId) return;
-
-    const timer = window.setTimeout(() => {
-      void saveCloudWorkspace(businessId, {
-        smartDocuments: saved
-      });
-    }, 450);
-
-    return () => window.clearTimeout(timer);
-  }, [businessId, demoMode, documents, ready]);
-
-  async function scanFile(file: File) {
+  async function scan(file: File) {
     setMessage("");
 
     if (file.size > MAX_FILE_BYTES) {
       setMessage(
-        tr(language, {
-          es: "El archivo supera el límite de 8 MB.",
-          en: "The file exceeds the 8 MB limit."
-        })
+        label(
+          language,
+          "El archivo supera el límite de 8 MB.",
+          "The file exceeds the 8 MB limit."
+        )
       );
       return;
     }
@@ -156,20 +137,22 @@ export function SmartDocumentInbox({
       file.type !== "application/pdf"
     ) {
       setMessage(
-        tr(language, {
-          es: "Usá una imagen o un PDF.",
-          en: "Use an image or PDF."
-        })
+        label(
+          language,
+          "Usá una imagen o un PDF.",
+          "Use an image or PDF."
+        )
       );
       return;
     }
 
     if (demoMode) {
       setMessage(
-        tr(language, {
-          es: "El escaneo con IA está desactivado en la cuenta demo para no consumir servicios externos. Iniciá sesión con una cuenta real para analizar comprobantes.",
-          en: "AI document scanning is disabled in demo mode. Sign in with a real account to analyze documents."
-        })
+        label(
+          language,
+          "El escaneo con IA está desactivado en la cuenta demo para no consumir servicios externos. Iniciá sesión con una cuenta real para analizar comprobantes.",
+          "AI scanning is disabled in demo mode. Sign in with a real account to analyze documents."
+        )
       );
       return;
     }
@@ -177,10 +160,10 @@ export function SmartDocumentInbox({
     setScanning(true);
 
     try {
-      const base64 = await fileToBase64(file);
+      const base64 = await readAsBase64(file);
       const supabase = getSupabaseBrowserClient();
-      const accessToken = supabase
-        ? (await supabase.auth.getSession()).data.session?.access_token
+      const session = supabase
+        ? (await supabase.auth.getSession()).data.session
         : null;
 
       const response = await fetch("/api/document-intelligence", {
@@ -188,8 +171,8 @@ export function SmartDocumentInbox({
         cache: "no-store",
         headers: {
           "Content-Type": "application/json",
-          ...(accessToken
-            ? { Authorization: `Bearer ${accessToken}` }
+          ...(session?.access_token
+            ? { Authorization: `Bearer ${session.access_token}` }
             : {})
         },
         body: JSON.stringify({
@@ -197,75 +180,52 @@ export function SmartDocumentInbox({
           mimeType: file.type,
           base64,
           language,
-          currency,
-          businessId
+          currency
         })
       });
 
-      const payload = (await response.json().catch(() => ({}))) as {
-        document?: Omit<SmartDocument, "id" | "filename" | "createdAt">;
-        code?: string;
-      };
+      const payload = (await response.json().catch(() => ({}))) as ScanResponse;
+      const result = payload.document;
 
-      if (!response.ok || !payload.document) {
+      if (!response.ok || !result) {
         throw new Error(payload.code || "SCAN_FAILED");
       }
 
-      setDocuments((current) => [
-        {
-          id: crypto.randomUUID(),
-          filename: file.name,
-          createdAt: new Date().toISOString(),
-          supplier: payload.document.supplier || "",
-          documentNumber: payload.document.documentNumber || "",
-          date: payload.document.date || "",
-          subtotal:
-            payload.document.subtotal === null
-              ? null
-              : Number(payload.document.subtotal),
-          tax:
-            payload.document.tax === null
-              ? null
-              : Number(payload.document.tax),
-          total:
-            payload.document.total === null
-              ? null
-              : Number(payload.document.total),
-          currency: payload.document.currency || currency,
-          category: payload.document.category || "",
-          confidence:
-            payload.document.confidence === null
-              ? null
-              : Number(payload.document.confidence),
-          items: Array.isArray(payload.document.items)
-            ? payload.document.items
-            : []
-        },
-        ...current
-      ]);
+      const next: SmartDocument = {
+        id: crypto.randomUUID(),
+        filename: file.name,
+        supplier: result.supplier ?? "",
+        documentNumber: result.documentNumber ?? "",
+        date: result.date ?? "",
+        subtotal: result.subtotal ?? null,
+        tax: result.tax ?? null,
+        total: result.total ?? null,
+        currency: result.currency || currency,
+        category: result.category ?? "",
+        confidence: result.confidence ?? null,
+        items: Array.isArray(result.items) ? result.items : [],
+        createdAt: new Date().toISOString()
+      };
 
+      setDocuments((current) => [next, ...current]);
       setMessage(
-        tr(language, {
-          es: "Comprobante leído. Revisá los datos antes de usarlo en la gestión.",
-          en: "Document read. Review the extracted data before using it."
-        })
+        label(
+          language,
+          "Comprobante leído. Revisá los datos antes de usarlo.",
+          "Document read. Review the data before using it."
+        )
       );
     } catch {
       setMessage(
-        tr(language, {
-          es: "No pude leer ese comprobante. Podés volver a intentarlo o cargarlo manualmente debajo.",
-          en: "I could not read that document. Try again or enter it manually below."
-        })
+        label(
+          language,
+          "No pude leer ese comprobante. Volvé a intentarlo o cargalo manualmente debajo.",
+          "I could not read that document. Try again or enter it manually below."
+        )
       );
     } finally {
       setScanning(false);
     }
-  }
-
-  async function onFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    event.target.value = "";
-    if (file) await scanFile(file);
   }
 
   function updateDocument(
@@ -273,28 +233,27 @@ export function SmartDocumentInbox({
     patch: Partial<SmartDocument>
   ) {
     setDocuments((current) =>
-      current.map((item) =>
-        item.id === id ? { ...item, ...patch } : item
+      current.map((document) =>
+        document.id === id
+          ? { ...document, ...patch }
+          : document
       )
     );
   }
 
-  function removeDocument(id: string) {
-    setDocuments((current) => current.filter((item) => item.id !== id));
-  }
+  function money(value: number | null, code: string) {
+    if (value === null) return "—";
 
-  const money = (value: number | null, documentCurrency: string) => {
-    if (value === null || !Number.isFinite(value)) return "—";
     try {
       return new Intl.NumberFormat(locale, {
         style: "currency",
-        currency: documentCurrency || currency,
+        currency: code || currency,
         maximumFractionDigits: 2
       }).format(value);
     } catch {
       return String(value);
     }
-  };
+  }
 
   return (
     <div className="space-y-5">
@@ -306,35 +265,37 @@ export function SmartDocumentInbox({
               Document Intelligence
             </div>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] sm:text-2xl">
-              {tr(language, {
-                es: "Escaneá tickets y facturas sin cargar datos a mano",
-                en: "Scan receipts and invoices without retyping data",
-                pt: "Digitalize recibos e faturas sem digitar tudo",
-                fr: "Scannez tickets et factures sans ressaisie",
-                de: "Belege und Rechnungen automatisch erfassen"
-              })}
+              {label(
+                language,
+                "Escaneá tickets y facturas sin cargar datos a mano",
+                "Scan receipts and invoices without retyping data"
+              )}
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
-              {tr(language, {
-                es: "Subí una foto o PDF. Global Stock intenta identificar proveedor, fecha, número, subtotal, impuestos, total, moneda e ítems. Siempre queda en revisión antes de afectar contabilidad o stock.",
-                en: "Upload a photo or PDF. Global Stock extracts supplier, date, number, subtotal, tax, total, currency and line items. Nothing affects accounting or inventory until you review it."
-              })}
+              {label(
+                language,
+                "Subí una foto o PDF. Global Stock lee proveedor, fecha, número, subtotal, impuestos, total, moneda e ítems. La información queda para revisión antes de afectar la operación.",
+                "Upload a photo or PDF. Global Stock reads supplier, date, number, subtotal, tax, total, currency and line items. Data stays in review before affecting operations."
+              )}
             </p>
           </div>
 
-          <div className="flex flex-col gap-2 sm:flex-row">
+          <div>
             <input
-              ref={inputRef}
+              ref={fileInputRef}
               type="file"
               accept="image/*,application/pdf"
-              capture="environment"
               className="hidden"
-              onChange={onFileChange}
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                event.target.value = "";
+                if (file) void scan(file);
+              }}
             />
             <button
               type="button"
               disabled={scanning}
-              onClick={() => inputRef.current?.click()}
+              onClick={() => fileInputRef.current?.click()}
               className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(143,0,0,.25)] disabled:opacity-60"
             >
               {scanning ? (
@@ -343,17 +304,17 @@ export function SmartDocumentInbox({
                 <FileUp size={17} />
               )}
               {scanning
-                ? tr(language, { es: "Leyendo…", en: "Reading…" })
-                : tr(language, { es: "Escanear comprobante", en: "Scan document" })}
+                ? label(language, "Leyendo…", "Reading…")
+                : label(language, "Escanear comprobante", "Scan document")}
             </button>
           </div>
         </div>
 
-        {message && (
+        {message ? (
           <div className="border-t border-[var(--apex-border)] bg-[var(--apex-bg)]/45 px-4 py-3 text-xs text-[var(--apex-muted)] sm:px-5">
             {message}
           </div>
-        )}
+        ) : null}
       </section>
 
       <section className="apex-card overflow-hidden">
@@ -361,7 +322,7 @@ export function SmartDocumentInbox({
           <div className="flex items-center gap-2">
             <ScanLine size={17} />
             <h3 className="font-semibold">
-              {tr(language, { es: "Bandeja inteligente", en: "Smart inbox" })}
+              {label(language, "Bandeja inteligente", "Smart inbox")}
             </h3>
           </div>
           <span className="text-xs font-semibold text-[var(--apex-muted)]">
@@ -370,17 +331,24 @@ export function SmartDocumentInbox({
         </div>
 
         <div className="divide-y divide-[var(--apex-border)]">
-          {documents.length ? (
+          {documents.length === 0 ? (
+            <div className="p-8 text-center text-sm text-[var(--apex-muted)]">
+              {label(
+                language,
+                "Todavía no escaneaste comprobantes.",
+                "No scanned documents yet."
+              )}
+            </div>
+          ) : (
             documents.map((document) => (
               <article key={document.id} className="p-4 sm:p-5">
-                <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_auto]">
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <CheckCircle2 size={15} className="text-emerald-600" />
+                <div className="flex flex-col gap-4 xl:flex-row xl:items-start">
+                  <div className="min-w-0 flex-1">
+                    <div className="grid gap-2 sm:grid-cols-3">
                       <input
-                        className="apex-input min-w-[180px] flex-1 p-2 text-sm font-semibold"
+                        className="apex-input p-2 text-sm font-semibold"
                         value={document.supplier}
-                        placeholder={tr(language, { es: "Proveedor", en: "Supplier" })}
+                        placeholder={label(language, "Proveedor", "Supplier")}
                         onChange={(event) =>
                           updateDocument(document.id, {
                             supplier: event.target.value
@@ -388,7 +356,7 @@ export function SmartDocumentInbox({
                         }
                       />
                       <input
-                        className="apex-input w-36 p-2 text-xs"
+                        className="apex-input p-2 text-sm"
                         value={document.documentNumber}
                         placeholder="N°"
                         onChange={(event) =>
@@ -398,7 +366,7 @@ export function SmartDocumentInbox({
                         }
                       />
                       <input
-                        className="apex-input w-36 p-2 text-xs"
+                        className="apex-input p-2 text-sm"
                         type="date"
                         value={document.date}
                         onChange={(event) =>
@@ -412,49 +380,31 @@ export function SmartDocumentInbox({
                     <p className="mt-2 truncate text-[11px] text-[var(--apex-muted)]">
                       {document.filename}
                       {document.confidence !== null
-                        ? ` · confianza ${Math.round(document.confidence * 100)}%`
+                        ? ` · ${Math.round(document.confidence * 100)}%`
                         : ""}
                     </p>
 
-                    <div className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                      <SmallMetric
-                        label={tr(language, { es: "Subtotal", en: "Subtotal" })}
-                        value={money(document.subtotal, document.currency)}
-                      />
-                      <SmallMetric
-                        label={tr(language, { es: "Impuestos", en: "Tax" })}
-                        value={money(document.tax, document.currency)}
-                      />
-                      <SmallMetric
-                        label="Total"
-                        value={money(document.total, document.currency)}
-                      />
-                      <SmallMetric
-                        label={tr(language, { es: "Categoría", en: "Category" })}
-                        value={document.category || "—"}
-                      />
+                    <div className="mt-3 grid gap-2 sm:grid-cols-4">
+                      <Metric label="Subtotal" value={money(document.subtotal, document.currency)} />
+                      <Metric label={label(language, "Impuestos", "Tax")} value={money(document.tax, document.currency)} />
+                      <Metric label="Total" value={money(document.total, document.currency)} />
+                      <Metric label={label(language, "Categoría", "Category")} value={document.category || "—"} />
                     </div>
 
-                    {document.items.length > 0 && (
-                      <div className="mt-4 overflow-x-auto rounded-2xl border border-[var(--apex-border)]">
-                        <table className="w-full min-w-[620px] text-left text-xs">
-                          <thead className="bg-[var(--apex-bg)]/60 text-[var(--apex-muted)]">
+                    {document.items.length > 0 ? (
+                      <div className="mt-3 overflow-x-auto rounded-2xl border border-[var(--apex-border)]">
+                        <table className="w-full min-w-[560px] text-left text-xs">
+                          <thead className="bg-[var(--apex-bg)]/50 text-[var(--apex-muted)]">
                             <tr>
-                              <th className="px-3 py-2">
-                                {tr(language, { es: "Detalle", en: "Item" })}
-                              </th>
-                              <th className="px-3 py-2">
-                                {tr(language, { es: "Cant.", en: "Qty" })}
-                              </th>
-                              <th className="px-3 py-2">
-                                {tr(language, { es: "Unitario", en: "Unit" })}
-                              </th>
+                              <th className="px-3 py-2">{label(language, "Detalle", "Item")}</th>
+                              <th className="px-3 py-2">{label(language, "Cant.", "Qty")}</th>
+                              <th className="px-3 py-2">{label(language, "Unitario", "Unit")}</th>
                               <th className="px-3 py-2">Total</th>
                             </tr>
                           </thead>
                           <tbody>
                             {document.items.slice(0, 30).map((item, index) => (
-                              <tr key={index} className="border-t border-[var(--apex-border)]">
+                              <tr key={`${document.id}-${index}`} className="border-t border-[var(--apex-border)]">
                                 <td className="px-3 py-2">{item.description}</td>
                                 <td className="px-3 py-2">{item.quantity ?? "—"}</td>
                                 <td className="px-3 py-2">{money(item.unitPrice, document.currency)}</td>
@@ -464,27 +414,24 @@ export function SmartDocumentInbox({
                           </tbody>
                         </table>
                       </div>
-                    )}
+                    ) : null}
                   </div>
 
                   <button
                     type="button"
-                    onClick={() => removeDocument(document.id)}
-                    className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] text-[var(--apex-muted)] hover:text-red-500"
-                    aria-label={tr(language, { es: "Eliminar", en: "Delete" })}
+                    onClick={() =>
+                      setDocuments((current) =>
+                        current.filter((item) => item.id !== document.id)
+                      )
+                    }
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] text-[var(--apex-muted)] hover:text-red-500"
+                    aria-label={label(language, "Eliminar", "Delete")}
                   >
                     <Trash2 size={15} />
                   </button>
                 </div>
               </article>
             ))
-          ) : (
-            <div className="p-8 text-center text-sm text-[var(--apex-muted)]">
-              {tr(language, {
-                es: "Todavía no escaneaste comprobantes.",
-                en: "No scanned documents yet."
-              })}
-            </div>
           )}
         </div>
       </section>
@@ -498,7 +445,7 @@ export function SmartDocumentInbox({
   );
 }
 
-function SmallMetric({
+function Metric({
   label,
   value
 }: {
