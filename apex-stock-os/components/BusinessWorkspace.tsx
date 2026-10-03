@@ -2225,6 +2225,9 @@ export function BusinessWorkspace({
       memberRole
     );
 
+  const canEditGlobalPreferences =
+    demoMode || ["owner", "admin"].includes(memberRole);
+
   const recipesByProduct = useMemo(() => {
     const map = new Map<string, RecipeComponent[]>();
 
@@ -3328,14 +3331,16 @@ export function BusinessWorkspace({
               <div className="hidden md:block">
                 <InstallAppButton language={language} />
               </div>
-              <div className="hidden sm:block">
-                <GlobalPreferences
-                  language={language}
-                  currency={currency}
-                  onLanguageChange={onLanguageChange}
-                  onCurrencyChange={onCurrencyChange}
-                />
-              </div>
+              {canEditGlobalPreferences && (
+                <div className="hidden sm:block">
+                  <GlobalPreferences
+                    language={language}
+                    currency={currency}
+                    onLanguageChange={onLanguageChange}
+                    onCurrencyChange={onCurrencyChange}
+                  />
+                </div>
+              )}
               <button
                 type="button"
                 onClick={onToggleTheme}
