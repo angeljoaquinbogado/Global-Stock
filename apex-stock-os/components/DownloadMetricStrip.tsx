@@ -13,22 +13,22 @@ const metrics = [
     value: "40h",
     label: "ahorradas/mes",
     icon: Clock3,
-    accent: "#00843d",
-    iconBg: "#eef7f1"
+    accent: "#42d17f",
+    iconBg: "rgba(66,209,127,.12)"
   },
   {
     value: "160x",
     label: "más rápido facturando",
     icon: Zap,
-    accent: "#c85a00",
-    iconBg: "#fff3e8"
+    accent: "#ff9f43",
+    iconBg: "rgba(255,159,67,.12)"
   },
   {
     value: "80%",
     label: "cobros más rápidos",
     icon: TrendingUp,
-    accent: "#00843d",
-    iconBg: "#eef7f1"
+    accent: "#42d17f",
+    iconBg: "rgba(66,209,127,.12)"
   }
 ];
 
@@ -36,7 +36,7 @@ export function DownloadMetricStrip() {
   const [active, setActive] = useState<number | null>(null);
 
   return (
-    <div className="border-y border-black/[0.07] bg-[#f6f4f0]">
+    <div className="border-y border-white/[0.07] bg-[#09090b]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-center overflow-x-auto px-4 py-4 sm:px-8">
         <div
           className="flex min-w-max items-center"
@@ -50,7 +50,7 @@ export function DownloadMetricStrip() {
                 {index > 0 && (
                   <motion.span
                     aria-hidden="true"
-                    className="mx-2 h-6 w-px bg-[#d9dde3] sm:mx-3"
+                    className="mx-2 h-6 w-px bg-white/12 sm:mx-3"
                     animate={{
                       opacity: expanded || active === index - 1 ? 0.35 : 1,
                       scaleY: expanded || active === index - 1 ? 0.72 : 1
@@ -76,11 +76,11 @@ export function DownloadMetricStrip() {
                   className="relative flex h-[52px] items-center overflow-hidden rounded-[12px] px-3.5 text-left outline-none sm:px-4.5"
                   animate={{
                     backgroundColor: expanded
-                      ? "rgba(235,239,243,0.98)"
+                      ? "rgba(255,255,255,0.075)"
                       : "rgba(255,255,255,0)",
                     boxShadow: expanded
-                      ? "0 8px 22px rgba(15,23,42,0.05)"
-                      : "0 0 0 rgba(15,23,42,0)"
+                      ? "0 10px 30px rgba(0,0,0,.22)"
+                      : "0 0 0 rgba(0,0,0,0)"
                   }}
                   transition={{
                     duration: 0.22,
@@ -113,14 +113,14 @@ export function DownloadMetricStrip() {
                   <motion.span
                     className="text-[22px] font-semibold leading-none tracking-[-0.045em] sm:text-[24px]"
                     animate={{
-                      color: expanded ? accent : "#0f172a"
+                      color: expanded ? accent : "#ffffff"
                     }}
                     transition={{ duration: 0.18 }}
                   >
                     {value}
                   </motion.span>
 
-                  <span className="ml-1.5 whitespace-nowrap text-[12px] font-medium text-[#596273] sm:text-[13px]">
+                  <span className="ml-1.5 whitespace-nowrap text-[12px] font-medium text-white/50 sm:text-[13px]">
                     {label}
                   </span>
                 </motion.button>
