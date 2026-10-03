@@ -6,7 +6,6 @@ import {
   Check,
   CircleDollarSign,
   Cloud,
-  Download,
   Globe2,
   ShieldCheck,
   ShoppingCart,
@@ -37,10 +36,7 @@ const storeLinks = {
   appStore: process.env.NEXT_PUBLIC_APP_STORE_URL?.trim() || "",
   playStore: process.env.NEXT_PUBLIC_PLAY_STORE_URL?.trim() || "",
   microsoftStore:
-    process.env.NEXT_PUBLIC_MICROSOFT_STORE_URL?.trim() || "",
-  appGallery: process.env.NEXT_PUBLIC_APP_GALLERY_URL?.trim() || "",
-  galaxyStore:
-    process.env.NEXT_PUBLIC_GALAXY_STORE_URL?.trim() || ""
+    process.env.NEXT_PUBLIC_MICROSOFT_STORE_URL?.trim() || ""
 };
 
 const flowItems = [
@@ -325,21 +321,6 @@ export default function DownloadPage() {
                 playStoreUrl={storeLinks.playStore}
                 microsoftStoreUrl={storeLinks.microsoftStore}
               />
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {[
-                ["Huawei AppGallery", Boolean(storeLinks.appGallery)],
-                ["Galaxy Store", Boolean(storeLinks.galaxyStore)]
-              ].map(([name, active]) => (
-                <span
-                  key={String(name)}
-                  className="inline-flex min-h-9 items-center gap-2 rounded-full bg-white/[0.03] px-3 text-[10px] font-semibold text-white/36"
-                >
-                  <Download size={12} />
-                  {String(name)} · {active ? "Disponible" : "Próximamente"}
-                </span>
-              ))}
             </div>
           </div>
         </section>

@@ -296,7 +296,7 @@ function PhoneAppBar() {
   return (
     <header className="flex shrink-0 items-center justify-between border-b border-white/8 px-3.5 pb-2.5 pt-2">
       <div className="flex items-center gap-2">
-        <Logo className="h-7 w-7 shrink-0 object-contain" alt="" aria-hidden="true" />
+        <Logo className="h-7 w-7 shrink-0" aria-hidden="true" />
         <span className="text-[10.5px] font-semibold tracking-[-0.02em]">
           Global Stock
         </span>

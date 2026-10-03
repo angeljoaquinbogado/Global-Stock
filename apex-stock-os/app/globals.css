@@ -986,3 +986,20 @@ textarea:focus-visible {
     -webkit-backdrop-filter: none !important;
   }
 }
+
+/* Download uses its own section navigator; hide the native desktop scrollbar immediately,
+   including before client hydration, to avoid the Windows scrollbar flash. */
+@media (min-width: 1024px) {
+  html:has(.gs-storefront),
+  body:has(.gs-storefront) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  html:has(.gs-storefront)::-webkit-scrollbar,
+  body:has(.gs-storefront)::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none;
+  }
+}
