@@ -36,8 +36,8 @@ export function DownloadMetricStrip() {
   const [active, setActive] = useState<number | null>(null);
 
   return (
-    <div className="border-y border-[#24171a] bg-[#09090b]">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-center overflow-x-auto px-4 py-6 sm:px-8 sm:py-7">
+    <div className="border-y border-[#211417] bg-[#09090a]">
+      <div className="mx-auto flex w-full max-w-[1240px] items-center justify-center overflow-x-auto px-5 py-7 sm:px-8 sm:py-8">
         <div
           className="flex min-w-max items-center"
           onMouseLeave={() => setActive(null)}
@@ -50,7 +50,7 @@ export function DownloadMetricStrip() {
                 {index > 0 && (
                   <motion.span
                     aria-hidden="true"
-                    className="mx-3 h-7 w-px bg-white/12 sm:mx-5"
+                    className="mx-4 h-8 w-px bg-[#2a171b] sm:mx-7"
                     animate={{
                       opacity: expanded || active === index - 1 ? 0.35 : 1,
                       scaleY: expanded || active === index - 1 ? 0.72 : 1
@@ -73,13 +73,13 @@ export function DownloadMetricStrip() {
                       current === index ? null : index
                     )
                   }
-                  className="relative flex h-14 items-center overflow-hidden rounded-[13px] px-4 text-left outline-none sm:px-5"
+                  className="relative flex h-14 items-center overflow-hidden rounded-xl px-4 text-left outline-none sm:px-5"
                   animate={{
                     backgroundColor: expanded
-                      ? "rgba(255,255,255,0.075)"
+                      ? "rgba(255,255,255,0.045)"
                       : "rgba(255,255,255,0)",
                     boxShadow: expanded
-                      ? "0 10px 30px rgba(0,0,0,.22)"
+                      ? "0 0 0 rgba(0,0,0,0)"
                       : "0 0 0 rgba(0,0,0,0)"
                   }}
                   transition={{
@@ -91,8 +91,8 @@ export function DownloadMetricStrip() {
                   <motion.span
                     className="grid shrink-0 place-items-center overflow-hidden rounded-full"
                     animate={{
-                      width: expanded ? 30 : 0,
-                      height: expanded ? 30 : 0,
+                      width: expanded ? 32 : 0,
+                      height: expanded ? 32 : 0,
                       marginRight: expanded ? 10 : 0,
                       opacity: expanded ? 1 : 0,
                       scale: expanded ? 1 : 0.72
@@ -107,11 +107,11 @@ export function DownloadMetricStrip() {
                     }}
                     aria-hidden="true"
                   >
-                    <Icon size={16} strokeWidth={2.1} />
+                    <Icon size={17} strokeWidth={2} />
                   </motion.span>
 
                   <motion.span
-                    className="text-[22px] font-semibold leading-none tracking-[-0.045em] sm:text-[24px]"
+                    className="text-[24px] font-semibold leading-none tracking-[-0.05em] sm:text-[28px]"
                     animate={{
                       color: expanded ? accent : "#ffffff"
                     }}
@@ -120,7 +120,7 @@ export function DownloadMetricStrip() {
                     {value}
                   </motion.span>
 
-                  <span className="ml-1.5 whitespace-nowrap text-[12px] font-medium text-white/50 sm:text-[13px]">
+                  <span className="ml-2 whitespace-nowrap text-[12px] font-medium text-white/42 sm:text-[13px]">
                     {label}
                   </span>
                 </motion.button>
