@@ -396,7 +396,7 @@ export default function DownloadPage() {
 
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div className="flex items-start gap-5">
-                <Logo className="h-14 w-14 shrink-0" />
+                <Logo className="h-14 w-auto shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#ed4c5c]">
                     Global Stock
