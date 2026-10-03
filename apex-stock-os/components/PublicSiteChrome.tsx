@@ -15,15 +15,18 @@ export function PublicHeader() {
           <span>Global Stock</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm text-white/64 md:flex">
-          <Link className="transition-colors duration-150 hover:text-white" href="/about">
-            Quiénes somos
+        <nav className="hidden items-center gap-5 text-sm text-white/64 md:flex">
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-feature-catalog">
+            Funcionalidades
           </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#instalar">
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-sectors">
+            Sectores
+          </Link>
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-pricing">
+            Precios
+          </Link>
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-install">
             Instalar
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/legal">
-            Legal
           </Link>
           <Link className="transition-colors duration-150 hover:text-white" href="/support">
             Soporte
