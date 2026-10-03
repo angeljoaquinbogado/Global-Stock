@@ -8,7 +8,6 @@ const sectionIds = [
   "download-features",
   "download-feature-catalog",
   "download-sectors",
-  "download-pricing",
   "download-install",
   "download-security",
   "download-faq"
@@ -82,13 +81,13 @@ export function DownloadScrollNavigator() {
         type="button"
         onClick={() => goTo(Math.max(0, activeIndex - 1))}
         disabled={activeIndex <= 0}
-        className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
+        className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Subir a la sección anterior"
       >
         <ChevronUp size={16} />
       </button>
 
-      <div className="flex flex-col items-center gap-1.5 rounded-full border border-white/10 bg-black/55 px-2 py-3 backdrop-blur">
+      <div className="flex flex-col items-center gap-1.5 rounded-full border border-[#342025] bg-black/55 px-2 py-3 backdrop-blur">
         {sectionIds.slice(0, availableCount).map((id, index) => (
           <button
             key={id}
@@ -111,7 +110,7 @@ export function DownloadScrollNavigator() {
           goTo(Math.min(availableCount - 1, activeIndex + 1))
         }
         disabled={activeIndex >= availableCount - 1}
-        className="grid h-9 w-9 place-items-center rounded-full border border-white/10 bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
+        className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Bajar a la sección siguiente"
       >
         <ChevronDown size={16} />
