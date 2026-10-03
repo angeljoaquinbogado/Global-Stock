@@ -1,17 +1,23 @@
 "use client";
 
 import {
+  ArrowUp,
   BarChart3,
+  BellRing,
   Boxes,
-  Bot,
-  Check,
+  BrainCircuit,
+  ChartNoAxesCombined,
   ChevronLeft,
   ChevronRight,
   CircleDollarSign,
+  Menu,
+  Minus,
   PackageSearch,
+  Plus,
   ScanLine,
+  Search,
   ShoppingCart,
-  Sparkles,
+  Store,
   TrendingUp
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -38,14 +44,11 @@ const frameColors: IPhone17ProMaxFrameColor[] = [
 
 type DemoScreen = "dashboard" | "pos" | "inventory" | "ai";
 
-const screens: Array<{
-  id: DemoScreen;
-  label: string;
-}> = [
+const screens: Array<{ id: DemoScreen; label: string }> = [
   { id: "dashboard", label: "Inicio" },
-  { id: "pos", label: "Caja" },
-  { id: "inventory", label: "Stock" },
-  { id: "ai", label: "IA" }
+  { id: "pos", label: "Punto de venta" },
+  { id: "inventory", label: "Almacén" },
+  { id: "ai", label: "Intelligence" }
 ];
 
 export function GlobalStockPhonePreview() {
@@ -55,6 +58,7 @@ export function GlobalStockPhonePreview() {
     useState<IPhone17ProMaxFrameColor>("graphite");
   const [screenIndex, setScreenIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+
   const manualPauseTimerRef = useRef<number | null>(null);
   const navLockRef = useRef(false);
 
@@ -65,7 +69,7 @@ export function GlobalStockPhonePreview() {
 
     const timer = window.setInterval(() => {
       setScreenIndex((current) => (current + 1) % screens.length);
-    }, 4400);
+    }, 5200);
 
     return () => window.clearInterval(timer);
   }, [paused]);
@@ -89,7 +93,7 @@ export function GlobalStockPhonePreview() {
     manualPauseTimerRef.current = window.setTimeout(() => {
       setPaused(false);
       manualPauseTimerRef.current = null;
-    }, 6500);
+    }, 7000);
   };
 
   const moveScreen = (direction: -1 | 1) => {
@@ -110,8 +114,8 @@ export function GlobalStockPhonePreview() {
 
   const chooseScreen = (next: DemoScreen) => {
     pauseForManualNavigation();
-    const nextIndex = screens.findIndex((item) => item.id === next);
-    if (nextIndex >= 0) setScreenIndex(nextIndex);
+    const index = screens.findIndex((item) => item.id === next);
+    if (index >= 0) setScreenIndex(index);
   };
 
   const cycleDynamicIsland = () => {
@@ -132,9 +136,7 @@ export function GlobalStockPhonePreview() {
       className="relative mx-auto flex w-full max-w-[520px] flex-col items-center"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => {
-        if (manualPauseTimerRef.current === null) {
-          setPaused(false);
-        }
+        if (manualPauseTimerRef.current === null) setPaused(false);
       }}
     >
       <div className="pointer-events-none absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
@@ -153,54 +155,13 @@ export function GlobalStockPhonePreview() {
             time="9:41"
             className="relative"
           >
-            <div className="flex h-full min-h-0 flex-col overflow-hidden bg-[#050506] px-[5.6%] pb-[6.5%] pt-[7.2%] text-white">
-              <header className="flex shrink-0 items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="gs-phone-kicker font-bold uppercase tracking-[0.18em] text-red-500">
-                    Global Stock
-                  </p>
-                  <h3 className="gs-phone-title mt-1 truncate font-semibold leading-tight tracking-[-0.04em]">
-                    {screen === "dashboard" && "Centro de control"}
-                    {screen === "pos" && "Punto de venta"}
-                    {screen === "inventory" && "Inventario"}
-                    {screen === "ai" && "Global Intelligence"}
-                  </h3>
-                </div>
-
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[11px] bg-[#8F0000] text-[9px] font-bold">
-                  GS
-                </span>
-              </header>
-
-              <main
-                key={screen}
-                className="mt-[4.5%] min-h-0 flex-1 overflow-hidden animate-[gs-phone-screen-in_.34s_cubic-bezier(.22,1,.36,1)_both]"
-              >
-                {screen === "dashboard" && (
-                  <DashboardDemo onNavigate={chooseScreen} />
-                )}
-                {screen === "pos" && <PosDemo />}
-                {screen === "inventory" && <InventoryDemo />}
-                {screen === "ai" && <AiDemo />}
-              </main>
-
-              <nav className="mt-[3.8%] grid shrink-0 grid-cols-4 gap-1 border-t border-white/10 pt-2.5">
-                {screens.map((item) => (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={() => chooseScreen(item.id)}
-                    className={
-                      "gs-phone-tab rounded-[9px] px-1 text-center font-semibold transition " +
-                      (screen === item.id
-                        ? "bg-red-500/12 text-red-400"
-                        : "text-white/34 hover:bg-white/[0.03] hover:text-white/70")
-                    }
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </nav>
+            <div className="h-full min-h-0 overflow-hidden bg-[#050506] text-white">
+              {screen === "dashboard" && (
+                <DashboardDemo onNavigate={chooseScreen} />
+              )}
+              {screen === "pos" && <PosDemo />}
+              {screen === "inventory" && <InventoryDemo />}
+              {screen === "ai" && <IntelligenceDemo />}
             </div>
           </IPhone17ProMax>
         </div>
@@ -277,6 +238,122 @@ export function GlobalStockPhonePreview() {
   );
 }
 
+function PhoneAppBar() {
+  return (
+    <header className="flex shrink-0 items-center justify-between border-b border-white/8 px-3.5 pb-2.5 pt-2">
+      <div className="flex items-center gap-2">
+        <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-[#8F0000] text-[7px] font-black">
+          GS
+        </span>
+        <span className="text-[9px] font-semibold tracking-[-0.02em]">
+          Global Stock
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <span className="grid h-7 w-7 place-items-center rounded-[9px] border border-white/10 bg-white/[0.035] text-[9px]">
+          ◐
+        </span>
+        <span className="grid h-7 w-7 place-items-center rounded-[9px] border border-white/10 bg-white/[0.035]">
+          <Menu size={12} />
+        </span>
+      </div>
+    </header>
+  );
+}
+
+function PageHeading({
+  title,
+  subtitle
+}: {
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <div>
+      <h3 className="text-[14px] font-semibold tracking-[-0.035em]">
+        {title}
+      </h3>
+      <p className="mt-1 text-[7px] leading-[1.4] text-white/42">
+        {subtitle}
+      </p>
+    </div>
+  );
+}
+
+function PhoneBottomNav({
+  active,
+  onNavigate
+}: {
+  active: "overview" | "pos" | "inventory";
+  onNavigate?: (screen: DemoScreen) => void;
+}) {
+  return (
+    <nav className="grid shrink-0 grid-cols-5 items-end gap-1 border-t border-white/10 bg-black/92 px-1.5 pb-1 pt-1.5">
+      <PhoneNavButton
+        active={active === "overview"}
+        icon={<Store size={12} />}
+        label="Inicio"
+        onClick={() => onNavigate?.("dashboard")}
+      />
+      <PhoneNavButton
+        active={active === "pos"}
+        icon={<ShoppingCart size={12} />}
+        label="P. venta"
+        onClick={() => onNavigate?.("pos")}
+      />
+
+      <button
+        type="button"
+        className="-mt-5 flex flex-col items-center justify-end gap-0.5 text-[5px] font-semibold text-red-400"
+      >
+        <span className="grid h-10 w-10 place-items-center rounded-full border-[3px] border-[#050506] bg-[#8F0000] text-white shadow-[0_7px_20px_rgba(143,0,0,.35)]">
+          <ScanLine size={15} />
+        </span>
+        <span>Escanear</span>
+      </button>
+
+      <PhoneNavButton
+        active={false}
+        icon={<BarChart3 size={12} />}
+        label="Gráficos"
+      />
+      <PhoneNavButton
+        active={active === "inventory"}
+        icon={<Menu size={12} />}
+        label="Más"
+        onClick={() => onNavigate?.("inventory")}
+      />
+    </nav>
+  );
+}
+
+function PhoneNavButton({
+  active,
+  icon,
+  label,
+  onClick
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={
+        "flex min-h-9 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[5px] font-semibold transition " +
+        (active ? "text-red-400" : "text-white/38")
+      }
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
+  );
+}
+
 function DashboardDemo({
   onNavigate
 }: {
@@ -284,309 +361,596 @@ function DashboardDemo({
 }) {
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="grid grid-cols-3 gap-1.5">
-        {[
-          ["Ventas", "$ 2,4 M"],
-          ["Stock", "1.248"],
-          ["Margen", "31%"]
-        ].map(([label, value]) => (
-          <div
-            key={label}
-            className="rounded-[11px] border border-white/8 bg-white/[0.045] px-2.5 py-2"
-          >
-            <p className="gs-phone-micro uppercase tracking-[0.08em] text-white/35">
-              {label}
-            </p>
-            <p className="mt-1 gs-phone-value font-semibold">{value}</p>
+      <PhoneAppBar />
+
+      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Centro de control"
+          subtitle="Una vista completa de la operación de tu negocio."
+        />
+
+        <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+          <KpiCard
+            icon={<CircleDollarSign size={11} />}
+            label="Ingresos"
+            value="$ 2,4 M"
+          />
+          <KpiCard
+            icon={<Boxes size={11} />}
+            label="Costo de inventario"
+            value="$ 1,18 M"
+          />
+          <KpiCard
+            icon={<TrendingUp size={11} />}
+            label="Ganancia bruta"
+            value="$ 742 mil"
+          />
+          <KpiCard
+            icon={<BellRing size={11} />}
+            label="Stock crítico"
+            value="12 alertas"
+          />
+        </div>
+
+        <section className="mt-2 rounded-[12px] border border-white/10 bg-white/[0.025] p-2.5">
+          <div className="flex items-end justify-between gap-2">
+            <div>
+              <p className="text-[6px] font-bold uppercase tracking-[0.11em] text-red-400">
+                Flujo de ventas
+              </p>
+              <p className="mt-0.5 text-[8px] font-semibold">
+                Ganancia bruta
+              </p>
+            </div>
+            <span className="rounded-full border border-white/10 px-2 py-1 text-[5px] text-white/45">
+              Gráficos
+            </span>
           </div>
-        ))}
+
+          <div className="relative mt-2 h-[68px] overflow-hidden rounded-[8px] bg-black/30">
+            <svg
+              viewBox="0 0 220 70"
+              className="absolute inset-0 h-full w-full"
+              aria-hidden="true"
+            >
+              <defs>
+                <linearGradient id="phone-profit-fill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#8F0000" stopOpacity=".34" />
+                  <stop offset="100%" stopColor="#8F0000" stopOpacity="0" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M0 56 L28 48 L58 51 L88 36 L118 42 L150 22 L182 31 L220 16 L220 70 L0 70 Z"
+                fill="url(#phone-profit-fill)"
+              />
+              <path
+                d="M0 56 L28 48 L58 51 L88 36 L118 42 L150 22 L182 31 L220 16"
+                fill="none"
+                stroke="#C10A0A"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <div className="absolute bottom-1 inset-x-2 flex justify-between text-[4.5px] text-white/25">
+              <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span>
+              <span>Vie</span><span>Sáb</span><span>Dom</span>
+            </div>
+          </div>
+        </section>
+
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          <section className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+            <div className="flex items-center justify-between">
+              <p className="text-[7px] font-semibold">Actividad reciente</p>
+              <span className="text-[5px] font-semibold text-red-400">Abrir</span>
+            </div>
+            <div className="mt-2 space-y-1.5">
+              <ActivityLine text="Venta registrada · 4 unidades" />
+              <ActivityLine text="Reposición recibida · 12 unidades" />
+            </div>
+          </section>
+
+          <section className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+            <div className="flex items-center justify-between">
+              <p className="text-[7px] font-semibold">Notas de hoy</p>
+              <span className="text-[5px] font-semibold text-red-400">Abrir</span>
+            </div>
+            <div className="mt-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5 text-[5.5px] leading-3 text-white/55">
+              Revisar reposición de reels antes de las 18:00.
+            </div>
+          </section>
+        </div>
       </div>
 
-      <div className="mt-2.5 rounded-[14px] border border-white/8 bg-[linear-gradient(180deg,rgba(143,0,0,.12),rgba(255,255,255,.018))] p-2.5">
-        <div className="flex items-center justify-between">
-          <span className="gs-phone-label font-semibold">Flujo de ventas</span>
-          <TrendingUp size={11} className="text-red-500" />
-        </div>
-        <div className="mt-2 flex h-[72px] items-end gap-1.5">
-          {[28, 44, 35, 57, 49, 68, 58].map((height, index) => (
-            <span
-              key={index}
-              className="flex-1 origin-bottom animate-[gs-phone-bar_.65s_cubic-bezier(.22,1,.36,1)_both] rounded-t-[3px] bg-gradient-to-t from-red-950 to-red-600"
-              style={{
-                height: height + "%",
-                animationDelay: index * 55 + "ms"
-              }}
-            />
-          ))}
-        </div>
-      </div>
+      <PhoneBottomNav active="overview" onNavigate={onNavigate} />
+    </div>
+  );
+}
 
-      <div className="mt-2.5 grid gap-1.5">
-        <MiniRow
-          icon={ShoppingCart}
-          title="Punto de venta"
-          body="Caja lista para operar"
-          onClick={() => onNavigate("pos")}
-        />
-        <MiniRow
-          icon={Boxes}
-          title="Inventario"
-          body="Stock por sucursal y variante"
-          onClick={() => onNavigate("inventory")}
-        />
-        <MiniRow
-          icon={Sparkles}
-          title="Global Intelligence"
-          body="Análisis del negocio"
-          onClick={() => onNavigate("ai")}
-        />
+function KpiCard({
+  icon,
+  label,
+  value
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+      <div className="flex items-center gap-1.5 text-red-400">
+        {icon}
+        <span className="truncate text-[5.5px] font-bold uppercase tracking-[0.08em] text-white/38">
+          {label}
+        </span>
       </div>
+      <p className="mt-1.5 text-[10px] font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ActivityLine({ text }: { text: string }) {
+  return (
+    <div className="flex items-start gap-1.5">
+      <span className="mt-[4px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#8F0000]" />
+      <p className="text-[5.5px] leading-3 text-white/48">{text}</p>
     </div>
   );
 }
 
 function PosDemo() {
-  const [paid, setPaid] = useState(false);
-  const [scannerActive, setScannerActive] = useState(false);
+  const [cart, setCart] = useState<Record<string, number>>({
+    "Reel frontal 5000": 1
+  });
+  const [payment, setPayment] = useState("Efectivo");
+  const [done, setDone] = useState(false);
 
-  const rows = [
-    ["Reel frontal 5000", "1", "$ 89.900"],
-    ["Señuelo minnow", "2", "$ 31.800"],
-    ["Línea multifilamento", "1", "$ 18.500"]
+  const products = [
+    { name: "Reel frontal 5000", category: "Reels", stock: 8, price: 89900 },
+    { name: "Señuelo minnow", category: "Señuelos", stock: 23, price: 15900 }
   ];
 
-  const charge = () => {
-    setPaid(true);
-    window.setTimeout(() => setPaid(false), 1600);
+  const total = products.reduce(
+    (sum, product) => sum + (cart[product.name] ?? 0) * product.price,
+    0
+  );
+
+  const money = (value: number) =>
+    "$ " + new Intl.NumberFormat("es-AR").format(value);
+
+  const add = (name: string, stock: number) => {
+    setCart((current) => ({
+      ...current,
+      [name]: Math.min(stock, (current[name] ?? 0) + 1)
+    }));
+  };
+
+  const change = (name: string, delta: number, stock: number) => {
+    setCart((current) => {
+      const next = Math.max(0, Math.min(stock, (current[name] ?? 0) + delta));
+      const result = { ...current };
+      if (next === 0) delete result[name];
+      else result[name] = next;
+      return result;
+    });
   };
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <section className="rounded-[14px] border border-white/8 bg-white/[0.035] p-2.5">
-        <div className="flex items-center justify-between">
-          <span className="gs-phone-label font-semibold">Venta en curso</span>
-          <ShoppingCart size={11} className="text-red-500" />
-        </div>
+      <PhoneAppBar />
 
-        <div className="mt-2 grid gap-1.5">
-          {rows.map(([name, qty, price]) => (
-            <div
-              key={name}
-              className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[9px] bg-white/[0.035] px-2.5 py-1.5"
+      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Punto de venta"
+          subtitle="Elegí productos, armá el carrito, registrá el cobro y descontá stock."
+        />
+
+        <label className="relative mt-2.5 block">
+          <Search
+            size={11}
+            className="absolute left-2.5 top-1/2 -translate-y-1/2 text-white/30"
+          />
+          <input
+            readOnly
+            value=""
+            placeholder="Buscar producto"
+            className="h-8 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-7 pr-2 text-[7px] text-white outline-none placeholder:text-white/28"
+          />
+        </label>
+
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          {products.map((product) => (
+            <article
+              key={product.name}
+              className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5"
             >
-              <span className="truncate gs-phone-copy font-medium">{name}</span>
-              <span className="gs-phone-micro text-white/35">x{qty}</span>
-              <span className="gs-phone-copy font-semibold">{price}</span>
-            </div>
+              <div className="flex items-center justify-between gap-1">
+                <span className="grid h-6 w-6 place-items-center rounded-[8px] bg-red-500/10 text-red-400">
+                  <Store size={10} />
+                </span>
+                <span className="rounded-full border border-white/10 px-1.5 py-1 text-[4.5px] text-white/38">
+                  {product.stock} stock
+                </span>
+              </div>
+              <p className="mt-2 truncate text-[7px] font-semibold">
+                {product.name}
+              </p>
+              <p className="mt-0.5 text-[5px] text-white/35">
+                {product.category}
+              </p>
+              <p className="mt-1.5 text-[8px] font-semibold">
+                {money(product.price)}
+              </p>
+              <button
+                type="button"
+                onClick={() => add(product.name, product.stock)}
+                className="mt-2 min-h-7 w-full rounded-[9px] bg-[#8F0000] px-2 text-[6px] font-semibold text-white"
+              >
+                <Plus size={9} className="mr-1 inline" />
+                Agregar
+              </button>
+            </article>
           ))}
         </div>
-      </section>
 
-      <div className="mt-2 grid grid-cols-[.92fr_1.08fr] gap-2">
-        <div className="rounded-[12px] border border-white/8 px-3 py-2.5">
-          <p className="gs-phone-micro uppercase tracking-[.08em] text-white/35">
-            Total
-          </p>
-          <p className="mt-1 gs-phone-total font-semibold">$ 140.200</p>
-        </div>
+        <section className="mt-2 rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
+          <div className="flex items-center justify-between">
+            <p className="text-[8px] font-semibold">Carrito</p>
+            <span className="text-[6px] text-white/35">
+              {Object.values(cart).reduce((sum, value) => sum + value, 0)} u.
+            </span>
+          </div>
 
-        <button
-          type="button"
-          onClick={charge}
-          className={
-            "rounded-[12px] px-3 gs-phone-label font-semibold text-white transition " +
-            (paid
-              ? "bg-emerald-600"
-              : "bg-[#8F0000] hover:bg-[#a40000]")
-          }
-        >
-          <span className="inline-flex items-center gap-1.5">
-            {paid && <Check size={11} />}
-            {paid ? "Cobrado" : "Cobrar"}
-          </span>
-        </button>
+          <div className="mt-1.5 space-y-1.5">
+            {Object.entries(cart).map(([name, quantity]) => {
+              const product = products.find((item) => item.name === name)!;
+              return (
+                <div
+                  key={name}
+                  className="flex items-center justify-between gap-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-[6px] font-semibold">{name}</p>
+                    <p className="text-[5px] text-white/35">{money(product.price)}</p>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => change(name, -1, product.stock)}
+                      className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10"
+                    >
+                      <Minus size={9} />
+                    </button>
+                    <span className="w-3 text-center text-[6px] font-semibold">
+                      {quantity}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => change(name, 1, product.stock)}
+                      className="grid h-6 w-6 place-items-center rounded-[7px] border border-white/10"
+                    >
+                      <Plus size={9} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-2 flex items-center justify-between border-t border-white/8 pt-2">
+            <span className="text-[6px] text-white/42">Total</span>
+            <strong className="text-[9px]">{money(total)}</strong>
+          </div>
+
+          <div className="mt-2 grid grid-cols-2 gap-1.5">
+            <select
+              value={payment}
+              onChange={(event) => setPayment(event.target.value)}
+              className="h-8 rounded-[9px] border border-white/10 bg-[#111] px-2 text-[6px] text-white outline-none"
+            >
+              <option>Efectivo</option>
+              <option>Débito</option>
+              <option>Crédito</option>
+              <option>Transferencia</option>
+              <option>QR</option>
+            </select>
+            <button
+              type="button"
+              disabled={!total}
+              onClick={() => {
+                setDone(true);
+                window.setTimeout(() => setDone(false), 1400);
+              }}
+              className={
+                "h-8 rounded-[9px] px-2 text-[6px] font-semibold text-white transition " +
+                (done ? "bg-emerald-600" : "bg-[#8F0000]")
+              }
+            >
+              {done ? "Venta registrada" : "Confirmar venta"}
+            </button>
+          </div>
+        </section>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setScannerActive((value) => !value)}
-        className={
-          "mt-2 flex items-center justify-between rounded-[12px] border p-2.5 text-left transition " +
-          (scannerActive
-            ? "border-red-500/35 bg-red-500/[0.08]"
-            : "border-white/8 bg-white/[0.025]")
-        }
-      >
-        <div>
-          <p className="gs-phone-copy font-semibold">
-            {scannerActive ? "Escáner activo" : "Escáner rápido"}
-          </p>
-          <p className="mt-0.5 gs-phone-micro text-white/35">
-            {scannerActive
-              ? "Listo para leer un código"
-              : "Código de barras o QR"}
-          </p>
-        </div>
-        <ScanLine
-          size={15}
-          className={
-            scannerActive ? "animate-pulse text-red-400" : "text-red-500"
-          }
-        />
-      </button>
+      <PhoneBottomNav active="pos" />
     </div>
   );
 }
 
 function InventoryDemo() {
-  const [selected, setSelected] = useState("Reel baitcasting");
+  const [stock, setStock] = useState<Record<string, number>>({
+    "Reel frontal 5000": 8,
+    "Señuelo minnow": 4,
+    "Anzuelo 3/0 x10": 73
+  });
 
   const products = [
-    ["Caña carbono 2,40 m", "18", "OK"],
-    ["Reel baitcasting", "4", "Bajo"],
-    ["Anzuelo 3/0 x10", "73", "OK"],
-    ["Señuelo 11 cm", "0", "Sin stock"]
+    {
+      name: "Reel frontal 5000",
+      barcode: "779000123401",
+      category: "Reels",
+      supplier: "Río Sur",
+      cost: "$ 52.000",
+      price: "$ 89.900",
+      min: 5
+    },
+    {
+      name: "Señuelo minnow",
+      barcode: "779000123402",
+      category: "Señuelos",
+      supplier: "Delta",
+      cost: "$ 8.700",
+      price: "$ 15.900",
+      min: 8
+    },
+    {
+      name: "Anzuelo 3/0 x10",
+      barcode: "779000123403",
+      category: "Anzuelos",
+      supplier: "Delta",
+      cost: "$ 3.900",
+      price: "$ 7.500",
+      min: 20
+    }
   ];
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="grid grid-cols-2 gap-2">
-        <div className="rounded-[12px] border border-white/8 p-2.5">
-          <Boxes size={12} className="text-red-500" />
-          <p className="mt-1.5 gs-phone-value-lg font-semibold">1.248</p>
-          <p className="gs-phone-micro text-white/35">unidades</p>
-        </div>
+      <PhoneAppBar />
 
-        <div className="rounded-[12px] border border-red-500/20 bg-red-500/[0.055] p-2.5">
-          <PackageSearch size={12} className="text-red-500" />
-          <p className="mt-1.5 gs-phone-value-lg font-semibold">12</p>
-          <p className="gs-phone-micro text-white/35">para reponer</p>
-        </div>
-      </div>
+      <div className="min-h-0 flex-1 overflow-hidden px-3.5 py-3">
+        <PageHeading
+          title="Almacén y stock"
+          subtitle="Controlá existencias, mínimos, precios, códigos y ajustes desde un solo lugar."
+        />
 
-      <div className="mt-2 grid gap-1.5">
-        {products.map(([name, stock, state]) => {
-          const active = selected === name;
-          return (
-            <button
-              key={name}
-              type="button"
-              onClick={() => setSelected(name)}
-              className={
-                "grid min-h-9 grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 rounded-[10px] border px-2.5 py-1.5 text-left transition " +
-                (active
-                  ? "border-red-500/35 bg-red-500/[0.07]"
-                  : "border-white/8 bg-white/[0.025]")
-              }
-            >
-              <span className="truncate gs-phone-copy font-semibold">{name}</span>
-              <span className="text-[7px]">{stock}</span>
-              <span
-                className={
-                  "rounded-full px-1.5 py-1 gs-phone-badge font-bold uppercase " +
-                  (state === "OK"
-                    ? "bg-emerald-500/10 text-emerald-400"
-                    : "bg-red-500/10 text-red-400")
-                }
-              >
-                {state}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+        <div className="mt-2.5 overflow-hidden rounded-[11px] border border-white/10">
+          <div className="grid grid-cols-[minmax(0,1.25fr)_.68fr_.7fr] bg-white/[0.04] px-2.5 py-2 text-[5px] font-bold uppercase tracking-[0.08em] text-white/35">
+            <span>Producto</span>
+            <span>Stock / mín.</span>
+            <span>Estado</span>
+          </div>
 
-function AiDemo() {
-  const [refreshed, setRefreshed] = useState(false);
+          <div className="divide-y divide-white/8">
+            {products.map((product) => {
+              const value = stock[product.name] ?? 0;
+              const status =
+                value <= 0 ? "Agotado" : value <= product.min ? "Bajo" : "Normal";
 
-  return (
-    <div className="flex h-full min-h-0 flex-col">
-      <section className="rounded-[14px] border border-red-500/20 bg-red-500/[0.055] p-2.5">
-        <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-red-500/12 text-red-400">
-            <Bot size={12} />
-          </span>
-          <div className="min-w-0">
-            <p className="truncate gs-phone-label font-semibold">
-              Global Intelligence
-            </p>
-            <p className="truncate gs-phone-micro text-white/35">
-              Contexto del negocio activo
-            </p>
+              return (
+                <div key={product.name} className="px-2.5 py-2.5">
+                  <div className="grid grid-cols-[minmax(0,1.25fr)_.68fr_.7fr] items-center gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-[6.5px] font-semibold">
+                        {product.name}
+                      </p>
+                      <p className="mt-0.5 truncate text-[4.8px] text-white/30">
+                        {product.barcode}
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="number"
+                        min={0}
+                        value={value}
+                        onChange={(event) =>
+                          setStock((current) => ({
+                            ...current,
+                            [product.name]: Math.max(
+                              0,
+                              Number(event.target.value) || 0
+                            )
+                          }))
+                        }
+                        className="h-7 w-10 rounded-[7px] border border-white/10 bg-black/35 px-1 text-center text-[6px] font-semibold text-white outline-none"
+                      />
+                      <span className="text-[5px] text-white/25">
+                        / {product.min}
+                      </span>
+                    </div>
+
+                    <span
+                      className={
+                        "justify-self-start rounded-full px-1.5 py-1 text-[4.5px] font-bold " +
+                        (status === "Normal"
+                          ? "bg-emerald-500/10 text-emerald-400"
+                          : status === "Bajo"
+                            ? "bg-amber-500/10 text-amber-400"
+                            : "bg-red-500/10 text-red-400")
+                      }
+                    >
+                      {status}
+                    </span>
+                  </div>
+
+                  <div className="mt-1.5 grid grid-cols-4 gap-1">
+                    <MetaCell label="Categoría" value={product.category} />
+                    <MetaCell label="Proveedor" value={product.supplier} />
+                    <MetaCell label="Costo" value={product.cost} />
+                    <MetaCell label="Precio" value={product.price} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <div className="mt-2 rounded-[10px] bg-black/35 px-2.5 py-2">
-          <p className="gs-phone-copy leading-4 text-white/72">
-            “¿Qué debería reponer esta semana?”
-          </p>
-        </div>
-
-        <div className="mt-1.5 rounded-[10px] border border-white/8 bg-white/[0.03] px-2.5 py-2">
-          <p className="gs-phone-copy leading-[1.45] text-white/70">
-            {refreshed
-              ? "El reel baitcasting sigue primero. También revisaría líneas 0,30 mm por aumento de rotación."
-              : "Priorizaría 12 productos. El reel baitcasting tiene menos de 5 días de cobertura."}
-          </p>
-        </div>
-      </section>
-
-      <div className="mt-2 grid grid-cols-2 gap-2">
-        <div className="rounded-[11px] border border-white/8 p-2.5">
-          <CircleDollarSign size={11} className="text-red-500" />
-          <p className="mt-1 gs-phone-copy font-semibold">Capital sugerido</p>
-          <p className="mt-0.5 text-[7px] text-white/40">$ 318.400</p>
-        </div>
-
-        <div className="rounded-[11px] border border-white/8 p-2.5">
-          <BarChart3 size={11} className="text-red-500" />
-          <p className="mt-1 gs-phone-copy font-semibold">Cobertura</p>
-          <p className="mt-0.5 text-[7px] text-white/40">14 días</p>
+        <div className="mt-2 grid grid-cols-2 gap-1.5">
+          <div className="rounded-[10px] border border-white/10 bg-white/[0.025] p-2.5">
+            <p className="text-[6.5px] font-semibold">Etiquetas de código</p>
+            <p className="mt-1 text-[5px] leading-3 text-white/35">
+              Asigná y prepará códigos de barras para productos.
+            </p>
+          </div>
+          <div className="rounded-[10px] border border-white/10 bg-white/[0.025] p-2.5">
+            <p className="text-[6.5px] font-semibold">Escáner rápido</p>
+            <p className="mt-1 text-[5px] leading-3 text-white/35">
+              Leé un código y actualizá el producto.
+            </p>
+          </div>
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setRefreshed((value) => !value)}
-        className="gs-phone-action mt-2 rounded-[10px] border border-white/10 bg-white/[0.035] px-3 gs-phone-copy font-semibold text-white/72 transition hover:bg-white/[0.06] hover:text-white"
-      >
-        {refreshed ? "Ver análisis inicial" : "Actualizar análisis"}
-      </button>
+      <PhoneBottomNav active="inventory" />
     </div>
   );
 }
 
-function MiniRow({
-  icon: Icon,
-  title,
-  body,
-  onClick
+function MetaCell({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-[7px] bg-black/25 px-1.5 py-1.5">
+      <p className="truncate text-[4px] uppercase tracking-[0.06em] text-white/25">
+        {label}
+      </p>
+      <p className="mt-0.5 truncate text-[5px] font-semibold text-white/58">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function IntelligenceDemo() {
+  const [input, setInput] = useState("");
+  const [reply, setReply] = useState(
+    "Preguntame lo que quieras. Puedo usar los datos reales de Global Stock para analizar stock, ventas, compras, margen, actividad, notas y escenarios."
+  );
+
+  const send = () => {
+    if (!input.trim()) return;
+    setReply(
+      "Tenés 12 alertas de stock: 9 productos con stock bajo y 3 agotados. Revisaría primero los artículos con mayor rotación."
+    );
+    setInput("");
+  };
+
+  return (
+    <div className="flex h-full min-h-0 flex-col bg-black/35">
+      <section className="flex h-full min-h-0 flex-col bg-[#050506]">
+        <header className="flex shrink-0 items-center justify-between border-b border-white/10 px-3.5 py-2.5">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[10px] bg-[#8F0000] text-white">
+              <BrainCircuit size={14} />
+            </span>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h3 className="truncate text-[8px] font-semibold">
+                  Global Intelligence
+                </h3>
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              </div>
+              <p className="mt-0.5 text-[5.5px] text-white/38">
+                IA conectada
+              </p>
+            </div>
+          </div>
+
+          <span className="grid h-8 w-8 place-items-center rounded-full border border-white/10 bg-white/[0.035] text-[12px] text-white/55">
+            −
+          </span>
+        </header>
+
+        <div className="grid shrink-0 grid-cols-3 gap-1.5 border-b border-white/10 px-3 py-2.5">
+          <InsightChip
+            icon={<PackageSearch size={10} />}
+            value="12"
+            label="alertas"
+          />
+          <InsightChip
+            icon={<TrendingUp size={10} />}
+            value="31,0%"
+            label="margen"
+          />
+          <InsightChip
+            icon={<ChartNoAxesCombined size={10} />}
+            value="1.248"
+            label="unidades"
+          />
+        </div>
+
+        <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
+          <div className="mr-6 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[6px] leading-[1.45] text-white/68">
+            {reply}
+          </div>
+
+          <div className="ml-8 rounded-[12px] rounded-br-[4px] bg-[#8F0000] px-2.5 py-2 text-[6px] leading-[1.45] text-white">
+            ¿Cómo está mi stock?
+          </div>
+
+          <div className="mr-6 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[6px] leading-[1.45] text-white/68">
+            Tenés 1.248 unidades en inventario y 12 alertas de stock.
+          </div>
+        </div>
+
+        <form
+          className="shrink-0 border-t border-white/10 px-3 pb-3 pt-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            send();
+          }}
+        >
+          <p className="mb-1.5 text-[5px] leading-3 text-white/30">
+            Usa inventario, ventas, costos, márgenes, actividad, notas y escenarios.
+          </p>
+          <div className="flex items-center gap-1.5">
+            <input
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="Preguntá algo sobre tu negocio…"
+              className="h-9 min-w-0 flex-1 rounded-[10px] border border-white/10 bg-white/[0.035] px-2.5 text-[6px] text-white outline-none placeholder:text-white/25"
+            />
+            <button
+              type="submit"
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-[10px] bg-[#8F0000] text-white"
+            >
+              <ArrowUp size={12} />
+            </button>
+          </div>
+        </form>
+      </section>
+    </div>
+  );
+}
+
+function InsightChip({
+  icon,
+  value,
+  label
 }: {
-  icon: typeof ShoppingCart;
-  title: string;
-  body: string;
-  onClick?: () => void;
+  icon: React.ReactNode;
+  value: string;
+  label: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="gs-phone-row flex items-center gap-2.5 rounded-[11px] border border-white/8 bg-white/[0.035] px-2.5 py-2 text-left transition hover:bg-white/[0.06]"
-    >
-      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-[9px] bg-red-500/10 text-red-500">
-        <Icon size={11} />
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate gs-phone-label font-semibold">
-          {title}
-        </span>
-        <span className="mt-0.5 block truncate gs-phone-micro text-white/35">
-          {body}
-        </span>
-      </span>
-    </button>
+    <div className="rounded-[10px] border border-white/10 bg-white/[0.025] px-2 py-2">
+      <div className="flex items-center gap-1 text-red-400">
+        {icon}
+        <span className="text-[7px] font-bold">{value}</span>
+      </div>
+      <p className="mt-1 truncate text-[4.5px] font-semibold uppercase tracking-[0.07em] text-white/32">
+        {label}
+      </p>
+    </div>
   );
 }
