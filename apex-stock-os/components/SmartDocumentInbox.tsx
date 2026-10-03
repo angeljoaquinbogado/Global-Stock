@@ -2,11 +2,11 @@
 
 import {
   CheckCircle2,
-  FileScan,
+  FileUp,
   Loader2,
   Sparkles,
   Trash2,
-  UploadCloud
+  ScanLine
 } from "lucide-react";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
@@ -340,7 +340,7 @@ export function SmartDocumentInbox({
               {scanning ? (
                 <Loader2 size={17} className="animate-spin" />
               ) : (
-                <UploadCloud size={17} />
+                <FileUp size={17} />
               )}
               {scanning
                 ? tr(language, { es: "Leyendo…", en: "Reading…" })
@@ -359,7 +359,7 @@ export function SmartDocumentInbox({
       <section className="apex-card overflow-hidden">
         <div className="flex items-center justify-between border-b border-[var(--apex-border)] p-4 sm:p-5">
           <div className="flex items-center gap-2">
-            <FileScan size={17} />
+            <ScanLine size={17} />
             <h3 className="font-semibold">
               {tr(language, { es: "Bandeja inteligente", en: "Smart inbox" })}
             </h3>
