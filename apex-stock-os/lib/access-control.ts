@@ -53,10 +53,10 @@ export const BUSINESS_SUITE_TAB_ACCESS: Record<
   string,
   readonly GlobalStockRole[]
 > = {
-  operations: ["owner", "admin", "manager", "warehouse", "accountant"],
-  finance: ["owner", "admin", "accountant"],
-  crm: ["owner", "admin", "manager"],
-  projects: ["owner", "admin", "manager"],
+  operations: ["owner", "admin"],
+  finance: ["owner", "admin"],
+  crm: ["owner", "admin"],
+  projects: ["owner", "admin"],
   people: ["owner", "admin"]
 };
 
