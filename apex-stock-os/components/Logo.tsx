@@ -16,7 +16,7 @@ export function Logo({
         <img
           src="/global-stock-logo.png"
           alt=""
-          className="h-10 w-10 shrink-0 rounded-[10px] object-contain"
+          className="h-10 w-auto shrink-0 object-contain"
           aria-hidden="true"
         />
         <div className="leading-none">
