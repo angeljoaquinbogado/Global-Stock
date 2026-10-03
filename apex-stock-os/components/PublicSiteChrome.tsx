@@ -6,7 +6,7 @@ import { PublicMobileNav } from "./PublicMobileNav";
 
 function PublicBrand({ compact = false }: { compact?: boolean }) {
   if (compact) {
-    return <Logo className="h-10 w-10 shrink-0" />;
+    return <Logo className="h-9 w-9 shrink-0 sm:h-10 sm:w-10" />;
   }
 
   return <Logo withWordmark className="text-white" />;
