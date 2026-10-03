@@ -1022,18 +1022,35 @@ export function ConnectedCommerceHub({
                   {language === "es" ? "Desconectar" : "Disconnect"}
                 </button>
               </div>
-            ) : !selectedProviderReady ? (
-              <p className="mt-3 text-[10px] leading-5 text-[var(--apex-muted)]">
-                {language === "es"
-                  ? "Global Stock no simula esta conexión: falta configurar la aplicación oficial del proveedor."
-                  : "Global Stock does not simulate this connection. The provider app still needs to be configured."}
-              </p>
             ) : (
-              <p className="mt-3 text-[10px] leading-5 text-[var(--apex-muted)]">
-                {language === "es"
-                  ? "La aplicación del proveedor está configurada. Falta autorizar esta cuenta comercial."
-                  : "The provider app is configured. This business account still needs authorization."}
-              </p>
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <p className="max-w-3xl text-[10px] leading-5 text-[var(--apex-muted)]">
+                  {selectedProviderReady
+                    ? language === "es"
+                      ? "La aplicación oficial está configurada. La cuenta comercial deberá autorizar permisos mediante OAuth/API; Global Stock nunca pedirá la contraseña del proveedor."
+                      : "The official app is configured. The business account must grant scopes through OAuth/API; Global Stock never asks for the provider password."
+                    : language === "es"
+                      ? "La aplicación oficial de este proveedor todavía no está configurada en Global Stock. Podés registrar la solicitud sin dar acceso a datos privados."
+                      : "The official provider app is not configured in Global Stock yet. You can register a request without granting private data access."}
+                </p>
+                {preview && (
+                  <button
+                    type="button"
+                    disabled={requestingIntegration}
+                    onClick={() => void requestIntegration("platform")}
+                    className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    <ShieldCheck size={14} />
+                    {language === "es"
+                      ? selectedProviderReady
+                        ? "Solicitar autorización oficial"
+                        : "Solicitar integración"
+                      : selectedProviderReady
+                        ? "Request official authorization"
+                        : "Request integration"}
+                  </button>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -1212,8 +1229,8 @@ export function ConnectedCommerceHub({
                     >
                       <ShieldCheck size={14} />
                       {language === "es"
-                        ? `Conectar con ${preview.platform}`
-                        : `Connect with ${preview.platform}`}
+                        ? `Configurar conexión con ${preview.platform}`
+                        : `Set up ${preview.platform} connection`}
                     </button>
                   )}
 
