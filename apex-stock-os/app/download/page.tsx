@@ -18,6 +18,7 @@ import {
   DownloadInstallShowcase,
   DownloadPlatformQuickTabs
 } from "@/components/DownloadInstallShowcase";
+import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
@@ -191,6 +192,7 @@ export default function DownloadPage() {
           data-download-section
           className="scroll-mt-20 bg-[#f2f0ec] text-[#101012]"
         >
+          <DownloadMetricStrip />
           <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
             <div className="max-w-4xl">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a80000]">
