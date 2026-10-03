@@ -76,6 +76,20 @@ export default function DownloadPage() {
 
           <div className="relative mx-auto grid min-h-[calc(100svh-72px)] w-full max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:py-16">
             <div className="max-w-[670px]">
+              <div className="mb-6 flex items-center gap-4">
+                <div className="grid h-[72px] w-[72px] place-items-center overflow-hidden rounded-[22px] bg-[#050506] shadow-[0_18px_48px_rgba(0,0,0,.38)] ring-1 ring-[#2b1a1e]">
+                  <Logo className="h-[58px] w-auto object-contain" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold tracking-[-.02em] text-white/84">
+                    Global Stock
+                  </p>
+                  <p className="mt-1 text-xs text-white/32">
+                    Gestión empresarial
+                  </p>
+                </div>
+              </div>
+
               <div className="inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[.14em] text-white/38">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.45)]" />
                 Disponible como aplicación web instalable
