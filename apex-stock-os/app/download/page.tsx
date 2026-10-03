@@ -9,7 +9,8 @@ import {
   Download,
   Globe2,
   ShieldCheck,
-  ShoppingCart
+  ShoppingCart,
+  Sparkles
 } from "lucide-react";
 
 import {
