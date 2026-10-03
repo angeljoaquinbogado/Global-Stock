@@ -1,14 +1,14 @@
 "use client";
 
 import {
+  Apple,
+  Bot,
   Check,
   Download,
   Laptop,
-  MonitorDown,
-  Smartphone,
-  TabletSmartphone
+  Monitor
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@/components/InstallAppButton";
 
@@ -20,45 +20,52 @@ type Props = {
   microsoftStoreUrl: string;
 };
 
+const PLATFORM_EVENT = "global-stock-platform-change";
+
 const platforms: Array<{
   id: PlatformId;
   label: string;
+  shortLabel: string;
   eyebrow: string;
-  icon: typeof Smartphone;
+  icon: typeof Monitor;
   accent: string;
   surface: string;
 }> = [
   {
     id: "web",
-    label: "Web / PWA",
+    label: "Navegador",
+    shortLabel: "Navegador",
     eyebrow: "Disponible ahora",
-    icon: MonitorDown,
-    accent: "#ff3b45",
-    surface: "rgba(255,59,69,.10)"
+    icon: Monitor,
+    accent: "#3b82f6",
+    surface: "rgba(59,130,246,.10)"
   },
   {
     id: "iphone",
-    label: "iPhone / iPad",
+    label: "iOS",
+    shortLabel: "iOS",
     eyebrow: "Safari",
-    icon: Smartphone,
-    accent: "#7aa2ff",
-    surface: "rgba(122,162,255,.10)"
+    icon: Apple,
+    accent: "#111827",
+    surface: "rgba(17,24,39,.08)"
   },
   {
     id: "android",
     label: "Android",
+    shortLabel: "Android",
     eyebrow: "Chrome",
-    icon: TabletSmartphone,
-    accent: "#4fd39a",
-    surface: "rgba(79,211,154,.10)"
+    icon: Bot,
+    accent: "#22c55e",
+    surface: "rgba(34,197,94,.10)"
   },
   {
     id: "windows",
     label: "Windows",
+    shortLabel: "Windows",
     eyebrow: "Chrome / Edge",
     icon: Laptop,
-    accent: "#b28cff",
-    surface: "rgba(178,140,255,.10)"
+    accent: "#8b5cf6",
+    surface: "rgba(139,92,246,.10)"
   }
 ];
 
@@ -71,19 +78,19 @@ const detail: Record<
   }
 > = {
   web: {
-    title: "Instalá Global Stock directamente desde la web.",
+    title: "Instalá Global Stock directamente desde el navegador.",
     body:
-      "La versión PWA abre como una aplicación independiente y mantiene la misma interfaz de Global Stock.",
+      "La PWA abre como una aplicación independiente, con su propio icono y sin depender de una tienda nativa.",
     steps: [
-      "Tocá o hacé click en Instalar app.",
+      "Hacé click en Instalar app.",
       "Confirmá la instalación del navegador.",
       "Abrila desde su propio icono."
     ]
   },
   iphone: {
-    title: "Llevá Global Stock a la pantalla de inicio.",
+    title: "Llevá Global Stock a tu iPhone o iPad.",
     body:
-      "En iPhone y iPad la instalación web se hace desde Safari, sin esperar una publicación nativa.",
+      "En iOS la instalación web se hace desde Safari y queda disponible desde la pantalla de inicio.",
     steps: [
       "Abrí Global Stock en Safari.",
       "Tocá Compartir.",
@@ -91,9 +98,9 @@ const detail: Record<
     ]
   },
   android: {
-    title: "Instalación rápida desde Chrome.",
+    title: "Instalá Global Stock en Android desde Chrome.",
     body:
-      "Android puede instalar la PWA desde el propio navegador y abrirla como una app independiente.",
+      "Android permite instalar la PWA y abrirla como una app independiente desde el dispositivo.",
     steps: [
       "Abrí Global Stock en Chrome.",
       "Elegí Instalar app.",
@@ -101,9 +108,9 @@ const detail: Record<
     ]
   },
   windows: {
-    title: "Global Stock como aplicación de escritorio.",
+    title: "Usá Global Stock como aplicación de escritorio.",
     body:
-      "En Windows, Chrome y Edge pueden instalar la PWA para abrirla en su propia ventana.",
+      "Chrome y Edge pueden instalar la PWA en Windows para abrirla en una ventana propia.",
     steps: [
       "Abrí Global Stock en Chrome o Edge.",
       "Usá Instalar en la barra del navegador.",
@@ -112,12 +119,103 @@ const detail: Record<
   }
 };
 
+function PlatformTabs({
+  active,
+  onChange,
+  compact = false
+}: {
+  active: PlatformId;
+  onChange: (platform: PlatformId) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={
+        "inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-full border border-black/8 bg-[#f8f9fb] p-1 shadow-[0_12px_32px_rgba(15,23,42,.10)] " +
+        (compact ? "mx-auto" : "")
+      }
+      role="tablist"
+      aria-label="Plataforma"
+    >
+      {platforms.map(({ id, shortLabel, icon: Icon, accent }) => {
+        const selected = active === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            role="tab"
+            aria-selected={selected}
+            onClick={() => onChange(id)}
+            className={
+              "flex min-h-9 shrink-0 items-center gap-2 rounded-full px-3.5 text-sm font-medium transition duration-200 " +
+              (selected
+                ? "bg-white text-[#172033] shadow-[0_4px_14px_rgba(15,23,42,.10)]"
+                : "text-[#5e6675] hover:bg-white/70 hover:text-[#172033]")
+            }
+          >
+            <Icon
+              size={15}
+              strokeWidth={selected ? 2.2 : 1.9}
+              style={{ color: id === "iphone" ? "#111827" : accent }}
+            />
+            <span>{shortLabel}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function DownloadPlatformQuickTabs() {
+  const [active, setActive] = useState<PlatformId>("web");
+
+  const choose = (platform: PlatformId) => {
+    setActive(platform);
+    window.dispatchEvent(
+      new CustomEvent(PLATFORM_EVENT, {
+        detail: { platform }
+      })
+    );
+
+    document.getElementById("download-install")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  };
+
+  return (
+    <div className="flex w-full justify-center">
+      <PlatformTabs active={active} onChange={choose} compact />
+    </div>
+  );
+}
+
 export function DownloadInstallShowcase({
   appStoreUrl,
   playStoreUrl,
   microsoftStoreUrl
 }: Props) {
   const [active, setActive] = useState<PlatformId>("web");
+
+  useEffect(() => {
+    const onPlatformChange = (event: Event) => {
+      const custom = event as CustomEvent<{ platform?: PlatformId }>;
+      const platform = custom.detail?.platform;
+      if (
+        platform === "web" ||
+        platform === "iphone" ||
+        platform === "android" ||
+        platform === "windows"
+      ) {
+        setActive(platform);
+      }
+    };
+
+    window.addEventListener(PLATFORM_EVENT, onPlatformChange);
+    return () =>
+      window.removeEventListener(PLATFORM_EVENT, onPlatformChange);
+  }, []);
+
   const current = platforms.find((item) => item.id === active)!;
   const currentDetail = detail[active];
 
@@ -131,127 +229,104 @@ export function DownloadInstallShowcase({
           : "";
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[.92fr_1.08fr]">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-        {platforms.map(({ id, label, eyebrow, icon: Icon, accent, surface }) => {
-          const selected = active === id;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActive(id)}
-              className={
-                "group flex min-h-[92px] items-center gap-4 rounded-[24px] border px-4 text-left transition duration-200 " +
-                (selected
-                  ? "border-white/18 bg-white/[0.08] shadow-[0_18px_50px_rgba(0,0,0,.24)]"
-                  : "border-white/8 bg-white/[0.025] hover:border-white/14 hover:bg-white/[0.05]")
-              }
-            >
-              <span
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl"
-                style={{ background: surface, color: accent }}
-              >
-                <Icon size={20} />
-              </span>
-              <span className="min-w-0 flex-1">
-                <span
-                  className="block text-[10px] font-bold uppercase tracking-[.14em]"
-                  style={{ color: accent }}
-                >
-                  {eyebrow}
-                </span>
-                <span className="mt-1 block text-base font-semibold text-white">
-                  {label}
-                </span>
-              </span>
-              <span
-                className={
-                  "grid h-7 w-7 place-items-center rounded-full border text-xs transition " +
-                  (selected
-                    ? "border-white/20 bg-white text-black"
-                    : "border-white/10 text-white/30 group-hover:text-white/60")
-                }
-              >
-                {selected ? <Check size={13} /> : "›"}
-              </span>
-            </button>
-          );
-        })}
+    <div>
+      <div className="flex justify-center">
+        <PlatformTabs active={active} onChange={setActive} />
       </div>
 
       <div
-        className="relative overflow-hidden rounded-[32px] border border-white/10 p-6 sm:p-8"
+        className="relative mt-6 overflow-hidden rounded-[30px] border border-white/10 p-6 sm:p-8"
         style={{
           background:
-            "radial-gradient(circle at 85% 10%, " +
+            "radial-gradient(circle at 86% 8%, " +
             current.surface +
             ", transparent 34%), rgba(255,255,255,.035)"
         }}
       >
         <div
-          className="absolute right-[-10%] top-[-18%] h-44 w-44 rounded-full blur-3xl"
+          className="absolute right-[-8%] top-[-22%] h-56 w-56 rounded-full blur-3xl"
           style={{ background: current.surface }}
         />
 
-        <div className="relative">
-          <span
-            className="inline-flex items-center rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.13em]"
-            style={{
-              color: current.accent,
-              borderColor: current.accent + "38",
-              background: current.surface
-            }}
-          >
-            {current.eyebrow}
-          </span>
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_.92fr] lg:items-start">
+          <div>
+            <span
+              className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-[10px] font-bold uppercase tracking-[.13em]"
+              style={{
+                color:
+                  active === "iphone" ? "rgba(255,255,255,.72)" : current.accent,
+                borderColor:
+                  active === "iphone"
+                    ? "rgba(255,255,255,.14)"
+                    : current.accent + "38",
+                background:
+                  active === "iphone"
+                    ? "rgba(255,255,255,.05)"
+                    : current.surface
+              }}
+            >
+              <current.icon size={13} />
+              {current.eyebrow}
+            </span>
 
-          <h3 className="mt-5 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
-            {currentDetail.title}
-          </h3>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-white/56">
-            {currentDetail.body}
-          </p>
+            <h3 className="mt-5 max-w-2xl text-3xl font-semibold leading-[1.02] tracking-[-.05em] sm:text-4xl">
+              {currentDetail.title}
+            </h3>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-white/58">
+              {currentDetail.body}
+            </p>
 
-          <div className="mt-6 grid gap-2">
+            <div className="mt-7 flex flex-wrap items-center gap-3">
+              <InstallAppButton language="es" />
+
+              {active !== "web" &&
+                (nativeLink ? (
+                  <a
+                    href={nativeLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/12 bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+                  >
+                    <Download size={15} />
+                    Abrir tienda oficial
+                  </a>
+                ) : (
+                  <span className="inline-flex h-11 items-center rounded-xl border border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/42">
+                    Publicación nativa · Próximamente
+                  </span>
+                ))}
+            </div>
+          </div>
+
+          <div className="grid gap-2.5">
             {currentDetail.steps.map((step, index) => (
               <div
                 key={step}
-                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-black/20 px-3.5 py-3"
+                className="flex items-center gap-3 rounded-2xl border border-white/8 bg-black/20 px-3.5 py-3.5"
               >
                 <span
-                  className="grid h-7 w-7 shrink-0 place-items-center rounded-full text-[11px] font-bold"
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold"
                   style={{
-                    color: current.accent,
-                    background: current.surface
+                    color:
+                      active === "iphone"
+                        ? "rgba(255,255,255,.82)"
+                        : current.accent,
+                    background:
+                      active === "iphone"
+                        ? "rgba(255,255,255,.07)"
+                        : current.surface
                   }}
                 >
                   {index + 1}
                 </span>
-                <p className="text-sm text-white/74">{step}</p>
+                <p className="text-sm leading-5 text-white/74">{step}</p>
               </div>
             ))}
-          </div>
 
-          <div className="mt-7 flex flex-wrap items-center gap-3">
-            <InstallAppButton language="es" />
-
-            {active !== "web" && (
-              nativeLink ? (
-                <a
-                  href={nativeLink}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl border border-white/12 bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
-                >
-                  <Download size={15} />
-                  Abrir tienda oficial
-                </a>
-              ) : (
-                <span className="inline-flex h-11 items-center rounded-xl border border-white/10 bg-white/[0.035] px-4 text-xs font-semibold text-white/40">
-                  Tienda nativa · Próximamente
-                </span>
-              )
-            )}
+            <div className="mt-1 flex items-center gap-2 rounded-2xl border border-emerald-500/15 bg-emerald-500/[0.055] px-3.5 py-3 text-xs text-emerald-300/78">
+              <Check size={14} />
+              La versión web instalable está disponible ahora.
+            </div>
           </div>
         </div>
       </div>
