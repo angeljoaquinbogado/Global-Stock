@@ -44,72 +44,33 @@ const storeLinks = {
     process.env.NEXT_PUBLIC_GALAXY_STORE_URL?.trim() || ""
 };
 
-const productCards = [
+const coreStories = [
   {
     icon: ShoppingCart,
-    eyebrow: "Punto de venta",
-    title: "Vendé y descontá stock en la misma operación.",
+    eyebrow: "Vendé",
+    title: "Cobrá y actualizá stock en la misma operación.",
     body:
-      "Carrito, medio de pago, cantidades y total sin saltar entre pantallas.",
-    accent: "#ff4650",
-    surface: "rgba(255,70,80,.10)",
-    metric: "Caja + stock",
-    detail: "Una sola acción"
+      "Punto de venta, medios de pago y movimientos de inventario conectados.",
+    accent: "#ff4d57",
+    surface: "rgba(255,77,87,.10)"
   },
   {
     icon: Boxes,
-    eyebrow: "Inventario",
-    title: "Sabé qué tenés y qué falta antes de quedarte sin stock.",
+    eyebrow: "Controlá",
+    title: "Inventario, compras y proveedores sin perder contexto.",
     body:
-      "Existencias, mínimos, códigos, costos, precios y productos críticos en una sola vista.",
+      "Stock, mínimos, códigos, reposición y abastecimiento en un mismo flujo.",
     accent: "#4fd39a",
-    surface: "rgba(79,211,154,.10)",
-    metric: "Stock crítico",
-    detail: "Alertas claras"
+    surface: "rgba(79,211,154,.10)"
   },
   {
     icon: BrainCircuit,
-    eyebrow: "Global Intelligence",
-    title: "Preguntale a tu negocio, no a una demo genérica.",
+    eyebrow: "Decidí",
+    title: "Gráficos, finanzas e IA para entender qué hacer después.",
     body:
-      "La IA trabaja con el contexto de inventario, ventas, actividad, notas y métricas reales.",
-    accent: "#a78bfa",
-    surface: "rgba(167,139,250,.11)",
-    metric: "Contexto real",
-    detail: "Respuestas útiles"
-  },
-  {
-    icon: Cloud,
-    eyebrow: "Tienda online",
-    title: "Conectá ecommerce sin confundir datos públicos con acceso privado.",
-    body:
-      "Catálogo público para detectar y autorización adicional para sincronizar stock o datos sensibles.",
-    accent: "#6ea8ff",
-    surface: "rgba(110,168,255,.10)",
-    metric: "Conexiones",
-    detail: "Con permisos"
-  },
-  {
-    icon: PackageSearch,
-    eyebrow: "Reposición",
-    title: "Comprá primero lo que más riesgo tiene de faltar.",
-    body:
-      "Cobertura, mínimos y prioridad de reposición para decidir qué mover antes.",
-    accent: "#f7b955",
-    surface: "rgba(247,185,85,.10)",
-    metric: "Prioridad",
-    detail: "Menos quiebres"
-  },
-  {
-    icon: ShieldCheck,
-    eyebrow: "Permisos",
-    title: "Cada persona ve lo que necesita para trabajar.",
-    body:
-      "Dueño, administración, caja, depósito y control con accesos distintos y datos sensibles protegidos.",
-    accent: "#ff7c9c",
-    surface: "rgba(255,124,156,.10)",
-    metric: "Roles",
-    detail: "Menos ruido"
+      "Márgenes, tendencias, actividad y Global Intelligence con contexto del negocio.",
+    accent: "#b28cff",
+    surface: "rgba(178,140,255,.10)"
   }
 ];
 
@@ -197,162 +158,57 @@ export default function DownloadPage() {
           className="scroll-mt-20 border-t border-white/[0.06] bg-[#0a0a0c] text-white"
         >
           <DownloadMetricStrip />
+
           <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-            <div className="max-w-4xl">
+            <div className="mx-auto max-w-3xl text-center">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
                 Producto
               </p>
               <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                Cada módulo tiene que explicar solo lo que importa.
+                Tres cosas. Todo conectado.
               </h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-white/52 sm:text-lg">
-                Menos botones compitiendo entre sí, números que se leen de un
-                vistazo y una jerarquía visual clara para trabajar sin buscar
-                funciones escondidas.
+              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/50 sm:text-lg">
+                Primero entendé qué hace Global Stock. Después, si querés,
+                bajamos al detalle de cada módulo.
               </p>
             </div>
 
-            <div className="mt-12 grid gap-4 lg:grid-cols-2">
-              {productCards.map(
-                ({ icon: Icon, eyebrow, title, body, accent, surface, metric, detail }, index) => (
-                  <article
-                    key={title}
-                    className={
-                      "relative overflow-hidden rounded-[32px] border border-white/8 bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.24)] sm:p-8 " +
-                      (index === 0 || index === 2 ? "lg:min-h-[360px]" : "")
-                    }
-                  >
-                    <div
-                      className="absolute right-[-8%] top-[-16%] h-48 w-48 rounded-full blur-3xl"
-                      style={{ background: surface }}
-                    />
+            <div className="mt-12 grid gap-5 lg:grid-cols-3">
+              {coreStories.map(({ icon: Icon, eyebrow, title, body, accent, surface }) => (
+                <article
+                  key={title}
+                  className="relative overflow-hidden rounded-[30px] border border-white/8 bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-7"
+                >
+                  <div
+                    className="absolute right-[-18%] top-[-20%] h-44 w-44 rounded-full blur-3xl"
+                    style={{ background: surface }}
+                  />
 
-                    <div className="relative">
-                      <div className="flex items-start justify-between gap-5">
-                        <span
-                          className="grid h-12 w-12 place-items-center rounded-2xl"
-                          style={{ background: surface, color: accent }}
-                        >
-                          <Icon size={21} />
-                        </span>
+                  <div className="relative">
+                    <span
+                      className="grid h-11 w-11 place-items-center rounded-2xl"
+                      style={{ background: surface, color: accent }}
+                    >
+                      <Icon size={20} />
+                    </span>
 
-                        <div className="text-right">
-                          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-white/30">
-                            {metric}
-                          </p>
-                          <p className="mt-1 text-sm font-semibold text-white/72">
-                            {detail}
-                          </p>
-                        </div>
-                      </div>
+                    <p
+                      className="mt-6 text-[11px] font-bold uppercase tracking-[.14em]"
+                      style={{ color: accent }}
+                    >
+                      {eyebrow}
+                    </p>
 
-                      <p
-                        className="mt-7 text-xs font-bold uppercase tracking-[.14em]"
-                        style={{ color: accent }}
-                      >
-                        {eyebrow}
-                      </p>
-                      <h3 className="mt-3 max-w-xl text-2xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-3xl">
-                        {title}
-                      </h3>
-                      <p className="mt-4 max-w-xl text-sm leading-6 text-white/52">
-                        {body}
-                      </p>
+                    <h3 className="mt-3 text-2xl font-semibold leading-[1.04] tracking-[-.04em]">
+                      {title}
+                    </h3>
 
-                      <div className="mt-7 rounded-[22px] border border-white/8 bg-black/20 p-4">
-                        {eyebrow === "Punto de venta" && (
-                          <div className="grid grid-cols-[1fr_auto] gap-3">
-                            <div className="space-y-2">
-                              <div className="h-2.5 w-28 rounded-full bg-white/14" />
-                              <div className="h-2.5 w-20 rounded-full bg-white/9" />
-                            </div>
-                            <div className="rounded-xl bg-[#8F0000] px-4 py-2 text-xs font-semibold text-white">
-                              Cobrar
-                            </div>
-                          </div>
-                        )}
-
-                        {eyebrow === "Inventario" && (
-                          <div className="grid grid-cols-3 gap-2">
-                            {[
-                              ["1.248", "unidades"],
-                              ["12", "alertas"],
-                              ["31%", "margen"]
-                            ].map(([value, label]) => (
-                              <div key={label} className="rounded-xl border border-white/8 bg-white/[0.04] p-3">
-                                <p className="text-lg font-semibold">{value}</p>
-                                <p className="mt-1 text-[10px] text-white/38">{label}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {eyebrow === "Global Intelligence" && (
-                          <div className="space-y-2">
-                            <div className="max-w-[78%] rounded-2xl border border-white/8 bg-white/[0.055] px-3 py-2 text-xs text-white/58">
-                              ¿Qué debería reponer esta semana?
-                            </div>
-                            <div className="ml-auto max-w-[86%] rounded-2xl bg-[#8F0000] px-3 py-2 text-xs text-white">
-                              Priorizaría los productos con menor cobertura y mayor rotación.
-                            </div>
-                          </div>
-                        )}
-
-                        {eyebrow === "Tienda online" && (
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <p className="text-xs font-semibold">Sitio detectado</p>
-                              <p className="mt-1 text-[10px] text-white/38">
-                                Datos públicos
-                              </p>
-                            </div>
-                            <span className="rounded-full bg-blue-500/10 px-3 py-1.5 text-[10px] font-semibold text-blue-600">
-                              Verificar conexión
-                            </span>
-                          </div>
-                        )}
-
-                        {eyebrow === "Reposición" && (
-                          <div className="space-y-2">
-                            {[84, 61, 38].map((width, row) => (
-                              <div key={row} className="flex items-center gap-3">
-                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/8">
-                                  <div
-                                    className="h-full rounded-full"
-                                    style={{ width: width + "%", background: accent }}
-                                  />
-                                </div>
-                                <span className="text-[10px] font-semibold text-white/38">
-                                  {width}%
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {eyebrow === "Permisos" && (
-                          <div className="grid grid-cols-3 gap-2">
-                            {["Dueño", "Caja", "Depósito"].map((role, roleIndex) => (
-                              <div
-                                key={role}
-                                className="rounded-xl border border-white/8 bg-white/[0.04] px-3 py-3 text-center"
-                              >
-                                <span
-                                  className="mx-auto grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold"
-                                  style={{ background: surface, color: accent }}
-                                >
-                                  {roleIndex + 1}
-                                </span>
-                                <p className="mt-2 text-[10px] font-semibold">{role}</p>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                )
-              )}
+                    <p className="mt-4 text-sm leading-6 text-white/46">
+                      {body}
+                    </p>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
         </section>
