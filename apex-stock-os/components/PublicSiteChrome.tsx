@@ -1,41 +1,76 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+function PublicBrand({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-[#0d0d0f] shadow-[0_0_0_1px_rgba(255,255,255,.06),0_10px_30px_rgba(0,0,0,.45)]">
+        <Image
+          src="/global-stock-earth.png"
+          alt=""
+          width={40}
+          height={40}
+          priority
+          className="h-full w-full object-cover"
+        />
+        <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
+      </span>
+
+      {!compact && (
+        <span className="leading-none">
+          <span className="block text-[15px] font-semibold tracking-[-0.035em] text-white">
+            Global Stock
+          </span>
+          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[.18em] text-white/30">
+            Business Control
+          </span>
+        </span>
+      )}
+    </div>
+  );
+}
+
 export function PublicHeader() {
   return (
-    <header className="sticky top-0 z-50 border-b border-[#24171a] bg-black/80 backdrop-blur-lg">
-      <div className="mx-auto flex min-h-16 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
-        <Link
-          href="/download"
-          className="flex items-center gap-3 font-semibold text-white"
-        >
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-[#8F0000] text-xs font-black text-white shadow-[0_10px_30px_rgba(143,0,0,.28)]">
-            GS
-          </span>
-          <span>Global Stock</span>
+    <header className="sticky top-0 z-50 border-b border-[#211417] bg-[#070708]/88 backdrop-blur-xl">
+      <div className="mx-auto flex min-h-[72px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
+        <Link href="/download" aria-label="Global Stock">
+          <PublicBrand />
         </Link>
 
-        <nav className="hidden items-center gap-5 text-sm text-white/64 md:flex">
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-feature-catalog">
+        <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/48 lg:flex">
+          <Link className="transition hover:text-white" href="/download#download-features">
+            Producto
+          </Link>
+          <Link className="transition hover:text-white" href="/download#download-feature-catalog">
             Funcionalidades
           </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-sectors">
-            Sectores
+          <Link className="transition hover:text-white" href="/download#download-sectors">
+            Para quién
           </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#download-install">
+          <Link className="transition hover:text-white" href="/download#download-install">
             Instalar
           </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/support">
+          <Link className="transition hover:text-white" href="/support">
             Soporte
           </Link>
         </nav>
 
-        <Link
-          href="/"
-          className="inline-flex min-h-11 items-center justify-center rounded-2xl bg-white px-4 text-sm font-semibold text-black transition-colors duration-150 hover:bg-white/90"
-        >
-          Abrir app
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/"
+            className="hidden min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition hover:bg-white/[0.05] hover:text-white sm:inline-flex"
+          >
+            Iniciar sesión
+          </Link>
+          <Link
+            href="/"
+            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(201,21,39,.22)] transition hover:bg-[#dd1e32]"
+          >
+            Abrir Global Stock
+          </Link>
+        </div>
       </div>
     </header>
   );
@@ -43,41 +78,58 @@ export function PublicHeader() {
 
 export function PublicFooter() {
   return (
-    <footer className="border-t border-[#24171a] bg-black">
-      <div className="mx-auto grid w-full max-w-7xl gap-8 px-5 py-10 text-sm text-white/58 sm:px-8 md:grid-cols-[1fr_auto]">
-        <div>
-          <p className="font-semibold text-white">Global Stock</p>
-          <p className="mt-2 max-w-xl leading-6">
-            Plataforma para stock, punto de venta, ecommerce, reposición,
-            proveedores, códigos de barras e inteligencia operativa.
-          </p>
-          <p className="mt-3 text-xs text-white/38">
-            Operado por Angel Joaquin Bogado · Provincia de Buenos Aires, Argentina.
-          </p>
+    <footer className="border-t border-[#211417] bg-[#060607]">
+      <div className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
+        <div className="grid gap-12 lg:grid-cols-[1.3fr_.7fr_.7fr_.7fr]">
+          <div>
+            <PublicBrand />
+            <p className="mt-5 max-w-sm text-sm leading-6 text-white/42">
+              Ventas, inventario, compras, proveedores, finanzas y gestión del
+              negocio conectados desde una sola plataforma.
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/[0.035] px-3 py-2 text-[11px] font-medium text-white/38">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+              Aplicación web disponible
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/28">
+              Producto
+            </p>
+            <div className="mt-4 grid gap-3 text-sm text-white/48">
+              <Link href="/download#download-features" className="hover:text-white">Producto</Link>
+              <Link href="/download#download-feature-catalog" className="hover:text-white">Funcionalidades</Link>
+              <Link href="/download#download-install" className="hover:text-white">Instalar</Link>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/28">
+              Compañía
+            </p>
+            <div className="mt-4 grid gap-3 text-sm text-white/48">
+              <Link href="/about" className="hover:text-white">Quiénes somos</Link>
+              <Link href="/support" className="hover:text-white">Soporte</Link>
+              <Link href="/download#download-sectors" className="hover:text-white">Sectores</Link>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/28">
+              Legal
+            </p>
+            <div className="mt-4 grid gap-3 text-sm text-white/48">
+              <Link href="/legal/privacy" className="hover:text-white">Privacidad</Link>
+              <Link href="/legal/terms" className="hover:text-white">Términos</Link>
+              <Link href="/legal/security" className="hover:text-white">Seguridad</Link>
+            </div>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-xs">
-          <Link href="/about" className="hover:text-white">
-            Quiénes somos
-          </Link>
-          <Link href="/legal" className="hover:text-white">
-            Centro legal
-          </Link>
-          <Link href="/legal/privacy" className="hover:text-white">
-            Privacidad
-          </Link>
-          <Link href="/legal/terms" className="hover:text-white">
-            Términos
-          </Link>
-          <Link href="/legal/security" className="hover:text-white">
-            Seguridad
-          </Link>
-          <Link href="/download" className="hover:text-white">
-            Descargas
-          </Link>
-          <Link href="/support" className="hover:text-white">
-            Soporte
-          </Link>
+        <div className="mt-12 flex flex-col gap-3 border-t border-[#211417] pt-6 text-[11px] text-white/26 sm:flex-row sm:items-center sm:justify-between">
+          <p>© 2026 Global Stock. Todos los derechos reservados.</p>
+          <p>Buenos Aires, Argentina</p>
         </div>
       </div>
     </footer>
@@ -90,7 +142,7 @@ export function PublicPage({
   children: ReactNode;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-black text-white">
+    <div className="min-h-[100dvh] bg-[#070708] text-white">
       <PublicHeader />
       {children}
       <PublicFooter />
@@ -112,7 +164,7 @@ export function LegalArticle({
   return (
     <PublicPage>
       <main className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-500">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#e63a4a]">
           {eyebrow}
         </p>
         <h1 className="mt-4 text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">
