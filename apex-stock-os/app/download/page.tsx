@@ -22,6 +22,7 @@ import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { Logo } from "@/components/Logo";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 export const metadata: Metadata = {
@@ -388,6 +389,46 @@ export default function DownloadPage() {
         <div id="download-faq" data-download-section className="scroll-mt-20">
           <DownloadFAQ />
         </div>
+
+        <section className="border-t border-[#211417] bg-[#070708] px-5 py-16 sm:px-8 sm:py-20">
+          <div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[34px] bg-[#111113] px-6 py-10 shadow-[0_30px_90px_rgba(0,0,0,.32)] ring-1 ring-[#2a171b] sm:px-10 sm:py-12">
+            <div className="absolute right-[-6%] top-[-70%] h-80 w-80 rounded-full bg-[#c91527]/12 blur-[100px]" />
+
+            <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
+              <div className="flex items-start gap-5">
+                <Logo className="h-14 w-14 shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[.16em] text-[#ed4c5c]">
+                    Global Stock
+                  </p>
+                  <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-4xl">
+                    Menos herramientas sueltas. Más control sobre el negocio.
+                  </h2>
+                  <p className="mt-3 max-w-2xl text-sm leading-6 text-white/44">
+                    Abrí la aplicación, probá la experiencia y decidí qué partes
+                    de la operación querés conectar primero.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap gap-3 lg:justify-end">
+                <Link
+                  href="/"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white transition hover:bg-[#df2033]"
+                >
+                  Abrir Global Stock
+                  <ArrowRight size={14} />
+                </Link>
+                <a
+                  href="#download-install"
+                  className="inline-flex h-11 items-center rounded-xl bg-white/[0.045] px-4 text-xs font-semibold text-white/72 transition hover:bg-white/[0.07]"
+                >
+                  Ver instalación
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
     </PublicPage>
   );
