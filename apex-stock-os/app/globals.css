@@ -723,3 +723,127 @@ textarea:focus-visible {
     display: none;
   }
 }
+
+
+/* Public download phone demo: keep the UI authored at one size and scale the
+   whole device on shorter screens so spacing, typography and hit targets
+   preserve their proportions. */
+.gs-phone-preview-stage {
+  position: relative;
+  width: 330px;
+  height: 696px;
+  max-width: 100%;
+}
+
+.gs-phone-preview-device {
+  width: 330px;
+  transform: scale(1);
+  transform-origin: top left;
+  will-change: transform;
+}
+
+.gs-phone-preview-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 70;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  transform: translateY(-50%);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  background: rgba(0,0,0,.90);
+  color: rgba(255,255,255,.92);
+  box-shadow: 0 14px 34px rgba(0,0,0,.34);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.gs-phone-preview-arrow:hover {
+  border-color: rgba(239,68,68,.7);
+  background: #000;
+}
+
+.gs-phone-preview-arrow:active {
+  transform: translateY(-50%) scale(.92);
+}
+
+.gs-phone-preview-arrow-left {
+  left: -58px;
+}
+
+.gs-phone-preview-arrow-right {
+  right: -58px;
+}
+
+@media (max-width: 640px) {
+  .gs-phone-preview-stage {
+    width: 260px;
+    height: 549px;
+  }
+
+  .gs-phone-preview-device {
+    transform: scale(.788);
+  }
+
+  .gs-phone-preview-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .gs-phone-preview-arrow-left {
+    left: -42px;
+  }
+
+  .gs-phone-preview-arrow-right {
+    right: -42px;
+  }
+}
+
+@media (min-width: 641px) and (max-height: 840px) {
+  .gs-phone-preview-stage {
+    width: 280px;
+    height: 591px;
+  }
+
+  .gs-phone-preview-device {
+    transform: scale(.8485);
+  }
+
+  .gs-phone-preview-arrow-left {
+    left: -54px;
+  }
+
+  .gs-phone-preview-arrow-right {
+    right: -54px;
+  }
+}
+
+@media (min-width: 641px) and (max-height: 720px) {
+  .gs-phone-preview-stage {
+    width: 240px;
+    height: 506px;
+  }
+
+  .gs-phone-preview-device {
+    transform: scale(.7273);
+  }
+
+  .gs-phone-preview-arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .gs-phone-preview-arrow-left {
+    left: -48px;
+  }
+
+  .gs-phone-preview-arrow-right {
+    right: -48px;
+  }
+}
