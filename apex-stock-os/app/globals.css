@@ -910,3 +910,79 @@ textarea:focus-visible {
 .gs-phone-readonly button {
   pointer-events: none;
 }
+
+
+/* Global Stock public storefront system */
+.gs-storefront {
+  --gs-store-bg: #070708;
+  --gs-store-surface: #111217;
+  --gs-store-surface-raised: #16171c;
+  --gs-store-text: #f5f5f7;
+  --gs-store-muted: #a8a8b0;
+  --gs-store-red: #c91527;
+  --gs-store-stock: #34d399;
+  --gs-store-sales: #f6b95b;
+  --gs-store-connect: #6ea8ff;
+  --gs-store-ai: #b989ff;
+  color-scheme: dark;
+}
+
+.gs-storefront-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.gs-storefront-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+.gs-hero-copy {
+  animation: gs-storefront-enter 560ms var(--ease-out) both;
+}
+
+.gs-hero-product {
+  animation: gs-storefront-enter 640ms var(--ease-out) 70ms both;
+}
+
+@keyframes gs-storefront-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0) scale(.99);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.gs-sector-icon {
+  transition: transform 160ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .gs-sector-card:hover .gs-sector-icon {
+    transform: scale(1.04);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-hero-copy,
+  .gs-hero-product {
+    animation: none !important;
+  }
+
+  .gs-sector-icon {
+    transition: none !important;
+  }
+}
+
+
+@media (prefers-reduced-transparency: reduce) {
+  .gs-public-glass {
+    background: #08090b !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}

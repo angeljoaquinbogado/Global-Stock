@@ -9,7 +9,7 @@ import {
   UtensilsCrossed,
   Warehouse
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const sectors = [
@@ -20,8 +20,8 @@ const sectors = [
     group: "Sector",
     title: "Vendé y controlá stock sin separar caja e inventario.",
     body: "Punto de venta, códigos, clientes, sucursales y stock conectados.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#ff5b67",
+    surface: "rgba(255,91,103,.10)"
   },
   {
     id: "gastronomy",
@@ -30,8 +30,8 @@ const sectors = [
     group: "Sector",
     title: "Compras, costos y caja con una operación más ordenada.",
     body: "Proveedores, gastos, equipo y movimientos diarios en el mismo lugar.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#f6b95b",
+    surface: "rgba(246,185,91,.10)"
   },
   {
     id: "ecommerce",
@@ -40,8 +40,8 @@ const sectors = [
     group: "Sector",
     title: "Conectá la tienda online con el stock del negocio.",
     body: "Catálogo, existencias y actividad sincronizados con permisos claros.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#6ea8ff",
+    surface: "rgba(110,168,255,.10)"
   },
   {
     id: "wholesale",
@@ -50,8 +50,8 @@ const sectors = [
     group: "Sector",
     title: "Manejá volumen, compras y ubicaciones sin perder trazabilidad.",
     body: "Reposición, proveedores, stock y sucursales pensados para movimiento constante.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#b989ff",
+    surface: "rgba(185,137,255,.10)"
   },
   {
     id: "industry",
@@ -60,8 +60,8 @@ const sectors = [
     group: "Sector",
     title: "Seguí insumos, costos y existencias desde una misma base.",
     body: "Una estructura preparada para controlar inventario y abastecimiento.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#50c7d9",
+    surface: "rgba(80,199,217,.10)"
   },
   {
     id: "solo",
@@ -70,8 +70,8 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Una operación simple que puede crecer cuando la necesites.",
     body: "Ventas, stock, agenda y control sin cargar la pantalla de herramientas innecesarias.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#34d399",
+    surface: "rgba(52,211,153,.10)"
   },
   {
     id: "smb",
@@ -80,8 +80,8 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Más responsables, roles y procesos trabajando sobre los mismos datos.",
     body: "Equipo, finanzas, compras y sucursales conectados en una sola operación.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#fb7185",
+    surface: "rgba(251,113,133,.10)"
   },
   {
     id: "advisory",
@@ -90,30 +90,32 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Clientes, documentos y seguimiento organizados por operación.",
     body: "Comprobantes, finanzas, agenda y CRM sin convertir la pantalla en una lista interminable.",
-    accent: "#f05b69",
-    surface: "rgba(201,21,39,.10)"
+    accent: "#67e8f9",
+    surface: "rgba(103,232,249,.10)"
   }
 ];
 
 export function DownloadSectorShowcase() {
   const [active, setActive] = useState("retail");
+  const reduceMotion = useReducedMotion();
   const current = sectors.find((item) => item.id === active) ?? sectors[0];
   const CurrentIcon = current.icon;
 
   return (
-    <section className="border-t border-[#211417] bg-[#0a0a0b] text-white">
+    <section className="border-t border-white/[0.045] bg-[#0a0a0c] text-white">
       <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
-        <div className="grid gap-10 lg:grid-cols-[.78fr_1.22fr] lg:items-start">
+        <div className="grid gap-12 lg:grid-cols-[.74fr_1.26fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
-              Sectores
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#50c7d9]">
+              Para quién
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-              Elegí cómo trabajás.
+              Mismo núcleo.
+              <span className="block text-white/34">Distinto negocio.</span>
             </h2>
-            <p className="mt-5 max-w-xl text-base leading-7 text-white/50">
-              Elegí un perfil y mirá cómo se adapta la propuesta sin cargar la
-              página con una lista interminable de funciones.
+            <p className="mt-5 max-w-xl text-base leading-7 text-[#a8a8b0]">
+              Elegí un perfil y mirá qué parte de Global Stock toma protagonismo
+              en esa operación.
             </p>
           </div>
 
@@ -121,6 +123,7 @@ export function DownloadSectorShowcase() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {sectors.map(({ id, icon: Icon, label, accent, surface }) => {
                 const selected = active === id;
+
                 return (
                   <button
                     key={id}
@@ -129,18 +132,26 @@ export function DownloadSectorShowcase() {
                     onFocus={() => setActive(id)}
                     onClick={() => setActive(id)}
                     className={
-                      "flex min-h-20 flex-col items-start justify-between rounded-[18px] px-3.5 py-3 text-left transition duration-200 " +
+                      "gs-sector-card group flex min-h-[86px] flex-col items-start justify-between rounded-[20px] bg-[#111216] px-3.5 py-3 text-left outline-none transition-[background-color,box-shadow,color] duration-200 [transition-timing-function:var(--ease-out)] " +
                       (selected
-                        ? "bg-[#151517] text-white shadow-[0_12px_30px_rgba(0,0,0,.22)] ring-1 ring-[#492027]"
-                        : "bg-white/[0.025] text-white/48 hover:bg-white/[0.055] hover:text-white")
+                        ? "text-white shadow-[0_14px_38px_rgba(0,0,0,.24)]"
+                        : "text-white/58 hover:bg-[#15161b] hover:text-white")
                     }
+                    style={
+                      selected
+                        ? {
+                            boxShadow:
+                              "inset 0 0 0 1px " +
+                              accent +
+                              "4d, 0 14px 38px rgba(0,0,0,.24)"
+                          }
+                        : undefined
+                    }
+                    aria-pressed={selected}
                   >
                     <span
-                      className="grid h-8 w-8 place-items-center rounded-xl"
-                      style={{
-                        background: selected ? surface : "rgba(255,255,255,.035)",
-                        color: accent
-                      }}
+                      className="gs-sector-icon grid h-8 w-8 place-items-center rounded-xl"
+                      style={{ background: surface, color: accent }}
                     >
                       <Icon size={15} />
                     </span>
@@ -150,39 +161,61 @@ export function DownloadSectorShowcase() {
               })}
             </div>
 
-            <motion.div
-              key={current.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
-              className="relative mt-4 overflow-hidden rounded-[28px] bg-[#111113] p-6 shadow-[0_24px_60px_rgba(0,0,0,.22)] ring-1 ring-[#25171a] sm:p-7"
-            >
-              <div
-                className="absolute right-[-10%] top-[-35%] h-56 w-56 rounded-full blur-3xl"
-                style={{ background: current.surface }}
-              />
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={current.id}
+                initial={{
+                  opacity: 0,
+                  transform: reduceMotion
+                    ? "translate3d(0,0,0)"
+                    : "translate3d(0,10px,0)"
+                }}
+                animate={{
+                  opacity: 1,
+                  transform: "translate3d(0,0,0)"
+                }}
+                exit={{
+                  opacity: 0,
+                  transform: reduceMotion
+                    ? "translate3d(0,0,0)"
+                    : "translate3d(0,-6px,0)"
+                }}
+                transition={{
+                  duration: reduceMotion ? 0.12 : 0.22,
+                  ease: [0.23, 1, 0.32, 1]
+                }}
+                className="relative mt-4 overflow-hidden rounded-[30px] bg-[#111217] p-6 shadow-[0_24px_64px_rgba(0,0,0,.24)] sm:p-7"
+              >
+                <div
+                  className="pointer-events-none absolute right-[-10%] top-[-55%] h-64 w-64 rounded-full blur-[90px]"
+                  style={{ background: current.surface }}
+                />
 
-              <div className="relative grid gap-5 sm:grid-cols-[54px_1fr] sm:items-start">
-                <span
-                  className="grid h-12 w-12 place-items-center rounded-2xl"
-                  style={{ background: current.surface, color: current.accent }}
-                >
-                  <CurrentIcon size={21} />
-                </span>
+                <div className="relative grid gap-5 sm:grid-cols-[56px_1fr] sm:items-start">
+                  <span
+                    className="grid h-12 w-12 place-items-center rounded-2xl"
+                    style={{ background: current.surface, color: current.accent }}
+                  >
+                    <CurrentIcon size={21} />
+                  </span>
 
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[.14em] text-white/30">
-                    {current.group}
-                  </p>
-                  <h3 className="mt-2 max-w-2xl text-2xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-3xl">
-                    {current.title}
-                  </h3>
-                  <p className="mt-3 max-w-2xl text-sm leading-6 text-white/46">
-                    {current.body}
-                  </p>
+                  <div>
+                    <p
+                      className="text-[10px] font-bold uppercase tracking-[.14em]"
+                      style={{ color: current.accent }}
+                    >
+                      {current.group}
+                    </p>
+                    <h3 className="mt-2 max-w-2xl text-2xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-3xl">
+                      {current.title}
+                    </h3>
+                    <p className="mt-3 max-w-2xl text-sm leading-6 text-[#a0a0a9]">
+                      {current.body}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </motion.div>
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Clock3,
-  TrendingUp,
-  Zap
-} from "lucide-react";
-import { motion } from "framer-motion";
+import { Clock3, TrendingUp, Zap } from "lucide-react";
 import { useState } from "react";
 
 const metrics = [
@@ -13,22 +8,22 @@ const metrics = [
     value: "40h",
     label: "ahorradas/mes",
     icon: Clock3,
-    accent: "#42d17f",
-    iconBg: "rgba(66,209,127,.12)"
+    accent: "#34d399",
+    iconBg: "rgba(52,211,153,.11)"
   },
   {
     value: "160x",
     label: "más rápido facturando",
     icon: Zap,
-    accent: "#ff9f43",
-    iconBg: "rgba(255,159,67,.12)"
+    accent: "#f6b95b",
+    iconBg: "rgba(246,185,91,.11)"
   },
   {
     value: "80%",
     label: "cobros más rápidos",
     icon: TrendingUp,
-    accent: "#42d17f",
-    iconBg: "rgba(66,209,127,.12)"
+    accent: "#6ea8ff",
+    iconBg: "rgba(110,168,255,.11)"
   }
 ];
 
@@ -36,8 +31,8 @@ export function DownloadMetricStrip() {
   const [active, setActive] = useState<number | null>(null);
 
   return (
-    <div className="border-y border-[#211417] bg-[#09090a]">
-      <div className="mx-auto flex w-full max-w-[1240px] items-center justify-center overflow-x-auto px-5 py-7 sm:px-8 sm:py-8">
+    <div className="border-y border-white/[0.045] bg-[#09090b]">
+      <div className="gs-storefront-scroll mx-auto flex w-full max-w-[1240px] items-center justify-start overflow-x-auto px-5 py-6 sm:justify-center sm:px-8 sm:py-7">
         <div
           className="flex min-w-max items-center"
           onMouseLeave={() => setActive(null)}
@@ -48,23 +43,14 @@ export function DownloadMetricStrip() {
             return (
               <div key={label} className="flex items-center">
                 {index > 0 && (
-                  <motion.span
+                  <span
                     aria-hidden="true"
-                    className="mx-4 h-8 w-px bg-[#2a171b] sm:mx-7"
-                    animate={{
-                      opacity: expanded || active === index - 1 ? 0.35 : 1,
-                      scaleY: expanded || active === index - 1 ? 0.72 : 1
-                    }}
-                    transition={{
-                      duration: 0.2,
-                      ease: [0.23, 1, 0.32, 1]
-                    }}
+                    className="mx-2 h-7 w-px bg-white/[0.055] sm:mx-4"
                   />
                 )}
 
-                <motion.button
+                <button
                   type="button"
-                  layout
                   onMouseEnter={() => setActive(index)}
                   onFocus={() => setActive(index)}
                   onBlur={() => setActive(null)}
@@ -73,57 +59,58 @@ export function DownloadMetricStrip() {
                       current === index ? null : index
                     )
                   }
-                  className="relative flex h-14 items-center overflow-hidden rounded-xl px-4 text-left outline-none sm:px-5"
-                  animate={{
+                  className="relative flex h-14 min-w-[205px] items-center overflow-hidden rounded-xl px-4 text-left outline-none sm:min-w-[218px]"
+                  style={{
                     backgroundColor: expanded
-                      ? "rgba(255,255,255,0.045)"
-                      : "rgba(255,255,255,0)",
-                    boxShadow: expanded
-                      ? "0 0 0 rgba(0,0,0,0)"
-                      : "0 0 0 rgba(0,0,0,0)"
-                  }}
-                  transition={{
-                    duration: 0.22,
-                    ease: [0.23, 1, 0.32, 1]
+                      ? "rgba(255,255,255,.045)"
+                      : "transparent",
+                    transition:
+                      "background-color 180ms var(--ease-out)"
                   }}
                   aria-pressed={expanded}
                 >
-                  <motion.span
-                    className="grid shrink-0 place-items-center overflow-hidden rounded-full"
-                    animate={{
-                      width: expanded ? 32 : 0,
-                      height: expanded ? 32 : 0,
-                      marginRight: expanded ? 10 : 0,
-                      opacity: expanded ? 1 : 0,
-                      scale: expanded ? 1 : 0.72
-                    }}
-                    transition={{
-                      duration: 0.22,
-                      ease: [0.23, 1, 0.32, 1]
-                    }}
+                  <span
+                    className="absolute left-4 grid h-8 w-8 place-items-center rounded-full"
                     style={{
                       background: iconBg,
-                      color: accent
+                      color: accent,
+                      opacity: expanded ? 1 : 0,
+                      transform: expanded
+                        ? "translate3d(0,0,0) scale(1)"
+                        : "translate3d(-8px,0,0) scale(.92)",
+                      transition:
+                        "transform 180ms var(--ease-out), opacity 160ms ease"
                     }}
                     aria-hidden="true"
                   >
                     <Icon size={17} strokeWidth={2} />
-                  </motion.span>
-
-                  <motion.span
-                    className="text-[24px] font-semibold leading-none tracking-[-0.05em] sm:text-[28px]"
-                    animate={{
-                      color: expanded ? accent : "#ffffff"
-                    }}
-                    transition={{ duration: 0.18 }}
-                  >
-                    {value}
-                  </motion.span>
-
-                  <span className="ml-2 whitespace-nowrap text-[12px] font-medium text-white/42 sm:text-[13px]">
-                    {label}
                   </span>
-                </motion.button>
+
+                  <span
+                    className="flex items-baseline"
+                    style={{
+                      transform: expanded
+                        ? "translate3d(40px,0,0)"
+                        : "translate3d(0,0,0)",
+                      transition:
+                        "transform 180ms var(--ease-out)"
+                    }}
+                  >
+                    <span
+                      className="text-[24px] font-semibold leading-none tracking-[-0.05em] sm:text-[27px]"
+                      style={{
+                        color: expanded ? accent : "#f5f5f7",
+                        transition: "color 160ms ease"
+                      }}
+                    >
+                      {value}
+                    </span>
+
+                    <span className="ml-2 whitespace-nowrap text-[12px] font-medium text-[#9b9ba4] sm:text-[13px]">
+                      {label}
+                    </span>
+                  </span>
+                </button>
               </div>
             );
           })}

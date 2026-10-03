@@ -5,7 +5,6 @@ import {
   CircleDollarSign,
   FileText,
   PackagePlus,
-  ShieldCheck,
   ShoppingCart,
   Target,
   Truck,
@@ -15,76 +14,82 @@ import Link from "next/link";
 
 const groups = [
   {
-    number: "01",
     title: "Ventas e inventario",
+    kicker: "Operación diaria",
     body:
       "Vendé, cobrá y actualizá existencias sin duplicar movimientos ni saltar entre herramientas.",
     icon: ShoppingCart,
     accent: "#ff5b67",
-    surface: "rgba(255,91,103,.11)",
+    surface: "rgba(255,91,103,.10)",
     items: ["Punto de venta", "Stock y códigos", "Historial de actividad"]
   },
   {
-    number: "02",
     title: "Compras y abastecimiento",
+    kicker: "Reposición",
     body:
       "Detectá faltantes, ordená reposición y mantené proveedores y compras conectados con el inventario.",
     icon: PackagePlus,
-    accent: "#f5b84b",
-    surface: "rgba(245,184,75,.11)",
-    items: ["Reposición", "Proveedores", "Compras y ubicaciones"]
+    accent: "#f6b95b",
+    surface: "rgba(246,185,91,.10)",
+    items: ["Reposición inteligente", "Proveedores", "Compras y ubicaciones"]
   },
   {
-    number: "03",
     title: "Gestión del negocio",
+    kicker: "Administración",
     body:
       "Clientes, documentos, finanzas, proyectos y equipo trabajan sobre la misma operación.",
     icon: CircleDollarSign,
-    accent: "#5fa7ff",
-    surface: "rgba(95,167,255,.11)",
+    accent: "#6ea8ff",
+    surface: "rgba(110,168,255,.10)",
     items: ["CRM y clientes", "Finanzas y documentos", "Equipo y sucursales"]
   },
   {
-    number: "04",
     title: "Análisis e inteligencia",
+    kicker: "Decisiones",
     body:
       "Leé márgenes, tendencias y salud del stock con una IA que entiende el contexto disponible del negocio.",
     icon: BrainCircuit,
-    accent: "#b886ff",
-    surface: "rgba(184,134,255,.11)",
+    accent: "#b989ff",
+    surface: "rgba(185,137,255,.10)",
     items: ["Gráficos", "Global Intelligence", "Roles y control"]
   }
 ];
 
-const supportingIcons = [Boxes, Truck, Target, FileText, BarChart3, UsersRound, ShieldCheck];
+const supportingIcons = [
+  Boxes,
+  Truck,
+  Target,
+  FileText,
+  BarChart3,
+  UsersRound
+];
 
 export function DownloadFeatureCatalog() {
   return (
-    <section className="border-t border-[#211417] bg-[#080809] text-white">
-      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
-        <div className="lg:sticky lg:top-28 lg:self-start">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
+    <section className="border-t border-white/[0.045] bg-[#08090b] text-white">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
+        <div className="lg:sticky lg:top-24 lg:self-start">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ff6773]">
             Funcionalidades
           </p>
           <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Todo el negocio.
-            <span className="block text-white/34">Bien agrupado.</span>
+            Mucho sistema.
+            <span className="block text-white/34">Poco ruido.</span>
           </h2>
-          <p className="mt-5 max-w-lg text-base leading-7 text-white/46">
-            Las herramientas se organizan por trabajo real: vender, abastecer,
-            gestionar y decidir. Sin llenar la pantalla de módulos que compiten
-            por atención.
+          <p className="mt-5 max-w-lg text-base leading-7 text-[#a8a8b0]">
+            Las herramientas se agrupan por trabajo real: vender, abastecer,
+            gestionar y decidir. Lo demás queda fuera del camino hasta que lo necesitás.
           </p>
 
           <Link
             href="/"
-            className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white/72 transition hover:text-white"
+            className="mt-7 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-white/72 transition-colors duration-150 hover:text-white"
           >
             Explorar la aplicación
             <span aria-hidden="true">→</span>
           </Link>
 
-          <div className="mt-10 flex max-w-sm flex-wrap gap-2">
+          <div className="mt-9 flex max-w-sm flex-wrap gap-2">
             {supportingIcons.map((Icon, index) => (
               <span
                 key={index}
@@ -97,12 +102,12 @@ export function DownloadFeatureCatalog() {
         </div>
 
         <div>
-          {groups.map(({ number, title, body, icon: Icon, accent, surface, items }, index) => (
+          {groups.map(({ title, kicker, body, icon: Icon, accent, surface, items }, index) => (
             <article
               key={title}
               className={
-                "grid gap-5 py-8 sm:grid-cols-[56px_1fr] sm:gap-6 " +
-                (index === 0 ? "pt-0" : "border-t border-[#211417]")
+                "grid gap-5 py-9 sm:grid-cols-[58px_1fr] sm:gap-7 " +
+                (index === 0 ? "pt-0" : "border-t border-white/[0.045]")
               }
             >
               <span
@@ -113,19 +118,17 @@ export function DownloadFeatureCatalog() {
               </span>
 
               <div>
-                <div className="flex items-center gap-3">
-                  <span
-                    className="text-[10px] font-bold tracking-[.16em]"
-                    style={{ color: accent }}
-                  >
-                    {number}
-                  </span>
-                  <h3 className="text-2xl font-semibold tracking-[-.04em] sm:text-3xl">
-                    {title}
-                  </h3>
-                </div>
+                <p
+                  className="text-[10px] font-bold uppercase tracking-[.15em]"
+                  style={{ color: accent }}
+                >
+                  {kicker}
+                </p>
+                <h3 className="mt-2 text-2xl font-semibold tracking-[-.04em] sm:text-3xl">
+                  {title}
+                </h3>
 
-                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/44 sm:text-base sm:leading-7">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-[#a0a0a9] sm:text-base sm:leading-7">
                   {body}
                 </p>
 
@@ -133,7 +136,7 @@ export function DownloadFeatureCatalog() {
                   {items.map((item) => (
                     <span
                       key={item}
-                      className="inline-flex items-center gap-2 text-xs font-medium text-white/54"
+                      className="inline-flex items-center gap-2 text-xs font-medium text-white/58"
                     >
                       <span
                         className="h-1.5 w-1.5 rounded-full"
