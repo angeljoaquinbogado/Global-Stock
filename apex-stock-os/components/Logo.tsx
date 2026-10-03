@@ -18,6 +18,7 @@ export function Logo({
           alt=""
           className="h-10 w-auto shrink-0 object-contain"
           aria-hidden="true"
+          draggable={false}
         />
         <div className="leading-none">
           <div className="text-[15px] font-semibold tracking-[-0.03em]">
@@ -33,6 +34,7 @@ export function Logo({
       src="/global-stock-logo.png"
       alt={alt}
       className={className}
+      draggable={false}
       {...props}
     />
   );
