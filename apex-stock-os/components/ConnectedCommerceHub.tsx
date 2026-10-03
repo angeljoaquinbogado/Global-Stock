@@ -971,7 +971,7 @@ export function ConnectedCommerceHub({
         </div>
 
         {selectedProvider !== "custom" && (
-          <div className="mt-4 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
+          <div id="integration-channel-panel" className="mt-4 scroll-mt-24 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <p className="text-sm font-semibold">
@@ -1167,19 +1167,131 @@ export function ConnectedCommerceHub({
               <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-500/10 text-amber-600">
                 <LockKeyhole size={19} />
               </span>
-              <div>
-                <h3 className="text-sm font-semibold">
-                  {language === "es"
-                    ? "Análisis público solamente"
-                    : "Public analysis only"}
-                </h3>
-                <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
-                  {language === "es"
-                    ? "Global Stock puede leer información pública de este sitio, pero no detectó un conector seguro propio. No se mostrará ningún acceso administrativo ni se intentará modificar stock."
-                    : "Global Stock can inspect public information from this site, but no secure Global Stock connector was detected. No admin access will be offered and inventory will not be modified."}
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-sm font-semibold">
+                    {detectedProvider
+                      ? language === "es"
+                        ? "Plataforma compatible detectada"
+                        : "Compatible platform detected"
+                      : language === "es"
+                        ? "Solo datos públicos"
+                        : "Public data only"}
+                  </h3>
+                  <span className="rounded-full border border-amber-500/20 bg-amber-500/[0.07] px-2 py-1 text-[8px] font-bold uppercase tracking-[0.08em] text-amber-600">
+                    {preview.platform}
+                  </span>
+                </div>
+
+                <p className="mt-1 max-w-4xl text-xs leading-5 text-[var(--apex-muted)]">
+                  {detectedProvider
+                    ? language === "es"
+                      ? "La web se puede reconocer públicamente y la plataforma tiene un método de integración oficial. Global Stock no intentará acceder al panel ni al stock privado sin una autorización del dueño."
+                      : "The site can be inspected publicly and the platform supports an official integration path. Global Stock will not access private inventory without owner authorization."
+                    : language === "es"
+                      ? "Global Stock puede leer información pública, pero esta web no publica un conector propio ni una plataforma compatible verificable. No se intentará entrar al panel administrativo."
+                      : "Global Stock can inspect public information, but this site does not expose a verifiable connector or supported platform. No admin access will be attempted."}
                 </p>
+
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {detectedProvider && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedProvider(detectedProvider);
+                        window.requestAnimationFrame(() =>
+                          document
+                            .getElementById("integration-channel-panel")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "center"
+                            })
+                        );
+                      }}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white"
+                    >
+                      <ShieldCheck size={14} />
+                      {language === "es"
+                        ? `Conectar con ${preview.platform}`
+                        : `Connect with ${preview.platform}`}
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    disabled={requestingIntegration}
+                    onClick={() =>
+                      void requestIntegration(
+                        detectedProvider ? "platform" : "public-site"
+                      )
+                    }
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--apex-border)] px-4 text-xs font-semibold disabled:opacity-50"
+                  >
+                    <Link2 size={14} />
+                    {language === "es"
+                      ? "Solicitar integración"
+                      : "Request integration"}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setEnterpriseOpen((value) => !value)}
+                    className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--apex-border)] px-4 text-xs font-semibold"
+                  >
+                    <Store size={14} />
+                    {language === "es"
+                      ? "Tengo acceso a esta tienda"
+                      : "I manage this store"}
+                  </button>
+                </div>
               </div>
             </div>
+
+            {enterpriseOpen && (
+              <div className="mt-5 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
+                <p className="text-xs font-semibold">
+                  {language === "es"
+                    ? "Conexión empresarial / sitio propio"
+                    : "Enterprise / custom site connection"}
+                </p>
+                <p className="mt-1 max-w-4xl text-[10px] leading-5 text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Para una web o ERP propio podés verificar el control del dominio y después autorizar únicamente los permisos necesarios. La verificación puede implementarse con DNS TXT, /.well-known/global-stock.json, OAuth/API o un conector firmado con webhooks."
+                    : "For a custom site or ERP, verify domain control first and then grant only the required scopes. Verification can use DNS TXT, /.well-known/global-stock.json, OAuth/API or a signed webhook connector."}
+                </p>
+
+                <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    ["DNS TXT", "Verificación del dominio"],
+                    ["/.well-known", "Archivo de verificación"],
+                    ["OAuth / API", "Credenciales revocables"],
+                    ["Webhooks", "Eventos firmados"]
+                  ].map(([title, body]) => (
+                    <div
+                      key={title}
+                      className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3"
+                    >
+                      <p className="text-xs font-semibold">{title}</p>
+                      <p className="mt-1 text-[9px] text-[var(--apex-muted)]">
+                        {body}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  type="button"
+                  disabled={requestingIntegration}
+                  onClick={() => void requestIntegration("enterprise")}
+                  className="mt-4 inline-flex min-h-10 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white disabled:opacity-50"
+                >
+                  <ShieldCheck size={14} />
+                  {language === "es"
+                    ? "Registrar solicitud Enterprise"
+                    : "Register enterprise request"}
+                </button>
+              </div>
+            )}
           </section>
         )}
 
