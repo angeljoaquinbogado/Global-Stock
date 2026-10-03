@@ -15,6 +15,10 @@ import {
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -91,6 +95,27 @@ const emptyState: SuiteState = {
   people: []
 };
 
+function normalizeSuiteState(value: unknown): SuiteState {
+  const source =
+    value && typeof value === "object"
+      ? (value as Partial<SuiteState>)
+      : {};
+
+  return {
+    financeAccounts: Array.isArray(source.financeAccounts)
+      ? source.financeAccounts
+      : [],
+    financeMovements: Array.isArray(source.financeMovements)
+      ? source.financeMovements
+      : [],
+    opportunities: Array.isArray(source.opportunities)
+      ? source.opportunities
+      : [],
+    projects: Array.isArray(source.projects) ? source.projects : [],
+    people: Array.isArray(source.people) ? source.people : []
+  };
+}
+
 function tr(
   language: LanguageCode,
   values: Partial<Record<LanguageCode, string>>
@@ -140,35 +165,53 @@ export function BusinessSuite({
   const [personHours, setPersonHours] = useState("40");
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as Partial<SuiteState>;
-        setState({
-          financeAccounts: Array.isArray(parsed.financeAccounts)
-            ? parsed.financeAccounts
-            : [],
-          financeMovements: Array.isArray(parsed.financeMovements)
-            ? parsed.financeMovements
-            : [],
-          opportunities: Array.isArray(parsed.opportunities)
-            ? parsed.opportunities
-            : [],
-          projects: Array.isArray(parsed.projects) ? parsed.projects : [],
-          people: Array.isArray(parsed.people) ? parsed.people : []
-        });
+    let cancelled = false;
+
+    async function hydrate() {
+      let nextState = emptyState;
+
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) nextState = normalizeSuiteState(JSON.parse(raw));
+      } catch {
+        nextState = emptyState;
       }
-    } catch {
-      setState(emptyState);
-    } finally {
-      setReady(true);
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        if (cloud?.state.businessSuite) {
+          nextState = normalizeSuiteState(cloud.state.businessSuite);
+        }
+      }
+
+      if (!cancelled) {
+        setState(nextState);
+        setReady(true);
+      }
     }
-  }, []);
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!ready) return;
+
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  }, [ready, state]);
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        businessSuite: state
+      });
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, ready, state]);
 
   useEffect(() => {
     if (!movementAccount && state.financeAccounts[0]?.id) {
