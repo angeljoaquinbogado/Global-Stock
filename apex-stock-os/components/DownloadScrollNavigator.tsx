@@ -6,8 +6,12 @@ import { useEffect, useState } from "react";
 const sectionIds = [
   "download-hero",
   "download-features",
+  "download-feature-catalog",
+  "download-sectors",
+  "download-pricing",
   "download-install",
-  "download-security"
+  "download-security",
+  "download-faq"
 ];
 
 function getSections() {
