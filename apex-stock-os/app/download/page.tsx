@@ -9,8 +9,7 @@ import {
   Download,
   Globe2,
   ShieldCheck,
-  ShoppingCart,
-  Sparkles
+  ShoppingCart
 } from "lucide-react";
 
 import {
@@ -21,6 +20,7 @@ import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
 import { DownloadFeatureCatalog } from "@/components/DownloadFeatureCatalog";
 import { DownloadFAQ } from "@/components/DownloadFAQ";
 import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
+import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { Logo } from "@/components/Logo";
@@ -73,16 +73,12 @@ const flowItems = [
   }
 ];
 
-const heroSignals = [
-  { label: "Venta registrada", accent: "#ff5b67" },
-  { label: "Stock sincronizado", accent: "#34d399" },
-  { label: "Caja actualizada", accent: "#f6b95b" },
-  { label: "IA con contexto", accent: "#b989ff" }
-];
 
 export default function DownloadPage() {
   return (
     <PublicPage>
+      <DownloadScrollNavigator />
+
       <main className="gs-storefront overflow-x-clip bg-[#070708]">
         <section
           id="download-hero"
@@ -151,27 +147,9 @@ export default function DownloadPage() {
               </div>
             </div>
 
-            <div className="gs-hero-product relative mx-auto flex w-full min-w-0 items-center justify-center">
-              <div className="relative">
-                <div className="relative rounded-[46px] bg-[linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.008))] p-4 shadow-[0_42px_120px_rgba(0,0,0,.50)] ring-1 ring-white/[0.055] sm:p-5">
-                  <GlobalStockPhonePreview />
-                </div>
-
-                <div className="pointer-events-none absolute -right-16 top-20 hidden w-44 space-y-2 xl:block">
-                  {heroSignals.map((signal) => (
-                    <div
-                      key={signal.label}
-                      className="flex items-center gap-2.5 rounded-2xl bg-[#111218]/88 px-3 py-2.5 text-[11px] font-semibold text-white/66 shadow-[0_14px_36px_rgba(0,0,0,.30)] ring-1 ring-white/[0.055] backdrop-blur-xl"
-                    >
-                      <span
-                        className="h-2 w-2 shrink-0 rounded-full"
-                        style={{ background: signal.accent }}
-                      />
-                      {signal.label}
-                    </div>
-                  ))}
-                </div>
-              </div>
+            <div className="gs-hero-product relative mx-auto flex w-full min-w-0 items-center justify-center py-2 lg:py-0">
+              <div className="absolute inset-x-[15%] bottom-[8%] h-24 rounded-full bg-red-600/10 blur-3xl" />
+              <GlobalStockPhonePreview />
             </div>
           </div>
 

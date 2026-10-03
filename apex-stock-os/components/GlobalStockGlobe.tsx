@@ -83,25 +83,6 @@ const routes: GlobeRoute[] = markers
   }));
 
 const ROUTE_SLOT_MS = 2650;
-const GLOBE_RADIUS = 0.8;
-const GLOBE_SCALE = 0.98;
-const MARKER_ELEVATION = 0.05;
-
-const cobeMarkers = markers.map((marker) => ({
-  id: marker.id,
-  location: marker.location,
-  size: marker.primary ? 0.055 : 0.038,
-  color: marker.primary
-    ? ([1, 0.13, 0.17] as [number, number, number])
-    : ([0.78, 0.05, 0.08] as [number, number, number])
-}));
-
-const cobeArcs = routes.map((route) => ({
-  id: route.id,
-  from: route.from,
-  to: route.to,
-  color: [0.92, 0.07, 0.11] as [number, number, number]
-}));
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -112,56 +93,51 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
-function latLonTo3D([lat, lon]: Location): [number, number, number] {
-  const latRad = (lat * Math.PI) / 180;
-  const lonRad = (lon * Math.PI) / 180 - Math.PI;
-  const cosLat = Math.cos(latRad);
-
-  return [
-    -cosLat * Math.cos(lonRad),
-    Math.sin(latRad),
-    cosLat * Math.sin(lonRad)
-  ];
-}
-
 function projectLocation(
-  location: Location,
+  [lat, lon]: Location,
   phi: number,
   theta: number,
   width: number,
   height: number
 ): ScreenPoint {
-  const source = latLonTo3D(location);
-  const radius = GLOBE_RADIUS + MARKER_ELEVATION;
-  const px = source[0] * radius;
-  const py = source[1] * radius;
-  const pz = source[2] * radius;
+  const latRad = (lat * Math.PI) / 180;
+  const lonRad = (lon * Math.PI) / 180 - Math.PI;
+  const cosLat = Math.cos(latRad);
+
+  // COBE renders markers at globe radius 0.8 + 0.05 elevation.
+  const radius = 0.85;
+  const px = -cosLat * Math.cos(lonRad) * radius;
+  const py = Math.sin(latRad) * radius;
+  const pz = cosLat * Math.sin(lonRad) * radius;
 
   const cx = Math.cos(theta);
   const sx = Math.sin(theta);
   const cy = Math.cos(phi);
   const sy = Math.sin(phi);
 
+  // Same world-to-view transform as COBE's marker shader.
   const rx = cy * px + sy * pz;
   const ry = sy * sx * px + cx * py - cy * sx * pz;
   const rz = -sy * cx * px + sx * py + cy * cx * pz;
 
+  const scale = 0.98;
   const aspect = width / Math.max(height, 1);
-  const normalizedX = ((rx / aspect) * GLOBE_SCALE + 1) / 2;
-  const normalizedY = (-ry * GLOBE_SCALE + 1) / 2;
-  const screenX = normalizedX * width;
-  const screenY = normalizedY * height;
+  const ndcX = (rx / aspect) * scale;
+  const ndcY = ry * scale;
+
+  const screenX = ((ndcX + 1) / 2) * width;
+  const screenY = ((1 - ndcY) / 2) * height;
 
   return {
     x: screenX,
     y: screenY,
     depth: rz,
     visible:
-      (rz >= 0 || rx * rx + ry * ry >= GLOBE_RADIUS * GLOBE_RADIUS) &&
-      screenX > -24 &&
-      screenX < width + 24 &&
-      screenY > -24 &&
-      screenY < height + 24
+      (rz >= 0 || rx * rx + ry * ry >= 0.64) &&
+      screenX > 16 &&
+      screenX < width - 16 &&
+      screenY > 16 &&
+      screenY < height - 16
   };
 }
 
@@ -332,9 +308,9 @@ export function GlobalStockGlobe() {
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
     const dpr = Math.min(
       window.devicePixelRatio || 1,
-      coarsePointer ? 1.2 : 1.45
+      coarsePointer ? 1.1 : 1.3
     );
-    const samples = coarsePointer ? 5600 : 9000;
+    const samples = coarsePointer ? 4200 : 6800;
 
     const readSize = () => {
       const rect = root.getBoundingClientRect();
@@ -365,17 +341,12 @@ export function GlobalStockGlobe() {
         mapSamples: samples,
         mapBrightness: 6.6,
         baseColor: [0.04, 0.042, 0.048],
+        markerColor: [0.12, 0.018, 0.022],
         glowColor: [0.28, 0.015, 0.022],
         opacity: 0.95,
-        scale: GLOBE_SCALE,
+        scale: 0.98,
         offset: [0, 0],
-        markerElevation: MARKER_ELEVATION,
-        markerColor: [0.86, 0.04, 0.08],
-        markers: cobeMarkers,
-        arcs: cobeArcs,
-        arcColor: [0.92, 0.07, 0.11],
-        arcWidth: 1.2,
-        arcHeight: 0.16
+        markers: []
       } as never
     ) as unknown as CobeGlobeHandle;
 
@@ -563,7 +534,7 @@ export function GlobalStockGlobe() {
       />
 
       <svg
-        className="hidden"
+        className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-visible"
         aria-hidden="true"
       >
         <defs>

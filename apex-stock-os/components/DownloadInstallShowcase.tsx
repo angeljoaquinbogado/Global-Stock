@@ -94,7 +94,7 @@ function PlatformTabs({
 }) {
   return (
     <div
-      className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1 overflow-x-auto rounded-[16px] bg-white p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.24)] ring-1 ring-black/10"
+      className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[16px] border border-[#7d1722] bg-[#09090b] p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.28),0_0_0_1px_rgba(201,21,39,.08)]"
       role="tablist"
       aria-label="Plataforma"
     >
@@ -109,19 +109,25 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-11 min-w-[104px] shrink-0 items-center justify-center gap-2 rounded-[11px] px-3 text-[12px] font-semibold text-[#111114] outline-none transition-[background-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[116px] " +
+              "flex min-h-11 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-semibold text-white outline-none transition-[background-color,border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[120px] " +
               (selected
-                ? "bg-[#eef0f3] shadow-[0_4px_12px_rgba(0,0,0,.12)]"
-                : "hover:bg-black/[0.035]")
+                ? "border-[#df2033] bg-[#1a0b0e] shadow-[0_0_0_1px_rgba(223,32,51,.18),0_8px_22px_rgba(0,0,0,.30)]"
+                : "border-[#48131a] bg-[#0d0e12] hover:border-[#8f1d29] hover:bg-[#141116]")
             }
           >
-            <img
-              src={logoSrc}
-              alt=""
-              className={id === "android" ? "h-5 w-5 shrink-0 object-contain" : "h-[17px] w-[17px] shrink-0 object-contain"}
-              aria-hidden="true"
-              draggable={false}
-            />
+            <span className="grid h-6 w-6 shrink-0 place-items-center overflow-visible">
+              <img
+                src={logoSrc}
+                alt=""
+                className={
+                  id === "android"
+                    ? "h-[19px] w-[19px] object-contain"
+                    : "h-[17px] w-[17px] object-contain"
+                }
+                aria-hidden="true"
+                draggable={false}
+              />
+            </span>
             <span>{label}</span>
           </button>
         );
@@ -137,29 +143,19 @@ export function DownloadPlatformQuickTabs() {
     const onPlatformChange = (event: Event) => {
       const custom = event as CustomEvent<{ platform?: PlatformId }>;
       const platform = custom.detail?.platform;
-
-      if (
-        platform === "web" ||
-        platform === "iphone" ||
-        platform === "android"
-      ) {
+      if (platform === "web" || platform === "iphone" || platform === "android") {
         setActive(platform);
       }
     };
 
     window.addEventListener(PLATFORM_EVENT, onPlatformChange);
-
-    return () =>
-      window.removeEventListener(PLATFORM_EVENT, onPlatformChange);
+    return () => window.removeEventListener(PLATFORM_EVENT, onPlatformChange);
   }, []);
 
   const choose = (platform: PlatformId) => {
     setActive(platform);
-
     window.dispatchEvent(
-      new CustomEvent(PLATFORM_EVENT, {
-        detail: { platform }
-      })
+      new CustomEvent(PLATFORM_EVENT, { detail: { platform } })
     );
 
     document.getElementById("download-install")?.scrollIntoView({
@@ -183,20 +179,13 @@ export function DownloadInstallShowcase({
     const onPlatformChange = (event: Event) => {
       const custom = event as CustomEvent<{ platform?: PlatformId }>;
       const platform = custom.detail?.platform;
-
-      if (
-        platform === "web" ||
-        platform === "iphone" ||
-        platform === "android"
-      ) {
+      if (platform === "web" || platform === "iphone" || platform === "android") {
         setActive(platform);
       }
     };
 
     window.addEventListener(PLATFORM_EVENT, onPlatformChange);
-
-    return () =>
-      window.removeEventListener(PLATFORM_EVENT, onPlatformChange);
+    return () => window.removeEventListener(PLATFORM_EVENT, onPlatformChange);
   }, []);
 
   const current = platforms.find((item) => item.id === active)!;
@@ -212,26 +201,9 @@ export function DownloadInstallShowcase({
   const choose = (platform: PlatformId) => {
     setActive(platform);
     window.dispatchEvent(
-      new CustomEvent(PLATFORM_EVENT, {
-        detail: { platform }
-      })
+      new CustomEvent(PLATFORM_EVENT, { detail: { platform } })
     );
   };
-
-  const nativeStores = [
-    {
-      name: "App Store",
-      platform: "iPhone y iPad",
-      href: appStoreUrl,
-      logoSrc: "/platforms/apple.png"
-    },
-    {
-      name: "Google Play",
-      platform: "Android",
-      href: playStoreUrl,
-      logoSrc: "/platforms/android.png"
-    }
-  ];
 
   return (
     <div>
@@ -239,15 +211,19 @@ export function DownloadInstallShowcase({
         <PlatformTabs active={active} onChange={choose} />
       </div>
 
-      <div className="mt-6 overflow-hidden rounded-[32px] bg-[#111217] shadow-[0_30px_80px_rgba(0,0,0,.28)]">
+      <div className="mt-6 overflow-hidden rounded-[32px] bg-[#111217] shadow-[0_30px_80px_rgba(0,0,0,.28)] ring-1 ring-white/[0.045]">
         <div className="grid lg:grid-cols-[1.06fr_.94fr]">
           <div className="p-6 sm:p-8">
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[0.04]">
+              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[#4b161d] bg-[#120b0d]">
                 <img
                   src={current.logoSrc}
                   alt=""
-                  className="h-5 w-5 object-contain"
+                  className={
+                    active === "android"
+                      ? "h-[22px] w-[22px] object-contain"
+                      : "h-5 w-5 object-contain"
+                  }
                   aria-hidden="true"
                   draggable={false}
                 />
@@ -282,13 +258,13 @@ export function DownloadInstallShowcase({
                     href={nativeLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#8f1d29] bg-[#190b0e] px-4 text-xs font-semibold text-white transition-colors duration-150 hover:border-[#df2033] hover:bg-[#221015]"
                   >
                     <Download size={15} />
                     Abrir tienda oficial
                   </a>
                 ) : (
-                  <span className="inline-flex h-11 items-center rounded-xl bg-white/[0.04] px-4 text-xs font-semibold text-white/42">
+                  <span className="inline-flex h-11 items-center rounded-xl border border-white/[0.06] bg-white/[0.035] px-4 text-xs font-semibold text-white/42">
                     Publicación nativa · Próximamente
                   </span>
                 ))}
@@ -309,10 +285,7 @@ export function DownloadInstallShowcase({
                     (index > 0 ? "border-t border-white/[0.045]" : "")
                   }
                 >
-                  <span
-                    className="text-[11px] font-bold"
-                    style={{ color: current.accent }}
-                  >
+                  <span className="text-[11px] font-bold text-[#ef3a4e]">
                     0{index + 1}
                   </span>
                   <p className="text-sm leading-6 text-white/60">{step}</p>
@@ -326,59 +299,6 @@ export function DownloadInstallShowcase({
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="mt-5 grid gap-3 sm:grid-cols-2">
-        {nativeStores.map((store) =>
-          store.href ? (
-            <a
-              key={store.name}
-              href={store.href}
-              target="_blank"
-              rel="noreferrer"
-              className="flex min-h-16 items-center gap-3 rounded-2xl bg-[#111216] px-4 transition-colors duration-150 hover:bg-[#16171c]"
-            >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.04]">
-                <img
-                  src={store.logoSrc}
-                  alt=""
-                  className="h-5 w-5 object-contain"
-                  aria-hidden="true"
-                  draggable={false}
-                />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-white">{store.name}</p>
-                <p className="mt-1 text-xs text-white/40">{store.platform}</p>
-              </div>
-              <span className="ml-auto text-xs font-semibold text-emerald-300">
-                Disponible
-              </span>
-            </a>
-          ) : (
-            <div
-              key={store.name}
-              className="flex min-h-16 items-center gap-3 rounded-2xl bg-[#111216] px-4"
-            >
-              <span className="grid h-10 w-10 place-items-center rounded-xl bg-white/[0.04]">
-                <img
-                  src={store.logoSrc}
-                  alt=""
-                  className="h-5 w-5 object-contain"
-                  aria-hidden="true"
-                  draggable={false}
-                />
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-white">{store.name}</p>
-                <p className="mt-1 text-xs text-white/40">{store.platform}</p>
-              </div>
-              <span className="ml-auto text-xs font-semibold text-white/32">
-                Próximamente
-              </span>
-            </div>
-          )
-        )}
       </div>
     </div>
   );
