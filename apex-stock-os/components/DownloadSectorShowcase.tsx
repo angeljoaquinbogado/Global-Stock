@@ -46,7 +46,7 @@ const sectors = [
     icon: Building2,
     accent: "#8b5cf6",
     bg: "rgba(139,92,246,.10)",
-    title: "Manej á volumen, proveedores, reposición y múltiples ubicaciones.",
+    title: "Manejá volumen, proveedores, reposición y múltiples ubicaciones.",
     features: ["Reposición", "Proveedores", "Sucursales", "Compras"]
   },
   {
@@ -73,7 +73,7 @@ const sectors = [
     icon: Factory,
     accent: "#64748b",
     bg: "rgba(100,116,139,.10)",
-    title: "Segu í insumos, existencias, costos, reposición y trazabilidad operativa.",
+    title: "Seguí insumos, existencias, costos, reposición y trazabilidad operativa.",
     features: ["Inventario", "Costos", "Reposición", "Actividad"]
   }
 ];
