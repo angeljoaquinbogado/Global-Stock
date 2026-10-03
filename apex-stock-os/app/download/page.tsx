@@ -1,21 +1,20 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  AppWindow,
-  BrainCircuit,
+  BarChart3,
   Boxes,
-  CheckCircle2,
+  BrainCircuit,
+  Check,
   Cloud,
   Download,
   Globe2,
-  Laptop,
   PackageSearch,
   ShieldCheck,
   ShoppingCart,
-  Smartphone,
-  Store
+  Sparkles
 } from "lucide-react";
 
+import { DownloadInstallShowcase } from "@/components/DownloadInstallShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
@@ -37,296 +36,484 @@ const storeLinks = {
     process.env.NEXT_PUBLIC_GALAXY_STORE_URL?.trim() || ""
 };
 
-const features = [
+const productCards = [
   {
     icon: ShoppingCart,
-    title: "Punto de venta",
-    body: "Vendé desde mostrador, armá el carrito y actualizá stock en la misma operación."
+    eyebrow: "Punto de venta",
+    title: "Vendé y descontá stock en la misma operación.",
+    body:
+      "Carrito, medio de pago, cantidades y total sin saltar entre pantallas.",
+    accent: "#ff4650",
+    surface: "rgba(255,70,80,.10)",
+    metric: "Caja + stock",
+    detail: "Una sola acción"
   },
   {
     icon: Boxes,
-    title: "Almacén",
-    body: "Existencias, costos, precios, mínimos, códigos de barras y productos críticos."
-  },
-  {
-    icon: Cloud,
-    title: "Tienda online",
-    body: "Conectá un ecommerce verificado y sincronizá catálogo, stock y precios con permisos controlados."
-  },
-  {
-    icon: PackageSearch,
-    title: "Reposición",
-    body: "Priorizá qué comprar según cobertura, rotación, stock disponible y capital necesario."
+    eyebrow: "Inventario",
+    title: "Sabé qué tenés y qué falta antes de quedarte sin stock.",
+    body:
+      "Existencias, mínimos, códigos, costos, precios y productos críticos en una sola vista.",
+    accent: "#4fd39a",
+    surface: "rgba(79,211,154,.10)",
+    metric: "Stock crítico",
+    detail: "Alertas claras"
   },
   {
     icon: BrainCircuit,
-    title: "Global Intelligence",
-    body: "Una IA contextual que puede trabajar con inventario, ventas, notas, pedidos y métricas reales del negocio."
+    eyebrow: "Global Intelligence",
+    title: "Preguntale a tu negocio, no a una demo genérica.",
+    body:
+      "La IA trabaja con el contexto de inventario, ventas, actividad, notas y métricas reales.",
+    accent: "#a78bfa",
+    surface: "rgba(167,139,250,.11)",
+    metric: "Contexto real",
+    detail: "Respuestas útiles"
+  },
+  {
+    icon: Cloud,
+    eyebrow: "Tienda online",
+    title: "Conectá ecommerce sin confundir datos públicos con acceso privado.",
+    body:
+      "Catálogo público para detectar y autorización adicional para sincronizar stock o datos sensibles.",
+    accent: "#6ea8ff",
+    surface: "rgba(110,168,255,.10)",
+    metric: "Conexiones",
+    detail: "Con permisos"
+  },
+  {
+    icon: PackageSearch,
+    eyebrow: "Reposición",
+    title: "Comprá primero lo que más riesgo tiene de faltar.",
+    body:
+      "Cobertura, mínimos y prioridad de reposición para decidir qué mover antes.",
+    accent: "#f7b955",
+    surface: "rgba(247,185,85,.10)",
+    metric: "Prioridad",
+    detail: "Menos quiebres"
   },
   {
     icon: ShieldCheck,
-    title: "Permisos y seguridad",
-    body: "Las conexiones privadas requieren autorización. Los secretos sensibles no se guardan como texto en el navegador."
+    eyebrow: "Permisos",
+    title: "Cada persona ve lo que necesita para trabajar.",
+    body:
+      "Dueño, administración, caja, depósito y control con accesos distintos y datos sensibles protegidos.",
+    accent: "#ff7c9c",
+    surface: "rgba(255,124,156,.10)",
+    metric: "Roles",
+    detail: "Menos ruido"
   }
 ];
 
-function StoreButton({
-  title,
-  subtitle,
-  href,
-  icon
-}: {
-  title: string;
-  subtitle: string;
-  href: string;
-  icon: React.ReactNode;
-}) {
-  if (!href) {
-    return (
-      <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] px-4 text-left opacity-60">
-        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/8">
-          {icon}
-        </span>
-        <span className="min-w-0">
-          <span className="block text-[10px] uppercase tracking-[0.12em] text-white/38">
-            Próximamente
-          </span>
-          <span className="block truncate text-sm font-semibold text-white">
-            {title}
-          </span>
-          <span className="block truncate text-[10px] text-white/42">
-            {subtitle}
-          </span>
-        </span>
-      </div>
-    );
+const availability = [
+  {
+    name: "Web / PWA",
+    state: "Disponible ahora",
+    active: true
+  },
+  {
+    name: "App Store",
+    state: storeLinks.appStore ? "Disponible" : "Próximamente",
+    active: Boolean(storeLinks.appStore)
+  },
+  {
+    name: "Google Play",
+    state: storeLinks.playStore ? "Disponible" : "Próximamente",
+    active: Boolean(storeLinks.playStore)
+  },
+  {
+    name: "Microsoft Store",
+    state: storeLinks.microsoftStore ? "Disponible" : "Próximamente",
+    active: Boolean(storeLinks.microsoftStore)
   }
-
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noreferrer"
-      className="flex min-h-16 items-center gap-3 rounded-2xl border border-white/12 bg-white/[0.06] px-4 text-left transition hover:-translate-y-0.5 hover:bg-white/[0.09]"
-    >
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-white/8">
-        {icon}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-[10px] uppercase tracking-[0.12em] text-white/42">
-          Descargar en
-        </span>
-        <span className="block truncate text-sm font-semibold text-white">
-          {title}
-        </span>
-        <span className="block truncate text-[10px] text-white/48">
-          {subtitle}
-        </span>
-      </span>
-    </a>
-  );
-}
+];
 
 export default function DownloadPage() {
   return (
     <PublicPage>
       <DownloadScrollNavigator />
-      <main>
-        <section id="download-hero" data-download-section className="relative scroll-mt-20 overflow-hidden border-b border-white/10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(143,0,0,.24),transparent_28%),radial-gradient(circle_at_22%_18%,rgba(38,68,128,.18),transparent_26%)]" />
-          <div className="relative mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-7xl items-center gap-8 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-[1.05fr_.95fr] lg:gap-10 lg:py-6">
-            <div>
-              <span className="inline-flex items-center gap-2 rounded-full border border-red-500/25 bg-red-500/[0.07] px-3 py-2 text-xs font-semibold text-red-400">
-                <Globe2 size={14} />
-                Una operación, todos tus canales
+
+      <main className="overflow-x-clip">
+        <section
+          id="download-hero"
+          data-download-section
+          className="relative scroll-mt-20 overflow-hidden border-b border-white/8"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_24%,rgba(153,27,27,.30),transparent_30%),radial-gradient(circle_at_15%_25%,rgba(52,92,180,.18),transparent_25%),linear-gradient(180deg,#050506_0%,#080708_70%,#050506_100%)]" />
+          <div className="absolute left-[7%] top-[22%] h-24 w-24 rounded-full bg-[#4f7dff]/10 blur-3xl" />
+          <div className="absolute right-[12%] top-[10%] h-40 w-40 rounded-full bg-red-600/10 blur-3xl" />
+
+          <div className="relative mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-[1380px] items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.02fr_.98fr] lg:gap-12 lg:py-8">
+            <div className="max-w-3xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3.5 py-2 text-xs font-semibold text-white/72 shadow-[0_10px_30px_rgba(0,0,0,.18)]">
+                <Sparkles size={14} className="text-red-400" />
+                Gestión clara para una operación real
               </span>
-              <h1 className="mt-6 max-w-4xl text-5xl font-semibold leading-[.96] tracking-[-0.065em] sm:text-7xl">
-                Tu negocio completo.
-                <span className="block text-white/46">
-                  En una sola app.
+
+              <h1 className="mt-6 max-w-4xl text-[clamp(3.4rem,7vw,7.4rem)] font-semibold leading-[.88] tracking-[-0.072em]">
+                Todo tu negocio.
+                <span className="mt-2 block bg-[linear-gradient(90deg,#ffffff_0%,#d6d6d6_46%,#8d8d92_100%)] bg-clip-text text-transparent">
+                  Sin perderte.
                 </span>
               </h1>
-              <p className="mt-6 max-w-2xl text-base leading-7 text-white/60 sm:text-lg">
-                Global Stock reúne ventas, almacén, ecommerce, reposición,
-                proveedores, códigos de barras, comprobantes, agenda,
-                cotizaciones e inteligencia operativa.
+
+              <p className="mt-7 max-w-2xl text-base leading-7 text-white/62 sm:text-xl sm:leading-8">
+                Ventas, stock, ecommerce, reposición, proveedores e
+                inteligencia operativa en una interfaz pensada para entender
+                rápido qué está pasando y qué hacer después.
               </p>
 
-              <div className="mt-8 flex flex-wrap gap-3" id="instalar">
+              <div className="mt-8 flex flex-wrap items-center gap-3" id="instalar">
                 <InstallAppButton language="es" />
+                <a
+                  href="#download-features"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white/12 bg-white/[0.055] px-5 text-xs font-semibold text-white transition hover:bg-white/[0.09]"
+                >
+                  Ver cómo funciona
+                </a>
                 <Link
                   href="/"
-                  className="inline-flex min-h-11 items-center justify-center rounded-2xl border border-white/12 bg-white/[0.05] px-5 text-sm font-semibold text-white"
+                  className="inline-flex h-11 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/52 transition hover:text-white"
                 >
-                  Abrir versión web
+                  Abrir versión web →
                 </Link>
               </div>
 
-              <p className="mt-4 text-xs leading-5 text-white/40">
-                La versión web instalable funciona como PWA. Las tiendas
-                nativas se habilitarán cuando cada publicación esté aprobada.
-              </p>
+              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/44">
+                {[
+                  "Instalable ahora como PWA",
+                  "Funciona en navegador",
+                  "Permisos por rol"
+                ].map((item) => (
+                  <span key={item} className="inline-flex items-center gap-2">
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-emerald-500/12 text-emerald-400">
+                      <Check size={10} />
+                    </span>
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="relative mx-auto flex w-full min-w-0 items-center justify-center py-2 lg:py-0">
+              <div className="absolute inset-x-[15%] bottom-[8%] h-24 rounded-full bg-red-600/10 blur-3xl" />
               <GlobalStockPhonePreview />
             </div>
           </div>
-        </section>
 
-        <section id="download-features" data-download-section className="mx-auto w-full max-w-7xl scroll-mt-20 px-5 py-20 sm:px-8">
-          <div className="max-w-3xl">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-500">
-              Diseñado para operar
-            </p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-[-0.05em] sm:text-5xl">
-              De un local chico a una operación multicanal.
-            </h2>
-          </div>
-
-          <div className="mt-10 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {features.map(({ icon: Icon, title, body }) => (
-              <article
-                key={title}
-                className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5"
-              >
-                <span className="grid h-11 w-11 place-items-center rounded-2xl bg-red-500/10 text-red-500">
-                  <Icon size={19} />
-                </span>
-                <h3 className="mt-4 text-lg font-semibold">{title}</h3>
-                <p className="mt-2 text-sm leading-6 text-white/52">{body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section id="download-install" data-download-section className="scroll-mt-20 border-y border-white/10 bg-white/[0.02]">
-          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8">
-            <div className="grid gap-10 lg:grid-cols-[.85fr_1.15fr]">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-500">
-                  Instalación
-                </p>
-                <h2 className="mt-3 text-4xl font-semibold tracking-[-0.05em]">
-                  Usala como app en casi cualquier dispositivo.
-                </h2>
-                <p className="mt-4 text-sm leading-7 text-white/56">
-                  Global Stock ya funciona como aplicación web instalable.
-                  Las publicaciones de tiendas nativas pueden convivir con
-                  esta misma versión cuando estén aprobadas.
-                </p>
-              </div>
-
-              <div className="grid gap-3 sm:grid-cols-2">
-                <StoreButton
-                  title="App Store"
-                  subtitle="iPhone y iPad"
-                  href={storeLinks.appStore}
-                  icon={<Smartphone size={18} />}
-                />
-                <StoreButton
-                  title="Google Play"
-                  subtitle="Android"
-                  href={storeLinks.playStore}
-                  icon={<Smartphone size={18} />}
-                />
-                <StoreButton
-                  title="Microsoft Store"
-                  subtitle="Windows"
-                  href={storeLinks.microsoftStore}
-                  icon={<Laptop size={18} />}
-                />
-                <StoreButton
-                  title="Huawei AppGallery"
-                  subtitle="Huawei"
-                  href={storeLinks.appGallery}
-                  icon={<Smartphone size={18} />}
-                />
-                <StoreButton
-                  title="Galaxy Store"
-                  subtitle="Samsung Galaxy"
-                  href={storeLinks.galaxyStore}
-                  icon={<Smartphone size={18} />}
-                />
-                <div className="flex min-h-16 items-center gap-3 rounded-2xl border border-red-500/20 bg-red-500/[0.055] px-4">
-                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-red-500/10 text-red-400">
-                    <Download size={18} />
-                  </span>
-                  <div>
-                    <p className="text-sm font-semibold">Instalar desde la web</p>
-                    <p className="text-[10px] text-white/45">
-                      Disponible ahora como PWA
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-10 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {[
-                {
-                  title: "iPhone / iPad",
-                  body: "Abrí Global Stock en Safari, tocá Compartir y elegí “Agregar a pantalla de inicio”."
-                },
-                {
-                  title: "Android",
-                  body: "Abrí la app en Chrome. Usá “Instalar app” o “Agregar a pantalla principal” cuando aparezca."
-                },
-                {
-                  title: "Windows 10 / 11",
-                  body: "En Edge o Chrome usá el ícono Instalar de la barra de direcciones. Queda como una app independiente."
-                },
-                {
-                  title: "Mac y otros equipos",
-                  body: "Los navegadores compatibles pueden instalar la PWA. Si no ofrecen instalación, Global Stock sigue funcionando desde la web."
-                }
-              ].map((item) => (
-                <article
-                  key={item.title}
-                  className="rounded-[22px] border border-white/10 p-4"
+          <div className="relative mx-auto w-full max-w-7xl px-5 pb-8 sm:px-8">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              {availability.map((item) => (
+                <div
+                  key={item.name}
+                  className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.028] px-4 py-3"
                 >
-                  <CheckCircle2 size={16} className="text-red-500" />
-                  <h3 className="mt-3 text-sm font-semibold">{item.title}</h3>
-                  <p className="mt-2 text-xs leading-5 text-white/50">
-                    {item.body}
-                  </p>
-                </article>
+                  <span className="text-sm font-semibold text-white/78">
+                    {item.name}
+                  </span>
+                  <span
+                    className={
+                      "rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.08em] " +
+                      (item.active
+                        ? "bg-emerald-500/10 text-emerald-400"
+                        : "bg-white/[0.05] text-white/34")
+                    }
+                  >
+                    {item.state}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="download-security" data-download-section className="mx-auto w-full max-w-7xl scroll-mt-20 px-5 py-20 sm:px-8">
-          <div className="rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_85%_15%,rgba(143,0,0,.22),transparent_32%),#0B0B0D] p-7 sm:p-10">
-            <div className="grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+        <section
+          id="download-features"
+          data-download-section
+          className="scroll-mt-20 bg-[#f2f0ec] text-[#101012]"
+        >
+          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+            <div className="max-w-4xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a80000]">
+                Producto
+              </p>
+              <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+                Cada módulo tiene que explicar solo lo que importa.
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-black/55 sm:text-lg">
+                Menos botones compitiendo entre sí, números que se leen de un
+                vistazo y una jerarquía visual clara para trabajar sin buscar
+                funciones escondidas.
+              </p>
+            </div>
+
+            <div className="mt-12 grid gap-4 lg:grid-cols-2">
+              {productCards.map(
+                ({ icon: Icon, eyebrow, title, body, accent, surface, metric, detail }, index) => (
+                  <article
+                    key={title}
+                    className={
+                      "relative overflow-hidden rounded-[32px] border border-black/8 bg-white p-6 shadow-[0_18px_55px_rgba(24,24,27,.06)] sm:p-8 " +
+                      (index === 0 || index === 2 ? "lg:min-h-[360px]" : "")
+                    }
+                  >
+                    <div
+                      className="absolute right-[-8%] top-[-16%] h-48 w-48 rounded-full blur-3xl"
+                      style={{ background: surface }}
+                    />
+
+                    <div className="relative">
+                      <div className="flex items-start justify-between gap-5">
+                        <span
+                          className="grid h-12 w-12 place-items-center rounded-2xl"
+                          style={{ background: surface, color: accent }}
+                        >
+                          <Icon size={21} />
+                        </span>
+
+                        <div className="text-right">
+                          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-black/32">
+                            {metric}
+                          </p>
+                          <p className="mt-1 text-sm font-semibold text-black/72">
+                            {detail}
+                          </p>
+                        </div>
+                      </div>
+
+                      <p
+                        className="mt-7 text-xs font-bold uppercase tracking-[.14em]"
+                        style={{ color: accent }}
+                      >
+                        {eyebrow}
+                      </p>
+                      <h3 className="mt-3 max-w-xl text-2xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-3xl">
+                        {title}
+                      </h3>
+                      <p className="mt-4 max-w-xl text-sm leading-6 text-black/52">
+                        {body}
+                      </p>
+
+                      <div className="mt-7 rounded-[22px] border border-black/8 bg-[#f8f7f4] p-4">
+                        {eyebrow === "Punto de venta" && (
+                          <div className="grid grid-cols-[1fr_auto] gap-3">
+                            <div className="space-y-2">
+                              <div className="h-2.5 w-28 rounded-full bg-black/12" />
+                              <div className="h-2.5 w-20 rounded-full bg-black/8" />
+                            </div>
+                            <div className="rounded-xl bg-[#8F0000] px-4 py-2 text-xs font-semibold text-white">
+                              Cobrar
+                            </div>
+                          </div>
+                        )}
+
+                        {eyebrow === "Inventario" && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {[
+                              ["1.248", "unidades"],
+                              ["12", "alertas"],
+                              ["31%", "margen"]
+                            ].map(([value, label]) => (
+                              <div key={label} className="rounded-xl bg-white p-3">
+                                <p className="text-lg font-semibold">{value}</p>
+                                <p className="mt-1 text-[10px] text-black/38">{label}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {eyebrow === "Global Intelligence" && (
+                          <div className="space-y-2">
+                            <div className="max-w-[78%] rounded-2xl bg-white px-3 py-2 text-xs text-black/54">
+                              ¿Qué debería reponer esta semana?
+                            </div>
+                            <div className="ml-auto max-w-[86%] rounded-2xl bg-[#8F0000] px-3 py-2 text-xs text-white">
+                              Priorizaría los productos con menor cobertura y mayor rotación.
+                            </div>
+                          </div>
+                        )}
+
+                        {eyebrow === "Tienda online" && (
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <p className="text-xs font-semibold">Sitio detectado</p>
+                              <p className="mt-1 text-[10px] text-black/38">
+                                Datos públicos
+                              </p>
+                            </div>
+                            <span className="rounded-full bg-blue-500/10 px-3 py-1.5 text-[10px] font-semibold text-blue-600">
+                              Verificar conexión
+                            </span>
+                          </div>
+                        )}
+
+                        {eyebrow === "Reposición" && (
+                          <div className="space-y-2">
+                            {[84, 61, 38].map((width, row) => (
+                              <div key={row} className="flex items-center gap-3">
+                                <div className="h-2 flex-1 overflow-hidden rounded-full bg-black/6">
+                                  <div
+                                    className="h-full rounded-full"
+                                    style={{ width: width + "%", background: accent }}
+                                  />
+                                </div>
+                                <span className="text-[10px] font-semibold text-black/38">
+                                  {width}%
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        {eyebrow === "Permisos" && (
+                          <div className="grid grid-cols-3 gap-2">
+                            {["Dueño", "Caja", "Depósito"].map((role, roleIndex) => (
+                              <div
+                                key={role}
+                                className="rounded-xl bg-white px-3 py-3 text-center"
+                              >
+                                <span
+                                  className="mx-auto grid h-7 w-7 place-items-center rounded-full text-[10px] font-bold"
+                                  style={{ background: surface, color: accent }}
+                                >
+                                  {roleIndex + 1}
+                                </span>
+                                <p className="mt-2 text-[10px] font-semibold">{role}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                )
+              )}
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="download-install"
+          data-download-section
+          className="relative scroll-mt-20 overflow-hidden border-y border-white/8 bg-[#080809]"
+        >
+          <div className="absolute left-[8%] top-[14%] h-64 w-64 rounded-full bg-blue-600/8 blur-3xl" />
+          <div className="absolute right-[8%] bottom-[10%] h-64 w-64 rounded-full bg-red-600/10 blur-3xl" />
+
+          <div className="relative mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+            <div className="max-w-4xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
+                Instalar Global Stock
+              </p>
+              <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+                Elegí tu dispositivo.
+                <span className="block text-white/38">
+                  El camino cambia, la app no.
+                </span>
+              </h2>
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white/54">
+                Probá la instalación real de la PWA ahora. Las tiendas nativas
+                se muestran como disponibles únicamente cuando exista una
+                publicación aprobada.
+              </p>
+            </div>
+
+            <div className="mt-12">
+              <DownloadInstallShowcase
+                appStoreUrl={storeLinks.appStore}
+                playStoreUrl={storeLinks.playStore}
+                microsoftStoreUrl={storeLinks.microsoftStore}
+              />
+            </div>
+
+            <div className="mt-8 flex flex-wrap gap-2">
+              {[
+                ["Huawei AppGallery", Boolean(storeLinks.appGallery)],
+                ["Galaxy Store", Boolean(storeLinks.galaxyStore)]
+              ].map(([name, active]) => (
+                <span
+                  key={String(name)}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold text-white/40"
+                >
+                  <Download size={12} />
+                  {String(name)} · {active ? "Disponible" : "Próximamente"}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="download-security"
+          data-download-section
+          className="scroll-mt-20 bg-[#140808]"
+        >
+          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+            <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-500">
-                  Antes de operar
-                </p>
-                <h2 className="mt-3 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-                  Datos reales, permisos explícitos.
+                <span className="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-400/8 px-3 py-2 text-xs font-semibold text-red-300">
+                  <ShieldCheck size={14} />
+                  Permisos explícitos
+                </span>
+                <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-[.98] tracking-[-.055em] sm:text-6xl">
+                  Una URL no es una autorización.
                 </h2>
-                <p className="mt-4 max-w-3xl text-sm leading-7 text-white/56">
-                  Una URL pública solo sirve para reconocer una tienda. Global
-                  Stock exige una autorización adicional antes de leer datos
-                  privados o modificar stock. Nunca usa datos demo para
-                  presentarlos como información real de una tienda conectada.
+                <p className="mt-5 max-w-2xl text-base leading-7 text-white/58">
+                  Global Stock puede reconocer información pública de una web,
+                  pero exige una autorización adicional antes de consultar o
+                  modificar datos privados del negocio.
                 </p>
+
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <Link
+                    href="/legal/security"
+                    className="inline-flex h-11 items-center rounded-xl bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+                  >
+                    Ver seguridad
+                  </Link>
+                  <Link
+                    href="/legal/privacy"
+                    className="inline-flex h-11 items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 text-xs font-semibold text-white"
+                  >
+                    Privacidad
+                  </Link>
+                </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
-                <Link
-                  href="/legal/security"
-                  className="inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-                >
-                  Seguridad
-                </Link>
-                <Link
-                  href="/legal/privacy"
-                  className="inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-                >
-                  Privacidad
-                </Link>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {[
+                  {
+                    icon: Globe2,
+                    title: "Datos públicos",
+                    body: "Sirven para reconocer una tienda, no para administrar su negocio."
+                  },
+                  {
+                    icon: ShieldCheck,
+                    title: "Conexión verificada",
+                    body: "La sincronización privada requiere permisos adicionales."
+                  },
+                  {
+                    icon: BarChart3,
+                    title: "Información clara",
+                    body: "Métricas y estados visibles sin llenar cada pantalla de controles."
+                  },
+                  {
+                    icon: Boxes,
+                    title: "Acceso por rol",
+                    body: "Cada perfil recibe una navegación y un nivel de detalle diferente."
+                  }
+                ].map(({ icon: Icon, title, body }) => (
+                  <article
+                    key={title}
+                    className="rounded-[24px] border border-red-200/10 bg-white/[0.045] p-5"
+                  >
+                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-400/10 text-red-300">
+                      <Icon size={18} />
+                    </span>
+                    <h3 className="mt-4 text-base font-semibold">{title}</h3>
+                    <p className="mt-2 text-sm leading-6 text-white/48">{body}</p>
+                  </article>
+                ))}
               </div>
             </div>
           </div>
