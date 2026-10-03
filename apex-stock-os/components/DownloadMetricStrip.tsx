@@ -73,7 +73,7 @@ export function DownloadMetricStrip() {
                       current === index ? null : index
                     )
                   }
-                  className="relative flex h-12 items-center overflow-hidden rounded-[11px] px-3 text-left outline-none sm:px-4"
+                  className="relative flex h-[52px] items-center overflow-hidden rounded-[12px] px-3.5 text-left outline-none sm:px-4.5"
                   animate={{
                     backgroundColor: expanded
                       ? "rgba(235,239,243,0.98)"
@@ -91,9 +91,9 @@ export function DownloadMetricStrip() {
                   <motion.span
                     className="grid shrink-0 place-items-center overflow-hidden rounded-full"
                     animate={{
-                      width: expanded ? 22 : 0,
-                      height: expanded ? 22 : 0,
-                      marginRight: expanded ? 9 : 0,
+                      width: expanded ? 30 : 0,
+                      height: expanded ? 30 : 0,
+                      marginRight: expanded ? 10 : 0,
                       opacity: expanded ? 1 : 0,
                       scale: expanded ? 1 : 0.72
                     }}
@@ -107,7 +107,7 @@ export function DownloadMetricStrip() {
                     }}
                     aria-hidden="true"
                   >
-                    <Icon size={12} strokeWidth={2} />
+                    <Icon size={16} strokeWidth={2.1} />
                   </motion.span>
 
                   <motion.span
