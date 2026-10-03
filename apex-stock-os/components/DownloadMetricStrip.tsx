@@ -36,7 +36,7 @@ export function DownloadMetricStrip() {
   const [active, setActive] = useState<number | null>(null);
 
   return (
-    <div className="border-y border-white/[0.07] bg-[#09090b]">
+    <div className="border-y border-[#24171a] bg-[#09090b]">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-center overflow-x-auto px-4 py-6 sm:px-8 sm:py-7">
         <div
           className="flex min-w-max items-center"
