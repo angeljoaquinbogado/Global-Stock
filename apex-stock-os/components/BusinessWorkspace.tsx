@@ -3371,6 +3371,7 @@ export function BusinessWorkspace({
                 currency={currency}
                 locale={locale}
                 setActiveModule={setActiveModule}
+                canOpenModule={(id) => visibleModuleIds.has(id)}
                 recentActivities={activities.slice(0, 4)}
                 todayNotes={todayNotes}
                 activityText={(activity) =>
@@ -3776,6 +3777,7 @@ function OverviewModule({
   currency,
   locale,
   setActiveModule,
+  canOpenModule,
   recentActivities,
   todayNotes,
   activityText
@@ -3792,6 +3794,7 @@ function OverviewModule({
   currency: string;
   locale: string;
   setActiveModule: (id: ModuleId) => void;
+  canOpenModule: (id: ModuleId) => boolean;
   recentActivities: ActivityRecord[];
   todayNotes: BusinessNote[];
   activityText: (activity: ActivityRecord) => string;
@@ -3840,13 +3843,15 @@ function OverviewModule({
                 {labels.grossProfit}
               </h3>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveModule("charts")}
-              className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]"
-            >
-              {labels.nav.charts}
-            </button>
+            {canOpenModule("charts") && (
+              <button
+                type="button"
+                onClick={() => setActiveModule("charts")}
+                className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]"
+              >
+                {labels.nav.charts}
+              </button>
+            )}
           </div>
 
           <div className="mt-5 h-[300px]">
@@ -3917,13 +3922,15 @@ function OverviewModule({
               <h3 className="text-sm font-semibold">
                 {labels.recentActivity}
               </h3>
-              <button
-                type="button"
-                onClick={() => setActiveModule("activities")}
-                className="text-[10px] font-semibold text-[#8F0000]"
-              >
-                {labels.open}
-              </button>
+              {canOpenModule("activities") && (
+                <button
+                  type="button"
+                  onClick={() => setActiveModule("activities")}
+                  className="text-[10px] font-semibold text-[#8F0000]"
+                >
+                  {labels.open}
+                </button>
+              )}
             </div>
             <div className="mt-4 space-y-3">
               {recentActivities.length ? (
@@ -3951,13 +3958,15 @@ function OverviewModule({
               <h3 className="text-sm font-semibold">
                 {labels.todayNotes}
               </h3>
-              <button
-                type="button"
-                onClick={() => setActiveModule("notes")}
-                className="text-[10px] font-semibold text-[#8F0000]"
-              >
-                {labels.open}
-              </button>
+              {canOpenModule("notes") && (
+                <button
+                  type="button"
+                  onClick={() => setActiveModule("notes")}
+                  className="text-[10px] font-semibold text-[#8F0000]"
+                >
+                  {labels.open}
+                </button>
+              )}
             </div>
             <div className="mt-4 space-y-2">
               {todayNotes.length ? (
