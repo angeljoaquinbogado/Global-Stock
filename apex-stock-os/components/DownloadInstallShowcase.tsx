@@ -95,7 +95,7 @@ function PlatformTabs({
   return (
     <div
       className={
-        "inline-flex max-w-full items-center gap-1 overflow-x-auto rounded-xl bg-[#101012] p-1 ring-1 ring-[#28171b] " +
+        "inline-flex max-w-full items-center gap-1.5 overflow-x-auto rounded-[15px] border border-[#3a2026] bg-[#0d0d0f] p-[5px] shadow-[0_14px_36px_rgba(0,0,0,.28)] " +
         (compact ? "mx-auto" : "")
       }
       role="tablist"
@@ -112,16 +112,16 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-10 shrink-0 items-center gap-2 rounded-lg px-3.5 text-xs font-semibold transition " +
+              "flex min-h-[38px] shrink-0 items-center gap-2 rounded-[10px] px-3.5 text-[12px] font-semibold transition " +
               (selected
-                ? "bg-[#1b1b1e] text-white shadow-[0_8px_20px_rgba(0,0,0,.25)]"
-                : "text-white/38 hover:bg-white/[0.04] hover:text-white/70")
+                ? "bg-[#202126] text-white shadow-[0_5px_16px_rgba(0,0,0,.34)]"
+                : "text-white/74 hover:bg-white/[0.045] hover:text-white")
             }
           >
             <img
               src={logoSrc}
               alt=""
-              className={"h-[15px] w-[15px] object-contain " + (logoClassName ?? "")}
+              className={"h-[17px] w-[17px] object-contain " + (logoClassName ?? "")}
               aria-hidden="true"
             />
             <span>{label}</span>
@@ -150,7 +150,7 @@ export function DownloadPlatformQuickTabs() {
   };
 
   return (
-    <div className="flex w-full justify-start">
+    <div className="flex w-full justify-center">
       <PlatformTabs active={active} onChange={choose} compact />
     </div>
   );
@@ -192,7 +192,9 @@ export function DownloadInstallShowcase({
 
   return (
     <div>
-      <PlatformTabs active={active} onChange={setActive} />
+      <div className="flex justify-center">
+        <PlatformTabs active={active} onChange={setActive} />
+      </div>
 
       <div className="mt-5 overflow-hidden rounded-[30px] bg-[#111113] shadow-[0_30px_80px_rgba(0,0,0,.30)] ring-1 ring-[#2a171b]">
         <div className="grid lg:grid-cols-[1.05fr_.95fr]">
