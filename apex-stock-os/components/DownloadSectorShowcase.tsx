@@ -79,7 +79,7 @@ function SectorList({
         {items.map(({ icon: Icon, label, body, accent }) => (
           <div
             key={label}
-            className="grid grid-cols-[42px_1fr] items-center gap-3 rounded-2xl border border-white/8 bg-white/[0.03] px-3.5 py-3.5"
+            className="grid grid-cols-[42px_1fr] items-center gap-3 rounded-2xl border border-[#2b1b1e] bg-white/[0.03] px-3.5 py-3.5"
           >
             <span
               className="grid h-10 w-10 place-items-center rounded-xl"
@@ -104,7 +104,7 @@ function SectorList({
 
 export function DownloadSectorShowcase() {
   return (
-    <section className="border-t border-white/[0.06] bg-[#0b0b0c] text-white">
+    <section className="border-t border-[#24171a] bg-[#0b0b0c] text-white">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
         <div className="max-w-3xl">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
