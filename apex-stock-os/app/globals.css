@@ -684,3 +684,26 @@ textarea:focus-visible {
     font-size: 16px !important;
   }
 }
+
+
+@keyframes gs-phone-screen-in {
+  from {
+    opacity: 0;
+    transform: translate3d(10px, 0, 0) scale(.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes gs-phone-bar {
+  from {
+    transform: scaleY(.12);
+    opacity: .3;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
