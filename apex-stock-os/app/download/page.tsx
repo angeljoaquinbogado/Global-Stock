@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  ArrowRight,
   Boxes,
   BrainCircuit,
   Check,
+  CircleDollarSign,
   Download,
   Globe2,
+  PackagePlus,
   ShieldCheck,
   ShoppingCart,
   Sparkles
@@ -25,9 +28,9 @@ import { InstallAppButton } from "@/components/InstallAppButton";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 export const metadata: Metadata = {
-  title: "Global Stock — Gestión conectada para cualquier negocio",
+  title: "Global Stock — Ventas, inventario y gestión en un solo lugar",
   description:
-    "Stock, ventas, tienda online, reposición, proveedores, códigos de barras e inteligencia operativa desde una sola plataforma."
+    "Punto de venta, inventario, compras, proveedores, ecommerce, finanzas e inteligencia operativa desde una sola plataforma."
 };
 
 const storeLinks = {
@@ -40,33 +43,21 @@ const storeLinks = {
     process.env.NEXT_PUBLIC_GALAXY_STORE_URL?.trim() || ""
 };
 
-const coreStories = [
+const flowItems = [
   {
     icon: ShoppingCart,
-    eyebrow: "Vendé",
-    title: "Cobrá y actualizá stock en la misma operación.",
-    body:
-      "Punto de venta, medios de pago y movimientos de inventario conectados.",
-    accent: "#ff4d57",
-    surface: "rgba(255,77,87,.10)"
+    title: "Vendé",
+    body: "Registrá la venta desde el punto de venta."
   },
   {
     icon: Boxes,
-    eyebrow: "Controlá",
-    title: "Inventario, compras y proveedores sin perder contexto.",
-    body:
-      "Stock, mínimos, códigos, reposición y abastecimiento en un mismo flujo.",
-    accent: "#4fd39a",
-    surface: "rgba(79,211,154,.10)"
+    title: "Actualizá",
+    body: "El inventario se mueve en la misma operación."
   },
   {
-    icon: BrainCircuit,
-    eyebrow: "Decidí",
-    title: "Gráficos, finanzas e IA para entender qué hacer después.",
-    body:
-      "Márgenes, tendencias, actividad y Global Intelligence con contexto del negocio.",
-    accent: "#b28cff",
-    surface: "rgba(178,140,255,.10)"
+    icon: CircleDollarSign,
+    title: "Controlá",
+    body: "Caja, actividad y márgenes quedan conectados."
   }
 ];
 
@@ -75,136 +66,194 @@ export default function DownloadPage() {
     <PublicPage>
       <DownloadScrollNavigator />
 
-      <main className="overflow-x-clip">
+      <main className="overflow-x-clip bg-[#070708]">
         <section
           id="download-hero"
           data-download-section
-          className="relative scroll-mt-20 overflow-hidden border-b border-[#24171a]"
+          className="relative scroll-mt-20 overflow-hidden"
         >
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_24%,rgba(153,27,27,.30),transparent_30%),radial-gradient(circle_at_15%_25%,rgba(52,92,180,.18),transparent_25%),linear-gradient(180deg,#050506_0%,#080708_70%,#050506_100%)]" />
-          <div className="absolute left-[7%] top-[22%] h-24 w-24 rounded-full bg-[#4f7dff]/10 blur-3xl" />
-          <div className="absolute right-[12%] top-[10%] h-40 w-40 rounded-full bg-red-600/10 blur-3xl" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_20%,rgba(185,20,38,.22),transparent_26%),radial-gradient(circle_at_86%_62%,rgba(88,23,31,.16),transparent_31%),linear-gradient(180deg,#070708_0%,#09090a_100%)]" />
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#6d2530]/40 to-transparent" />
+          <div className="pointer-events-none absolute inset-0 opacity-[.14] [background-image:linear-gradient(rgba(255,255,255,.035)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.035)_1px,transparent_1px)] [background-size:72px_72px] [mask-image:linear-gradient(to_bottom,black,transparent_78%)]" />
 
-          <div className="relative mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-[1380px] items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.02fr_.98fr] lg:gap-12 lg:py-8">
-            <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-[#342025] bg-white/[0.045] px-3.5 py-2 text-xs font-semibold text-white/72 shadow-[0_10px_30px_rgba(0,0,0,.18)]">
-                <Sparkles size={14} className="text-red-400" />
-                Gestión clara para una operación real
-              </span>
+          <div className="relative mx-auto grid min-h-[calc(100svh-72px)] w-full max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.08fr_.92fr] lg:gap-16 lg:py-16">
+            <div className="max-w-[670px]">
+              <div className="inline-flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[.14em] text-white/38">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.45)]" />
+                Disponible como aplicación web instalable
+              </div>
 
-              <h1 className="mt-6 max-w-4xl text-[clamp(3.4rem,7vw,7.4rem)] font-semibold leading-[.88] tracking-[-0.072em]">
-                Todo tu negocio.
-                <span className="mt-2 block bg-[linear-gradient(90deg,#ffffff_0%,#d6d6d6_46%,#8d8d92_100%)] bg-clip-text text-transparent">
-                  Sin perderte.
+              <h1 className="mt-7 text-[clamp(3.4rem,6vw,6.7rem)] font-semibold leading-[.9] tracking-[-0.07em] text-white">
+                Gestioná el negocio.
+                <span className="mt-2 block text-white/38">
+                  No las planillas.
                 </span>
               </h1>
 
-              <p className="mt-7 max-w-2xl text-base leading-7 text-white/62 sm:text-xl sm:leading-8">
-                Ventas, stock, ecommerce, reposición, proveedores e
-                inteligencia operativa en una interfaz pensada para entender
-                rápido qué está pasando y qué hacer después.
+              <p className="mt-7 max-w-[620px] text-base leading-7 text-white/54 sm:text-xl sm:leading-8">
+                Global Stock conecta ventas, inventario, compras, proveedores,
+                ecommerce, finanzas y gestión del equipo en una sola operación.
               </p>
 
-              <div className="mt-8 flex flex-wrap items-center gap-3" id="instalar">
-                <InstallAppButton language="es" />
-                <a
-                  href="#download-features"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#382126] bg-white/[0.055] px-5 text-xs font-semibold text-white transition hover:bg-white/[0.09]"
-                >
-                  Ver cómo funciona
-                </a>
+              <div className="mt-9 flex flex-wrap items-center gap-3" id="instalar">
                 <Link
                   href="/"
-                  className="inline-flex h-11 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/52 transition hover:text-white"
+                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#c91527] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(201,21,39,.24)] transition hover:bg-[#df2033]"
                 >
-                  Abrir versión web →
+                  Abrir Global Stock
+                  <ArrowRight size={15} />
                 </Link>
+
+                <InstallAppButton language="es" />
               </div>
 
-              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/44">
+              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs text-white/36">
                 {[
-                  "Instalable ahora como PWA",
-                  "Funciona en navegador",
-                  "Permisos por rol"
+                  "Punto de venta",
+                  "Inventario conectado",
+                  "Acceso por roles"
                 ].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2">
-                    <span className="grid h-4 w-4 place-items-center rounded-full bg-emerald-500/12 text-emerald-400">
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-[#c91527]/12 text-[#f56b78]">
                       <Check size={10} />
                     </span>
                     {item}
                   </span>
                 ))}
               </div>
+
+              <div className="mt-9">
+                <DownloadPlatformQuickTabs />
+              </div>
             </div>
 
-            <div className="relative mx-auto flex w-full min-w-0 items-center justify-center py-2 lg:py-0">
-              <div className="absolute inset-x-[15%] bottom-[8%] h-24 rounded-full bg-red-600/10 blur-3xl" />
-              <GlobalStockPhonePreview />
+            <div className="relative mx-auto flex w-full min-w-0 items-center justify-center">
+              <div className="absolute left-1/2 top-1/2 h-[78%] w-[74%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#b51323]/12 blur-[90px]" />
+              <div className="relative rounded-[44px] bg-[linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.008))] p-4 shadow-[0_40px_120px_rgba(0,0,0,.48)] ring-1 ring-[#3a1d22] sm:p-5">
+                <GlobalStockPhonePreview />
+              </div>
             </div>
-          </div>
-
-          <div className="relative mx-auto w-full max-w-7xl px-5 pb-9 sm:px-8">
-            <DownloadPlatformQuickTabs />
           </div>
         </section>
 
         <section
           id="download-features"
           data-download-section
-          className="scroll-mt-20 border-t border-[#24171a] bg-[#0a0a0c] text-white"
+          className="scroll-mt-20 border-t border-[#211417] bg-[#09090a] text-white"
         >
           <DownloadMetricStrip />
 
-          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-            <div className="mx-auto max-w-3xl text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
-                Producto
-              </p>
-              <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                Tres cosas. Todo conectado.
-              </h2>
-              <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/50 sm:text-lg">
-                Primero entendé qué hace Global Stock. Después, si querés,
-                bajamos al detalle de cada módulo.
+          <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
+            <div className="grid gap-12 lg:grid-cols-[.78fr_1.22fr] lg:items-end">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
+                  Cómo funciona
+                </p>
+                <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+                  Una venta.
+                  <span className="block text-white/34">
+                    Todo se actualiza.
+                  </span>
+                </h2>
+              </div>
+
+              <p className="max-w-2xl text-base leading-7 text-white/48 sm:text-lg">
+                El punto de venta no vive aislado. Cada movimiento puede quedar
+                conectado con stock, caja, actividad y análisis para que no
+                tengas que repetir información.
               </p>
             </div>
 
-            <div className="mt-12 grid gap-5 lg:grid-cols-3">
-              {coreStories.map(({ icon: Icon, eyebrow, title, body, accent, surface }) => (
-                <article
-                  key={title}
-                  className="relative overflow-hidden rounded-[30px] border border-[#2b1b1e] bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-7"
-                >
-                  <div
-                    className="absolute right-[-18%] top-[-20%] h-44 w-44 rounded-full blur-3xl"
-                    style={{ background: surface }}
-                  />
+            <div className="mt-12 overflow-hidden rounded-[34px] bg-[#111113] shadow-[0_30px_80px_rgba(0,0,0,.30)] ring-1 ring-[#27171a]">
+              <div className="grid lg:grid-cols-[1.12fr_.88fr]">
+                <div className="relative min-h-[420px] overflow-hidden p-6 sm:p-8">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_22%_20%,rgba(201,21,39,.13),transparent_32%),linear-gradient(145deg,#111113,#0c0c0d)]" />
 
-                  <div className="relative">
-                    <span
-                      className="grid h-11 w-11 place-items-center rounded-2xl"
-                      style={{ background: surface, color: accent }}
-                    >
-                      <Icon size={20} />
-                    </span>
+                  <div className="relative mx-auto max-w-xl">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/28">
+                          Punto de venta
+                        </p>
+                        <h3 className="mt-2 text-2xl font-semibold tracking-[-.04em]">
+                          Venta conectada
+                        </h3>
+                      </div>
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#c91527]/12 text-[#f75c6b]">
+                        <ShoppingCart size={20} />
+                      </span>
+                    </div>
 
-                    <p
-                      className="mt-6 text-[11px] font-bold uppercase tracking-[.14em]"
-                      style={{ color: accent }}
-                    >
-                      {eyebrow}
-                    </p>
+                    <div className="mt-8 rounded-[26px] bg-[#09090a] p-5 ring-1 ring-[#25171a]">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-semibold text-white/78">
+                          Producto agregado
+                        </span>
+                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
+                          Stock disponible
+                        </span>
+                      </div>
 
-                    <h3 className="mt-3 text-2xl font-semibold leading-[1.04] tracking-[-.04em]">
-                      {title}
-                    </h3>
+                      <div className="mt-5 space-y-3">
+                        <div className="flex items-center justify-between rounded-2xl bg-white/[0.035] px-4 py-3">
+                          <div>
+                            <p className="text-sm font-semibold text-white/78">
+                              Venta registrada
+                            </p>
+                            <p className="mt-1 text-xs text-white/32">
+                              Caja y actividad
+                            </p>
+                          </div>
+                          <Check size={16} className="text-emerald-300" />
+                        </div>
 
-                    <p className="mt-4 text-sm leading-6 text-white/46">
-                      {body}
-                    </p>
+                        <div className="flex items-center justify-between rounded-2xl bg-white/[0.035] px-4 py-3">
+                          <div>
+                            <p className="text-sm font-semibold text-white/78">
+                              Inventario actualizado
+                            </p>
+                            <p className="mt-1 text-xs text-white/32">
+                              Sin carga duplicada
+                            </p>
+                          </div>
+                          <Check size={16} className="text-emerald-300" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </article>
-              ))}
+                </div>
+
+                <div className="border-t border-[#211417] bg-[#0d0d0f] p-6 sm:p-8 lg:border-l lg:border-t-0">
+                  <div className="space-y-7">
+                    {flowItems.map(({ icon: Icon, title, body }, index) => (
+                      <div key={title} className="grid grid-cols-[44px_1fr] gap-4">
+                        <span className="grid h-11 w-11 place-items-center rounded-2xl bg-white/[0.045] text-white/62">
+                          <Icon size={18} />
+                        </span>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-[#ed4c5c]">
+                              0{index + 1}
+                            </span>
+                            <h3 className="text-base font-semibold">{title}</h3>
+                          </div>
+                          <p className="mt-1.5 text-sm leading-6 text-white/42">
+                            {body}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <Link
+                    href="/"
+                    className="mt-9 inline-flex items-center gap-2 text-sm font-semibold text-white/72 transition hover:text-white"
+                  >
+                    Probar la aplicación
+                    <ArrowRight size={14} />
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </section>
@@ -220,26 +269,24 @@ export default function DownloadPage() {
         <section
           id="download-install"
           data-download-section
-          className="relative scroll-mt-20 overflow-hidden border-y border-[#24171a] bg-[#080809]"
+          className="relative scroll-mt-20 overflow-hidden border-y border-[#211417] bg-[#080809]"
         >
-          <div className="absolute left-[8%] top-[14%] h-64 w-64 rounded-full bg-blue-600/8 blur-3xl" />
-          <div className="absolute right-[8%] bottom-[10%] h-64 w-64 rounded-full bg-red-600/10 blur-3xl" />
+          <div className="absolute right-[4%] top-[10%] h-72 w-72 rounded-full bg-[#c91527]/10 blur-[100px]" />
 
-          <div className="relative mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-            <div className="max-w-4xl">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
-                Instalar Global Stock
+          <div className="relative mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
+            <div className="max-w-3xl">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
+                Instalación
               </p>
               <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                Elegí tu dispositivo.
-                <span className="block text-white/38">
-                  El camino cambia, la app no.
+                Abrilo como una app.
+                <span className="block text-white/34">
+                  Sin cambiar cómo trabajás.
                 </span>
               </h2>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-white/54">
-                Probá la instalación real de la PWA ahora. Las tiendas nativas
-                se muestran como disponibles únicamente cuando exista una
-                publicación aprobada.
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white/48">
+                La versión web instalable funciona desde navegadores compatibles.
+                Las publicaciones nativas se muestran únicamente cuando estén disponibles.
               </p>
             </div>
 
@@ -251,14 +298,14 @@ export default function DownloadPage() {
               />
             </div>
 
-            <div className="mt-8 flex flex-wrap gap-2">
+            <div className="mt-6 flex flex-wrap gap-2">
               {[
                 ["Huawei AppGallery", Boolean(storeLinks.appGallery)],
                 ["Galaxy Store", Boolean(storeLinks.galaxyStore)]
               ].map(([name, active]) => (
                 <span
                   key={String(name)}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#2b1b1e] bg-white/[0.03] px-3 py-2 text-[10px] font-semibold text-white/40"
+                  className="inline-flex items-center gap-2 rounded-full bg-white/[0.03] px-3 py-2 text-[10px] font-semibold text-white/34"
                 >
                   <Download size={12} />
                   {String(name)} · {active ? "Disponible" : "Próximamente"}
@@ -271,72 +318,72 @@ export default function DownloadPage() {
         <section
           id="download-security"
           data-download-section
-          className="scroll-mt-20 bg-[#140808]"
+          className="scroll-mt-20 bg-[#0a0708]"
         >
-          <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-            <div className="grid gap-10 lg:grid-cols-[1.05fr_.95fr] lg:items-center">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-red-400/20 bg-red-400/8 px-3 py-2 text-xs font-semibold text-red-300">
-                  <ShieldCheck size={14} />
-                  Permisos explícitos
-                </span>
-                <h2 className="mt-5 max-w-3xl text-4xl font-semibold leading-[.98] tracking-[-.055em] sm:text-6xl">
-                  Una URL no es una autorización.
-                </h2>
-                <p className="mt-5 max-w-2xl text-base leading-7 text-white/58">
-                  Global Stock puede reconocer información pública de una web,
-                  pero exige una autorización adicional antes de consultar o
-                  modificar datos privados del negocio.
-                </p>
+          <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.9fr_1.1fr] lg:items-center">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
+                Seguridad y acceso
+              </p>
+              <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+                Ver una tienda no es administrar una tienda.
+              </h2>
+              <p className="mt-5 max-w-xl text-base leading-7 text-white/48">
+                Global Stock separa información pública de conexiones privadas.
+                Los datos sensibles y las acciones de administración requieren
+                permisos explícitos.
+              </p>
 
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Link
-                    href="/legal/security"
-                    className="inline-flex h-11 items-center rounded-xl bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
-                  >
-                    Ver seguridad
-                  </Link>
-                  <Link
-                    href="/legal/privacy"
-                    className="inline-flex h-11 items-center rounded-xl border border-[#382126] bg-white/[0.04] px-4 text-xs font-semibold text-white"
-                  >
-                    Privacidad
-                  </Link>
-                </div>
+              <div className="mt-8 flex flex-wrap gap-3">
+                <Link
+                  href="/legal/security"
+                  className="inline-flex h-11 items-center rounded-xl bg-white px-4 text-xs font-semibold text-black transition hover:bg-white/90"
+                >
+                  Ver seguridad
+                </Link>
+                <Link
+                  href="/legal/privacy"
+                  className="inline-flex h-11 items-center rounded-xl bg-white/[0.045] px-4 text-xs font-semibold text-white/72 transition hover:bg-white/[0.07]"
+                >
+                  Privacidad
+                </Link>
               </div>
+            </div>
 
-              <div className="grid gap-3">
-                {[
-                  {
-                    icon: Globe2,
-                    title: "Público",
-                    body: "Reconocer una tienda no habilita a administrar sus datos."
-                  },
-                  {
-                    icon: ShieldCheck,
-                    title: "Privado",
-                    body: "Sincronizar o modificar información requiere autorización adicional."
-                  },
-                  {
-                    icon: Boxes,
-                    title: "Por rol",
-                    body: "Cada persona ve solo las herramientas que necesita."
+            <div className="overflow-hidden rounded-[30px] bg-[#111113] ring-1 ring-[#2a171b]">
+              {[
+                {
+                  icon: Globe2,
+                  title: "Información pública",
+                  body: "Sirve para reconocer una tienda o catálogo."
+                },
+                {
+                  icon: ShieldCheck,
+                  title: "Conexión autorizada",
+                  body: "Sincronizar o modificar datos privados requiere permiso."
+                },
+                {
+                  icon: Boxes,
+                  title: "Acceso por rol",
+                  body: "Cada persona ve solo las herramientas que necesita."
+                }
+              ].map(({ icon: Icon, title, body }, index) => (
+                <div
+                  key={title}
+                  className={
+                    "grid grid-cols-[46px_1fr] gap-4 px-5 py-5 sm:px-6 " +
+                    (index < 2 ? "border-b border-[#211417]" : "")
                   }
-                ].map(({ icon: Icon, title, body }) => (
-                  <article
-                    key={title}
-                    className="grid grid-cols-[42px_1fr] items-center gap-4 rounded-[22px] border border-red-200/10 bg-white/[0.04] px-4 py-4"
-                  >
-                    <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-400/10 text-red-300">
-                      <Icon size={18} />
-                    </span>
-                    <div>
-                      <h3 className="text-sm font-semibold">{title}</h3>
-                      <p className="mt-1 text-sm leading-6 text-white/46">{body}</p>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                >
+                  <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#c91527]/10 text-[#f05b69]">
+                    <Icon size={18} />
+                  </span>
+                  <div>
+                    <h3 className="text-sm font-semibold">{title}</h3>
+                    <p className="mt-1 text-sm leading-6 text-white/40">{body}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </section>
