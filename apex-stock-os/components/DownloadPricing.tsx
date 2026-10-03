@@ -108,23 +108,23 @@ export function DownloadPricing() {
   const current = segmentCopy[segment];
 
   return (
-    <section className="bg-[#f6f4f0] text-[#101012]">
+    <section className="border-t border-white/[0.06] bg-[#0b0b0d] text-white">
       <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-4xl text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#a80000]">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
             Planes
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
             Elegí la estructura que encaja con tu negocio.
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-black/52">
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/50">
             La arquitectura de planes ya queda preparada. Los precios finales
             todavía no están publicados para no mostrar valores inventados.
           </p>
         </div>
 
         <div className="mt-9 flex justify-center overflow-x-auto">
-          <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-black/8 bg-white/72 p-1 shadow-[0_10px_28px_rgba(24,24,27,.06)]">
+          <div className="inline-flex min-w-max items-center gap-1 rounded-full border border-white/8 bg-white/[0.04] p-1 shadow-[0_12px_30px_rgba(0,0,0,.22)]">
             {segments.map((item) => (
               <button
                 key={item.id}
@@ -133,8 +133,8 @@ export function DownloadPricing() {
                 className={
                   "rounded-full px-4 py-2.5 text-sm font-semibold transition " +
                   (segment === item.id
-                    ? "bg-[#161619] text-white shadow-[0_6px_16px_rgba(0,0,0,.14)]"
-                    : "text-black/48 hover:bg-white hover:text-black")
+                    ? "bg-white text-black shadow-[0_8px_18px_rgba(0,0,0,.22)]"
+                    : "text-white/48 hover:bg-white/[0.07] hover:text-white")
                 }
               >
                 {item.label}
@@ -147,7 +147,7 @@ export function DownloadPricing() {
           <h3 className="text-2xl font-semibold tracking-[-.035em]">
             {current.title}
           </h3>
-          <p className="mt-2 text-sm leading-6 text-black/46">
+          <p className="mt-2 text-sm leading-6 text-white/46">
             {current.body}
           </p>
         </div>
@@ -159,8 +159,8 @@ export function DownloadPricing() {
               className={
                 "relative overflow-hidden rounded-[30px] border p-6 sm:p-7 " +
                 (plan.popular
-                  ? "border-[#8F0000]/35 bg-[#171719] text-white shadow-[0_24px_70px_rgba(143,0,0,.12)]"
-                  : "border-black/7 bg-white text-black shadow-[0_18px_50px_rgba(24,24,27,.05)]")
+                  ? "border-[#8F0000]/45 bg-[#171719] text-white shadow-[0_24px_70px_rgba(143,0,0,.16)]"
+                  : "border-white/8 bg-[#111114] text-white shadow-[0_18px_50px_rgba(0,0,0,.24)]")
               }
             >
               {plan.popular && (
@@ -173,7 +173,7 @@ export function DownloadPricing() {
               <p
                 className={
                   "text-[10px] font-bold uppercase tracking-[.14em] " +
-                  (plan.popular ? "text-red-300" : "text-black/32")
+                  (plan.popular ? "text-red-300" : "text-white/30")
                 }
               >
                 {plan.tag}
@@ -184,7 +184,7 @@ export function DownloadPricing() {
               <p
                 className={
                   "mt-2 text-sm leading-6 " +
-                  (plan.popular ? "text-white/48" : "text-black/46")
+                  (plan.popular ? "text-white/48" : "text-white/46")
                 }
               >
                 {plan.description}
@@ -194,7 +194,7 @@ export function DownloadPricing() {
                 <p
                   className={
                     "text-[10px] font-bold uppercase tracking-[.12em] " +
-                    (plan.popular ? "text-white/30" : "text-black/30")
+                    (plan.popular ? "text-white/30" : "text-white/28")
                   }
                 >
                   Precio
@@ -227,7 +227,7 @@ export function DownloadPricing() {
                     <span
                       className={
                         "text-sm leading-5 " +
-                        (plan.popular ? "text-white/72" : "text-black/62")
+                        (plan.popular ? "text-white/72" : "text-white/62")
                       }
                     >
                       {feature}
@@ -242,7 +242,7 @@ export function DownloadPricing() {
                   "mt-7 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl text-xs font-semibold transition " +
                   (plan.popular
                     ? "bg-[#8F0000] text-white hover:bg-[#a10a0a]"
-                    : "bg-[#161619] text-white hover:bg-black")
+                    : "border border-white/10 bg-white/[0.06] text-white hover:bg-white/[0.10]")
                 }
               >
                 Probar Global Stock
@@ -252,15 +252,15 @@ export function DownloadPricing() {
           ))}
         </div>
 
-        <div className="mt-14 overflow-hidden rounded-[30px] border border-black/7 bg-white shadow-[0_18px_55px_rgba(24,24,27,.05)]">
-          <div className="border-b border-black/7 px-5 py-5 sm:px-6">
-            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-[#a80000]">
+        <div className="mt-14 overflow-hidden rounded-[30px] border border-white/8 bg-[#111114] shadow-[0_20px_60px_rgba(0,0,0,.26)]">
+          <div className="border-b border-white/8 px-5 py-5 sm:px-6">
+            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-red-400">
               Comparativa
             </p>
             <h3 className="mt-2 text-2xl font-semibold tracking-[-.035em]">
               Compará las funcionalidades principales.
             </h3>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-black/46">
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-white/46">
               Esta distribución es una vista previa de la estructura de planes.
               Los límites y precios finales todavía no están publicados.
             </p>
@@ -269,8 +269,8 @@ export function DownloadPricing() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[720px] border-collapse text-left">
               <thead>
-                <tr className="border-b border-black/7 bg-[#faf9f7]">
-                  <th className="px-5 py-4 text-xs font-semibold text-black/50 sm:px-6">
+                <tr className="border-b border-white/8 bg-white/[0.035]">
+                  <th className="px-5 py-4 text-xs font-semibold text-white/50 sm:px-6">
                     Funcionalidad
                   </th>
                   <th className="px-4 py-4 text-center text-xs font-semibold">Base</th>
@@ -280,8 +280,8 @@ export function DownloadPricing() {
               </thead>
               <tbody>
                 {comparisonRows.map((row) => (
-                  <tr key={row.feature} className="border-b border-black/[0.055] last:border-b-0">
-                    <td className="px-5 py-3.5 text-sm font-medium text-black/68 sm:px-6">
+                  <tr key={row.feature} className="border-b border-white/[0.065] last:border-b-0">
+                    <td className="px-5 py-3.5 text-sm font-medium text-white/68 sm:px-6">
                       {row.feature}
                     </td>
                     {[row.base, row.pro, row.business].map((included, index) => (
@@ -291,7 +291,7 @@ export function DownloadPricing() {
                             <Check size={12} />
                           </span>
                         ) : (
-                          <span className="text-black/18">—</span>
+                          <span className="text-white/18">—</span>
                         )}
                       </td>
                     ))}
