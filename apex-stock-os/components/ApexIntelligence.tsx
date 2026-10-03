@@ -542,7 +542,9 @@ export function ApexIntelligence({
         ["onlineOrders", "global-stock-online-orders-v1"],
         ["onlineConnections", "global-stock-online-connections-v1"],
         ["suppliers", "global-stock-suppliers-v1"],
-        ["documents", "global-stock-documents-v1"]
+        ["documents", "global-stock-documents-v1"],
+        ["smartDocuments", "global-stock-smart-documents-v1"],
+        ["businessSuite", "global-stock-business-suite-v1"]
       ] as const) {
         try {
           const raw = window.localStorage.getItem(key);
