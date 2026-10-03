@@ -273,49 +273,109 @@ textarea:focus-visible {
 }
 
 .gs-cobe-marker {
+  display: block;
+}
+
+.gs-cobe-marker-content {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  opacity: 0;
+  transform: translate3d(0, 5px, 0) scale(.97);
+  animation: gs-cobe-pin-reveal 260ms var(--ease-out) forwards;
+}
+
+.gs-cobe-pin-icon {
+  position: relative;
+  width: 18px;
+  height: 22px;
+  flex: 0 0 18px;
+}
+
+.gs-cobe-pin-icon::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 1px;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid rgba(255,255,255,.88);
+  border-radius: 50% 50% 50% 0;
+  background: linear-gradient(145deg, #D81717 0%, #8F0000 72%);
+  box-shadow: 0 5px 14px rgba(143,0,0,.28);
+  transform: rotate(-45deg);
+}
+
+.gs-cobe-pin-core {
+  position: absolute;
+  left: 7px;
+  top: 6px;
+  z-index: 1;
+  width: 4px;
+  height: 4px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(255,255,255,.10);
+}
+
+.gs-cobe-marker-name {
+  display: inline-flex;
+  align-items: center;
   min-height: 24px;
-  padding: 5px 9px 5px 7px;
-  border: 1px solid rgba(255,255,255,.16);
+  padding: 4px 8px;
+  border: 1px solid rgba(255,255,255,.13);
   border-radius: 7px;
-  background: rgba(72,0,0,.88);
-  color: rgba(255,255,255,.94);
-  box-shadow:
-    0 8px 24px rgba(0,0,0,.34),
-    inset 0 1px 0 rgba(255,255,255,.08);
-  font-size: 9px;
+  background: rgba(8,8,10,.82);
+  color: rgba(255,255,255,.92);
+  box-shadow: 0 7px 20px rgba(0,0,0,.30);
+  font-size: 8px;
   font-weight: 800;
 }
 
-.gs-cobe-marker-primary {
-  border-color: rgba(255,103,103,.48);
-  background: #8F0000;
-  box-shadow:
-    0 9px 28px rgba(143,0,0,.28),
-    inset 0 1px 0 rgba(255,255,255,.14);
+.gs-cobe-marker-primary .gs-cobe-marker-name {
+  border-color: rgba(255,90,90,.36);
+  background: rgba(88,0,0,.88);
+  color: #fff;
 }
 
-.gs-cobe-marker-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 999px;
-  flex: 0 0 auto;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(255,255,255,.08);
+.gs-cobe-marker-primary .gs-cobe-pin-icon::before {
+  background: linear-gradient(145deg, #FF2D2D 0%, #A10000 68%);
+  box-shadow: 0 6px 18px rgba(143,0,0,.38);
 }
 
 .gs-cobe-route-label {
   padding: 4px 7px;
-  opacity: .92;
-  border: 1px solid rgba(214,38,38,.68);
+  opacity: 0;
+  border: 1px solid rgba(214,38,38,.56);
   border-radius: 6px;
-  background: rgba(5,5,7,.88);
-  color: #ff7676;
-  box-shadow: 0 7px 20px rgba(0,0,0,.32);
+  background: rgba(5,5,7,.84);
+  color: #ff7373;
+  box-shadow: 0 7px 20px rgba(0,0,0,.28);
   font-size: 8px;
   font-weight: 800;
+  animation: gs-cobe-route-label-reveal 220ms var(--ease-out) forwards;
+}
+
+@keyframes gs-cobe-pin-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 5px, 0) scale(.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes gs-cobe-route-label-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(-50%, -3px, 0);
+  }
+  to {
+    opacity: .92;
+    transform: translate3d(-50%, -7px, 0);
+  }
 }
 
 @supports not (position-anchor: --gs-fallback) {
@@ -451,14 +511,32 @@ textarea:focus-visible {
     display: none;
   }
 
-  .gs-cobe-marker:not(.gs-cobe-marker-primary) {
+  .gs-cobe-marker:not(:has(.gs-cobe-marker-primary)) .gs-cobe-marker-name {
     display: none;
   }
 
-  .gs-cobe-marker {
+  .gs-cobe-pin-icon {
+    width: 16px;
+    height: 20px;
+    flex-basis: 16px;
+  }
+
+  .gs-cobe-pin-icon::before {
+    left: 2px;
+    width: 12px;
+    height: 12px;
+  }
+
+  .gs-cobe-pin-core {
+    left: 6px;
+    top: 5px;
+  }
+
+  .gs-cobe-marker-primary .gs-cobe-marker-name {
+    display: inline-flex;
     min-height: 22px;
-    padding: 4px 7px 4px 6px;
-    font-size: 8px;
+    padding: 3px 6px;
+    font-size: 7px;
   }
 
   .gs-global-network {

@@ -4,10 +4,12 @@ import createGlobe from "cobe";
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
+type Location = [number, number];
+
 type GlobeMarker = {
   id: string;
   label: string;
-  location: [number, number];
+  location: Location;
   size: number;
   primary?: boolean;
 };
@@ -15,8 +17,9 @@ type GlobeMarker = {
 type GlobeArc = {
   id: string;
   label: string;
-  from: [number, number];
-  to: [number, number];
+  from: Location;
+  to: Location;
+  destinationMarkerId: string;
   showLabel?: boolean;
 };
 
@@ -25,62 +28,63 @@ type CobeGlobeHandle = {
   destroy: () => void;
 };
 
+const ARGENTINA: Location = [-34.6037, -58.3816];
+
 const markers: GlobeMarker[] = [
   {
     id: "gs-buenos-aires",
-    label: "BUENOS AIRES",
-    location: [-34.6037, -58.3816],
-    size: 0.034,
+    label: "ARGENTINA",
+    location: ARGENTINA,
+    size: 0.007,
     primary: true
   },
   {
     id: "gs-sao-paulo",
-    label: "SÃO PAULO",
+    label: "BRASIL",
     location: [-23.5505, -46.6333],
-    size: 0.03,
-    primary: true
+    size: 0.005
   },
   {
     id: "gs-mexico",
     label: "MÉXICO",
     location: [19.4326, -99.1332],
-    size: 0.021
+    size: 0.005
   },
   {
     id: "gs-new-york",
-    label: "NEW YORK",
+    label: "USA",
     location: [40.7128, -74.006],
-    size: 0.024
-  },
-  {
-    id: "gs-london",
-    label: "LONDON",
-    location: [51.5074, -0.1278],
-    size: 0.022
+    size: 0.005
   },
   {
     id: "gs-madrid",
-    label: "MADRID",
+    label: "ESPAÑA",
     location: [40.4168, -3.7038],
-    size: 0.021
+    size: 0.005
+  },
+  {
+    id: "gs-london",
+    label: "UK",
+    location: [51.5074, -0.1278],
+    size: 0.005
   },
   {
     id: "gs-berlin",
-    label: "BERLIN",
+    label: "ALEMANIA",
     location: [52.52, 13.405],
-    size: 0.02
+    size: 0.005
   },
   {
     id: "gs-tokyo",
-    label: "TOKYO",
+    label: "JAPÓN",
     location: [35.6762, 139.6503],
-    size: 0.023
+    size: 0.005
   },
   {
     id: "gs-sydney",
-    label: "SYDNEY",
+    label: "AUSTRALIA",
     location: [-33.8688, 151.2093],
-    size: 0.022
+    size: 0.005
   }
 ];
 
@@ -88,60 +92,75 @@ const arcs: GlobeArc[] = [
   {
     id: "gs-ba-brazil",
     label: "ARGENTINA → BRASIL",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [-23.5505, -46.6333],
-    showLabel: true
+    destinationMarkerId: "gs-sao-paulo"
   },
   {
     id: "gs-ba-mexico",
     label: "ARGENTINA → MÉXICO",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [19.4326, -99.1332],
-    showLabel: true
+    destinationMarkerId: "gs-mexico"
   },
   {
     id: "gs-ba-new-york",
     label: "ARGENTINA → USA",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [40.7128, -74.006],
+    destinationMarkerId: "gs-new-york",
     showLabel: true
   },
   {
     id: "gs-ba-madrid",
     label: "ARGENTINA → ESPAÑA",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [40.4168, -3.7038],
+    destinationMarkerId: "gs-madrid",
     showLabel: true
   },
   {
     id: "gs-ba-london",
     label: "ARGENTINA → UK",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [51.5074, -0.1278],
-    showLabel: true
+    destinationMarkerId: "gs-london"
   },
   {
     id: "gs-ba-berlin",
     label: "ARGENTINA → ALEMANIA",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [52.52, 13.405],
-    showLabel: true
+    destinationMarkerId: "gs-berlin"
   },
   {
     id: "gs-ba-tokyo",
     label: "ARGENTINA → JAPÓN",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [35.6762, 139.6503],
+    destinationMarkerId: "gs-tokyo",
     showLabel: true
   },
   {
     id: "gs-ba-sydney",
     label: "ARGENTINA → AUSTRALIA",
-    from: [-34.6037, -58.3816],
+    from: ARGENTINA,
     to: [-33.8688, 151.2093],
-    showLabel: true
+    destinationMarkerId: "gs-sydney"
   }
-]
+];
+
+const ROUTE_STAGGER_MS = 380;
+const ROUTE_DURATION_MS = 980;
+const PIN_REVEAL_OFFSET_MS = 720;
+
+const markerRevealDelay = new Map<string, number>([
+  ["gs-buenos-aires", 0],
+  ...arcs.map((arc, index) => [
+    arc.destinationMarkerId,
+    index * ROUTE_STAGGER_MS + PIN_REVEAL_OFFSET_MS
+  ] as const)
+]);
 
 function anchorLabelStyle(
   id: string,
@@ -151,7 +170,8 @@ function anchorLabelStyle(
     kind === "marker"
       ? `--cobe-visible-${id}`
       : `--cobe-visible-arc-${id}`;
-  const anchor = kind === "marker" ? `--cobe-${id}` : `--cobe-arc-${id}`;
+  const anchor =
+    kind === "marker" ? `--cobe-${id}` : `--cobe-arc-${id}`;
 
   return {
     position: "absolute",
@@ -160,8 +180,62 @@ function anchorLabelStyle(
     opacity: `var(${visible}, 0)`,
     positionAnchor: anchor,
     transform: "translate3d(-50%, -7px, 0)",
-    transition: "opacity 160ms cubic-bezier(0.23, 1, 0.32, 1)"
+    transition: "opacity 140ms cubic-bezier(0.23, 1, 0.32, 1)"
   } as CSSProperties;
+}
+
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function easeOutCubic(value: number) {
+  const t = clamp01(value);
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function toCartesian([lat, lon]: Location) {
+  const latitude = (lat * Math.PI) / 180;
+  const longitude = (lon * Math.PI) / 180;
+  const cosLat = Math.cos(latitude);
+
+  return [
+    cosLat * Math.cos(longitude),
+    Math.sin(latitude),
+    cosLat * Math.sin(longitude)
+  ] as const;
+}
+
+function toLocation([x, y, z]: readonly number[]): Location {
+  const latitude = Math.atan2(y, Math.sqrt(x * x + z * z));
+  const longitude = Math.atan2(z, x);
+
+  return [
+    (latitude * 180) / Math.PI,
+    (longitude * 180) / Math.PI
+  ];
+}
+
+function slerpLocation(from: Location, to: Location, progress: number): Location {
+  const a = toCartesian(from);
+  const b = toCartesian(to);
+  const dot = Math.max(
+    -1,
+    Math.min(1, a[0] * b[0] + a[1] * b[1] + a[2] * b[2])
+  );
+  const omega = Math.acos(dot);
+
+  if (omega < 0.00001) return to;
+
+  const sinOmega = Math.sin(omega);
+  const t = clamp01(progress);
+  const aWeight = Math.sin((1 - t) * omega) / sinOmega;
+  const bWeight = Math.sin(t * omega) / sinOmega;
+
+  return toLocation([
+    a[0] * aWeight + b[0] * bWeight,
+    a[1] * aWeight + b[1] * bWeight,
+    a[2] * aWeight + b[2] * bWeight
+  ]);
 }
 
 export function GlobalStockGlobe() {
@@ -179,6 +253,8 @@ export function GlobalStockGlobe() {
     null
   );
   const lastFrameRef = useRef(0);
+  const routeStartRef = useRef(0);
+  const routeAnimationDoneRef = useRef(false);
 
   const cobeMarkers = useMemo(
     () =>
@@ -190,7 +266,7 @@ export function GlobalStockGlobe() {
     []
   );
 
-  const cobeArcs = useMemo(
+  const finalArcs = useMemo(
     () =>
       arcs.map((arc) => ({
         id: arc.id,
@@ -309,13 +385,20 @@ export function GlobalStockGlobe() {
 
     const readSize = () => {
       const rect = root.getBoundingClientRect();
-      const cssSize = Math.max(320, Math.round(Math.min(rect.width, rect.height)));
+      const cssSize = Math.max(
+        320,
+        Math.round(Math.min(rect.width, rect.height))
+      );
       sizeRef.current = Math.max(480, Math.round(cssSize * dpr));
       canvas.width = sizeRef.current;
       canvas.height = sizeRef.current;
     };
 
     readSize();
+
+    const initialArcs = reducedMotion ? finalArcs : [];
+    routeStartRef.current = performance.now();
+    routeAnimationDoneRef.current = reducedMotion;
 
     const globe = createGlobe(
       canvas,
@@ -330,14 +413,14 @@ export function GlobalStockGlobe() {
         mapSamples: samples,
         mapBrightness: 7.2,
         baseColor: [0.045, 0.047, 0.052],
-        markerColor: [0.93, 0.08, 0.08],
+        markerColor: [0.09, 0.01, 0.015],
         glowColor: [0.3, 0.018, 0.025],
         opacity: 0.94,
         scale: 0.98,
         offset: [0, 0],
         markers: cobeMarkers,
-        arcs: cobeArcs,
-        arcColor: [0.82, 0.025, 0.035],
+        arcs: initialArcs,
+        arcColor: [0.9, 0.025, 0.035],
         arcWidth: 0.56,
         arcHeight: 0.38,
         markerElevation: 0.026
@@ -383,6 +466,39 @@ export function GlobalStockGlobe() {
           }
         }
 
+        let frameArcs = finalArcs;
+
+        if (!routeAnimationDoneRef.current) {
+          const elapsed = timestamp - routeStartRef.current;
+          frameArcs = arcs
+            .map((arc, index) => {
+              const local =
+                (elapsed - index * ROUTE_STAGGER_MS) / ROUTE_DURATION_MS;
+
+              if (local <= 0) return null;
+
+              const progress = easeOutCubic(local);
+              return {
+                id: arc.id,
+                from: arc.from,
+                to: slerpLocation(arc.from, arc.to, progress)
+              };
+            })
+            .filter(Boolean) as Array<{
+              id: string;
+              from: Location;
+              to: Location;
+            }>;
+
+          const totalDuration =
+            (arcs.length - 1) * ROUTE_STAGGER_MS + ROUTE_DURATION_MS;
+
+          if (elapsed >= totalDuration) {
+            routeAnimationDoneRef.current = true;
+            frameArcs = finalArcs;
+          }
+        }
+
         globeRef.current.update({
           phi: phiRef.current + dragRef.current.phi,
           theta: Math.max(
@@ -392,7 +508,7 @@ export function GlobalStockGlobe() {
           width: sizeRef.current,
           height: sizeRef.current,
           markers: cobeMarkers,
-          arcs: cobeArcs
+          arcs: frameArcs
         });
       }
 
@@ -407,7 +523,7 @@ export function GlobalStockGlobe() {
       globe.destroy();
       globeRef.current = null;
     };
-  }, [cobeArcs, cobeMarkers, stopAnimation]);
+  }, [cobeMarkers, finalArcs, stopAnimation]);
 
   return (
     <div
@@ -426,24 +542,38 @@ export function GlobalStockGlobe() {
         {markers.map((marker) => (
           <div
             key={marker.id}
-            className={
-              "gs-cobe-marker " +
-              (marker.primary ? "gs-cobe-marker-primary" : "")
-            }
+            className="gs-cobe-marker"
             style={anchorLabelStyle(marker.id, "marker")}
           >
-            <span className="gs-cobe-marker-dot" aria-hidden="true" />
-            {marker.label}
+            <span
+              className={
+                "gs-cobe-marker-content " +
+                (marker.primary ? "gs-cobe-marker-primary" : "")
+              }
+              style={{
+                animationDelay:
+                  String(markerRevealDelay.get(marker.id) ?? 0) + "ms"
+              }}
+            >
+              <span className="gs-cobe-pin-icon" aria-hidden="true">
+                <span className="gs-cobe-pin-core" />
+              </span>
+              <span className="gs-cobe-marker-name">{marker.label}</span>
+            </span>
           </div>
         ))}
 
         {arcs
           .filter((arc) => arc.showLabel)
-          .map((arc) => (
+          .map((arc, index) => (
             <div
               key={arc.id}
               className="gs-cobe-route-label"
-              style={anchorLabelStyle(arc.id, "arc")}
+              style={{
+                ...anchorLabelStyle(arc.id, "arc"),
+                animationDelay:
+                  String(index * ROUTE_STAGGER_MS + 520) + "ms"
+              }}
             >
               {arc.label}
             </div>
