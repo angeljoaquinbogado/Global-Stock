@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { PublicMobileNav } from "./PublicMobileNav";
+
 function PublicBrand({ compact = false }: { compact?: boolean }) {
   return (
     <div className="flex items-center gap-3">
@@ -36,7 +38,12 @@ export function PublicHeader() {
     <header className="sticky top-0 z-50 border-b border-[#211417] bg-[#070708]/88 backdrop-blur-xl">
       <div className="mx-auto flex min-h-[72px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
         <Link href="/download" aria-label="Global Stock">
-          <PublicBrand />
+          <span className="sm:hidden">
+            <PublicBrand compact />
+          </span>
+          <span className="hidden sm:block">
+            <PublicBrand />
+          </span>
         </Link>
 
         <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/48 lg:flex">
@@ -58,18 +65,22 @@ export function PublicHeader() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <Link
-            href="/"
-            className="hidden min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition hover:bg-white/[0.05] hover:text-white sm:inline-flex"
-          >
-            Iniciar sesión
-          </Link>
-          <Link
-            href="/"
-            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(201,21,39,.22)] transition hover:bg-[#dd1e32]"
-          >
-            Abrir Global Stock
-          </Link>
+          <div className="hidden items-center gap-2 lg:flex">
+            <Link
+              href="/"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition hover:bg-white/[0.05] hover:text-white"
+            >
+              Iniciar sesión
+            </Link>
+            <Link
+              href="/"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white shadow-[0_10px_30px_rgba(201,21,39,.22)] transition hover:bg-[#dd1e32]"
+            >
+              Abrir Global Stock
+            </Link>
+          </div>
+
+          <PublicMobileNav />
         </div>
       </div>
     </header>
