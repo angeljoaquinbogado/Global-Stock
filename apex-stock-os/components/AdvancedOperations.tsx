@@ -673,28 +673,168 @@ export function AdvancedOperations({
 
     const today = new Date().toISOString().slice(0, 10);
 
+    type AutomationTarget = {
+      id: string;
+      name: string;
+      body: string;
+      severity: "info" | "warning" | "critical";
+      entityType: string;
+      result: Record<string, unknown>;
+    };
+
+    let suite: {
+      financeAccounts?: Array<{ id: string; name: string; balance: number }>;
+      financeMovements?: Array<{ amount: number }>;
+      projects?: Array<{
+        id: string;
+        name: string;
+        hoursPlanned: number;
+        hoursUsed: number;
+        status: string;
+      }>;
+    } = {};
+
+    let smartDocuments: Array<{
+      id?: string;
+      filename?: string;
+      supplier?: string;
+      total?: number | null;
+      confidence?: number | null;
+    }> = [];
+
+    try {
+      const rawSuite = window.localStorage.getItem(
+        "global-stock-business-suite-v1"
+      );
+      if (rawSuite) suite = JSON.parse(rawSuite);
+
+      const rawDocuments = window.localStorage.getItem(
+        "global-stock-smart-documents-v1"
+      );
+      if (rawDocuments) {
+        const parsed = JSON.parse(rawDocuments);
+        if (Array.isArray(parsed)) smartDocuments = parsed;
+      }
+    } catch {
+      // Optional local context should never block cloud automations.
+    }
+
     for (const rule of automations.filter((item) => item.enabled)) {
       const threshold = Number(rule.conditions?.threshold) || 0;
-      const matches =
-        rule.event_type === "stock_below_min"
-          ? products.filter((product) => product.stock <= product.minStock)
-          : rule.event_type === "no_sales_30d"
-            ? products.filter(
-                (product) => product.stock > 0 && product.sold30d <= 0
-              )
-            : rule.event_type === "low_margin"
-              ? products.filter((product) => {
-                  if (product.costKnown === false || product.price <= 0) {
-                    return false;
-                  }
-                  const margin =
-                    ((product.price - product.cost) / product.price) * 100;
-                  return margin <= threshold;
-                })
-              : [];
+      const targets: AutomationTarget[] = [];
 
-      for (const product of matches.slice(0, 50)) {
-        const dedupeKey = `${today}:${rule.event_type}:${product.id}`;
+      if (rule.event_type === "stock_below_min") {
+        for (const product of products.filter(
+          (item) => item.stock <= item.minStock
+        )) {
+          targets.push({
+            id: product.id,
+            name: product.name,
+            body: `${product.name}: stock ${product.stock}, mínimo ${product.minStock}.`,
+            severity: "critical",
+            entityType: "product",
+            result: { product: product.name, stock: product.stock }
+          });
+        }
+      } else if (rule.event_type === "no_sales_30d") {
+        for (const product of products.filter(
+          (item) => item.stock > 0 && item.sold30d <= 0
+        )) {
+          targets.push({
+            id: product.id,
+            name: product.name,
+            body: `${product.name}: sin ventas registradas en 30 días.`,
+            severity: "warning",
+            entityType: "product",
+            result: { product: product.name }
+          });
+        }
+      } else if (rule.event_type === "low_margin") {
+        for (const product of products.filter((item) => {
+          if (item.costKnown === false || item.price <= 0) return false;
+          const margin =
+            ((item.price - item.cost) / item.price) * 100;
+          return margin <= threshold;
+        })) {
+          const margin =
+            ((product.price - product.cost) / product.price) * 100;
+          targets.push({
+            id: product.id,
+            name: product.name,
+            body: `${product.name}: margen ${margin.toFixed(1)}%, debajo del umbral ${threshold}%.`,
+            severity: "warning",
+            entityType: "product",
+            result: { product: product.name, margin }
+          });
+        }
+      } else if (rule.event_type === "low_cash") {
+        const balance =
+          (suite.financeAccounts ?? []).reduce(
+            (sum, item) => sum + (Number(item.balance) || 0),
+            0
+          ) +
+          (suite.financeMovements ?? []).reduce(
+            (sum, item) => sum + (Number(item.amount) || 0),
+            0
+          );
+
+        if (balance <= threshold) {
+          targets.push({
+            id: "business-cash",
+            name: "Caja y bancos",
+            body: `Saldo estimado ${balance.toFixed(2)}; umbral configurado ${threshold.toFixed(2)}.`,
+            severity: "critical",
+            entityType: "finance",
+            result: { balance, threshold }
+          });
+        }
+      } else if (rule.event_type === "project_over_hours") {
+        for (const project of (suite.projects ?? []).filter(
+          (item) =>
+            item.status !== "done" &&
+            Number(item.hoursPlanned) > 0 &&
+            Number(item.hoursUsed) > Number(item.hoursPlanned)
+        )) {
+          targets.push({
+            id: project.id,
+            name: project.name,
+            body: `${project.name}: ${project.hoursUsed}h usadas sobre ${project.hoursPlanned}h previstas.`,
+            severity: "warning",
+            entityType: "project",
+            result: {
+              project: project.name,
+              hoursUsed: project.hoursUsed,
+              hoursPlanned: project.hoursPlanned
+            }
+          });
+        }
+      } else if (rule.event_type === "document_needs_review") {
+        for (const document of smartDocuments.filter(
+          (item) =>
+            !item.supplier ||
+            item.total === null ||
+            item.total === undefined ||
+            (item.confidence !== null &&
+              item.confidence !== undefined &&
+              Number(item.confidence) < 0.75)
+        )) {
+          const id = String(document.id || document.filename || crypto.randomUUID());
+          targets.push({
+            id,
+            name: document.filename || "Comprobante",
+            body: `${document.filename || "Comprobante"}: faltan datos o la confianza de lectura es baja.`,
+            severity: "warning",
+            entityType: "document",
+            result: {
+              filename: document.filename,
+              confidence: document.confidence ?? null
+            }
+          });
+        }
+      }
+
+      for (const target of targets.slice(0, 50)) {
+        const dedupeKey = `${today}:${rule.event_type}:${target.id}`;
 
         const { data: existing } = await supabase
           .from("global_stock_automation_executions")
@@ -711,7 +851,7 @@ export function AdvancedOperations({
             business_id: businessId,
             rule_id: rule.id,
             dedupe_key: dedupeKey,
-            result: { product: product.name }
+            result: target.result
           });
 
         if (executionError) continue;
@@ -720,16 +860,10 @@ export function AdvancedOperations({
           business_id: businessId,
           kind: rule.event_type,
           title: rule.name,
-          body:
-            rule.event_type === "stock_below_min"
-              ? `${product.name}: stock ${product.stock}, mínimo ${product.minStock}.`
-              : rule.event_type === "no_sales_30d"
-                ? `${product.name}: sin ventas registradas en 30 días.`
-                : `${product.name}: margen debajo del umbral configurado.`,
-          severity:
-            rule.event_type === "stock_below_min" ? "critical" : "warning",
-          entity_type: "product",
-          entity_id: product.id
+          body: target.body,
+          severity: target.severity,
+          entity_type: target.entityType,
+          entity_id: target.id
         });
       }
     }
@@ -1648,12 +1782,23 @@ export function AdvancedOperations({
                 </option>
                 <option value="no_sales_30d">Sin ventas 30 días</option>
                 <option value="low_margin">Margen bajo</option>
+                <option value="low_cash">Caja / bancos debajo del umbral</option>
+                <option value="project_over_hours">Proyecto excedido en horas</option>
+                <option value="document_needs_review">Comprobante para revisar</option>
               </select>
-              {automationEvent === "low_margin" && (
+              {(automationEvent === "low_margin" ||
+                automationEvent === "low_cash") && (
                 <input
                   className="apex-input w-full p-3"
                   inputMode="decimal"
-                  placeholder="%"
+                  placeholder={
+                    automationEvent === "low_margin"
+                      ? "%"
+                      : tr(language, {
+                          es: "Umbral de saldo",
+                          en: "Balance threshold"
+                        })
+                  }
                   value={automationThreshold}
                   onChange={(event) =>
                     setAutomationThreshold(event.target.value)
