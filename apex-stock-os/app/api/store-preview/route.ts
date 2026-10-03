@@ -43,6 +43,16 @@ function resolvePublicAsset(
   }
 }
 
+function proxyPublicAsset(
+  value: string | null,
+  base: URL
+) {
+  const resolved = resolvePublicAsset(value, base);
+  return resolved
+    ? `/api/store-asset?url=${encodeURIComponent(resolved)}`
+    : null;
+}
+
 function isPrivateIpv4(address: string) {
   const parts = address.split(".").map(Number);
   if (parts.length !== 4 || parts.some((part) => !Number.isFinite(part))) {
@@ -655,8 +665,8 @@ export async function GET(request: NextRequest) {
       title,
       description,
       platform,
-      image: resolvePublicAsset(imageRaw, finalUrl),
-      icon: resolvePublicAsset(iconRaw, finalUrl),
+      image: proxyPublicAsset(imageRaw, finalUrl),
+      icon: proxyPublicAsset(iconRaw, finalUrl),
       currency: sampleCurrency ?? null,
       productCount: catalog?.productCount ?? null,
       sampleProducts: catalog?.samples ?? structuredProducts,
