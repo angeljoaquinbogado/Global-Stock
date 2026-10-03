@@ -279,68 +279,68 @@ textarea:focus-visible {
 .gs-cobe-marker-content {
   display: inline-flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
   opacity: 0;
-  transform: translate3d(0, 5px, 0) scale(.97);
-  animation: gs-cobe-pin-reveal 260ms var(--ease-out) forwards;
+  transform: translate3d(0, 9px, 0) scale(.78);
+  transform-origin: 18px 100%;
+  animation: gs-cobe-pin-reveal 420ms cubic-bezier(.16,1,.3,1) forwards;
+  will-change: transform, opacity;
 }
 
 .gs-cobe-pin-icon {
   position: relative;
-  width: 18px;
-  height: 22px;
-  flex: 0 0 18px;
+  width: 22px;
+  height: 30px;
+  flex: 0 0 22px;
+  filter: drop-shadow(0 7px 9px rgba(0,0,0,.34));
 }
 
-.gs-cobe-pin-icon::before {
-  content: "";
-  position: absolute;
-  left: 2px;
-  top: 1px;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid rgba(255,255,255,.88);
-  border-radius: 50% 50% 50% 0;
-  background: linear-gradient(145deg, #D81717 0%, #8F0000 72%);
-  box-shadow: 0 5px 14px rgba(143,0,0,.28);
-  transform: rotate(-45deg);
+.gs-cobe-pin-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.gs-cobe-pin-core {
-  position: absolute;
-  left: 7px;
-  top: 6px;
-  z-index: 1;
-  width: 4px;
-  height: 4px;
-  border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(255,255,255,.10);
+.gs-cobe-pin-shape {
+  fill: #e31d27;
+}
+
+.gs-cobe-pin-shine {
+  fill: rgba(255,255,255,.18);
 }
 
 .gs-cobe-marker-name {
   display: inline-flex;
   align-items: center;
-  min-height: 24px;
-  padding: 4px 8px;
-  border: 1px solid rgba(255,255,255,.13);
-  border-radius: 7px;
-  background: rgba(8,8,10,.82);
-  color: rgba(255,255,255,.92);
-  box-shadow: 0 7px 20px rgba(0,0,0,.30);
-  font-size: 8px;
+  min-height: 25px;
+  padding: 4px 9px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 8px;
+  background: rgba(7,7,9,.80);
+  color: rgba(255,255,255,.94);
+  box-shadow: 0 8px 24px rgba(0,0,0,.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 9px;
   font-weight: 800;
+  line-height: 1;
 }
 
 .gs-cobe-marker-primary .gs-cobe-marker-name {
-  border-color: rgba(255,90,90,.36);
-  background: rgba(88,0,0,.88);
+  border-color: rgba(255,92,92,.38);
+  background: rgba(82,0,0,.90);
   color: #fff;
 }
 
-.gs-cobe-marker-primary .gs-cobe-pin-icon::before {
-  background: linear-gradient(145deg, #FF2D2D 0%, #A10000 68%);
-  box-shadow: 0 6px 18px rgba(143,0,0,.38);
+.gs-cobe-marker-primary .gs-cobe-pin-icon {
+  filter:
+    drop-shadow(0 8px 10px rgba(0,0,0,.38))
+    drop-shadow(0 0 9px rgba(225,29,39,.28));
+}
+
+.gs-cobe-marker-primary .gs-cobe-pin-shape {
+  fill: #ff2732;
 }
 
 .gs-cobe-route-label {
@@ -357,11 +357,15 @@ textarea:focus-visible {
 }
 
 @keyframes gs-cobe-pin-reveal {
-  from {
+  0% {
     opacity: 0;
-    transform: translate3d(0, 5px, 0) scale(.97);
+    transform: translate3d(0, 10px, 0) scale(.72);
   }
-  to {
+  72% {
+    opacity: 1;
+    transform: translate3d(0, -2px, 0) scale(1.06);
+  }
+  100% {
     opacity: 1;
     transform: translate3d(0, 0, 0) scale(1);
   }
@@ -511,30 +515,29 @@ textarea:focus-visible {
     display: none;
   }
 
-  .gs-cobe-marker:not(:has(.gs-cobe-marker-primary)) .gs-cobe-marker-name {
-    display: none;
+  .gs-cobe-marker-content {
+    gap: 5px;
   }
 
   .gs-cobe-pin-icon {
     width: 16px;
-    height: 20px;
+    height: 22px;
     flex-basis: 16px;
   }
 
-  .gs-cobe-pin-icon::before {
-    left: 2px;
-    width: 12px;
-    height: 12px;
-  }
-
-  .gs-cobe-pin-core {
-    left: 6px;
-    top: 5px;
+  .gs-cobe-marker-name {
+    min-height: 19px;
+    max-width: 86px;
+    padding: 3px 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 6.5px;
+    letter-spacing: .045em;
   }
 
   .gs-cobe-marker-primary .gs-cobe-marker-name {
-    display: inline-flex;
-    min-height: 22px;
+    min-height: 21px;
+    max-width: none;
     padding: 3px 6px;
     font-size: 7px;
   }
