@@ -245,7 +245,7 @@ function PhoneAppBar() {
         <span className="grid h-7 w-7 place-items-center rounded-[9px] bg-[#8F0000] text-[7px] font-black">
           GS
         </span>
-        <span className="text-[9px] font-semibold tracking-[-0.02em]">
+        <span className="text-[10.5px] font-semibold tracking-[-0.02em]">
           Global Stock
         </span>
       </div>
@@ -271,10 +271,10 @@ function PageHeading({
 }) {
   return (
     <div>
-      <h3 className="text-[14px] font-semibold tracking-[-0.035em]">
+      <h3 className="text-[15.5px] font-semibold tracking-[-0.035em]">
         {title}
       </h3>
-      <p className="mt-1 text-[7px] leading-[1.4] text-white/42">
+      <p className="mt-1 text-[8.5px] leading-[1.4] text-white/45">
         {subtitle}
       </p>
     </div>
@@ -305,7 +305,7 @@ function PhoneBottomNav({
 
       <button
         type="button"
-        className="-mt-5 flex flex-col items-center justify-end gap-0.5 text-[5px] font-semibold text-red-400"
+        className="-mt-5 flex flex-col items-center justify-end gap-0.5 text-[6.5px] font-semibold text-red-400"
       >
         <span className="grid h-10 w-10 place-items-center rounded-full border-[3px] border-[#050506] bg-[#8F0000] text-white shadow-[0_7px_20px_rgba(143,0,0,.35)]">
           <ScanLine size={15} />
@@ -344,7 +344,7 @@ function PhoneNavButton({
       type="button"
       onClick={onClick}
       className={
-        "flex min-h-9 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[5px] font-semibold transition " +
+        "flex min-h-9 flex-col items-center justify-center gap-0.5 rounded-[8px] text-[6.5px] font-semibold transition " +
         (active ? "text-red-400" : "text-white/38")
       }
     >
@@ -395,14 +395,14 @@ function DashboardDemo({
         <section className="mt-2 rounded-[12px] border border-white/10 bg-white/[0.025] p-2.5">
           <div className="flex items-end justify-between gap-2">
             <div>
-              <p className="text-[6px] font-bold uppercase tracking-[0.11em] text-red-400">
+              <p className="text-[7px] font-bold uppercase tracking-[0.11em] text-red-400">
                 Flujo de ventas
               </p>
-              <p className="mt-0.5 text-[8px] font-semibold">
+              <p className="mt-0.5 text-[9px] font-semibold">
                 Ganancia bruta
               </p>
             </div>
-            <span className="rounded-full border border-white/10 px-2 py-1 text-[5px] text-white/45">
+            <span className="rounded-full border border-white/10 px-2 py-1 text-[6px] text-white/45">
               Gráficos
             </span>
           </div>
@@ -432,7 +432,7 @@ function DashboardDemo({
                 strokeLinejoin="round"
               />
             </svg>
-            <div className="absolute bottom-1 inset-x-2 flex justify-between text-[4.5px] text-white/25">
+            <div className="absolute bottom-1 inset-x-2 flex justify-between text-[5.5px] text-white/28">
               <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span>
               <span>Vie</span><span>Sáb</span><span>Dom</span>
             </div>
@@ -442,8 +442,8 @@ function DashboardDemo({
         <div className="mt-2 grid grid-cols-2 gap-1.5">
           <section className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
             <div className="flex items-center justify-between">
-              <p className="text-[7px] font-semibold">Actividad reciente</p>
-              <span className="text-[5px] font-semibold text-red-400">Abrir</span>
+              <p className="text-[8px] font-semibold">Actividad reciente</p>
+              <span className="text-[6px] font-semibold text-red-400">Abrir</span>
             </div>
             <div className="mt-2 space-y-1.5">
               <ActivityLine text="Venta registrada · 4 unidades" />
@@ -453,10 +453,10 @@ function DashboardDemo({
 
           <section className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
             <div className="flex items-center justify-between">
-              <p className="text-[7px] font-semibold">Notas de hoy</p>
-              <span className="text-[5px] font-semibold text-red-400">Abrir</span>
+              <p className="text-[8px] font-semibold">Notas de hoy</p>
+              <span className="text-[6px] font-semibold text-red-400">Abrir</span>
             </div>
-            <div className="mt-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5 text-[5.5px] leading-3 text-white/55">
+            <div className="mt-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5 text-[6.5px] leading-3 text-white/58">
               Revisar reposición de reels antes de las 18:00.
             </div>
           </section>
@@ -481,11 +481,11 @@ function KpiCard({
     <div className="rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
       <div className="flex items-center gap-1.5 text-red-400">
         {icon}
-        <span className="truncate text-[5.5px] font-bold uppercase tracking-[0.08em] text-white/38">
+        <span className="truncate text-[6.5px] font-bold uppercase tracking-[0.08em] text-white/42">
           {label}
         </span>
       </div>
-      <p className="mt-1.5 text-[10px] font-semibold">{value}</p>
+      <p className="mt-1.5 text-[11px] font-semibold">{value}</p>
     </div>
   );
 }
@@ -494,7 +494,7 @@ function ActivityLine({ text }: { text: string }) {
   return (
     <div className="flex items-start gap-1.5">
       <span className="mt-[4px] h-1.5 w-1.5 shrink-0 rounded-full bg-[#8F0000]" />
-      <p className="text-[5.5px] leading-3 text-white/48">{text}</p>
+      <p className="text-[6.5px] leading-3 text-white/52">{text}</p>
     </div>
   );
 }
@@ -555,7 +555,7 @@ function PosDemo() {
             readOnly
             value=""
             placeholder="Buscar producto"
-            className="h-8 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-7 pr-2 text-[7px] text-white outline-none placeholder:text-white/28"
+            className="h-8 w-full rounded-[10px] border border-white/10 bg-white/[0.035] pl-7 pr-2 text-[8px] text-white outline-none placeholder:text-white/30"
           />
         </label>
 
@@ -569,23 +569,23 @@ function PosDemo() {
                 <span className="grid h-6 w-6 place-items-center rounded-[8px] bg-red-500/10 text-red-400">
                   <Store size={10} />
                 </span>
-                <span className="rounded-full border border-white/10 px-1.5 py-1 text-[4.5px] text-white/38">
+                <span className="rounded-full border border-white/10 px-1.5 py-1 text-[5.5px] text-white/42">
                   {product.stock} stock
                 </span>
               </div>
-              <p className="mt-2 truncate text-[7px] font-semibold">
+              <p className="mt-2 truncate text-[8px] font-semibold">
                 {product.name}
               </p>
-              <p className="mt-0.5 text-[5px] text-white/35">
+              <p className="mt-0.5 text-[6.5px] text-white/38">
                 {product.category}
               </p>
-              <p className="mt-1.5 text-[8px] font-semibold">
+              <p className="mt-1.5 text-[9px] font-semibold">
                 {money(product.price)}
               </p>
               <button
                 type="button"
                 onClick={() => add(product.name, product.stock)}
-                className="mt-2 min-h-7 w-full rounded-[9px] bg-[#8F0000] px-2 text-[6px] font-semibold text-white"
+                className="mt-2 min-h-8 w-full rounded-[9px] bg-[#8F0000] px-2 text-[7px] font-semibold text-white"
               >
                 <Plus size={9} className="mr-1 inline" />
                 Agregar
@@ -596,8 +596,8 @@ function PosDemo() {
 
         <section className="mt-2 rounded-[11px] border border-white/10 bg-white/[0.025] p-2.5">
           <div className="flex items-center justify-between">
-            <p className="text-[8px] font-semibold">Carrito</p>
-            <span className="text-[6px] text-white/35">
+            <p className="text-[9px] font-semibold">Carrito</p>
+            <span className="text-[7px] text-white/38">
               {Object.values(cart).reduce((sum, value) => sum + value, 0)} u.
             </span>
           </div>
@@ -611,8 +611,8 @@ function PosDemo() {
                   className="flex items-center justify-between gap-2 rounded-[8px] border border-white/8 bg-black/25 px-2 py-1.5"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[6px] font-semibold">{name}</p>
-                    <p className="text-[5px] text-white/35">{money(product.price)}</p>
+                    <p className="truncate text-[7px] font-semibold">{name}</p>
+                    <p className="text-[6px] text-white/38">{money(product.price)}</p>
                   </div>
                   <div className="flex items-center gap-1">
                     <button
@@ -622,7 +622,7 @@ function PosDemo() {
                     >
                       <Minus size={9} />
                     </button>
-                    <span className="w-3 text-center text-[6px] font-semibold">
+                    <span className="w-3 text-center text-[7px] font-semibold">
                       {quantity}
                     </span>
                     <button
@@ -639,15 +639,15 @@ function PosDemo() {
           </div>
 
           <div className="mt-2 flex items-center justify-between border-t border-white/8 pt-2">
-            <span className="text-[6px] text-white/42">Total</span>
-            <strong className="text-[9px]">{money(total)}</strong>
+            <span className="text-[7px] text-white/45">Total</span>
+            <strong className="text-[10px]">{money(total)}</strong>
           </div>
 
           <div className="mt-2 grid grid-cols-2 gap-1.5">
             <select
               value={payment}
               onChange={(event) => setPayment(event.target.value)}
-              className="h-8 rounded-[9px] border border-white/10 bg-[#111] px-2 text-[6px] text-white outline-none"
+              className="h-8 rounded-[9px] border border-white/10 bg-[#111] px-2 text-[7px] text-white outline-none"
             >
               <option>Efectivo</option>
               <option>Débito</option>
@@ -663,7 +663,7 @@ function PosDemo() {
                 window.setTimeout(() => setDone(false), 1400);
               }}
               className={
-                "h-8 rounded-[9px] px-2 text-[6px] font-semibold text-white transition " +
+                "h-8 rounded-[9px] px-2 text-[7px] font-semibold text-white transition " +
                 (done ? "bg-emerald-600" : "bg-[#8F0000]")
               }
             >
@@ -703,15 +703,6 @@ function InventoryDemo() {
       cost: "$ 8.700",
       price: "$ 15.900",
       min: 8
-    },
-    {
-      name: "Anzuelo 3/0 x10",
-      barcode: "779000123403",
-      category: "Anzuelos",
-      supplier: "Delta",
-      cost: "$ 3.900",
-      price: "$ 7.500",
-      min: 20
     }
   ];
 
@@ -726,7 +717,7 @@ function InventoryDemo() {
         />
 
         <div className="mt-2.5 overflow-hidden rounded-[11px] border border-white/10">
-          <div className="grid grid-cols-[minmax(0,1.25fr)_.68fr_.7fr] bg-white/[0.04] px-2.5 py-2 text-[5px] font-bold uppercase tracking-[0.08em] text-white/35">
+          <div className="grid grid-cols-[minmax(0,1.25fr)_.68fr_.7fr] bg-white/[0.04] px-2.5 py-2 text-[6px] font-bold uppercase tracking-[0.08em] text-white/38">
             <span>Producto</span>
             <span>Stock / mín.</span>
             <span>Estado</span>
@@ -742,10 +733,10 @@ function InventoryDemo() {
                 <div key={product.name} className="px-2.5 py-2.5">
                   <div className="grid grid-cols-[minmax(0,1.25fr)_.68fr_.7fr] items-center gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-[6.5px] font-semibold">
+                      <p className="truncate text-[7.5px] font-semibold">
                         {product.name}
                       </p>
-                      <p className="mt-0.5 truncate text-[4.8px] text-white/30">
+                      <p className="mt-0.5 truncate text-[5.8px] text-white/34">
                         {product.barcode}
                       </p>
                     </div>
@@ -764,16 +755,16 @@ function InventoryDemo() {
                             )
                           }))
                         }
-                        className="h-7 w-10 rounded-[7px] border border-white/10 bg-black/35 px-1 text-center text-[6px] font-semibold text-white outline-none"
+                        className="h-7 w-10 rounded-[7px] border border-white/10 bg-black/35 px-1 text-center text-[7px] font-semibold text-white outline-none"
                       />
-                      <span className="text-[5px] text-white/25">
+                      <span className="text-[6px] text-white/30">
                         / {product.min}
                       </span>
                     </div>
 
                     <span
                       className={
-                        "justify-self-start rounded-full px-1.5 py-1 text-[4.5px] font-bold " +
+                        "justify-self-start rounded-full px-1.5 py-1 text-[5.5px] font-bold " +
                         (status === "Normal"
                           ? "bg-emerald-500/10 text-emerald-400"
                           : status === "Bajo"
@@ -799,14 +790,14 @@ function InventoryDemo() {
 
         <div className="mt-2 grid grid-cols-2 gap-1.5">
           <div className="rounded-[10px] border border-white/10 bg-white/[0.025] p-2.5">
-            <p className="text-[6.5px] font-semibold">Etiquetas de código</p>
-            <p className="mt-1 text-[5px] leading-3 text-white/35">
+            <p className="text-[7.5px] font-semibold">Etiquetas de código</p>
+            <p className="mt-1 text-[6px] leading-3 text-white/38">
               Asigná y prepará códigos de barras para productos.
             </p>
           </div>
           <div className="rounded-[10px] border border-white/10 bg-white/[0.025] p-2.5">
-            <p className="text-[6.5px] font-semibold">Escáner rápido</p>
-            <p className="mt-1 text-[5px] leading-3 text-white/35">
+            <p className="text-[7.5px] font-semibold">Escáner rápido</p>
+            <p className="mt-1 text-[6px] leading-3 text-white/38">
               Leé un código y actualizá el producto.
             </p>
           </div>
@@ -821,10 +812,10 @@ function InventoryDemo() {
 function MetaCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-[7px] bg-black/25 px-1.5 py-1.5">
-      <p className="truncate text-[4px] uppercase tracking-[0.06em] text-white/25">
+      <p className="truncate text-[5px] uppercase tracking-[0.06em] text-white/30">
         {label}
       </p>
-      <p className="mt-0.5 truncate text-[5px] font-semibold text-white/58">
+      <p className="mt-0.5 truncate text-[6px] font-semibold text-white/62">
         {value}
       </p>
     </div>
@@ -855,12 +846,12 @@ function IntelligenceDemo() {
             </span>
             <div className="min-w-0">
               <div className="flex items-center gap-1.5">
-                <h3 className="truncate text-[8px] font-semibold">
+                <h3 className="truncate text-[9px] font-semibold">
                   Global Intelligence
                 </h3>
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               </div>
-              <p className="mt-0.5 text-[5.5px] text-white/38">
+              <p className="mt-0.5 text-[6.5px] text-white/42">
                 IA conectada
               </p>
             </div>
@@ -890,15 +881,15 @@ function IntelligenceDemo() {
         </div>
 
         <div className="min-h-0 flex-1 space-y-2 overflow-hidden px-3 py-3">
-          <div className="mr-6 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[6px] leading-[1.45] text-white/68">
+          <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
             {reply}
           </div>
 
-          <div className="ml-8 rounded-[12px] rounded-br-[4px] bg-[#8F0000] px-2.5 py-2 text-[6px] leading-[1.45] text-white">
+          <div className="ml-7 rounded-[12px] rounded-br-[4px] bg-[#8F0000] px-2.5 py-2 text-[7px] leading-[1.45] text-white">
             ¿Cómo está mi stock?
           </div>
 
-          <div className="mr-6 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[6px] leading-[1.45] text-white/68">
+          <div className="mr-5 rounded-[12px] rounded-bl-[4px] border border-white/10 bg-white/[0.035] px-2.5 py-2 text-[7px] leading-[1.45] text-white/72">
             Tenés 1.248 unidades en inventario y 12 alertas de stock.
           </div>
         </div>
@@ -910,7 +901,7 @@ function IntelligenceDemo() {
             send();
           }}
         >
-          <p className="mb-1.5 text-[5px] leading-3 text-white/30">
+          <p className="mb-1.5 text-[6px] leading-3 text-white/34">
             Usa inventario, ventas, costos, márgenes, actividad, notas y escenarios.
           </p>
           <div className="flex items-center gap-1.5">
@@ -918,7 +909,7 @@ function IntelligenceDemo() {
               value={input}
               onChange={(event) => setInput(event.target.value)}
               placeholder="Preguntá algo sobre tu negocio…"
-              className="h-9 min-w-0 flex-1 rounded-[10px] border border-white/10 bg-white/[0.035] px-2.5 text-[6px] text-white outline-none placeholder:text-white/25"
+              className="h-9 min-w-0 flex-1 rounded-[10px] border border-white/10 bg-white/[0.035] px-2.5 text-[7px] text-white outline-none placeholder:text-white/28"
             />
             <button
               type="submit"
@@ -946,9 +937,9 @@ function InsightChip({
     <div className="rounded-[10px] border border-white/10 bg-white/[0.025] px-2 py-2">
       <div className="flex items-center gap-1 text-red-400">
         {icon}
-        <span className="text-[7px] font-bold">{value}</span>
+        <span className="text-[8px] font-bold">{value}</span>
       </div>
-      <p className="mt-1 truncate text-[4.5px] font-semibold uppercase tracking-[0.07em] text-white/32">
+      <p className="mt-1 truncate text-[5.5px] font-semibold uppercase tracking-[0.07em] text-white/36">
         {label}
       </p>
     </div>
