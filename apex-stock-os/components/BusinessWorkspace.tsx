@@ -44,6 +44,10 @@ import {
   rankRestockNeeds
 } from "@/lib/analytics";
 import {
+  canAccessModule,
+  primaryModulesForRole
+} from "@/lib/access-control";
+import {
   ensureCloudBusiness,
   flushOfflineBusinessOperations,
   loadCloudWorkspace,
@@ -973,64 +977,6 @@ const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "settings", icon: Settings2 }
 ];
 
-const moduleRoles: Record<ModuleId, string[]> = {
-  overview: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "warehouse",
-    "accountant",
-    "viewer"
-  ],
-  pos: ["owner", "admin", "manager", "cashier", "sales"],
-  online: ["owner", "admin"],
-  inventory: ["owner", "admin", "manager", "warehouse"],
-  charts: ["owner", "admin", "manager", "accountant", "viewer"],
-  purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
-  suppliers: ["owner", "admin", "manager", "warehouse", "accountant"],
-  activities: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "warehouse",
-    "accountant",
-    "viewer"
-  ],
-  documents: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "accountant",
-    "viewer"
-  ],
-  notes: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "warehouse",
-    "accountant",
-    "viewer"
-  ],
-  operations: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "warehouse",
-    "accountant"
-  ],
-  settings: ["owner", "admin"]
-};
-
 function localDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1091,6 +1037,7 @@ export function BusinessWorkspace({
   const [businessDescription, setBusinessDescription] = useState("");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
+  const [desktopMoreOpen, setDesktopMoreOpen] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
@@ -2218,9 +2165,27 @@ export function BusinessWorkspace({
   const visibleModules = useMemo(
     () =>
       modules.filter(({ id }) =>
-        demoMode ? true : moduleRoles[id].includes(memberRole)
+        canAccessModule(id, memberRole, demoMode)
       ),
     [demoMode, memberRole]
+  );
+
+  const primaryModuleIds = useMemo(
+    () =>
+      new Set(
+        primaryModulesForRole(memberRole, demoMode) as readonly ModuleId[]
+      ),
+    [demoMode, memberRole]
+  );
+
+  const primaryModules = useMemo(
+    () => visibleModules.filter(({ id }) => primaryModuleIds.has(id)),
+    [primaryModuleIds, visibleModules]
+  );
+
+  const secondaryModules = useMemo(
+    () => visibleModules.filter(({ id }) => !primaryModuleIds.has(id)),
+    [primaryModuleIds, visibleModules]
   );
 
   const visibleModuleIds = useMemo(
@@ -3245,26 +3210,73 @@ export function BusinessWorkspace({
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
-        <nav className="mt-8 space-y-1.5 overflow-y-auto pr-1">
-          {visibleModules.map(({ id, icon: Icon }) => {
-            const active = activeModule === id;
-            return (
+        <nav className="mt-8 overflow-y-auto pr-1">
+          <div className="space-y-1.5">
+            {primaryModules.map(({ id, icon: Icon }) => {
+              const active = activeModule === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setActiveModule(id)}
+                  className={
+                    "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
+                    (active
+                      ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
+                      : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
+                  }
+                >
+                  <Icon size={17} />
+                  {labels.nav[id]}
+                </button>
+              );
+            })}
+          </div>
+
+          {secondaryModules.length > 0 && (
+            <div className="mt-3 border-t border-[var(--apex-border)] pt-3">
               <button
-                key={id}
                 type="button"
-                onClick={() => setActiveModule(id)}
-                className={
-                  "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
-                  (active
-                    ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
-                    : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
-                }
+                onClick={() => setDesktopMoreOpen((value) => !value)}
+                className="flex min-h-10 w-full items-center justify-between rounded-xl px-3 text-xs font-semibold text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]"
               >
-                <Icon size={17} />
-                {labels.nav[id]}
+                <span>{labels.more}</span>
+                <span
+                  aria-hidden="true"
+                  className={
+                    "text-base transition-transform " +
+                    (desktopMoreOpen ? "rotate-45" : "")
+                  }
+                >
+                  +
+                </span>
               </button>
-            );
-          })}
+
+              {desktopMoreOpen && (
+                <div className="mt-1.5 space-y-1">
+                  {secondaryModules.map(({ id, icon: Icon }) => {
+                    const active = activeModule === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setActiveModule(id)}
+                        className={
+                          "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors " +
+                          (active
+                            ? "bg-[#8F0000]/12 text-[#8F0000]"
+                            : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
+                        }
+                      >
+                        <Icon size={15} />
+                        {labels.nav[id]}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
         </nav>
 
         <div className="mt-auto space-y-3 pt-4">
@@ -3494,6 +3506,7 @@ export function BusinessWorkspace({
                 locale={locale}
                 businessId={cloudBusinessId}
                 demoMode={demoMode}
+                memberRole={memberRole}
               >
                 <OperationsCenter
                   businessId={cloudBusinessId}
