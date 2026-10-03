@@ -7,7 +7,6 @@ import {
   MonitorSmartphone,
   ShieldCheck
 } from "lucide-react";
-import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { useMemo, useState } from "react";
 
@@ -45,7 +44,7 @@ const faqs: Array<{
     category: "start",
     q: "¿Tengo que configurar todo antes de empezar?",
     a:
-      "No. Podés empezar con lo esencial y sumar funciones a medida que las necesitás. La idea es que la aplicación crezca con la operación, no que te obligue a configurar módulos que todavía no usás."
+      "No. Podés empezar con lo esencial y sumar funciones a medida que las necesitás. La aplicación crece con la operación, sin obligarte a activar módulos que todavía no usás."
   },
   {
     category: "operation",
@@ -109,103 +108,89 @@ export function DownloadFAQ() {
 
   return (
     <section className="border-t border-[#211417] bg-[#080809] text-white">
-      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
-        <div>
+      <div className="mx-auto w-full max-w-[980px] px-5 py-20 sm:px-8 sm:py-28">
+        <div className="text-center">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
-            Ayuda
+            Preguntas frecuentes
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Antes de empezar.
+            Lo importante, claro.
           </h2>
-          <p className="mt-5 max-w-lg text-base leading-7 text-white/46">
-            Respuestas concretas sobre instalación, operación, conexiones y
-            acceso. Si necesitás algo más específico, podés ir directo a soporte.
+          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/44">
+            Respuestas rápidas sobre instalación, operación, conexiones y seguridad.
           </p>
-
-          <Link
-            href="/support"
-            className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition hover:text-white"
-          >
-            Ir a soporte
-            <span aria-hidden="true">→</span>
-          </Link>
         </div>
 
-        <div>
-          <div className="flex gap-6 overflow-x-auto border-b border-[#211417]">
+        <div className="mt-10 flex justify-center overflow-x-auto">
+          <div className="inline-flex min-w-max gap-1 rounded-[14px] bg-white/[0.025] p-1 ring-1 ring-[#2a191d]">
             {categories.map(({ id, label, icon: Icon }) => {
               const selected = category === id;
-
               return (
                 <button
                   key={id}
                   type="button"
                   onClick={() => chooseCategory(id)}
                   className={
-                    "relative inline-flex min-h-12 shrink-0 items-center gap-2 pb-3 text-sm font-semibold transition " +
-                    (selected ? "text-white" : "text-white/34 hover:text-white/62")
+                    "inline-flex min-h-10 items-center gap-2 rounded-[10px] px-4 text-sm font-semibold transition " +
+                    (selected
+                      ? "bg-[#19191c] text-white shadow-[0_8px_22px_rgba(0,0,0,.24)]"
+                      : "text-white/36 hover:bg-white/[0.04] hover:text-white/70")
                   }
                 >
-                  <Icon size={15} />
+                  <Icon size={14} />
                   {label}
-                  {selected && (
-                    <motion.span
-                      layoutId="faq-category"
-                      className="absolute inset-x-0 bottom-[-1px] h-px bg-[#ed4c5c]"
-                    />
-                  )}
                 </button>
               );
             })}
           </div>
+        </div>
 
-          <div>
-            {visible.map((item, index) => {
-              const open = openQuestion === item.q;
+        <div className="mt-8 overflow-hidden rounded-[26px] bg-[#111113] ring-1 ring-[#28181c]">
+          {visible.map((item, index) => {
+            const open = openQuestion === item.q;
 
-              return (
-                <div
-                  key={item.q}
-                  className={index > 0 ? "border-t border-[#211417]" : ""}
+            return (
+              <div
+                key={item.q}
+                className={index > 0 ? "border-t border-[#211417]" : ""}
+              >
+                <button
+                  type="button"
+                  onClick={() => setOpenQuestion(open ? "" : item.q)}
+                  className="flex w-full items-center justify-between gap-6 px-5 py-5 text-left sm:px-6"
+                  aria-expanded={open}
                 >
-                  <button
-                    type="button"
-                    onClick={() => setOpenQuestion(open ? "" : item.q)}
-                    className="flex w-full items-center justify-between gap-6 py-5 text-left"
-                    aria-expanded={open}
+                  <span className="text-base font-semibold leading-6 text-white/82 sm:text-lg">
+                    {item.q}
+                  </span>
+                  <span
+                    className={
+                      "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.035] text-white/38 transition " +
+                      (open ? "rotate-180 text-[#ed4c5c]" : "")
+                    }
                   >
-                    <span className="text-base font-semibold leading-6 text-white/82 sm:text-lg">
-                      {item.q}
-                    </span>
-                    <span
-                      className={
-                        "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-white/[0.035] text-white/38 transition " +
-                        (open ? "rotate-180 text-[#ed4c5c]" : "")
-                      }
-                    >
-                      <ChevronDown size={16} />
-                    </span>
-                  </button>
+                    <ChevronDown size={16} />
+                  </span>
+                </button>
 
-                  <AnimatePresence initial={false}>
-                    {open && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
-                        className="overflow-hidden"
-                      >
-                        <p className="max-w-3xl pb-6 pr-10 text-sm leading-7 text-white/44 sm:text-base">
-                          {item.a}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              );
-            })}
-          </div>
+                <AnimatePresence initial={false}>
+                  {open && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
+                      className="overflow-hidden"
+                    >
+                      <p className="max-w-3xl px-5 pb-6 pr-14 text-sm leading-7 text-white/44 sm:px-6 sm:text-base">
+                        {item.a}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
