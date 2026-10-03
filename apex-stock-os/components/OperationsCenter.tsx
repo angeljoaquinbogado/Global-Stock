@@ -464,6 +464,37 @@ export function OperationsCenter({
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
 
+    const canCash = canAccessOperationTab(
+      "cash",
+      memberRole,
+      demoMode
+    );
+    const canCustomers = canAccessOperationTab(
+      "customers",
+      memberRole,
+      demoMode
+    );
+    const canExpenses = canAccessOperationTab(
+      "expenses",
+      memberRole,
+      demoMode
+    );
+    const canLocations = canAccessOperationTab(
+      "locations",
+      memberRole,
+      demoMode
+    );
+    const canPurchases = canAccessOperationTab(
+      "purchases",
+      memberRole,
+      demoMode
+    );
+    const canTeam = canAccessOperationTab(
+      "team",
+      memberRole,
+      demoMode
+    );
+
     setLoading(true);
     try {
       const [
@@ -476,56 +507,72 @@ export function OperationsCenter({
         memberRes,
         inviteRes
       ] = await Promise.all([
-          supabase
-            .from("global_stock_cash_sessions")
-            .select("id,opening_amount,opened_at,status")
-            .eq("business_id", businessId)
-            .eq("status", "open")
-            .order("opened_at", { ascending: false })
-            .limit(1)
-            .maybeSingle(),
-          supabase
-            .from("global_stock_cash_movements")
-            .select("id,kind,amount,description,payment_method,created_at")
-            .eq("business_id", businessId)
-            .order("created_at", { ascending: false })
-            .limit(100),
-          supabase
-            .from("global_stock_customers")
-            .select("id,name,email,phone,account_balance,loyalty_points")
-            .eq("business_id", businessId)
-            .eq("active", true)
-            .order("created_at", { ascending: false })
-            .limit(200),
-          supabase
-            .from("global_stock_expenses")
-            .select("id,category,description,amount,payment_method,occurred_at")
-            .eq("business_id", businessId)
-            .order("occurred_at", { ascending: false })
-            .limit(200),
-          supabase
-            .from("global_stock_locations")
-            .select("id,name,kind,address")
-            .eq("business_id", businessId)
-            .eq("active", true)
-            .order("created_at", { ascending: true }),
-          supabase
-            .from("global_stock_purchase_orders")
-            .select("id,status,total,currency,created_at,notes,supplier_id")
-            .eq("business_id", businessId)
-            .order("created_at", { ascending: false })
-            .limit(100),
-          supabase
-            .from("global_stock_members")
-            .select("user_id,role,active,email")
-            .eq("business_id", businessId)
-            .order("created_at", { ascending: true }),
-          supabase
-            .from("global_stock_member_invites")
-            .select("id,email,role,status,expires_at")
-            .eq("business_id", businessId)
-            .order("created_at", { ascending: false })
-        ]);
+        canCash
+          ? supabase
+              .from("global_stock_cash_sessions")
+              .select("id,opening_amount,opened_at,status")
+              .eq("business_id", businessId)
+              .eq("status", "open")
+              .order("opened_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
+          : Promise.resolve({ data: null }),
+        canCash
+          ? supabase
+              .from("global_stock_cash_movements")
+              .select("id,kind,amount,description,payment_method,created_at")
+              .eq("business_id", businessId)
+              .order("created_at", { ascending: false })
+              .limit(100)
+          : Promise.resolve({ data: [] }),
+        canCustomers
+          ? supabase
+              .from("global_stock_customers")
+              .select("id,name,email,phone,account_balance,loyalty_points")
+              .eq("business_id", businessId)
+              .eq("active", true)
+              .order("created_at", { ascending: false })
+              .limit(200)
+          : Promise.resolve({ data: [] }),
+        canExpenses
+          ? supabase
+              .from("global_stock_expenses")
+              .select("id,category,description,amount,payment_method,occurred_at")
+              .eq("business_id", businessId)
+              .order("occurred_at", { ascending: false })
+              .limit(200)
+          : Promise.resolve({ data: [] }),
+        canLocations
+          ? supabase
+              .from("global_stock_locations")
+              .select("id,name,kind,address")
+              .eq("business_id", businessId)
+              .eq("active", true)
+              .order("created_at", { ascending: true })
+          : Promise.resolve({ data: [] }),
+        canPurchases
+          ? supabase
+              .from("global_stock_purchase_orders")
+              .select("id,status,total,currency,created_at,notes,supplier_id")
+              .eq("business_id", businessId)
+              .order("created_at", { ascending: false })
+              .limit(100)
+          : Promise.resolve({ data: [] }),
+        canTeam
+          ? supabase
+              .from("global_stock_members")
+              .select("user_id,role,active,email")
+              .eq("business_id", businessId)
+              .order("created_at", { ascending: true })
+          : Promise.resolve({ data: [] }),
+        canTeam
+          ? supabase
+              .from("global_stock_member_invites")
+              .select("id,email,role,status,expires_at")
+              .eq("business_id", businessId)
+              .order("created_at", { ascending: false })
+          : Promise.resolve({ data: [] })
+      ]);
 
       setCashSession((cashRes.data as CashSession | null) ?? null);
       setMovements((movementRes.data as CashMovement[] | null) ?? []);
