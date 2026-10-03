@@ -25,6 +25,8 @@ export type CloudWorkspaceState = {
   notes?: unknown[];
   fxHistory?: unknown[];
   fxMarket?: string;
+  businessSuite?: unknown;
+  smartDocuments?: unknown;
 };
 
 type EnsureBusinessInput = {
@@ -162,10 +164,26 @@ export async function saveCloudWorkspace(
 
   const now = Date.now();
 
+  const { data: existing } = await supabase
+    .from("global_stock_workspaces")
+    .select("state")
+    .eq("business_id", businessId)
+    .maybeSingle();
+
+  const currentState =
+    existing?.state && typeof existing.state === "object"
+      ? (existing.state as CloudWorkspaceState)
+      : {};
+
+  const mergedState: CloudWorkspaceState = {
+    ...currentState,
+    ...state
+  };
+
   const { error } = await supabase.from("global_stock_workspaces").upsert(
     {
       business_id: businessId,
-      state,
+      state: mergedState,
       revision: now,
       updated_by: session.user.id,
       updated_at: new Date(now).toISOString()
