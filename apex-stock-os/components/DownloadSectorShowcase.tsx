@@ -9,6 +9,7 @@ import {
   UtensilsCrossed,
   Warehouse
 } from "lucide-react";
+import { motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const sectors = [
@@ -96,6 +97,7 @@ const sectors = [
 
 export function DownloadSectorShowcase() {
   const [active, setActive] = useState("retail");
+  const reduceMotion = useReducedMotion();
   const current = sectors.find((item) => item.id === active) ?? sectors[0];
   const CurrentIcon = current.icon;
 
@@ -163,7 +165,14 @@ export function DownloadSectorShowcase() {
               })}
             </div>
 
-            <div
+            <motion.div
+              key={current.id}
+              initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{
+                duration: reduceMotion ? 0.1 : 0.2,
+                ease: [0.23, 1, 0.32, 1]
+              }}
               className="mt-4 overflow-hidden rounded-[30px] bg-[#111217] p-6 shadow-[0_24px_64px_rgba(0,0,0,.22)] sm:p-7"
               style={{
                 boxShadow:
@@ -195,7 +204,7 @@ export function DownloadSectorShowcase() {
                   </p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </div>

@@ -83,6 +83,25 @@ const routes: GlobeRoute[] = markers
   }));
 
 const ROUTE_SLOT_MS = 2650;
+const GLOBE_RADIUS = 0.8;
+const GLOBE_SCALE = 0.98;
+const MARKER_ELEVATION = 0.05;
+
+const cobeMarkers = markers.map((marker) => ({
+  id: marker.id,
+  location: marker.location,
+  size: marker.primary ? 0.055 : 0.038,
+  color: marker.primary
+    ? ([1, 0.13, 0.17] as [number, number, number])
+    : ([0.78, 0.05, 0.08] as [number, number, number])
+}));
+
+const cobeArcs = routes.map((route) => ({
+  id: route.id,
+  from: route.from,
+  to: route.to,
+  color: [0.92, 0.07, 0.11] as [number, number, number]
+}));
 
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
@@ -93,41 +112,56 @@ function easeOutCubic(value: number) {
   return 1 - Math.pow(1 - t, 3);
 }
 
+function latLonTo3D([lat, lon]: Location): [number, number, number] {
+  const latRad = (lat * Math.PI) / 180;
+  const lonRad = (lon * Math.PI) / 180 - Math.PI;
+  const cosLat = Math.cos(latRad);
+
+  return [
+    -cosLat * Math.cos(lonRad),
+    Math.sin(latRad),
+    cosLat * Math.sin(lonRad)
+  ];
+}
+
 function projectLocation(
-  [lat, lon]: Location,
+  location: Location,
   phi: number,
   theta: number,
   width: number,
   height: number
 ): ScreenPoint {
-  const latitude = (lat * Math.PI) / 180;
-  const longitude = (lon * Math.PI) / 180;
-  const relativeLongitude = longitude - phi;
+  const source = latLonTo3D(location);
+  const radius = GLOBE_RADIUS + MARKER_ELEVATION;
+  const px = source[0] * radius;
+  const py = source[1] * radius;
+  const pz = source[2] * radius;
 
-  const cosLat = Math.cos(latitude);
-  const x = cosLat * Math.sin(relativeLongitude);
-  const y = Math.sin(latitude);
-  const z = cosLat * Math.cos(relativeLongitude);
+  const cx = Math.cos(theta);
+  const sx = Math.sin(theta);
+  const cy = Math.cos(phi);
+  const sy = Math.sin(phi);
 
-  const cosTheta = Math.cos(theta);
-  const sinTheta = Math.sin(theta);
-  const tiltedY = y * cosTheta - z * sinTheta;
-  const tiltedZ = y * sinTheta + z * cosTheta;
+  const rx = cy * px + sy * pz;
+  const ry = sy * sx * px + cx * py - cy * sx * pz;
+  const rz = -sy * cx * px + sx * py + cy * cx * pz;
 
-  const radius = Math.min(width, height) * 0.468;
-  const screenX = width / 2 + x * radius;
-  const screenY = height / 2 - tiltedY * radius;
+  const aspect = width / Math.max(height, 1);
+  const normalizedX = ((rx / aspect) * GLOBE_SCALE + 1) / 2;
+  const normalizedY = (-ry * GLOBE_SCALE + 1) / 2;
+  const screenX = normalizedX * width;
+  const screenY = normalizedY * height;
 
   return {
     x: screenX,
     y: screenY,
-    depth: tiltedZ,
+    depth: rz,
     visible:
-      tiltedZ > 0.085 &&
-      screenX > 18 &&
-      screenX < width - 18 &&
-      screenY > 18 &&
-      screenY < height - 18
+      (rz >= 0 || rx * rx + ry * ry >= GLOBE_RADIUS * GLOBE_RADIUS) &&
+      screenX > -24 &&
+      screenX < width + 24 &&
+      screenY > -24 &&
+      screenY < height + 24
   };
 }
 
@@ -334,9 +368,15 @@ export function GlobalStockGlobe() {
         markerColor: [0.12, 0.018, 0.022],
         glowColor: [0.28, 0.015, 0.022],
         opacity: 0.95,
-        scale: 0.98,
+        scale: GLOBE_SCALE,
         offset: [0, 0],
-        markers: []
+        markerElevation: MARKER_ELEVATION,
+        markerColor: [0.86, 0.04, 0.08],
+        markers: cobeMarkers,
+        arcs: cobeArcs,
+        arcColor: [0.92, 0.07, 0.11],
+        arcWidth: 1.2,
+        arcHeight: 0.16
       } as never
     ) as unknown as CobeGlobeHandle;
 
@@ -524,7 +564,7 @@ export function GlobalStockGlobe() {
       />
 
       <svg
-        className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-visible"
+        className="hidden"
         aria-hidden="true"
       >
         <defs>

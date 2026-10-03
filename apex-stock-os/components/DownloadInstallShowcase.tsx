@@ -94,7 +94,7 @@ function PlatformTabs({
 }) {
   return (
     <div
-      className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1 overflow-x-auto rounded-[16px] bg-[#0d0e12] p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.24)]"
+      className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1 overflow-x-auto rounded-[16px] bg-white p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.24)] ring-1 ring-black/10"
       role="tablist"
       aria-label="Plataforma"
     >
@@ -109,20 +109,20 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-11 min-w-[104px] shrink-0 items-center justify-center gap-2 rounded-[11px] px-3 text-[12px] font-semibold outline-none transition-[background-color,color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[116px] " +
+              "flex min-h-11 min-w-[104px] shrink-0 items-center justify-center gap-2 rounded-[11px] px-3 text-[12px] font-semibold text-[#111114] outline-none transition-[background-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[116px] " +
               (selected
-                ? "bg-[#202126] text-white shadow-[0_6px_18px_rgba(0,0,0,.30)]"
-                : "text-white/72 hover:bg-white/[0.04] hover:text-white")
+                ? "bg-[#eef0f3] shadow-[0_4px_12px_rgba(0,0,0,.12)]"
+                : "hover:bg-black/[0.035]")
             }
           >
             <img
               src={logoSrc}
               alt=""
-              className="h-[17px] w-[17px] shrink-0 object-contain"
+              className={id === "android" ? "h-5 w-5 shrink-0 object-contain" : "h-[17px] w-[17px] shrink-0 object-contain"}
               aria-hidden="true"
               draggable={false}
             />
-            <span className="text-white">{label}</span>
+            <span>{label}</span>
           </button>
         );
       })}
