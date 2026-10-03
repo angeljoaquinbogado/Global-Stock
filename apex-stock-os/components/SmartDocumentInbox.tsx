@@ -10,6 +10,10 @@ import {
 } from "lucide-react";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { DocumentsHub } from "./BusinessOperations";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -81,23 +85,58 @@ export function SmartDocumentInbox({
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as SmartDocument[];
-        if (Array.isArray(parsed)) setDocuments(parsed);
+    let cancelled = false;
+
+    async function hydrate() {
+      let nextDocuments: SmartDocument[] = [];
+
+      try {
+        const raw = window.localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as SmartDocument[];
+          if (Array.isArray(parsed)) nextDocuments = parsed;
+        }
+      } catch {
+        nextDocuments = [];
       }
-    } catch {
-      setDocuments([]);
-    } finally {
-      setReady(true);
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        const cloudDocuments = cloud?.state.smartDocuments;
+        if (Array.isArray(cloudDocuments)) {
+          nextDocuments = cloudDocuments as SmartDocument[];
+        }
+      }
+
+      if (!cancelled) {
+        setDocuments(nextDocuments);
+        setReady(true);
+      }
     }
-  }, []);
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!ready) return;
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(documents.slice(0, 250)));
-  }, [documents, ready]);
+
+    const saved = documents.slice(0, 250);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(saved));
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        smartDocuments: saved
+      });
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, documents, ready]);
 
   async function scanFile(file: File) {
     setMessage("");
