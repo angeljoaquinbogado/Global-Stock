@@ -6,13 +6,14 @@ import {
   CheckCircle2,
   CircleDollarSign,
   Clock3,
+  FileUp,
   Landmark,
   Plus,
   Target,
   UsersRound,
   WalletCards
 } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ChangeEvent, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 import {
@@ -125,6 +126,18 @@ function tr(
 
 function today() {
   return new Date().toISOString().slice(0, 10);
+}
+
+function parseStatementNumber(value: string) {
+  const normalized = value
+    .trim()
+    .replace(/\s/g, "")
+    .replace(/\.(?=\d{3}(?:\D|$))/g, "")
+    .replace(",", ".")
+    .replace(/[^0-9+\-.]/g, "");
+
+  const number = Number(normalized);
+  return Number.isFinite(number) ? number : 0;
 }
 
 export function BusinessSuite({
@@ -304,6 +317,94 @@ export function BusinessSuite({
     }));
     setMovementDescription("");
     setMovementAmount("");
+  }
+
+  async function importBankCsv(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !movementAccount) return;
+
+    const text = await file.text();
+    const rows = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+
+    if (rows.length < 2) return;
+
+    const separator =
+      (rows[0].match(/;/g)?.length ?? 0) >
+      (rows[0].match(/,/g)?.length ?? 0)
+        ? ";"
+        : ",";
+
+    const split = (line: string) =>
+      line
+        .split(separator)
+        .map((cell) => cell.trim().replace(/^"|"$/g, ""));
+
+    const headers = split(rows[0]).map((cell) =>
+      cell.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    );
+
+    const findIndex = (candidates: string[]) =>
+      headers.findIndex((header) =>
+        candidates.some((candidate) => header.includes(candidate))
+      );
+
+    const dateIndex = findIndex(["fecha", "date"]);
+    const descriptionIndex = findIndex([
+      "descripcion",
+      "description",
+      "detalle",
+      "concepto",
+      "memo"
+    ]);
+    const amountIndex = findIndex(["importe", "amount", "monto", "valor"]);
+
+    const imported: FinanceMovement[] = rows
+      .slice(1)
+      .map((line) => {
+        const cells = split(line);
+        const rawAmount =
+          cells[amountIndex >= 0 ? amountIndex : 2] ?? "";
+        const amount = parseStatementNumber(rawAmount);
+        if (!amount) return null;
+
+        const rawDate = cells[dateIndex >= 0 ? dateIndex : 0] ?? today();
+        const parsedDate =
+          /^\d{4}-\d{2}-\d{2}$/.test(rawDate)
+            ? rawDate
+            : (() => {
+                const match = rawDate.match(/(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})/);
+                if (!match) return today();
+                const year =
+                  match[3].length === 2 ? "20" + match[3] : match[3];
+                return `${year}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+              })();
+
+        return {
+          id: crypto.randomUUID(),
+          accountId: movementAccount,
+          date: parsedDate,
+          description:
+            cells[descriptionIndex >= 0 ? descriptionIndex : 1] ||
+            "Movimiento bancario",
+          amount,
+          status: "pending" as const
+        };
+      })
+      .filter(Boolean) as FinanceMovement[];
+
+    if (!imported.length) return;
+
+    setState((current) => ({
+      ...current,
+      financeMovements: [
+        ...imported,
+        ...current.financeMovements
+      ]
+    }));
   }
 
   function reconcileMovement(id: string) {
@@ -581,6 +682,21 @@ export function BusinessSuite({
                   <button type="button" onClick={addMovement} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-[#8F0000] text-white"><Plus size={16} /></button>
                 </div>
               </div>
+
+              <label className={"mt-3 inline-flex min-h-10 items-center gap-2 rounded-xl border border-[var(--apex-border)] px-3 text-xs font-semibold " + (!movementAccount ? "pointer-events-none opacity-45" : "cursor-pointer")}>
+                <FileUp size={14} />
+                {tr(language, {
+                  es: "Importar extracto CSV",
+                  en: "Import bank CSV"
+                })}
+                <input
+                  type="file"
+                  accept=".csv,text/csv"
+                  className="hidden"
+                  onChange={importBankCsv}
+                  disabled={!movementAccount}
+                />
+              </label>
 
               <div className="mt-4 divide-y divide-[var(--apex-border)] overflow-hidden rounded-2xl border border-[var(--apex-border)]">
                 {state.financeMovements.length ? state.financeMovements.map((movement) => (
