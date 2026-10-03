@@ -3,7 +3,6 @@ import {
   Boxes,
   BrainCircuit,
   CircleDollarSign,
-  Cloud,
   FileText,
   PackagePlus,
   ShieldCheck,
@@ -12,128 +11,119 @@ import {
   Truck,
   UsersRound
 } from "lucide-react";
+import Link from "next/link";
 
 const groups = [
   {
-    eyebrow: "Operación",
-    title: "Vendé y mové stock sin cambiar de sistema.",
+    number: "01",
+    title: "Ventas e inventario",
     body:
-      "Todo lo que pasa en el mostrador impacta en inventario, caja y actividad.",
+      "Vendé, cobrá y actualizá existencias sin duplicar movimientos ni saltar entre herramientas.",
     icon: ShoppingCart,
-    accent: "#ff4d57",
-    surface: "rgba(255,77,87,.10)",
-    features: [
-      { icon: ShoppingCart, label: "Punto de venta" },
-      { icon: Boxes, label: "Inventario" },
-      { icon: ShieldCheck, label: "Pagos y permisos" }
-    ]
+    items: ["Punto de venta", "Stock y códigos", "Historial de actividad"]
   },
   {
-    eyebrow: "Abastecimiento",
-    title: "Compras, proveedores y reposición en una sola vista.",
+    number: "02",
+    title: "Compras y abastecimiento",
     body:
-      "Detectá faltantes, priorizá compras y seguí de dónde viene cada producto.",
+      "Detectá faltantes, ordená reposición y mantené proveedores y compras conectados con el inventario.",
     icon: PackagePlus,
-    accent: "#f7b955",
-    surface: "rgba(247,185,85,.10)",
-    features: [
-      { icon: PackagePlus, label: "Reposición inteligente" },
-      { icon: Truck, label: "Proveedores" },
-      { icon: Cloud, label: "Tienda online" }
-    ]
+    items: ["Reposición", "Proveedores", "Compras y ubicaciones"]
   },
   {
-    eyebrow: "Gestión",
-    title: "Clientes, documentos, finanzas y equipo conectados.",
+    number: "03",
+    title: "Gestión del negocio",
     body:
-      "La operación no termina en el stock: Global Stock también ordena el trabajo del negocio.",
+      "Clientes, documentos, finanzas, proyectos y equipo trabajan sobre la misma operación.",
     icon: CircleDollarSign,
-    accent: "#7aa2ff",
-    surface: "rgba(122,162,255,.10)",
-    features: [
-      { icon: Target, label: "CRM y proyectos" },
-      { icon: FileText, label: "Comprobantes y agenda" },
-      { icon: UsersRound, label: "Equipo y sucursales" }
-    ]
+    items: ["CRM y clientes", "Finanzas y documentos", "Equipo y sucursales"]
   },
   {
-    eyebrow: "Decisiones",
-    title: "Entendé qué está pasando antes de actuar.",
+    number: "04",
+    title: "Análisis e inteligencia",
     body:
-      "Gráficos, márgenes, salud de stock e inteligencia operativa con contexto del negocio.",
+      "Leé márgenes, tendencias y salud del stock con una IA que entiende el contexto disponible del negocio.",
     icon: BrainCircuit,
-    accent: "#b28cff",
-    surface: "rgba(178,140,255,.10)",
-    features: [
-      { icon: BarChart3, label: "Analítica" },
-      { icon: BrainCircuit, label: "Global Intelligence" },
-      { icon: ShieldCheck, label: "Roles y control" }
-    ]
+    items: ["Gráficos", "Global Intelligence", "Roles y control"]
   }
 ];
 
+const supportingIcons = [Boxes, Truck, Target, FileText, BarChart3, UsersRound, ShieldCheck];
+
 export function DownloadFeatureCatalog() {
   return (
-    <section className="border-t border-[#24171a] bg-[#08080a] text-white">
-      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
+    <section className="border-t border-[#211417] bg-[#080809] text-white">
+      <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.72fr_1.28fr] lg:gap-20">
+        <div className="lg:sticky lg:top-28 lg:self-start">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ed4c5c]">
             Funcionalidades
           </p>
-          <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Mucho más que stock.
+          <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+            Todo el negocio.
+            <span className="block text-white/34">Bien agrupado.</span>
           </h2>
-          <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-white/52 sm:text-lg">
-            En vez de mostrarte veinte controles juntos, agrupamos todo por el
-            trabajo que realmente hacés durante el día.
+          <p className="mt-5 max-w-lg text-base leading-7 text-white/46">
+            Las herramientas se organizan por trabajo real: vender, abastecer,
+            gestionar y decidir. Sin llenar la pantalla de módulos que compiten
+            por atención.
           </p>
+
+          <Link
+            href="/"
+            className="mt-7 inline-flex items-center gap-2 text-sm font-semibold text-white/72 transition hover:text-white"
+          >
+            Explorar la aplicación
+            <span aria-hidden="true">→</span>
+          </Link>
+
+          <div className="mt-10 flex max-w-sm flex-wrap gap-2">
+            {supportingIcons.map((Icon, index) => (
+              <span
+                key={index}
+                className="grid h-9 w-9 place-items-center rounded-xl bg-white/[0.035] text-white/30"
+              >
+                <Icon size={15} />
+              </span>
+            ))}
+          </div>
         </div>
 
-        <div className="mt-12 grid gap-5 lg:grid-cols-2">
-          {groups.map(({ eyebrow, title, body, icon: Icon, accent, surface, features }) => (
+        <div>
+          {groups.map(({ number, title, body, icon: Icon, items }, index) => (
             <article
               key={title}
-              className="relative overflow-hidden rounded-[30px] border border-[#2b1b1e] bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-8"
+              className={
+                "grid gap-5 py-8 sm:grid-cols-[56px_1fr] sm:gap-6 " +
+                (index === 0 ? "pt-0" : "border-t border-[#211417]")
+              }
             >
-              <div
-                className="absolute right-[-10%] top-[-22%] h-52 w-52 rounded-full blur-3xl"
-                style={{ background: surface }}
-              />
+              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#c91527]/10 text-[#f05b69]">
+                <Icon size={20} />
+              </span>
 
-              <div className="relative">
-                <span
-                  className="grid h-11 w-11 place-items-center rounded-2xl"
-                  style={{ background: surface, color: accent }}
-                >
-                  <Icon size={20} />
-                </span>
+              <div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-bold tracking-[.16em] text-[#ed4c5c]">
+                    {number}
+                  </span>
+                  <h3 className="text-2xl font-semibold tracking-[-.04em] sm:text-3xl">
+                    {title}
+                  </h3>
+                </div>
 
-                <p
-                  className="mt-6 text-[11px] font-bold uppercase tracking-[.14em]"
-                  style={{ color: accent }}
-                >
-                  {eyebrow}
-                </p>
-
-                <h3 className="mt-3 max-w-xl text-2xl font-semibold leading-[1.04] tracking-[-.04em] sm:text-3xl">
-                  {title}
-                </h3>
-
-                <p className="mt-4 max-w-xl text-sm leading-6 text-white/48">
+                <p className="mt-3 max-w-2xl text-sm leading-6 text-white/44 sm:text-base sm:leading-7">
                   {body}
                 </p>
 
-                <div className="mt-7 grid gap-2 sm:grid-cols-3">
-                  {features.map(({ icon: FeatureIcon, label }) => (
-                    <div
-                      key={label}
-                      className="flex min-h-20 flex-col justify-between rounded-2xl border border-[#25191b] bg-black/20 p-3.5"
+                <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2">
+                  {items.map((item) => (
+                    <span
+                      key={item}
+                      className="inline-flex items-center gap-2 text-xs font-medium text-white/54"
                     >
-                      <FeatureIcon size={16} className="text-white/38" />
-                      <p className="mt-4 text-xs font-semibold leading-5 text-white/70">
-                        {label}
-                      </p>
-                    </div>
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#c91527]" />
+                      {item}
+                    </span>
                   ))}
                 </div>
               </div>
