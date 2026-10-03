@@ -2228,6 +2228,12 @@ export function BusinessWorkspace({
   const canEditGlobalPreferences =
     demoMode || ["owner", "admin"].includes(memberRole);
 
+  const canViewFinancials =
+    demoMode ||
+    ["owner", "admin", "manager", "accountant"].includes(memberRole);
+
+  const inventoryReadOnly = !demoMode && memberRole === "viewer";
+
   const recipesByProduct = useMemo(() => {
     const map = new Map<string, RecipeComponent[]>();
 
@@ -3372,10 +3378,16 @@ export function BusinessWorkspace({
                 locale={locale}
                 setActiveModule={setActiveModule}
                 canOpenModule={(id) => visibleModuleIds.has(id)}
+                showFinancials={canViewFinancials}
                 recentActivities={activities.slice(0, 4)}
                 todayNotes={todayNotes}
                 activityText={(activity) =>
-                  describeActivity(activity, labels, money)
+                  describeActivity(
+                    activity,
+                    labels,
+                    money,
+                    canViewFinancials
+                  )
                 }
               />
             )}
@@ -3429,6 +3441,7 @@ export function BusinessWorkspace({
                 updateSupplier={updateSupplier}
                 updateBarcode={updateBarcode}
                 integrateScannedProduct={integrateScannedProduct}
+                readOnly={inventoryReadOnly}
               />
             )}
 
@@ -3472,7 +3485,12 @@ export function BusinessWorkspace({
                 activities={activities}
                 locale={locale}
                 activityText={(activity) =>
-                  describeActivity(activity, labels, money)
+                  describeActivity(
+                    activity,
+                    labels,
+                    money,
+                    canViewFinancials
+                  )
                 }
               />
             )}
@@ -3778,6 +3796,7 @@ function OverviewModule({
   locale,
   setActiveModule,
   canOpenModule,
+  showFinancials,
   recentActivities,
   todayNotes,
   activityText
@@ -3795,6 +3814,7 @@ function OverviewModule({
   locale: string;
   setActiveModule: (id: ModuleId) => void;
   canOpenModule: (id: ModuleId) => boolean;
+  showFinancials: boolean;
   recentActivities: ActivityRecord[];
   todayNotes: BusinessNote[];
   activityText: (activity: ActivityRecord) => string;
@@ -3806,22 +3826,34 @@ function OverviewModule({
         subtitle={labels.overviewSubtitle}
       />
 
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Kpi
-          label={labels.revenue}
-          value={money(metrics.revenue)}
-          icon={<CircleDollarSign size={18} />}
-        />
-        <Kpi
-          label={labels.inventoryCost}
-          value={money(metrics.inventoryCost)}
-          icon={<Boxes size={18} />}
-        />
-        <Kpi
-          label={labels.grossProfit}
-          value={money(metrics.grossProfit)}
-          icon={<BarChart3 size={18} />}
-        />
+      <section className={"grid grid-cols-2 gap-3 " + (showFinancials ? "xl:grid-cols-4" : "xl:max-w-2xl")}>
+        {showFinancials && (
+          <>
+            <Kpi
+              label={labels.revenue}
+              value={money(metrics.revenue)}
+              icon={<CircleDollarSign size={18} />}
+            />
+            <Kpi
+              label={labels.inventoryCost}
+              value={money(metrics.inventoryCost)}
+              icon={<Boxes size={18} />}
+            />
+            <Kpi
+              label={labels.grossProfit}
+              value={money(metrics.grossProfit)}
+              icon={<BarChart3 size={18} />}
+            />
+          </>
+        )}
+        {!showFinancials && (
+          <Kpi
+            label={labels.stock}
+            value={String(metrics.inventoryUnits)}
+            detail={labels.units}
+            icon={<Boxes size={18} />}
+          />
+        )}
         <Kpi
           label={labels.criticalStock}
           value={String(
@@ -3832,7 +3864,8 @@ function OverviewModule({
         />
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[1.25fr_.75fr]">
+      <section className={"grid gap-4 " + (showFinancials ? "xl:grid-cols-[1.25fr_.75fr]" : "xl:grid-cols-2")}>
+        {showFinancials && (
         <div className="apex-card p-5 sm:p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -3915,6 +3948,7 @@ function OverviewModule({
             </ResponsiveContainer>
           </div>
         </div>
+        )}
 
         <div className="grid gap-4">
           <section className="apex-card p-5">
@@ -4659,7 +4693,8 @@ function InventoryModule({
   updateMinStock,
   updateSupplier,
   updateBarcode,
-  integrateScannedProduct
+  integrateScannedProduct,
+  readOnly
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -4672,6 +4707,7 @@ function InventoryModule({
   updateSupplier: (id: string, supplier: string) => void;
   updateBarcode: (id: string, barcode: string) => void;
   integrateScannedProduct: (product: Product) => void;
+  readOnly: boolean;
 }) {
   return (
     <div className="space-y-5">
@@ -4689,8 +4725,12 @@ function InventoryModule({
                 <th className="px-5 py-4">{labels.product}</th>
                 <th className="px-4 py-4">{labels.category}</th>
                 <th className="px-4 py-4">{labels.supplier}</th>
-                <th className="px-4 py-4">{labels.cost}</th>
-                <th className="px-4 py-4">{labels.price}</th>
+                {!readOnly && (
+                  <>
+                    <th className="px-4 py-4">{labels.cost}</th>
+                    <th className="px-4 py-4">{labels.price}</th>
+                  </>
+                )}
                 <th className="px-4 py-4">{labels.stock}</th>
                 <th className="px-4 py-4">
                   {language === "es"
@@ -4726,74 +4766,94 @@ function InventoryModule({
                       {product.category}
                     </td>
                     <td className="px-4 py-4">
-                      <input
-                        value={product.supplier}
-                        onChange={(event) =>
-                          updateSupplier(product.id, event.target.value)
-                        }
-                        placeholder="—"
-                        className="apex-input w-36 px-3 py-2 text-xs"
-                      />
+                      {readOnly ? (
+                        <span className="text-xs text-[var(--apex-muted)]">
+                          {product.supplier || "—"}
+                        </span>
+                      ) : (
+                        <input
+                          value={product.supplier}
+                          onChange={(event) =>
+                            updateSupplier(product.id, event.target.value)
+                          }
+                          placeholder="—"
+                          className="apex-input w-36 px-3 py-2 text-xs"
+                        />
+                      )}
+                    </td>
+                    {!readOnly && (
+                      <>
+                        <td className="px-4 py-4">
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={
+                              product.costKnown === false
+                                ? ""
+                                : product.cost
+                            }
+                            onChange={(event) =>
+                              updateCost(product.id, event.target.value)
+                            }
+                            placeholder="—"
+                            className="apex-input w-28 px-3 py-2 text-xs"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={product.originalPrice ?? product.price}
+                            onChange={(event) =>
+                              updatePrice(
+                                product.id,
+                                Number(event.target.value)
+                              )
+                            }
+                            className="apex-input w-28 px-3 py-2 text-xs"
+                          />
+                        </td>
+                      </>
+                    )}
+                    <td className="px-4 py-4">
+                      {readOnly ? (
+                        <span className="text-sm font-semibold">
+                          {product.stock}
+                        </span>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={product.stock}
+                          onChange={(event) =>
+                            updateStock(
+                              product.id,
+                              Number(event.target.value)
+                            )
+                          }
+                          className="apex-input w-20 px-3 py-2 text-xs"
+                        />
+                      )}
                     </td>
                     <td className="px-4 py-4">
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={
-                          product.costKnown === false
-                            ? ""
-                            : product.cost
-                        }
-                        onChange={(event) =>
-                          updateCost(product.id, event.target.value)
-                        }
-                        placeholder="—"
-                        className="apex-input w-28 px-3 py-2 text-xs"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <input
-                        type="number"
-                        min={0}
-                        step="0.01"
-                        value={product.originalPrice ?? product.price}
-                        onChange={(event) =>
-                          updatePrice(
-                            product.id,
-                            Number(event.target.value)
-                          )
-                        }
-                        className="apex-input w-28 px-3 py-2 text-xs"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <input
-                        type="number"
-                        min={0}
-                        value={product.stock}
-                        onChange={(event) =>
-                          updateStock(
-                            product.id,
-                            Number(event.target.value)
-                          )
-                        }
-                        className="apex-input w-20 px-3 py-2 text-xs"
-                      />
-                    </td>
-                    <td className="px-4 py-4">
-                      <input
-                        type="number"
-                        min={0}
-                        value={product.minStock}
-                        onChange={(event) =>
-                          updateMinStock(
-                            product.id,
-                            Number(event.target.value)
-                          )
-                        }
-                        className="apex-input w-20 px-3 py-2 text-xs"
-                      />
+                      {readOnly ? (
+                        <span className="text-sm">{product.minStock}</span>
+                      ) : (
+                        <input
+                          type="number"
+                          min={0}
+                          value={product.minStock}
+                          onChange={(event) =>
+                            updateMinStock(
+                              product.id,
+                              Number(event.target.value)
+                            )
+                          }
+                          className="apex-input w-20 px-3 py-2 text-xs"
+                        />
+                      )}
                     </td>
                     <td className="px-4 py-4">
                       <span
@@ -4821,17 +4881,21 @@ function InventoryModule({
         </div>
       </section>
 
-      <BarcodeLabelStudio
-        language={language}
-        products={products}
-        money={money}
-        onAssignBarcode={updateBarcode}
-      />
+      {!readOnly && (
+        <>
+          <BarcodeLabelStudio
+            language={language}
+            products={products}
+            money={money}
+            onAssignBarcode={updateBarcode}
+          />
 
-      <BarcodeScanner
-        onProduct={integrateScannedProduct}
-        language={language}
-      />
+          <BarcodeScanner
+            onProduct={integrateScannedProduct}
+            language={language}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -5272,10 +5336,13 @@ function SettingsModule({
 function describeActivity(
   activity: ActivityRecord,
   labels: (typeof copy)[LanguageCode],
-  money: (value: number) => string
+  money: (value: number) => string,
+  includeMoney = true
 ) {
   if (activity.kind === "sale") {
-    return `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units} · ${money(activity.total ?? 0)}`;
+    return includeMoney
+      ? `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units} · ${money(activity.total ?? 0)}`
+      : `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units}`;
   }
   if (activity.kind === "restock") {
     return `${labels.restockActivity} · ${activity.product ?? ""} · +${activity.units ?? 0}`;
