@@ -45,14 +45,59 @@ export function DownloadScrollNavigator() {
       setActiveIndex(best);
     };
 
+    const desktopOnly = () =>
+      window.matchMedia("(min-width: 1024px)").matches;
+
+    const blockManualWheel = (event: WheelEvent) => {
+      if (!desktopOnly()) return;
+      event.preventDefault();
+    };
+
+    const blockManualKeyboardScroll = (event: KeyboardEvent) => {
+      if (!desktopOnly()) return;
+
+      const target = event.target;
+      if (
+        target instanceof HTMLInputElement ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLElement && target.isContentEditable)
+      ) {
+        return;
+      }
+
+      if (
+        [
+          "ArrowUp",
+          "ArrowDown",
+          "PageUp",
+          "PageDown",
+          "Home",
+          "End",
+          " "
+        ].includes(event.key)
+      ) {
+        event.preventDefault();
+      }
+    };
+
+    document.documentElement.classList.add("gs-download-arrow-scroll");
+    document.body.classList.add("gs-download-arrow-scroll");
+
     const frame = window.requestAnimationFrame(update);
     window.addEventListener("scroll", update, { passive: true });
     window.addEventListener("resize", update);
+    window.addEventListener("wheel", blockManualWheel, { passive: false });
+    window.addEventListener("keydown", blockManualKeyboardScroll);
 
     return () => {
+      document.documentElement.classList.remove("gs-download-arrow-scroll");
+      document.body.classList.remove("gs-download-arrow-scroll");
       window.cancelAnimationFrame(frame);
       window.removeEventListener("scroll", update);
       window.removeEventListener("resize", update);
+      window.removeEventListener("wheel", blockManualWheel);
+      window.removeEventListener("keydown", blockManualKeyboardScroll);
     };
   }, []);
 
