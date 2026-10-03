@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { canAccessOperationTab } from "@/lib/access-control";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AdvancedOperations } from "./AdvancedOperations";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -385,23 +386,6 @@ const tabs: Array<{ id: Tab; icon: typeof Store }> = [
   { id: "advanced", icon: Settings2 }
 ];
 
-const tabRoles: Record<Tab, string[]> = {
-  cash: ["owner", "admin", "manager", "cashier", "accountant"],
-  customers: [
-    "owner",
-    "admin",
-    "manager",
-    "cashier",
-    "sales",
-    "accountant"
-  ],
-  expenses: ["owner", "admin", "manager", "accountant"],
-  locations: ["owner", "admin", "manager", "warehouse"],
-  purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
-  team: ["owner", "admin"],
-  advanced: ["owner", "admin", "manager"]
-};
-
 export function OperationsCenter({
   businessId,
   language,
@@ -452,7 +436,7 @@ export function OperationsCenter({
   const visibleTabs = useMemo(
     () =>
       tabs.filter(({ id }) =>
-        demoMode ? true : tabRoles[id].includes(memberRole)
+        canAccessOperationTab(id, memberRole, demoMode)
       ),
     [demoMode, memberRole]
   );
