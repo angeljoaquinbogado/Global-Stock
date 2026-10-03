@@ -1,12 +1,9 @@
 "use client";
 
 import {
-  Apple,
-  Bot,
   Check,
   Download,
-  Laptop,
-  Monitor
+  Laptop
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -27,7 +24,8 @@ const platforms: Array<{
   label: string;
   shortLabel: string;
   eyebrow: string;
-  icon: typeof Monitor;
+  icon?: typeof Laptop;
+  logoSrc?: string;
   accent: string;
   surface: string;
 }> = [
@@ -36,8 +34,8 @@ const platforms: Array<{
     label: "Navegador",
     shortLabel: "Navegador",
     eyebrow: "Disponible ahora",
-    icon: Monitor,
-    accent: "#3b82f6",
+    logoSrc: "/platforms/windows.svg",
+    accent: "#00adef",
     surface: "rgba(59,130,246,.10)"
   },
   {
@@ -45,7 +43,7 @@ const platforms: Array<{
     label: "iOS",
     shortLabel: "iOS",
     eyebrow: "Safari",
-    icon: Apple,
+    logoSrc: "/platforms/apple.svg",
     accent: "#111827",
     surface: "rgba(17,24,39,.08)"
   },
@@ -54,8 +52,8 @@ const platforms: Array<{
     label: "Android",
     shortLabel: "Android",
     eyebrow: "Chrome",
-    icon: Bot,
-    accent: "#22c55e",
+    logoSrc: "/platforms/android.svg",
+    accent: "#a4c639",
     surface: "rgba(34,197,94,.10)"
   },
   {
@@ -137,7 +135,7 @@ function PlatformTabs({
       role="tablist"
       aria-label="Plataforma"
     >
-      {platforms.map(({ id, shortLabel, icon: Icon, accent }) => {
+      {platforms.map(({ id, shortLabel, icon: Icon, logoSrc, accent }) => {
         const selected = active === id;
         return (
           <button
@@ -153,11 +151,20 @@ function PlatformTabs({
                 : "text-[#5e6675] hover:bg-white/70 hover:text-[#172033]")
             }
           >
-            <Icon
-              size={15}
-              strokeWidth={selected ? 2.2 : 1.9}
-              style={{ color: id === "iphone" ? "#111827" : accent }}
-            />
+            {logoSrc ? (
+              <img
+                src={logoSrc}
+                alt=""
+                className="h-[15px] w-[15px] object-contain"
+                aria-hidden="true"
+              />
+            ) : Icon ? (
+              <Icon
+                size={15}
+                strokeWidth={selected ? 2.2 : 1.9}
+                style={{ color: accent }}
+              />
+            ) : null}
             <span>{shortLabel}</span>
           </button>
         );
@@ -266,7 +273,16 @@ export function DownloadInstallShowcase({
                     : current.surface
               }}
             >
-              <CurrentIcon size={13} />
+              {current.logoSrc ? (
+                <img
+                  src={current.logoSrc}
+                  alt=""
+                  className="h-[13px] w-[13px] object-contain"
+                  aria-hidden="true"
+                />
+              ) : CurrentIcon ? (
+                <CurrentIcon size={13} />
+              ) : null}
               {current.eyebrow}
             </span>
 
