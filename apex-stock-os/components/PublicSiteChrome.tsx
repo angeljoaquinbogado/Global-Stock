@@ -1,36 +1,15 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { Logo } from "./Logo";
 import { PublicMobileNav } from "./PublicMobileNav";
 
 function PublicBrand({ compact = false }: { compact?: boolean }) {
-  return (
-    <div className="flex items-center gap-3">
-      <span className="relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-[#0d0d0f] shadow-[0_0_0_1px_rgba(255,255,255,.06),0_10px_30px_rgba(0,0,0,.45)]">
-        <Image
-          src="/global-stock-earth.png"
-          alt=""
-          width={40}
-          height={40}
-          priority
-          className="h-full w-full object-cover"
-        />
-        <span className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
-      </span>
+  if (compact) {
+    return <Logo className="h-10 w-10 shrink-0" />;
+  }
 
-      {!compact && (
-        <span className="leading-none">
-          <span className="block text-[15px] font-semibold tracking-[-0.035em] text-white">
-            Global Stock
-          </span>
-          <span className="mt-1 block text-[9px] font-semibold uppercase tracking-[.18em] text-white/30">
-            Business Control
-          </span>
-        </span>
-      )}
-    </div>
-  );
+  return <Logo withWordmark className="text-white" />;
 }
 
 export function PublicHeader() {
