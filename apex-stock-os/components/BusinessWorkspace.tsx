@@ -6,6 +6,8 @@ import {
   BarChart3,
   BellRing,
   Boxes,
+  ChevronDown,
+  ChevronUp,
   Building2,
   CircleDollarSign,
   ClipboardList,
@@ -1038,7 +1040,10 @@ export function BusinessWorkspace({
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const [desktopMoreOpen, setDesktopMoreOpen] = useState(false);
+  const [sidebarCanScrollUp, setSidebarCanScrollUp] = useState(false);
+  const [sidebarCanScrollDown, setSidebarCanScrollDown] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
+  const desktopNavRef = useRef<HTMLElement>(null);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
@@ -1055,6 +1060,60 @@ export function BusinessWorkspace({
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const releaseMouseButtonFocus = (event: PointerEvent) => {
+      if (event.pointerType !== "mouse") return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+
+      const button = target.closest("button");
+      if (button instanceof HTMLButtonElement) {
+        window.requestAnimationFrame(() => button.blur());
+      }
+    };
+
+    document.addEventListener("pointerup", releaseMouseButtonFocus, true);
+    return () =>
+      document.removeEventListener(
+        "pointerup",
+        releaseMouseButtonFocus,
+        true
+      );
+  }, []);
+
+  const updateSidebarScrollState = () => {
+    const nav = desktopNavRef.current;
+    if (!nav) {
+      setSidebarCanScrollUp(false);
+      setSidebarCanScrollDown(false);
+      return;
+    }
+
+    const maxScroll = Math.max(0, nav.scrollHeight - nav.clientHeight);
+    setSidebarCanScrollUp(nav.scrollTop > 2);
+    setSidebarCanScrollDown(nav.scrollTop < maxScroll - 2);
+  };
+
+  const scrollSidebar = (direction: "up" | "down") => {
+    const nav = desktopNavRef.current;
+    if (!nav) return;
+
+    nav.scrollBy({
+      top: direction === "up" ? -180 : 180,
+      behavior: "smooth"
+    });
+  };
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(updateSidebarScrollState);
+    window.addEventListener("resize", updateSidebarScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateSidebarScrollState);
+    };
+  }, [desktopMoreOpen, primaryModules.length, secondaryModules.length]);
 
   useEffect(() => {
     if (demoMode) {
@@ -3219,74 +3278,106 @@ export function BusinessWorkspace({
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
-        <nav className="mt-8 overflow-y-auto pr-1">
-          <div className="space-y-1.5">
-            {primaryModules.map(({ id, icon: Icon }) => {
-              const active = activeModule === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setActiveModule(id)}
-                  className={
-                    "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
-                    (active
-                      ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
-                      : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
-                  }
-                >
-                  <Icon size={17} />
-                  {labels.nav[id]}
-                </button>
-              );
-            })}
-          </div>
-
-          {secondaryModules.length > 0 && (
-            <div className="mt-3 border-t border-[var(--apex-border)] pt-3">
-              <button
-                type="button"
-                onClick={() => setDesktopMoreOpen((value) => !value)}
-                className="flex min-h-10 w-full items-center justify-between rounded-xl px-3 text-xs font-semibold text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]"
-              >
-                <span>{labels.more}</span>
-                <span
-                  aria-hidden="true"
-                  className={
-                    "text-base transition-transform " +
-                    (desktopMoreOpen ? "rotate-45" : "")
-                  }
-                >
-                  +
-                </span>
-              </button>
-
-              {desktopMoreOpen && (
-                <div className="mt-1.5 space-y-1">
-                  {secondaryModules.map(({ id, icon: Icon }) => {
-                    const active = activeModule === id;
-                    return (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={() => setActiveModule(id)}
-                        className={
-                          "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors " +
-                          (active
-                            ? "bg-[#8F0000]/12 text-[#8F0000]"
-                            : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
-                        }
-                      >
-                        <Icon size={15} />
-                        {labels.nav[id]}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+        <div className="relative mt-6 min-h-0 flex-1">
+          <nav
+            ref={desktopNavRef}
+            onScroll={updateSidebarScrollState}
+            className="apex-scrollbar h-full overflow-y-auto py-8 pr-8"
+          >
+            <div className="space-y-1.5">
+              {primaryModules.map(({ id, icon: Icon }) => {
+                const active = activeModule === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => setActiveModule(id)}
+                    className={
+                      "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
+                      (active
+                        ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
+                        : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
+                    }
+                  >
+                    <Icon size={17} />
+                    {labels.nav[id]}
+                  </button>
+                );
+              })}
             </div>
-          )}
-        </nav>
+
+            {secondaryModules.length > 0 && (
+              <div className="mt-3 border-t border-[var(--apex-border)] pt-3">
+                <button
+                  type="button"
+                  onClick={() => setDesktopMoreOpen((value) => !value)}
+                  className="flex min-h-10 w-full items-center justify-between rounded-xl px-3 text-xs font-semibold text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]"
+                >
+                  <span>{labels.more}</span>
+                  <span
+                    aria-hidden="true"
+                    className={
+                      "text-base transition-transform " +
+                      (desktopMoreOpen ? "rotate-45" : "")
+                    }
+                  >
+                    +
+                  </span>
+                </button>
+
+                {desktopMoreOpen && (
+                  <div className="mt-1.5 space-y-1">
+                    {secondaryModules.map(({ id, icon: Icon }) => {
+                      const active = activeModule === id;
+                      return (
+                        <button
+                          key={id}
+                          type="button"
+                          onClick={() => setActiveModule(id)}
+                          className={
+                            "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors " +
+                            (active
+                              ? "bg-[#8F0000]/12 text-[#8F0000]"
+                              : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
+                          }
+                        >
+                          <Icon size={15} />
+                          {labels.nav[id]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+          </nav>
+
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex w-7 flex-col items-center justify-between py-1">
+            <button
+              type="button"
+              onClick={() => scrollSidebar("up")}
+              disabled={!sidebarCanScrollUp}
+              aria-label={
+                language === "es" ? "Desplazar menú hacia arriba" : "Scroll menu up"
+              }
+              className="pointer-events-auto grid h-7 w-7 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] shadow-sm transition enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-25"
+            >
+              <ChevronUp size={14} />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => scrollSidebar("down")}
+              disabled={!sidebarCanScrollDown}
+              aria-label={
+                language === "es" ? "Desplazar menú hacia abajo" : "Scroll menu down"
+              }
+              className="pointer-events-auto grid h-7 w-7 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] shadow-sm transition enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-25"
+            >
+              <ChevronDown size={14} />
+            </button>
+          </div>
+        </div>
 
         <div className="mt-auto space-y-3 pt-4">
           <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
