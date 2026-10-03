@@ -217,6 +217,7 @@ export function DownloadInstallShowcase({
   }, []);
 
   const current = platforms.find((item) => item.id === active)!;
+  const CurrentIcon = current.icon;
   const currentDetail = detail[active];
 
   const nativeLink =
@@ -265,7 +266,7 @@ export function DownloadInstallShowcase({
                     : current.surface
               }}
             >
-              <current.icon size={13} />
+              <CurrentIcon size={13} />
               {current.eyebrow}
             </span>
 
