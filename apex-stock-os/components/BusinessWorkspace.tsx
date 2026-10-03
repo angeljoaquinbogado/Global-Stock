@@ -76,7 +76,8 @@ import { PremiumCharts } from "./PremiumCharts";
 import { NotesHub } from "./NotesHub";
 import { OperationsCenter } from "./OperationsCenter";
 import { SupplierDirectory } from "./SupplierDirectory";
-import { DocumentsHub } from "./BusinessOperations";
+import { BusinessSuite } from "./BusinessSuite";
+import { SmartDocumentInbox } from "./SmartDocumentInbox";
 import {
   ConnectedCommerceHub,
   type ConnectedCatalogPayload,
@@ -3459,10 +3460,12 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "documents" && (
-              <DocumentsHub
+              <SmartDocumentInbox
                 language={language}
                 currency={currency}
                 locale={locale}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
               />
             )}
 
@@ -3485,15 +3488,23 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "operations" && (
-              <OperationsCenter
-                businessId={cloudBusinessId}
+              <BusinessSuite
                 language={language}
                 currency={currency}
                 locale={locale}
-                businessType={businessType}
-                memberRole={memberRole}
+                businessId={cloudBusinessId}
                 demoMode={demoMode}
-              />
+              >
+                <OperationsCenter
+                  businessId={cloudBusinessId}
+                  language={language}
+                  currency={currency}
+                  locale={locale}
+                  businessType={businessType}
+                  memberRole={memberRole}
+                  demoMode={demoMode}
+                />
+              </BusinessSuite>
             )}
 
             {activeModule === "settings" && (
