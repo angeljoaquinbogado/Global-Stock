@@ -14,7 +14,10 @@ import {
   Sparkles
 } from "lucide-react";
 
-import { DownloadInstallShowcase } from "@/components/DownloadInstallShowcase";
+import {
+  DownloadInstallShowcase,
+  DownloadPlatformQuickTabs
+} from "@/components/DownloadInstallShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
@@ -105,29 +108,6 @@ const productCards = [
   }
 ];
 
-const availability = [
-  {
-    name: "Web / PWA",
-    state: "Disponible ahora",
-    active: true
-  },
-  {
-    name: "App Store",
-    state: storeLinks.appStore ? "Disponible" : "Próximamente",
-    active: Boolean(storeLinks.appStore)
-  },
-  {
-    name: "Google Play",
-    state: storeLinks.playStore ? "Disponible" : "Próximamente",
-    active: Boolean(storeLinks.playStore)
-  },
-  {
-    name: "Microsoft Store",
-    state: storeLinks.microsoftStore ? "Disponible" : "Próximamente",
-    active: Boolean(storeLinks.microsoftStore)
-  }
-];
-
 export default function DownloadPage() {
   return (
     <PublicPage>
@@ -201,29 +181,8 @@ export default function DownloadPage() {
             </div>
           </div>
 
-          <div className="relative mx-auto w-full max-w-7xl px-5 pb-8 sm:px-8">
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-              {availability.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between rounded-2xl border border-white/8 bg-white/[0.028] px-4 py-3"
-                >
-                  <span className="text-sm font-semibold text-white/78">
-                    {item.name}
-                  </span>
-                  <span
-                    className={
-                      "rounded-full px-2.5 py-1 text-[9px] font-bold uppercase tracking-[.08em] " +
-                      (item.active
-                        ? "bg-emerald-500/10 text-emerald-400"
-                        : "bg-white/[0.05] text-white/34")
-                    }
-                  >
-                    {item.state}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="relative mx-auto w-full max-w-7xl px-5 pb-9 sm:px-8">
+            <DownloadPlatformQuickTabs />
           </div>
         </section>
 
