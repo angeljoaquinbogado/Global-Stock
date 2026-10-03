@@ -130,6 +130,7 @@ type BusinessType =
   | "wholesale"
   | "ecommerce"
   | "industry"
+  | "advisory"
   | "other";
 
 type RecipeComponent = {
@@ -1789,6 +1790,7 @@ export function BusinessWorkspace({
           "wholesale",
           "ecommerce",
           "industry",
+          "advisory",
           "other"
         ].includes(savedBusinessType)
       ) {
@@ -1899,7 +1901,7 @@ export function BusinessWorkspace({
         }
         if (
           typeof state.businessType === "string" &&
-          ["retail","restaurant","services","wholesale","ecommerce","industry","other"].includes(
+          ["retail","restaurant","services","wholesale","ecommerce","industry","advisory","other"].includes(
             state.businessType
           )
         ) {
