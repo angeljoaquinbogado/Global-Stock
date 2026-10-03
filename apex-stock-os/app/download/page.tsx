@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  BarChart3,
   Boxes,
   BrainCircuit,
   Check,
@@ -311,38 +310,35 @@ export default function DownloadPage() {
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-3">
                 {[
                   {
                     icon: Globe2,
-                    title: "Datos públicos",
-                    body: "Sirven para reconocer una tienda, no para administrar su negocio."
+                    title: "Público",
+                    body: "Reconocer una tienda no habilita a administrar sus datos."
                   },
                   {
                     icon: ShieldCheck,
-                    title: "Conexión verificada",
-                    body: "La sincronización privada requiere permisos adicionales."
-                  },
-                  {
-                    icon: BarChart3,
-                    title: "Información clara",
-                    body: "Métricas y estados visibles sin llenar cada pantalla de controles."
+                    title: "Privado",
+                    body: "Sincronizar o modificar información requiere autorización adicional."
                   },
                   {
                     icon: Boxes,
-                    title: "Acceso por rol",
-                    body: "Cada perfil recibe una navegación y un nivel de detalle diferente."
+                    title: "Por rol",
+                    body: "Cada persona ve solo las herramientas que necesita."
                   }
                 ].map(({ icon: Icon, title, body }) => (
                   <article
                     key={title}
-                    className="rounded-[24px] border border-red-200/10 bg-white/[0.045] p-5"
+                    className="grid grid-cols-[42px_1fr] items-center gap-4 rounded-[22px] border border-red-200/10 bg-white/[0.04] px-4 py-4"
                   >
                     <span className="grid h-10 w-10 place-items-center rounded-xl bg-red-400/10 text-red-300">
                       <Icon size={18} />
                     </span>
-                    <h3 className="mt-4 text-base font-semibold">{title}</h3>
-                    <p className="mt-2 text-sm leading-6 text-white/48">{body}</p>
+                    <div>
+                      <h3 className="text-sm font-semibold">{title}</h3>
+                      <p className="mt-1 text-sm leading-6 text-white/46">{body}</p>
+                    </div>
                   </article>
                 ))}
               </div>
