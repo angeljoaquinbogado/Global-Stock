@@ -215,6 +215,11 @@ textarea:focus-visible {
 
 .gs-earth-stage {
   perspective: 1200px;
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform 620ms cubic-bezier(.22,1,.36,1),
+    opacity 420ms ease;
+  will-change: transform;
 }
 
 .gs-earth-wrap {
@@ -224,6 +229,35 @@ textarea:focus-visible {
   min-height: 340px;
   transform: translate3d(0, 0, 0);
   animation: gs-earth-enter 720ms var(--ease-out) both;
+}
+
+@media (min-width: 1024px) {
+  .gs-auth-scene[data-panel-visible="true"] .gs-earth-stage {
+    transform: translate3d(clamp(215px, 21vw, 340px), 0, 0);
+  }
+
+  .gs-auth-scene[data-panel-visible="true"] .gs-earth-wrap {
+    width: min(47vw, 640px);
+    height: min(47vw, 640px);
+    min-width: 500px;
+    min-height: 500px;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 760px) {
+  .gs-auth-scene[data-panel-visible="true"] .gs-earth-wrap {
+    width: min(45vw, 570px);
+    height: min(45vw, 570px);
+    min-width: 470px;
+    min-height: 470px;
+  }
+}
+
+@media (min-width: 1500px) {
+  .gs-auth-scene[data-panel-visible="true"] .gs-earth-wrap {
+    width: min(44vw, 680px);
+    height: min(44vw, 680px);
+  }
 }
 
 .gs-cobe-globe-shell {
@@ -529,6 +563,15 @@ textarea:focus-visible {
 
 
 @media (max-width: 640px) {
+  .gs-earth-stage {
+    transform: translate3d(0, 8vh, 0);
+  }
+
+  .gs-auth-scene[data-panel-visible="true"] .gs-earth-stage {
+    opacity: .72;
+    transform: translate3d(0, 12vh, 0) scale(.92);
+  }
+
   .gs-earth-wrap {
     width: min(104vw, 620px);
     height: min(104vw, 620px);
