@@ -19,6 +19,10 @@ import {
   DownloadPlatformQuickTabs
 } from "@/components/DownloadInstallShowcase";
 import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
+import { DownloadFeatureCatalog } from "@/components/DownloadFeatureCatalog";
+import { DownloadFAQ } from "@/components/DownloadFAQ";
+import { DownloadPricing } from "@/components/DownloadPricing";
+import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
@@ -353,6 +357,18 @@ export default function DownloadPage() {
           </div>
         </section>
 
+        <div id="download-feature-catalog" data-download-section className="scroll-mt-20">
+          <DownloadFeatureCatalog />
+        </div>
+
+        <div id="download-sectors" data-download-section className="scroll-mt-20">
+          <DownloadSectorShowcase />
+        </div>
+
+        <div id="download-pricing" data-download-section className="scroll-mt-20">
+          <DownloadPricing />
+        </div>
+
         <section
           id="download-install"
           data-download-section
@@ -479,6 +495,10 @@ export default function DownloadPage() {
             </div>
           </div>
         </section>
+
+        <div id="download-faq" data-download-section className="scroll-mt-20">
+          <DownloadFAQ />
+        </div>
       </main>
     </PublicPage>
   );
