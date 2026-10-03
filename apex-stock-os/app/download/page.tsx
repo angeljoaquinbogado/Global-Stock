@@ -5,10 +5,8 @@ import {
   Boxes,
   BrainCircuit,
   Check,
-  Cloud,
   Download,
   Globe2,
-  PackageSearch,
   ShieldCheck,
   ShoppingCart,
   Sparkles
