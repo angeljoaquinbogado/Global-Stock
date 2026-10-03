@@ -17,8 +17,8 @@ export const MODULE_ACCESS: Record<string, readonly GlobalStockRole[]> = {
   overview: ALL_ROLES,
   pos: ["owner", "admin", "manager", "cashier", "sales"],
   online: ["owner", "admin"],
-  inventory: ["owner", "admin", "manager", "warehouse"],
-  charts: ["owner", "admin", "manager", "accountant", "viewer"],
+  inventory: ["owner", "admin", "manager", "warehouse", "viewer"],
+  charts: ["owner", "admin", "manager", "accountant"],
   purchases: ["owner", "admin", "manager", "warehouse", "accountant"],
   suppliers: ["owner", "admin", "manager", "warehouse", "accountant"],
   activities: ALL_ROLES,
@@ -68,7 +68,7 @@ const PRIMARY_MODULES: Record<GlobalStockRole, readonly string[]> = {
   sales: ["overview", "pos"],
   warehouse: ["overview", "inventory", "purchases"],
   accountant: ["overview", "documents", "operations"],
-  viewer: ["overview", "charts"]
+  viewer: ["overview", "inventory"]
 };
 
 export function normalizeRole(role: string): GlobalStockRole {
