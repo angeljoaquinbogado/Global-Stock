@@ -18,7 +18,6 @@ import {
 import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
 import { DownloadFeatureCatalog } from "@/components/DownloadFeatureCatalog";
 import { DownloadFAQ } from "@/components/DownloadFAQ";
-import { DownloadPricing } from "@/components/DownloadPricing";
 import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
@@ -80,7 +79,7 @@ export default function DownloadPage() {
         <section
           id="download-hero"
           data-download-section
-          className="relative scroll-mt-20 overflow-hidden border-b border-white/8"
+          className="relative scroll-mt-20 overflow-hidden border-b border-[#24171a]"
         >
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_24%,rgba(153,27,27,.30),transparent_30%),radial-gradient(circle_at_15%_25%,rgba(52,92,180,.18),transparent_25%),linear-gradient(180deg,#050506_0%,#080708_70%,#050506_100%)]" />
           <div className="absolute left-[7%] top-[22%] h-24 w-24 rounded-full bg-[#4f7dff]/10 blur-3xl" />
@@ -88,7 +87,7 @@ export default function DownloadPage() {
 
           <div className="relative mx-auto grid min-h-[calc(100svh-64px)] w-full max-w-[1380px] items-center gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.02fr_.98fr] lg:gap-12 lg:py-8">
             <div className="max-w-3xl">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.045] px-3.5 py-2 text-xs font-semibold text-white/72 shadow-[0_10px_30px_rgba(0,0,0,.18)]">
+              <span className="inline-flex items-center gap-2 rounded-full border border-[#342025] bg-white/[0.045] px-3.5 py-2 text-xs font-semibold text-white/72 shadow-[0_10px_30px_rgba(0,0,0,.18)]">
                 <Sparkles size={14} className="text-red-400" />
                 Gestión clara para una operación real
               </span>
@@ -110,7 +109,7 @@ export default function DownloadPage() {
                 <InstallAppButton language="es" />
                 <a
                   href="#download-features"
-                  className="inline-flex h-11 items-center justify-center rounded-xl border border-white/12 bg-white/[0.055] px-5 text-xs font-semibold text-white transition hover:bg-white/[0.09]"
+                  className="inline-flex h-11 items-center justify-center rounded-xl border border-[#382126] bg-white/[0.055] px-5 text-xs font-semibold text-white transition hover:bg-white/[0.09]"
                 >
                   Ver cómo funciona
                 </a>
@@ -152,7 +151,7 @@ export default function DownloadPage() {
         <section
           id="download-features"
           data-download-section
-          className="scroll-mt-20 border-t border-white/[0.06] bg-[#0a0a0c] text-white"
+          className="scroll-mt-20 border-t border-[#24171a] bg-[#0a0a0c] text-white"
         >
           <DownloadMetricStrip />
 
@@ -174,7 +173,7 @@ export default function DownloadPage() {
               {coreStories.map(({ icon: Icon, eyebrow, title, body, accent, surface }) => (
                 <article
                   key={title}
-                  className="relative overflow-hidden rounded-[30px] border border-white/8 bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-7"
+                  className="relative overflow-hidden rounded-[30px] border border-[#2b1b1e] bg-[#111114] p-6 shadow-[0_20px_60px_rgba(0,0,0,.22)] sm:p-7"
                 >
                   <div
                     className="absolute right-[-18%] top-[-20%] h-44 w-44 rounded-full blur-3xl"
@@ -218,14 +217,10 @@ export default function DownloadPage() {
           <DownloadSectorShowcase />
         </div>
 
-        <div id="download-pricing" data-download-section className="scroll-mt-20">
-          <DownloadPricing />
-        </div>
-
         <section
           id="download-install"
           data-download-section
-          className="relative scroll-mt-20 overflow-hidden border-y border-white/8 bg-[#080809]"
+          className="relative scroll-mt-20 overflow-hidden border-y border-[#24171a] bg-[#080809]"
         >
           <div className="absolute left-[8%] top-[14%] h-64 w-64 rounded-full bg-blue-600/8 blur-3xl" />
           <div className="absolute right-[8%] bottom-[10%] h-64 w-64 rounded-full bg-red-600/10 blur-3xl" />
@@ -263,7 +258,7 @@ export default function DownloadPage() {
               ].map(([name, active]) => (
                 <span
                   key={String(name)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/8 bg-white/[0.03] px-3 py-2 text-[10px] font-semibold text-white/40"
+                  className="inline-flex items-center gap-2 rounded-full border border-[#2b1b1e] bg-white/[0.03] px-3 py-2 text-[10px] font-semibold text-white/40"
                 >
                   <Download size={12} />
                   {String(name)} · {active ? "Disponible" : "Próximamente"}
@@ -303,7 +298,7 @@ export default function DownloadPage() {
                   </Link>
                   <Link
                     href="/legal/privacy"
-                    className="inline-flex h-11 items-center rounded-xl border border-white/12 bg-white/[0.04] px-4 text-xs font-semibold text-white"
+                    className="inline-flex h-11 items-center rounded-xl border border-[#382126] bg-white/[0.04] px-4 text-xs font-semibold text-white"
                   >
                     Privacidad
                   </Link>
