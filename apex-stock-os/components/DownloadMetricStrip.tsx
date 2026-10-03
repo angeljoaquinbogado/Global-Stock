@@ -37,7 +37,7 @@ export function DownloadMetricStrip() {
 
   return (
     <div className="border-y border-white/[0.07] bg-[#09090b]">
-      <div className="mx-auto flex w-full max-w-7xl items-center justify-center overflow-x-auto px-4 py-4 sm:px-8">
+      <div className="mx-auto flex w-full max-w-7xl items-center justify-center overflow-x-auto px-4 py-6 sm:px-8 sm:py-7">
         <div
           className="flex min-w-max items-center"
           onMouseLeave={() => setActive(null)}
@@ -50,7 +50,7 @@ export function DownloadMetricStrip() {
                 {index > 0 && (
                   <motion.span
                     aria-hidden="true"
-                    className="mx-2 h-6 w-px bg-white/12 sm:mx-3"
+                    className="mx-3 h-7 w-px bg-white/12 sm:mx-5"
                     animate={{
                       opacity: expanded || active === index - 1 ? 0.35 : 1,
                       scaleY: expanded || active === index - 1 ? 0.72 : 1
@@ -73,7 +73,7 @@ export function DownloadMetricStrip() {
                       current === index ? null : index
                     )
                   }
-                  className="relative flex h-[52px] items-center overflow-hidden rounded-[12px] px-3.5 text-left outline-none sm:px-4.5"
+                  className="relative flex h-14 items-center overflow-hidden rounded-[13px] px-4 text-left outline-none sm:px-5"
                   animate={{
                     backgroundColor: expanded
                       ? "rgba(255,255,255,0.075)"
