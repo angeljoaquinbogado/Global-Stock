@@ -20,8 +20,8 @@ const sectors = [
     group: "Sector",
     title: "Vendé y controlá stock sin separar caja e inventario.",
     body: "Punto de venta, códigos, clientes, sucursales y stock conectados.",
-    accent: "#ff4d57",
-    surface: "rgba(255,77,87,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "gastronomy",
@@ -30,8 +30,8 @@ const sectors = [
     group: "Sector",
     title: "Compras, costos y caja con una operación más ordenada.",
     body: "Proveedores, gastos, equipo y movimientos diarios en el mismo lugar.",
-    accent: "#f7b955",
-    surface: "rgba(247,185,85,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "ecommerce",
@@ -40,8 +40,8 @@ const sectors = [
     group: "Sector",
     title: "Conectá la tienda online con el stock del negocio.",
     body: "Catálogo, existencias y actividad sincronizados con permisos claros.",
-    accent: "#7aa2ff",
-    surface: "rgba(122,162,255,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "wholesale",
@@ -50,8 +50,8 @@ const sectors = [
     group: "Sector",
     title: "Manejá volumen, compras y ubicaciones sin perder trazabilidad.",
     body: "Reposición, proveedores, stock y sucursales pensados para movimiento constante.",
-    accent: "#b28cff",
-    surface: "rgba(178,140,255,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "industry",
@@ -60,8 +60,8 @@ const sectors = [
     group: "Sector",
     title: "Seguí insumos, costos y existencias desde una misma base.",
     body: "Una estructura preparada para controlar inventario y abastecimiento.",
-    accent: "#7dd3fc",
-    surface: "rgba(125,211,252,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "solo",
@@ -70,8 +70,8 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Una operación simple que puede crecer cuando la necesites.",
     body: "Ventas, stock, agenda y control sin cargar la pantalla de herramientas innecesarias.",
-    accent: "#4fd39a",
-    surface: "rgba(79,211,154,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "smb",
@@ -80,8 +80,8 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Más responsables, roles y procesos trabajando sobre los mismos datos.",
     body: "Equipo, finanzas, compras y sucursales conectados en una sola operación.",
-    accent: "#ff7c9c",
-    surface: "rgba(255,124,156,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   },
   {
     id: "advisory",
@@ -90,8 +90,8 @@ const sectors = [
     group: "Tipo de negocio",
     title: "Clientes, documentos y seguimiento organizados por operación.",
     body: "Comprobantes, finanzas, agenda y CRM sin convertir la pantalla en una lista interminable.",
-    accent: "#67e8f9",
-    surface: "rgba(103,232,249,.10)"
+    accent: "#f05b69",
+    surface: "rgba(201,21,39,.10)"
   }
 ];
 
@@ -101,8 +101,8 @@ export function DownloadSectorShowcase() {
   const CurrentIcon = current.icon;
 
   return (
-    <section className="border-t border-[#24171a] bg-[#0b0b0c] text-white">
-      <div className="mx-auto w-full max-w-7xl px-5 py-20 sm:px-8 sm:py-28">
+    <section className="border-t border-[#211417] bg-[#0a0a0b] text-white">
+      <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
         <div className="grid gap-10 lg:grid-cols-[.78fr_1.22fr] lg:items-start">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-red-400">
@@ -112,8 +112,8 @@ export function DownloadSectorShowcase() {
               Elegí cómo trabajás.
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-white/50">
-              No hace falta mostrar todo al mismo tiempo. Tocá un sector y te
-              mostramos solo lo relevante para ese tipo de negocio.
+              Elegí un perfil y mirá cómo se adapta la propuesta sin cargar la
+              página con una lista interminable de funciones.
             </p>
           </div>
 
@@ -131,14 +131,14 @@ export function DownloadSectorShowcase() {
                     className={
                       "flex min-h-20 flex-col items-start justify-between rounded-[18px] px-3.5 py-3 text-left transition duration-200 " +
                       (selected
-                        ? "bg-white text-black shadow-[0_12px_30px_rgba(0,0,0,.22)]"
-                        : "bg-white/[0.035] text-white/58 hover:bg-white/[0.07] hover:text-white")
+                        ? "bg-[#151517] text-white shadow-[0_12px_30px_rgba(0,0,0,.22)] ring-1 ring-[#492027]"
+                        : "bg-white/[0.025] text-white/48 hover:bg-white/[0.055] hover:text-white")
                     }
                   >
                     <span
                       className="grid h-8 w-8 place-items-center rounded-xl"
                       style={{
-                        background: selected ? surface : "rgba(255,255,255,.055)",
+                        background: selected ? surface : "rgba(255,255,255,.035)",
                         color: accent
                       }}
                     >
@@ -155,7 +155,7 @@ export function DownloadSectorShowcase() {
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: .22, ease: [0.23, 1, 0.32, 1] }}
-              className="relative mt-4 overflow-hidden rounded-[28px] bg-[#121214] p-6 sm:p-7"
+              className="relative mt-4 overflow-hidden rounded-[28px] bg-[#111113] p-6 shadow-[0_24px_60px_rgba(0,0,0,.22)] ring-1 ring-[#25171a] sm:p-7"
             >
               <div
                 className="absolute right-[-10%] top-[-35%] h-56 w-56 rounded-full blur-3xl"
