@@ -20,6 +20,8 @@ const groups = [
     body:
       "Vendé, cobrá y actualizá existencias sin duplicar movimientos ni saltar entre herramientas.",
     icon: ShoppingCart,
+    accent: "#ff5b67",
+    surface: "rgba(255,91,103,.11)",
     items: ["Punto de venta", "Stock y códigos", "Historial de actividad"]
   },
   {
@@ -28,6 +30,8 @@ const groups = [
     body:
       "Detectá faltantes, ordená reposición y mantené proveedores y compras conectados con el inventario.",
     icon: PackagePlus,
+    accent: "#f5b84b",
+    surface: "rgba(245,184,75,.11)",
     items: ["Reposición", "Proveedores", "Compras y ubicaciones"]
   },
   {
@@ -36,6 +40,8 @@ const groups = [
     body:
       "Clientes, documentos, finanzas, proyectos y equipo trabajan sobre la misma operación.",
     icon: CircleDollarSign,
+    accent: "#5fa7ff",
+    surface: "rgba(95,167,255,.11)",
     items: ["CRM y clientes", "Finanzas y documentos", "Equipo y sucursales"]
   },
   {
@@ -44,6 +50,8 @@ const groups = [
     body:
       "Leé márgenes, tendencias y salud del stock con una IA que entiende el contexto disponible del negocio.",
     icon: BrainCircuit,
+    accent: "#b886ff",
+    surface: "rgba(184,134,255,.11)",
     items: ["Gráficos", "Global Intelligence", "Roles y control"]
   }
 ];
@@ -89,7 +97,7 @@ export function DownloadFeatureCatalog() {
         </div>
 
         <div>
-          {groups.map(({ number, title, body, icon: Icon, items }, index) => (
+          {groups.map(({ number, title, body, icon: Icon, accent, surface, items }, index) => (
             <article
               key={title}
               className={
@@ -97,13 +105,19 @@ export function DownloadFeatureCatalog() {
                 (index === 0 ? "pt-0" : "border-t border-[#211417]")
               }
             >
-              <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#c91527]/10 text-[#f05b69]">
+              <span
+                className="grid h-12 w-12 place-items-center rounded-2xl"
+                style={{ background: surface, color: accent }}
+              >
                 <Icon size={20} />
               </span>
 
               <div>
                 <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-bold tracking-[.16em] text-[#ed4c5c]">
+                  <span
+                    className="text-[10px] font-bold tracking-[.16em]"
+                    style={{ color: accent }}
+                  >
                     {number}
                   </span>
                   <h3 className="text-2xl font-semibold tracking-[-.04em] sm:text-3xl">
@@ -121,7 +135,10 @@ export function DownloadFeatureCatalog() {
                       key={item}
                       className="inline-flex items-center gap-2 text-xs font-medium text-white/54"
                     >
-                      <span className="h-1.5 w-1.5 rounded-full bg-[#c91527]" />
+                      <span
+                        className="h-1.5 w-1.5 rounded-full"
+                        style={{ background: accent }}
+                      />
                       {item}
                     </span>
                   ))}
