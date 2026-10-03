@@ -126,7 +126,13 @@ export function GlobalStockPhonePreview() {
     >
       <div className="absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
 
-      <div className="relative w-full">
+      <div
+        className="relative mx-auto"
+        style={{
+          width: "min(340px, 38dvh, calc(100vw - 96px))",
+          maxWidth: "100%"
+        }}
+      >
         <IPhone17ProMax
           batteryLevel={94}
           dynamicIslandSize={dynamicIslandSize}
@@ -202,7 +208,7 @@ export function GlobalStockPhonePreview() {
         </button>
       </div>
 
-      <div className="relative mt-5 flex flex-col items-center gap-3">
+      <div className="relative mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           {screens.map((item) => (
             <button
@@ -220,14 +226,16 @@ export function GlobalStockPhonePreview() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <span className="hidden h-4 w-px bg-white/10 sm:block" />
+
+        <div className="flex items-center gap-1.5">
           {frameColors.map((color) => (
             <button
               key={color}
               type="button"
               onClick={() => setFrameColor(color)}
               className={
-                "h-7 w-7 rounded-full border-2 transition-[transform,border-color] duration-150 ease-out " +
+                "h-6 w-6 rounded-full border-2 transition-[transform,border-color] duration-150 ease-out " +
                 (frameColor === color
                   ? "scale-110 border-white"
                   : "border-white/10")
@@ -237,10 +245,6 @@ export function GlobalStockPhonePreview() {
             />
           ))}
         </div>
-
-        <p className="text-center text-[10px] text-white/38">
-          Probá las vistas · elegí el marco · tocá Dynamic Island
-        </p>
       </div>
     </div>
   );
