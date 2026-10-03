@@ -3409,7 +3409,11 @@ export function BusinessWorkspace({
                 promotionDiscount={promotionDiscount}
                 promotionLabel={appliedPromotion?.name ?? ""}
                 cartTotal={cartTotal}
-                cartProfit={cartCostKnown ? cartTotal - cartCost : null}
+                cartProfit={
+                  canViewFinancials && cartCostKnown
+                    ? cartTotal - cartCost
+                    : null
+                }
                 money={money}
                 businessId={cloudBusinessId}
                 demoMode={demoMode}
@@ -3466,6 +3470,7 @@ export function BusinessWorkspace({
                 language={language}
                 restock={restock}
                 money={money}
+                showFinancials={canViewFinancials}
                 receiveRestock={receiveRestock}
               />
             )}
@@ -4905,12 +4910,14 @@ function PurchasesModule({
   language,
   restock,
   money,
+  showFinancials,
   receiveRestock
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   restock: ReturnType<typeof rankRestockNeeds>;
   money: (value: number) => string;
+  showFinancials: boolean;
   receiveRestock: (id: string, units: number) => void;
 }) {
   const [plannedUnits, setPlannedUnits] = useState<Record<string, number>>({});
@@ -5003,11 +5010,17 @@ function PurchasesModule({
                         value={`${daysCover.toFixed(1)} ${labels.days}`}
                       />
                       <MiniStat
-                        label={labels.estimatedCost}
+                        label={
+                          showFinancials
+                            ? labels.estimatedCost
+                            : labels.stock
+                        }
                         value={
-                          product.costKnown === false
-                            ? "—"
-                            : money(units * product.cost)
+                          showFinancials
+                            ? product.costKnown === false
+                              ? "—"
+                              : money(units * product.cost)
+                            : String(product.stock)
                         }
                       />
                     </div>
