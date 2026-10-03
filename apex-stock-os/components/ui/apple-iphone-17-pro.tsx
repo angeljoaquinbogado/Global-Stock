@@ -107,36 +107,77 @@ export function IPhone17ProMax({
           style={{ borderColor: "var(--iphone-edge)" }}
         >
           <div className="absolute inset-[1.4%] overflow-hidden rounded-[12.7%/6.1%] bg-[#050505]">
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-[4.8%] items-center justify-between px-[7%] text-[10px] font-semibold text-white sm:text-[11px]">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-30 flex h-[4.9%] items-center justify-between px-[7.2%] text-[10px] font-semibold tracking-[-0.02em] text-white sm:text-[11px]">
               <span className="tabular-nums">{time}</span>
 
-              <div className="flex items-center gap-1.5">
-                <div className="flex h-3 items-end gap-[1px]" aria-label="Signal">
-                  {[1, 2, 3, 4].map((bar) => (
-                    <span
-                      key={bar}
-                      className={
-                        "w-[2px] rounded-full " +
-                        (bar <= signalStrength
-                          ? "bg-white"
-                          : "bg-white/25")
-                      }
-                      style={{ height: 2 + bar * 2 }}
-                    />
-                  ))}
-                </div>
+              <div className="flex items-center gap-[5px]" aria-label="Estado del iPhone">
+                <svg
+                  viewBox="0 0 18 11"
+                  className="h-[10px] w-[17px]"
+                  aria-label="Señal celular"
+                >
+                  {[0, 1, 2, 3].map((bar) => {
+                    const heights = [4, 6, 8, 10];
+                    const height = heights[bar];
+                    return (
+                      <rect
+                        key={bar}
+                        x={bar * 4.2}
+                        y={10 - height}
+                        width="2.6"
+                        height={height}
+                        rx="1.15"
+                        fill={
+                          bar < signalStrength
+                            ? "currentColor"
+                            : "rgba(255,255,255,.24)"
+                        }
+                      />
+                    );
+                  })}
+                </svg>
 
-                <span className="relative h-[8px] w-[12px] overflow-hidden">
-                  <span className="absolute left-1/2 top-[1px] h-[10px] w-[10px] -translate-x-1/2 rotate-45 rounded-tl-[8px] border-l border-t border-white" />
-                  <span className="absolute bottom-0 left-1/2 h-[3px] w-[3px] -translate-x-1/2 rounded-full bg-white" />
-                </span>
-
-                <span className="relative h-[9px] w-[18px] rounded-[3px] border border-white/70 p-[1px]">
-                  <span
-                    className="block h-full rounded-[1px] bg-white"
-                    style={{ width: safeBattery + "%" }}
+                <svg
+                  viewBox="0 0 18 13"
+                  className="h-[11px] w-[16px]"
+                  aria-label="Wi-Fi"
+                  fill="none"
+                >
+                  <path
+                    d="M1.4 4.4C5.55.95 12.45.95 16.6 4.4"
+                    stroke="currentColor"
+                    strokeWidth="1.65"
+                    strokeLinecap="round"
                   />
-                  <span className="absolute -right-[3px] top-[2px] h-[4px] w-[2px] rounded-r bg-white/60" />
+                  <path
+                    d="M4.1 7.2c2.72-2.2 7.08-2.2 9.8 0"
+                    stroke="currentColor"
+                    strokeWidth="1.65"
+                    strokeLinecap="round"
+                  />
+                  <path
+                    d="M7.1 10c1.05-.82 2.75-.82 3.8 0"
+                    stroke="currentColor"
+                    strokeWidth="1.65"
+                    strokeLinecap="round"
+                  />
+                  <circle cx="9" cy="11.8" r=".9" fill="currentColor" />
+                </svg>
+
+                <span
+                  className="relative block h-[10px] w-[22px] rounded-[3px] border border-white/90"
+                  aria-label={"Batería " + Math.round(safeBattery) + "%"}
+                >
+                  <span
+                    className="absolute bottom-[1px] left-[1px] top-[1px] rounded-[1.5px] bg-white"
+                    style={{
+                      width:
+                        "calc((" +
+                        safeBattery +
+                        " / 100) * (100% - 2px))"
+                    }}
+                  />
+                  <span className="absolute -right-[2.7px] top-[2.6px] h-[4px] w-[1.8px] rounded-r-[1px] bg-white/70" />
                 </span>
               </div>
             </div>
