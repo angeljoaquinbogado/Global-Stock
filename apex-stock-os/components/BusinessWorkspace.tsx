@@ -1106,16 +1106,6 @@ export function BusinessWorkspace({
   };
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(updateSidebarScrollState);
-    window.addEventListener("resize", updateSidebarScrollState);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", updateSidebarScrollState);
-    };
-  }, [desktopMoreOpen, primaryModules.length, secondaryModules.length]);
-
-  useEffect(() => {
     if (demoMode) {
       setMemberRole("owner");
       return;
@@ -2246,6 +2236,16 @@ export function BusinessWorkspace({
     () => visibleModules.filter(({ id }) => !primaryModuleIds.has(id)),
     [primaryModuleIds, visibleModules]
   );
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(updateSidebarScrollState);
+    window.addEventListener("resize", updateSidebarScrollState);
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("resize", updateSidebarScrollState);
+    };
+  }, [desktopMoreOpen, primaryModules.length, secondaryModules.length]);
 
   const visibleModuleIds = useMemo(
     () => new Set(visibleModules.map((module) => module.id)),
