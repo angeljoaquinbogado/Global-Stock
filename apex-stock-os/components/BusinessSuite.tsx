@@ -19,6 +19,7 @@ import {
   loadCloudWorkspace,
   saveCloudWorkspace
 } from "@/lib/cloud-workspace";
+import { canAccessBusinessSuiteTab } from "@/lib/access-control";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -27,6 +28,7 @@ type Props = {
   locale: string;
   businessId: string | null;
   demoMode: boolean;
+  memberRole: string;
   children: ReactNode;
 };
 
@@ -145,6 +147,7 @@ export function BusinessSuite({
   locale,
   businessId,
   demoMode,
+  memberRole,
   children
 }: Props) {
   const [tab, setTab] = useState<Tab>("operations");
@@ -565,6 +568,16 @@ export function BusinessSuite({
     }
   ];
 
+  const visibleTabs = tabs.filter(({ id }) =>
+    canAccessBusinessSuiteTab(id, memberRole, demoMode)
+  );
+
+  useEffect(() => {
+    if (visibleTabs.some((item) => item.id === tab)) return;
+    const fallback = visibleTabs[0]?.id ?? "operations";
+    setTab(fallback);
+  }, [tab, visibleTabs]);
+
   return (
     <div className="space-y-5">
       <section className="apex-card overflow-hidden">
@@ -599,7 +612,7 @@ export function BusinessSuite({
         </div>
 
         <div className="apex-scrollbar flex gap-2 overflow-x-auto p-3">
-          {tabs.map(({ id, icon: Icon, label }) => (
+          {visibleTabs.map(({ id, icon: Icon, label }) => (
             <button
               key={id}
               type="button"
