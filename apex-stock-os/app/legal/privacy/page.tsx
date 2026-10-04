@@ -16,13 +16,12 @@ export default function PrivacyPage() {
       intro="Esta política describe qué información puede procesar Global Stock cuando una persona crea una cuenta, administra un negocio, conecta servicios externos o utiliza funciones de inteligencia artificial."
     >
       <section>
-        <h2>1. Alcance</h2>
+        <h2>1. Responsable y alcance</h2>
         <p>
-          Global Stock es una plataforma de gestión empresarial. Puede utilizarse
-          para administrar productos, stock, ventas, proveedores, notas,
-          comprobantes internos, canales online y análisis operativos. Esta
-          política se aplica a la información tratada por la plataforma y a las
-          integraciones que el usuario decide habilitar.
+          Global Stock es un producto de software operado actualmente por{" "}
+          <strong>Angel Joaquin Bogado</strong>, Provincia de Buenos Aires,
+          Argentina. Esta política se aplica a la información tratada por la
+          plataforma y a las integraciones que el usuario decide habilitar.
         </p>
       </section>
 
@@ -30,16 +29,32 @@ export default function PrivacyPage() {
         <h2>2. Datos que puede procesar la plataforma</h2>
         <p>
           Dependiendo de las funciones utilizadas, Global Stock puede procesar
-          datos de cuenta, nombre del negocio, configuración de idioma y moneda,
-          productos, códigos de barras, costos, precios, cantidades de stock,
-          ventas, actividad operativa, proveedores, notas y comprobantes
-          internos. Si se conecta una tienda online, también puede recibir los
-          datos que ese canal autorice expresamente.
+          datos de cuenta, nombre y perfil del negocio, configuración de idioma y
+          moneda, productos, códigos de barras, costos, precios, cantidades de
+          stock, ventas, actividad operativa, clientes, proveedores, notas,
+          comprobantes internos y datos recibidos desde integraciones autorizadas.
+          Los proveedores de infraestructura también pueden registrar datos
+          técnicos necesarios para operar y proteger el servicio, como dirección
+          IP, agente de usuario, fecha, ruta solicitada y registros de errores.
         </p>
       </section>
 
       <section>
-        <h2>3. Integraciones con ecommerce</h2>
+        <h2>3. Finalidades y fundamento del tratamiento</h2>
+        <p>
+          Los datos se utilizan para prestar las funciones solicitadas, autenticar
+          cuentas, sincronizar canales autorizados, conservar configuraciones,
+          mantener la seguridad, prevenir abuso, registrar operaciones, resolver
+          errores y ofrecer análisis operativos. Cuando corresponda, el
+          tratamiento puede basarse en la ejecución del servicio solicitado, el
+          cumplimiento de obligaciones aplicables, intereses legítimos de
+          seguridad y operación, o el consentimiento cuando una función requiera
+          una autorización específica.
+        </p>
+      </section>
+
+      <section>
+        <h2>4. Integraciones con ecommerce</h2>
         <p>
           Una URL pública permite reconocer una tienda y consultar únicamente
           información pública disponible. <strong>La URL por sí sola no habilita
@@ -50,95 +65,108 @@ export default function PrivacyPage() {
         </p>
         <p className="mt-3">
           Los permisos pueden limitarse a acciones concretas, por ejemplo leer
-          catálogo, consultar inventario o modificar stock. El usuario puede
-          revocar la integración desde el sistema que emitió las credenciales.
+          catálogo, consultar inventario o modificar stock. La integración puede
+          revocarse mediante los mecanismos disponibles en Global Stock o en el
+          servicio externo que emitió la credencial.
         </p>
       </section>
 
       <section>
-        <h2>4. Inteligencia artificial</h2>
+        <h2>5. Inteligencia artificial</h2>
         <p>
           Cuando Global Intelligence está habilitada, la consulta del usuario y
           el contexto necesario para responder pueden enviarse al proveedor de
           IA configurado por la plataforma. Global Stock puede utilizar
-          proveedores de IA externos, incluido Google Gemini u otros proveedores
-          compatibles que se configuren en el servidor. Las claves de acceso a
-          esos servicios se mantienen exclusivamente del lado del servidor. Ese
-          contexto puede incluir, cuando sea pertinente, inventario, ventas,
-          actividad, notas, pedidos online y métricas del negocio. Global Stock
-          procura enviar únicamente la información necesaria para la función
-          solicitada.
+          proveedores externos, incluido Google Gemini u otros proveedores
+          compatibles configurados en el servidor. Las claves de acceso a esos
+          servicios permanecen del lado del servidor.
+        </p>
+        <p className="mt-3">
+          El contexto enviado puede incluir inventario, ventas, actividad, notas,
+          pedidos online y métricas cuando sean pertinentes para la consulta.
+          Global Stock procura limitar ese contexto a la información necesaria.
+          Las respuestas de IA son asistencia y pueden contener errores; no
+          sustituyen asesoramiento profesional ni deben utilizarse como única base
+          para decisiones con efectos jurídicos, fiscales, médicos, crediticios o
+          similares.
         </p>
       </section>
 
       <section>
-        <h2>5. Almacenamiento local y sesiones</h2>
+        <h2>6. Almacenamiento local y sesiones</h2>
         <p>
-          Algunas preferencias y datos de uso local pueden almacenarse en el
-          navegador mediante mecanismos como localStorage. Las credenciales
-          sensibles de conectores privados no deben almacenarse como texto
-          legible en localStorage. Cuando una integración requiere una sesión
-          privada, la aplicación puede utilizar cookies HttpOnly cifradas del
-          lado del servidor.
+          Algunas preferencias y operaciones pendientes de sincronización pueden
+          almacenarse en el dispositivo mediante mecanismos como localStorage.
+          Ese almacenamiento se trata como información no confiable al volver a
+          sincronizarse con el servidor. Las credenciales sensibles de conectores
+          privados no deben guardarse como texto legible en localStorage. Las
+          sesiones privadas pueden utilizar cookies HttpOnly protegidas y
+          cifradas del lado del servidor.
         </p>
       </section>
 
       <section>
-        <h2>6. Finalidades del tratamiento</h2>
-        <p>
-          La información se utiliza para prestar las funciones solicitadas,
-          sincronizar canales autorizados, conservar configuraciones, mantener
-          la seguridad, detectar errores, ejecutar análisis operativos y mejorar
-          la experiencia de uso. Global Stock no debe presentar datos demo como
-          si fueran datos reales de un negocio conectado.
-        </p>
-      </section>
-
-      <section>
-        <h2>7. Proveedores y servicios externos</h2>
+        <h2>7. Proveedores, encargados y transferencias internacionales</h2>
         <p>
           La plataforma puede depender de proveedores de infraestructura,
           autenticación, base de datos, despliegue, correo, inteligencia
           artificial, pagos o ecommerce. Algunos proveedores pueden procesar
-          información desde otros países o regiones. Cada servicio externo puede
-          aplicar sus propias condiciones y políticas a los datos que reciba
-          directamente, y Global Stock debe revisar esos proveedores cuando
-          cambien las integraciones o la infraestructura.
+          información desde otros países o regiones. Cuando resulte aplicable,
+          Global Stock debe utilizar mecanismos contractuales, técnicos u otros
+          instrumentos válidos para esas transferencias y revisar el alcance de
+          cada proveedor cuando cambie la infraestructura.
         </p>
       </section>
 
       <section>
-        <h2>8. Conservación y eliminación</h2>
-        <p>
-          Los datos deben conservarse mientras sean necesarios para prestar el
-          servicio, cumplir obligaciones aplicables o mantener registros
-          legítimos de seguridad y operación. Cuando el producto incorpore
-          funciones de eliminación de cuenta o negocio, la eliminación se
-          realizará respetando respaldos temporales, obligaciones legales y
-          registros que deban conservarse.
-        </p>
-      </section>
-
-      <section>
-        <h2>9. Seguridad</h2>
+        <h2>8. Seguridad</h2>
         <p>
           Se aplican medidas técnicas y organizativas razonables para reducir el
-          riesgo de acceso no autorizado, pérdida o alteración de datos. Ningún
-          sistema puede garantizar seguridad absoluta. Más detalles se publican
-          en la página de Seguridad.
+          riesgo de acceso no autorizado, pérdida, alteración o uso indebido de
+          datos. Entre ellas pueden incluirse controles de acceso, aislamiento por
+          negocio, validación de entradas, cifrado de sesiones y restricciones a
+          credenciales de servidor. Ningún sistema conectado a Internet puede
+          garantizar seguridad absoluta.
         </p>
       </section>
 
       <section>
-        <h2>10. Derechos y consultas</h2>
+        <h2>9. Conservación</h2>
         <p>
-          Las personas pueden solicitar información, corrección o eliminación
-          de datos cuando corresponda conforme a las normas aplicables. El
-          operador actual es Angel Joaquin Bogado, Provincia de Buenos Aires,
-          Argentina. Las consultas de privacidad o eliminación pueden enviarse a{" "}
+          Los datos se conservan mientras sean necesarios para prestar el
+          servicio, mantener registros legítimos de seguridad y operación, o
+          cumplir obligaciones aplicables. Los períodos pueden variar según el
+          tipo de información, la relación con el usuario, respaldos temporales y
+          requisitos legales. Los datos que ya no sean necesarios deben
+          eliminarse o anonimizarse cuando corresponda.
+        </p>
+      </section>
+
+      <section>
+        <h2>10. Eliminación de cuenta y datos</h2>
+        <p>
+          Actualmente puede solicitarse el cierre de la cuenta y la eliminación
+          de los datos asociados escribiendo a{" "}
           <a href="mailto:joaquinbogado555@gmail.com">
             joaquinbogado555@gmail.com
-          </a>. Para soporte general puede utilizarse{" "}
+          </a>. La solicitud puede requerir verificación de identidad o de control
+          del negocio. La eliminación está sujeta a respaldos temporales,
+          prevención de fraude, seguridad y registros que deban conservarse por
+          una obligación legal o motivo legítimo documentado.
+        </p>
+      </section>
+
+      <section>
+        <h2>11. Derechos y consultas</h2>
+        <p>
+          Según la normativa que resulte aplicable, una persona puede solicitar
+          acceso, corrección, actualización, portabilidad, oposición,
+          restricción o eliminación de sus datos. Algunas solicitudes pueden no
+          corresponder en todas las jurisdicciones o pueden estar sujetas a
+          excepciones legales. Consultas de privacidad:{" "}
+          <a href="mailto:joaquinbogado555@gmail.com">
+            joaquinbogado555@gmail.com
+          </a>. Soporte general:{" "}
           <a href="mailto:angeljoaquinbogado@gmail.com">
             angeljoaquinbogado@gmail.com
           </a>.
@@ -146,11 +174,34 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>11. Cambios</h2>
+        <h2>12. Menores y capacidad para utilizar el servicio</h2>
+        <p>
+          Global Stock está orientado a la gestión de actividades comerciales y
+          no está dirigido específicamente a niños. Quien cree o administre una
+          cuenta debe tener capacidad legal suficiente para hacerlo o contar con
+          la autorización de su representante cuando la legislación aplicable lo
+          exija.
+        </p>
+      </section>
+
+      <section>
+        <h2>13. Responsabilidad sobre datos de terceros</h2>
+        <p>
+          Si un negocio carga datos de clientes, empleados, proveedores u otras
+          personas, quien administra ese negocio es responsable de contar con una
+          base válida para incorporarlos y de utilizar Global Stock de acuerdo
+          con sus propias obligaciones de privacidad. La plataforma no autoriza
+          recopilar datos de terceros de forma ilícita.
+        </p>
+      </section>
+
+      <section>
+        <h2>14. Cambios</h2>
         <p>
           Esta política puede actualizarse cuando cambien las funciones,
-          proveedores o requisitos aplicables. La fecha visible al inicio de la
-          página indica la versión vigente publicada.
+          proveedores o requisitos aplicables. La fecha visible en el documento
+          indica la versión vigente publicada. Los cambios materiales deben
+          comunicarse de forma razonable cuando corresponda.
         </p>
       </section>
     </LegalArticle>
