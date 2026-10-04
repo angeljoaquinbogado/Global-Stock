@@ -121,12 +121,12 @@ export function PublicFooter({
           <div>
             <PublicBrand downloadBrand={downloadBrand} />
             <p className="mt-5 max-w-sm text-sm leading-6 text-[#96969f]">
-              Ventas, inventario, compras, proveedores, finanzas y gestión
-              conectados desde una sola plataforma.
+              Plataforma gratuita para conectar ventas, stock, caja, compras,
+              proveedores, finanzas y gestión.
             </p>
             <div className="mt-6 inline-flex min-h-9 items-center gap-2 rounded-full bg-white/[0.035] px-3 text-[11px] font-medium text-white/42">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Aplicación web disponible
+              Gratis · Aplicación web disponible
             </div>
           </div>
 
