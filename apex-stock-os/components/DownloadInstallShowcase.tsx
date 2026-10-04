@@ -94,46 +94,35 @@ function PlatformTabs({
   onChange: (platform: PlatformId) => void;
 }) {
   return (
-    <GridBeamBorder
-      color="#8F0000"
-      duration={3.1}
-      strength={1.05}
-      breathe
-      borderRadius={18}
-      className="inline-block max-w-full bg-[#050506] p-[2px] shadow-[0_14px_34px_rgba(0,0,0,.30),0_0_24px_rgba(143,0,0,.18)]"
+    <div
+      className="gs-storefront-scroll grid w-full max-w-[390px] grid-cols-3 gap-1.5 overflow-x-auto rounded-[18px] bg-white/[0.025] p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.24)] ring-1 ring-white/[0.055]"
+      role="tablist"
+      aria-label="Plataforma"
     >
-      <div
-        className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[16px] bg-[#050506] p-1.5"
-        role="tablist"
-        aria-label="Plataforma"
-      >
       {platforms.map(({ id, label, logoSrc }) => {
         const selected = active === id;
 
-        return (
+        const button = (
           <button
-            key={id}
             type="button"
             role="tab"
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-11 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-semibold text-[#111114] outline-none transition-[background-color,border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[120px] " +
+              "flex h-12 w-full items-center justify-center gap-2.5 rounded-[13px] px-3 text-[12px] font-semibold text-white outline-none transition-[background-color,color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] " +
               (selected
-                ? "border-[#8F0000] bg-[#f2f2f4] shadow-[0_8px_22px_rgba(0,0,0,.16)]"
-                : "border-[#8F0000] bg-white hover:bg-[#f6f6f7]")
+                ? "bg-[#120708] shadow-[0_8px_24px_rgba(0,0,0,.22)]"
+                : "border border-white/[0.055] bg-[#0b0b0d] text-white/76 hover:bg-[#111114] hover:text-white")
             }
           >
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible rounded-[10px]">
+            <span className="grid h-7 w-7 shrink-0 place-items-center">
               <img
                 src={logoSrc}
                 alt=""
                 className={
-                  id === "android"
-                    ? "h-[30px] w-[30px] scale-[1.18] object-contain"
-                    : id === "web"
-                      ? "h-[30px] w-[30px] scale-[1.12] object-contain"
-                      : "h-[24px] w-[24px] object-contain"
+                  id === "iphone"
+                    ? "h-[21px] w-[21px] object-contain"
+                    : "h-[24px] w-[24px] object-contain"
                 }
                 aria-hidden="true"
                 draggable={false}
@@ -142,12 +131,28 @@ function PlatformTabs({
             <span>{label}</span>
           </button>
         );
+
+        if (!selected) {
+          return <div key={id}>{button}</div>;
+        }
+
+        return (
+          <GridBeamBorder
+            key={id}
+            color="#8F0000"
+            duration={3.2}
+            strength={0.78}
+            breathe={false}
+            borderRadius={14}
+            className="w-full bg-[#120708] p-[1px] shadow-[0_0_18px_rgba(143,0,0,.14)]"
+          >
+            {button}
+          </GridBeamBorder>
+        );
       })}
-      </div>
-    </GridBeamBorder>
+    </div>
   );
 }
-
 export function DownloadPlatformQuickTabs() {
   const [active, setActive] = useState<PlatformId>("web");
 
