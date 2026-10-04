@@ -205,7 +205,7 @@ export function PublicPage({
   downloadBrand?: boolean;
 }) {
   return (
-    <div className="min-h-[100dvh] bg-[#070708] text-white">
+    <div className="gs-public-shell min-h-[100dvh] min-w-0 overflow-x-clip bg-[#070708] text-white">
       <PublicHeader downloadBrand={downloadBrand} />
       {children}
       <PublicFooter downloadBrand={downloadBrand} />
@@ -230,7 +230,7 @@ export function LegalArticle({
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8F0000]">
           {eyebrow}
         </p>
-        <h1 className="mt-4 text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">
+        <h1 className="mt-4 max-w-full text-[clamp(2.25rem,5vw,3.75rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
           {title}
         </h1>
         <p className="mt-5 max-w-3xl text-base leading-7 text-white/62">

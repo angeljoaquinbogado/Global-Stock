@@ -3428,7 +3428,7 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main className="min-h-screen overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+    <main className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
@@ -3615,7 +3615,7 @@ export function BusinessWorkspace({
           </div>
         </header>
 
-        <div className="mx-auto max-w-[1500px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+        <div className="mx-auto w-full min-w-0 max-w-[1500px] px-4 py-5 sm:px-6 lg:px-6 xl:px-8 lg:py-7">
             {activeModule === "overview" && (
               <OverviewModule
                 labels={labels}
