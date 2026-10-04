@@ -349,32 +349,52 @@ type OfflineOperation =
 
 const OFFLINE_QUEUE_KEY = "global-stock-offline-operations-v1";
 
-function readOfflineQueue(): OfflineOperation[] {
+function offlineQueueKey(businessId: string) {
+  return `${OFFLINE_QUEUE_KEY}:business:${businessId}`;
+}
+
+function readOfflineQueue(businessId: string): OfflineOperation[] {
   if (typeof window === "undefined") return [];
 
   try {
-    const raw = window.localStorage.getItem(OFFLINE_QUEUE_KEY);
+    const raw = window.localStorage.getItem(
+      offlineQueueKey(businessId)
+    );
     if (!raw) return [];
     const parsed = JSON.parse(raw) as OfflineOperation[];
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (operation) => operation.payload.businessId === businessId
+        )
+      : [];
   } catch {
     return [];
   }
 }
 
-function writeOfflineQueue(queue: OfflineOperation[]) {
+function writeOfflineQueue(
+  businessId: string,
+  queue: OfflineOperation[]
+) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(
-    OFFLINE_QUEUE_KEY,
-    JSON.stringify(queue.slice(-1000))
+    offlineQueueKey(businessId),
+    JSON.stringify(
+      queue
+        .filter(
+          (operation) => operation.payload.businessId === businessId
+        )
+        .slice(-1000)
+    )
   );
 }
 
 function enqueueOffline(operation: OfflineOperation) {
-  const queue = readOfflineQueue();
+  const businessId = operation.payload.businessId;
+  const queue = readOfflineQueue(businessId);
   if (queue.some((item) => item.id === operation.id)) return;
   queue.push(operation);
-  writeOfflineQueue(queue);
+  writeOfflineQueue(businessId, queue);
 }
 
 function isOffline() {
@@ -578,18 +598,13 @@ export async function flushOfflineBusinessOperations(
 ) {
   if (typeof window === "undefined" || isOffline()) return 0;
 
-  const queue = readOfflineQueue();
+  const queue = readOfflineQueue(businessId);
   if (!queue.length) return 0;
 
   const remaining: OfflineOperation[] = [];
   let flushed = 0;
 
   for (const operation of queue) {
-    if (operation.payload.businessId !== businessId) {
-      remaining.push(operation);
-      continue;
-    }
-
     try {
       if (operation.kind === "sale") {
         await executeQueuedSale(operation.id, operation.payload);
@@ -602,14 +617,12 @@ export async function flushOfflineBusinessOperations(
     }
   }
 
-  writeOfflineQueue(remaining);
+  writeOfflineQueue(businessId, remaining);
   return flushed;
 }
 
 export function offlineBusinessOperationCount(
   businessId: string
 ) {
-  return readOfflineQueue().filter(
-    (operation) => operation.payload.businessId === businessId
-  ).length;
+  return readOfflineQueue(businessId).length;
 }
