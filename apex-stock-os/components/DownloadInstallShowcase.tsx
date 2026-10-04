@@ -124,7 +124,14 @@ function PlatformTabs({
                 : "border-[#8F0000] bg-[#0d0e12] hover:bg-[rgba(143,0,0,.08)]")
             }
           >
-            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible">
+            <span
+              className={
+                "grid h-9 w-9 shrink-0 place-items-center overflow-visible rounded-[10px] " +
+                (id === "iphone"
+                  ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,.18)]"
+                  : "")
+              }
+            >
               <img
                 src={logoSrc}
                 alt=""
@@ -133,7 +140,7 @@ function PlatformTabs({
                     ? "h-[30px] w-[30px] scale-[1.18] object-contain"
                     : id === "web"
                       ? "h-[30px] w-[30px] scale-[1.12] object-contain"
-                      : "h-[30px] w-[30px] scale-[1.16] object-contain"
+                      : "h-[24px] w-[24px] object-contain"
                 }
                 aria-hidden="true"
                 draggable={false}
@@ -227,14 +234,23 @@ export function DownloadInstallShowcase({
         <div className="grid lg:grid-cols-[1.06fr_.94fr]">
           <div className="p-6 sm:p-8">
             <div className="flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-2xl border border-[#4b161d] bg-[#120b0d]">
+              <span
+                className={
+                  "grid h-11 w-11 place-items-center rounded-2xl border " +
+                  (active === "iphone"
+                    ? "border-white/80 bg-white shadow-[0_4px_14px_rgba(0,0,0,.20)]"
+                    : "border-[#4b161d] bg-[#120b0d]")
+                }
+              >
                 <img
                   src={current.logoSrc}
                   alt=""
                   className={
                     active === "android"
                       ? "h-[22px] w-[22px] object-contain"
-                      : "h-5 w-5 object-contain"
+                      : active === "iphone"
+                        ? "h-[22px] w-[22px] object-contain"
+                        : "h-5 w-5 object-contain"
                   }
                   aria-hidden="true"
                   draggable={false}
