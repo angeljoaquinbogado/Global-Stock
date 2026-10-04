@@ -94,63 +94,72 @@ function PlatformTabs({
   onChange: (platform: PlatformId) => void;
 }) {
   return (
-    <div
-      className="gs-storefront-scroll grid w-full max-w-[390px] grid-cols-3 gap-1.5 overflow-x-auto rounded-[18px] bg-white/[0.025] p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.24)] ring-1 ring-white/[0.055]"
-      role="tablist"
-      aria-label="Plataforma"
+    <GridBeamBorder
+      color="#8F0000"
+      duration={5.2}
+      strength={0.58}
+      breathe={false}
+      borderRadius={20}
+      className="w-full max-w-[430px] bg-white p-[1px] shadow-[0_16px_40px_rgba(0,0,0,.24),0_0_24px_rgba(143,0,0,.08)]"
     >
-      {platforms.map(({ id, label, logoSrc }) => {
-        const selected = active === id;
+      <div
+        className="gs-storefront-scroll grid w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[19px] bg-white p-1.5"
+        role="tablist"
+        aria-label="Plataforma"
+      >
+        {platforms.map(({ id, label, logoSrc }) => {
+          const selected = active === id;
 
-        const button = (
-          <button
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            onClick={() => onChange(id)}
-            className={
-              "flex h-12 w-full items-center justify-center gap-2.5 rounded-[13px] px-3 text-[12px] font-semibold text-white outline-none transition-[background-color,color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] " +
-              (selected
-                ? "bg-[#120708] shadow-[0_8px_24px_rgba(0,0,0,.22)]"
-                : "border border-white/[0.055] bg-[#0b0b0d] text-white/76 hover:bg-[#111114] hover:text-white")
-            }
-          >
-            <span className="grid h-7 w-7 shrink-0 place-items-center">
-              <img
-                src={logoSrc}
-                alt=""
+          return (
+            <GridBeamBorder
+              key={id}
+              color="#8F0000"
+              active={selected}
+              duration={3.05}
+              strength={selected ? 0.95 : 0.4}
+              breathe={false}
+              borderRadius={14}
+              className={
+                "w-full bg-white p-[1px] " +
+                (selected
+                  ? "shadow-[0_8px_22px_rgba(143,0,0,.14)]"
+                  : "shadow-none")
+              }
+            >
+              <button
+                type="button"
+                role="tab"
+                aria-selected={selected}
+                onClick={() => onChange(id)}
                 className={
-                  id === "iphone"
-                    ? "h-[26px] w-[26px] object-contain"
-                    : "h-[24px] w-[24px] object-contain"
+                  "flex h-14 w-full items-center justify-center gap-3 rounded-[13px] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
+                  (selected
+                    ? "bg-[#fafafa] shadow-[inset_0_0_0_1px_rgba(143,0,0,.08)]"
+                    : "hover:bg-[#f7f7f8]")
                 }
-                aria-hidden="true"
-                draggable={false}
-              />
-            </span>
-            <span>{label}</span>
-          </button>
-        );
-
-        if (!selected) {
-          return <div key={id}>{button}</div>;
-        }
-
-        return (
-          <GridBeamBorder
-            key={id}
-            color="#8F0000"
-            duration={3.2}
-            strength={0.78}
-            breathe={false}
-            borderRadius={14}
-            className="w-full bg-[#120708] p-[1px] shadow-[0_0_18px_rgba(143,0,0,.14)]"
-          >
-            {button}
-          </GridBeamBorder>
-        );
-      })}
-    </div>
+              >
+                <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible">
+                  <img
+                    src={logoSrc}
+                    alt=""
+                    className={
+                      id === "android"
+                        ? "h-[31px] w-[31px] object-contain"
+                        : id === "iphone"
+                          ? "h-[30px] w-[30px] object-contain"
+                          : "h-[30px] w-[30px] object-contain"
+                    }
+                    aria-hidden="true"
+                    draggable={false}
+                  />
+                </span>
+                <span>{label}</span>
+              </button>
+            </GridBeamBorder>
+          );
+        })}
+      </div>
+    </GridBeamBorder>
   );
 }
 export function DownloadPlatformQuickTabs() {
