@@ -81,7 +81,7 @@ const copy: Record<
     network: "Red global activa",
     signIn: "Iniciar sesión",
     signUp: "Crear cuenta",
-    ready: "Global Intelligence lista",
+    ready: "Global Intelligence activa",
     signInTitle: "Volvé al control.",
     signUpTitle: "Creá tu cuenta.",
     signInDescription:
@@ -116,7 +116,7 @@ const copy: Record<
     network: "Global network online",
     signIn: "Sign in",
     signUp: "Create account",
-    ready: "Global Intelligence ready",
+    ready: "Global Intelligence online",
     signInTitle: "Back in control.",
     signUpTitle: "Create your account.",
     signInDescription:
@@ -151,7 +151,7 @@ const copy: Record<
     network: "Rede global ativa",
     signIn: "Entrar",
     signUp: "Criar conta",
-    ready: "Global Intelligence pronta",
+    ready: "Global Intelligence ativa",
     signInTitle: "Volte ao controle.",
     signUpTitle: "Crie sua conta.",
     signInDescription:
@@ -186,7 +186,7 @@ const copy: Record<
     network: "Réseau mondial actif",
     signIn: "Se connecter",
     signUp: "Créer un compte",
-    ready: "Global Intelligence prête",
+    ready: "Global Intelligence active",
     signInTitle: "Reprenez le contrôle.",
     signUpTitle: "Créez votre compte.",
     signInDescription:
@@ -221,7 +221,7 @@ const copy: Record<
     network: "Globales Netzwerk aktiv",
     signIn: "Anmelden",
     signUp: "Konto erstellen",
-    ready: "Global Intelligence bereit",
+    ready: "Global Intelligence aktiv",
     signInTitle: "Zurück zur Kontrolle.",
     signUpTitle: "Erstelle dein Konto.",
     signInDescription:
@@ -806,7 +806,7 @@ export function AuthScreen({
                   }}
                 >
                   <div className="mb-5">
-                    <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#ff8d8d]" : "text-[#8F0000]"}`}>
+                    <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#FF3B47]" : "text-[#8F0000]"}`}>
                       <Sparkles size={13} />
                       {labels.ready}
                     </div>
