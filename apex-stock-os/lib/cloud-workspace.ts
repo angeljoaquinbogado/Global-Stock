@@ -27,6 +27,11 @@ export type CloudWorkspaceState = {
   fxMarket?: string;
   businessSuite?: unknown;
   smartDocuments?: unknown;
+  internalDocuments?: unknown;
+  freeNotes?: unknown;
+  supplierProfiles?: unknown;
+  onlineConnections?: unknown;
+  onlineOrders?: unknown;
 };
 
 type EnsureBusinessInput = {
