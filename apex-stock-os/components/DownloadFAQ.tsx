@@ -31,6 +31,12 @@ const faqs: Array<{
 }> = [
   {
     category: "start",
+    q: "¿Cuánto cuesta Global Stock?",
+    a:
+      "Global Stock es gratis. Podés abrir la aplicación y empezar a usar las herramientas disponibles sin pagar una suscripción."
+  },
+  {
+    category: "start",
     q: "¿En qué dispositivos puedo usar Global Stock?",
     a:
       "Podés usarlo desde el navegador y también instalar la versión PWA. En iPhone y iPad se agrega desde Safari; en Android desde Chrome; y en Windows desde Chrome o Edge."
@@ -119,10 +125,10 @@ export function DownloadFAQ() {
             Preguntas frecuentes
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Lo importante, claro.
+            Todo lo que necesitás saber.
           </h2>
           <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-[#a8a8b0]">
-            Respuestas rápidas sobre instalación, operación, conexiones y seguridad.
+            Qué es, para quién sirve, cómo funciona, cómo se instala y cuánto cuesta.
           </p>
         </div>
 
