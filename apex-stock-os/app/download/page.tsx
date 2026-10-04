@@ -27,9 +27,9 @@ import { DownloadLogo } from "@/components/DownloadLogo";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 export const metadata: Metadata = {
-  title: "Global Stock — Ventas, inventario y gestión en un solo lugar",
+  title: "Global Stock — Ventas, stock, caja y gestión gratis",
   description:
-    "Punto de venta, inventario, compras, proveedores, ecommerce, finanzas e inteligencia operativa desde una sola plataforma."
+    "Gestioná ventas, stock, caja, compras, proveedores, ecommerce y más desde una sola plataforma gratuita."
 };
 
 const storeLinks = {
@@ -94,26 +94,26 @@ export default function DownloadPage() {
                     Global Stock
                   </p>
                   <p className="mt-1 text-xs font-medium text-white/38">
-                    Una operación conectada, de punta a punta
+                    Ventas, stock, caja y gestión en un solo lugar
                   </p>
                 </div>
               </div>
 
               <div className="mt-8 inline-flex min-h-8 items-center gap-2.5 rounded-full bg-white/[0.035] px-3 text-[11px] font-semibold text-white/48 ring-1 ring-white/[0.045]">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.42)]" />
-                Aplicación web instalable disponible
+                Global Stock es gratis
               </div>
 
               <h1 className="mt-7 text-[clamp(3.4rem,6vw,6.8rem)] font-semibold leading-[.9] tracking-[-0.07em] text-white">
-                Tu negocio,
+                Controlá tu negocio
                 <span className="mt-2 block text-white/38">
-                  en una sola señal.
+                  desde un solo lugar.
                 </span>
               </h1>
 
               <p className="mt-7 max-w-[620px] text-base leading-7 text-[#b4b4bc] sm:text-xl sm:leading-8">
-                Vendé, mové stock, comprá, controlá caja y seguí la operación
-                sin repetir datos entre sistemas.
+                Global Stock reúne ventas, inventario, caja, compras, clientes,
+                proveedores y análisis para que trabajes con menos pasos y más control.
               </p>
 
               <div className="mt-9 flex flex-wrap items-center gap-3" id="instalar">
@@ -166,19 +166,19 @@ export default function DownloadPage() {
             <div className="grid gap-10 lg:grid-cols-[.82fr_1.18fr] lg:items-end">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-                  Flujo conectado
+                  Cómo funciona
                 </p>
                 <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                  Una acción entra.
+                  Registrás una vez.
                   <span className="block text-white/34">
-                    El resto se acomoda.
+                    El resto se actualiza.
                   </span>
                 </h2>
               </div>
 
               <p className="max-w-2xl text-base leading-7 text-[#a8a8b0] sm:text-lg">
-                El producto está pensado como una cadena: cada dato nace una vez
-                y después alimenta las áreas que lo necesitan.
+                Una venta puede actualizar stock, caja y actividad dentro del mismo
+                flujo para que no tengas que repetir la misma información en varios lugares.
               </p>
             </div>
 
@@ -301,17 +301,17 @@ export default function DownloadPage() {
           <div className="relative mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
             <div className="max-w-3xl">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6ea8ff]">
-                Instalación
+                Cómo lo usás
               </p>
               <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                Abrilo como una app.
+                Usalo en el navegador.
                 <span className="block text-white/34">
-                  Seguí trabajando igual.
+                  O instalalo como app.
                 </span>
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-[#a8a8b0]">
-                La versión web instalable funciona desde navegadores compatibles.
-                Las publicaciones nativas se muestran únicamente cuando estén disponibles.
+                Entrá desde la web o instalá la versión PWA en dispositivos compatibles.
+                Tu operación sigue siendo la misma estés donde estés.
               </p>
             </div>
 
@@ -333,14 +333,14 @@ export default function DownloadPage() {
           <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.92fr_1.08fr] lg:items-center">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#34d399]">
-                Seguridad y acceso
+                Tus datos
               </p>
               <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                Cada dato tiene un límite.
+                Cada persona ve lo que necesita.
               </h2>
               <p className="mt-5 max-w-xl text-base leading-7 text-[#a8a8b0]">
-                Global Stock separa información pública de conexiones privadas
-                y controla qué puede ver o hacer cada rol.
+                Los permisos por rol ayudan a separar accesos, proteger información
+                sensible y mantener cada área bajo control.
               </p>
 
               <div className="mt-8 flex flex-wrap gap-3">
@@ -415,14 +415,14 @@ export default function DownloadPage() {
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/32">
-                  Global Stock
+                  Precio
                 </p>
                 <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-4xl">
-                  Menos herramientas sueltas. Más control sobre el negocio.
+                  Todo esto, gratis.
                 </h2>
                 <p className="mt-3 max-w-2xl text-sm leading-6 text-white/44">
-                  Probá la aplicación y conectá primero las partes de la operación
-                  que más tiempo te quitan hoy.
+                  Global Stock no necesita un plan para empezar: abrí la aplicación
+                  y usá las herramientas disponibles sin pagar una suscripción.
                 </p>
               </div>
 
