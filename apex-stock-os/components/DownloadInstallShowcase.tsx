@@ -121,7 +121,7 @@ function PlatformTabs({
                 alt=""
                 className={
                   id === "iphone"
-                    ? "h-[21px] w-[21px] object-contain"
+                    ? "h-[26px] w-[26px] object-contain"
                     : "h-[24px] w-[24px] object-contain"
                 }
                 aria-hidden="true"
@@ -247,7 +247,7 @@ export function DownloadInstallShowcase({
                     active === "android"
                       ? "h-[22px] w-[22px] object-contain"
                       : active === "iphone"
-                        ? "h-[22px] w-[22px] object-contain"
+                        ? "h-[26px] w-[26px] object-contain"
                         : "h-5 w-5 object-contain"
                   }
                   aria-hidden="true"
