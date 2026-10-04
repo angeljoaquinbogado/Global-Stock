@@ -222,7 +222,7 @@ export function GlobalStockPhonePreview() {
 
         <button
           type="button"
-          onPointerDown={(event) => {
+          onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
             moveScreen(-1);
@@ -235,7 +235,7 @@ export function GlobalStockPhonePreview() {
 
         <button
           type="button"
-          onPointerDown={(event) => {
+          onClick={(event) => {
             event.preventDefault();
             event.stopPropagation();
             moveScreen(1);

@@ -1,6 +1,7 @@
 "use client";
 
 import { MotionConfig } from "framer-motion";
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
 
 import {
@@ -9,7 +10,21 @@ import {
 } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 import { AuthScreen } from "./AuthScreen";
-import { BusinessWorkspace } from "./BusinessWorkspace";
+
+const BusinessWorkspace = dynamic(
+  () =>
+    import("./BusinessWorkspace").then(
+      (module) => module.BusinessWorkspace
+    ),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid min-h-[100dvh] place-items-center bg-[var(--apex-bg)]">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--apex-border)] border-t-[#8F0000]" />
+      </div>
+    )
+  }
+);
 
 const languageToHtml: Record<LanguageCode, string> = {
   es: "es",
