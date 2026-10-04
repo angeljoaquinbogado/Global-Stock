@@ -21,6 +21,7 @@ import {
 import { createPortal } from "react-dom";
 
 import { calculateMetrics, formatMoney } from "@/lib/analytics";
+import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 
@@ -29,6 +30,7 @@ type ApexIntelligenceProps = {
   appContext?: Record<string, unknown>;
   raiseOnMobile?: boolean;
   demoMode?: boolean;
+  businessId?: string | null;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
@@ -359,7 +361,8 @@ export function ApexIntelligence({
   snapshot,
   appContext = {},
   raiseOnMobile = false,
-  demoMode = false
+  demoMode = false,
+  businessId = null
 }: ApexIntelligenceProps) {
   const language = languageFromLocale(snapshot.locale);
   const copy = uiCopy[language];
@@ -547,7 +550,14 @@ export function ApexIntelligence({
         ["businessSuite", "global-stock-business-suite-v1"]
       ] as const) {
         try {
-          const raw = window.localStorage.getItem(key);
+          const scopedKey = businessStorageKey(
+            key,
+            businessId,
+            demoMode
+          );
+          const raw = scopedKey
+            ? window.localStorage.getItem(scopedKey)
+            : null;
           if (raw) localModules[name] = JSON.parse(raw);
         } catch {
           // Corrupt optional local context must never block the assistant.
