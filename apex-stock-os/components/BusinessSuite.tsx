@@ -19,6 +19,7 @@ import {
   loadCloudWorkspace,
   saveCloudWorkspace
 } from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import { canAccessBusinessSuiteTab } from "@/lib/access-control";
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -185,8 +186,16 @@ export function BusinessSuite({
     async function hydrate() {
       let nextState = emptyState;
 
+      const storageKey = businessStorageKey(
+        STORAGE_KEY,
+        businessId,
+        demoMode
+      );
+
       try {
-        const raw = window.localStorage.getItem(STORAGE_KEY);
+        const raw = storageKey
+          ? window.localStorage.getItem(storageKey)
+          : null;
         if (raw) nextState = normalizeSuiteState(JSON.parse(raw));
       } catch {
         nextState = emptyState;
@@ -215,7 +224,14 @@ export function BusinessSuite({
   useEffect(() => {
     if (!ready) return;
 
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const storageKey = businessStorageKey(
+      STORAGE_KEY,
+      businessId,
+      demoMode
+    );
+    if (storageKey) {
+      window.localStorage.setItem(storageKey, JSON.stringify(state));
+    }
 
     if (demoMode || !businessId) return;
 
