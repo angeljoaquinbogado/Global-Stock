@@ -70,15 +70,15 @@ export function DownloadFeatureCatalog() {
       <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-            Funcionalidades
+            Qué incluye
           </p>
           <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-            Mucho sistema.
-            <span className="block text-white/34">Poco ruido.</span>
+            Todo para operar.
+            <span className="block text-white/34">Sin saltar entre sistemas.</span>
           </h2>
           <p className="mt-5 max-w-lg text-base leading-7 text-[#a8a8b0]">
-            Las herramientas se agrupan por trabajo real: vender, abastecer,
-            gestionar y decidir. Lo demás queda fuera del camino hasta que lo necesitás.
+            Global Stock concentra ventas, stock, compras, clientes, finanzas,
+            equipo e inteligencia para que la operación quede conectada en un solo lugar.
           </p>
 
           <Link
