@@ -1,6 +1,6 @@
 "use client";
 
-import createGlobe, { type Arc, type Globe, type Marker } from "cobe";
+import createGlobe, { type Arc, type Globe } from "cobe";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -11,6 +11,13 @@ type GlobeMarker = {
   label: string;
   location: Location;
   primary?: boolean;
+};
+
+type Projection = {
+  x: number;
+  y: number;
+  depth: number;
+  visible: boolean;
 };
 
 const ARGENTINA: Location = [-34.6037, -58.3816];
@@ -54,15 +61,6 @@ const MARKERS: GlobeMarker[] = [
   }
 ];
 
-const COBE_MARKERS: Marker[] = MARKERS.map((marker) => ({
-  id: marker.id,
-  location: marker.location,
-  // Keep COBE's native marker almost invisible. Its native anchor remains the
-  // single source of truth for our custom pin position.
-  size: marker.primary ? 0.008 : 0.005,
-  color: marker.primary ? [1, 0.12, 0.16] : [0.78, 0.04, 0.07]
-}));
-
 const ROUTES: Arc[] = MARKERS.filter((marker) => !marker.primary).map(
   (marker) => ({
     id: "argentina-" + marker.id,
@@ -74,22 +72,36 @@ const ROUTES: Arc[] = MARKERS.filter((marker) => !marker.primary).map(
 
 const ROUTE_SLOT_MS = 2800;
 const GLOBE_RADIUS = 0.8;
-const MARKER_ELEVATION = 0.05;
 const GLOBE_SCALE = 0.98;
 
-function projectVisibility(
-  [lat, lon]: Location,
-  phi: number,
-  theta: number
-) {
-  const latRad = (lat * Math.PI) / 180;
-  const lonRad = (lon * Math.PI) / 180 - Math.PI;
-  const cosLat = Math.cos(latRad);
-  const radius = GLOBE_RADIUS + MARKER_ELEVATION;
+function latLonTo3D([lat, lon]: Location): [number, number, number] {
+  const latitude = (lat * Math.PI) / 180;
+  const longitude = (lon * Math.PI) / 180 - Math.PI;
+  const cosLat = Math.cos(latitude);
 
-  const px = -cosLat * Math.cos(lonRad) * radius;
-  const py = Math.sin(latRad) * radius;
-  const pz = cosLat * Math.sin(lonRad) * radius;
+  return [
+    -cosLat * Math.cos(longitude),
+    Math.sin(latitude),
+    cosLat * Math.sin(longitude)
+  ];
+}
+
+/**
+ * Same world -> view rotation COBE uses internally.
+ * The anchor is projected from the globe surface itself (radius 0.8), so the
+ * point of every custom pin is physically attached to its country.
+ */
+function projectLocation(
+  location: Location,
+  phi: number,
+  theta: number,
+  width: number,
+  height: number
+): Projection {
+  const source = latLonTo3D(location);
+  const px = source[0] * GLOBE_RADIUS;
+  const py = source[1] * GLOBE_RADIUS;
+  const pz = source[2] * GLOBE_RADIUS;
 
   const cx = Math.cos(theta);
   const cy = Math.cos(phi);
@@ -100,24 +112,215 @@ function projectVisibility(
   const ry = sy * sx * px + cx * py - cy * sx * pz;
   const rz = -sy * cx * px + sx * py + cy * cx * pz;
 
-  return rz >= 0 || rx * rx + ry * ry >= GLOBE_RADIUS * GLOBE_RADIUS;
+  const aspect = width / Math.max(height, 1);
+  const nx = ((rx / aspect) * GLOBE_SCALE + 1) / 2;
+  const ny = (-ry * GLOBE_SCALE + 1) / 2;
+
+  const x = nx * width;
+  const y = ny * height;
+
+  return {
+    x,
+    y,
+    depth: rz,
+    // Pins disappear as the country crosses the back hemisphere. This avoids
+    // the old "floating through space" effect completely.
+    visible:
+      rz > 0.01 &&
+      x > -28 &&
+      x < width + 28 &&
+      y > -28 &&
+      y < height + 28
+  };
 }
 
-function findAnchor(wrapper: HTMLElement | null, markerId: string) {
-  if (!wrapper) return null;
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number
+) {
+  const r = Math.min(radius, width / 2, height / 2);
 
-  for (const child of Array.from(wrapper.children)) {
-    if (!(child instanceof HTMLElement)) continue;
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(
+    x + width,
+    y + height,
+    x + width - r,
+    y + height
+  );
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
-    if (
-      child.style.getPropertyValue("anchor-name").trim() ===
-      `--cobe-${markerId}`
-    ) {
-      return child;
-    }
+function drawVectorPin(
+  ctx: CanvasRenderingContext2D,
+  marker: GlobeMarker,
+  projection: Projection,
+  activeDestination: boolean
+) {
+  if (!projection.visible) return;
+
+  const isImportant = marker.primary || activeDestination;
+  const depthFactor = Math.max(0, Math.min(1, projection.depth / 0.8));
+  const scale = (isImportant ? 1 : 0.82) * (0.9 + depthFactor * 0.12);
+  const pinHeight = 32 * scale;
+  const pinWidth = 23 * scale;
+  const x = projection.x;
+  const y = projection.y;
+
+  ctx.save();
+  ctx.translate(x, y);
+
+  // Soft glow belongs to the vector pin itself; no PNG/SVG overlay is used.
+  ctx.shadowColor = isImportant
+    ? "rgba(255,36,53,.62)"
+    : "rgba(183,18,31,.34)";
+  ctx.shadowBlur = isImportant ? 14 : 8;
+
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(
+    -pinWidth * 0.08,
+    -pinHeight * 0.18,
+    -pinWidth * 0.5,
+    -pinHeight * 0.42,
+    -pinWidth * 0.5,
+    -pinHeight * 0.66
+  );
+  ctx.bezierCurveTo(
+    -pinWidth * 0.5,
+    -pinHeight * 0.9,
+    -pinWidth * 0.28,
+    -pinHeight,
+    0,
+    -pinHeight
+  );
+  ctx.bezierCurveTo(
+    pinWidth * 0.28,
+    -pinHeight,
+    pinWidth * 0.5,
+    -pinHeight * 0.9,
+    pinWidth * 0.5,
+    -pinHeight * 0.66
+  );
+  ctx.bezierCurveTo(
+    pinWidth * 0.5,
+    -pinHeight * 0.42,
+    pinWidth * 0.08,
+    -pinHeight * 0.18,
+    0,
+    0
+  );
+  ctx.closePath();
+
+  const gradient = ctx.createLinearGradient(
+    0,
+    -pinHeight,
+    0,
+    -pinHeight * 0.08
+  );
+  gradient.addColorStop(0, isImportant ? "#ff3346" : "#c51627");
+  gradient.addColorStop(1, isImportant ? "#bf0618" : "#7f0812");
+  ctx.fillStyle = gradient;
+  ctx.fill();
+
+  ctx.shadowBlur = 0;
+
+  ctx.beginPath();
+  ctx.arc(
+    0,
+    -pinHeight * 0.68,
+    pinWidth * 0.18,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "#070708";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(
+    -pinWidth * 0.11,
+    -pinHeight * 0.83,
+    pinWidth * 0.07,
+    0,
+    Math.PI * 2
+  );
+  ctx.fillStyle = "rgba(255,255,255,.32)";
+  ctx.fill();
+
+  ctx.restore();
+
+  if (!isImportant) return;
+
+  ctx.save();
+  ctx.font =
+    "700 10px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
+  ctx.textBaseline = "middle";
+
+  const textWidth = ctx.measureText(marker.label).width;
+  const labelWidth = textWidth + 18;
+  const labelHeight = 24;
+  const preferredX = x + 14;
+  const maxX = ctx.canvas.width / (window.devicePixelRatio || 1) - labelWidth - 8;
+  const labelX = Math.min(preferredX, Math.max(8, maxX));
+  const labelY = y - pinHeight * 0.72 - labelHeight / 2;
+
+  roundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 7);
+  ctx.fillStyle = "rgba(8,8,10,.88)";
+  ctx.fill();
+  ctx.strokeStyle = marker.primary
+    ? "rgba(231,27,44,.72)"
+    : "rgba(255,255,255,.10)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = marker.primary ? "#ff6672" : "#f3f3f5";
+  ctx.fillText(marker.label, labelX + 9, labelY + labelHeight / 2 + 0.5);
+  ctx.restore();
+}
+
+function paintPins(
+  canvas: HTMLCanvasElement,
+  markers: GlobeMarker[],
+  activeDestinationId: string,
+  phi: number,
+  theta: number,
+  width: number,
+  height: number,
+  dpr: number
+) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, width, height);
+
+  for (const marker of markers) {
+    const projection = projectLocation(
+      marker.location,
+      phi,
+      theta,
+      width,
+      height
+    );
+
+    drawVectorPin(
+      ctx,
+      marker,
+      projection,
+      marker.id === activeDestinationId
+    );
   }
-
-  return null;
 }
 
 export function GlobalStockGlobe({
@@ -127,12 +330,15 @@ export function GlobalStockGlobe({
 }) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const pinsCanvasRef = useRef<HTMLCanvasElement>(null);
   const globeRef = useRef<Globe | null>(null);
   const rafRef = useRef<number | null>(null);
-  const markerRefs = useRef(new Map<string, HTMLDivElement>());
-  const labelRefs = useRef(new Map<string, HTMLSpanElement>());
 
-  const sizeRef = useRef(680);
+  const sizeRef = useRef({
+    width: 680,
+    height: 680,
+    dpr: 1
+  });
   const activeRef = useRef(active);
   const visibleRef = useRef(true);
   const phiRef = useRef(-1.02);
@@ -167,6 +373,7 @@ export function GlobalStockGlobe({
 
     if (previous) {
       const elapsed = Math.max(now - previous.t, 1);
+
       velocityRef.current = {
         phi: Math.max(
           -0.04,
@@ -206,7 +413,10 @@ export function GlobalStockGlobe({
 
   const handlePointerDown = useCallback(
     (event: ReactPointerEvent<HTMLCanvasElement>) => {
-      pointerRef.current = { x: event.clientX, y: event.clientY };
+      pointerRef.current = {
+        x: event.clientX,
+        y: event.clientY
+      };
       lastPointerRef.current = {
         x: event.clientX,
         y: event.clientY,
@@ -225,7 +435,9 @@ export function GlobalStockGlobe({
     window.addEventListener("pointermove", handlePointerMove, {
       passive: true
     });
-    window.addEventListener("pointerup", handlePointerUp, { passive: true });
+    window.addEventListener("pointerup", handlePointerUp, {
+      passive: true
+    });
     window.addEventListener("pointercancel", handlePointerUp, {
       passive: true
     });
@@ -240,27 +452,36 @@ export function GlobalStockGlobe({
   useEffect(() => {
     const root = rootRef.current;
     const canvas = canvasRef.current;
-    if (!root || !canvas) return;
+    const pinsCanvas = pinsCanvasRef.current;
+
+    if (!root || !canvas || !pinsCanvas) return;
 
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
-    // COBE applies DPR internally. Passing CSS dimensions here avoids the
-    // previous double-DPR render target that was wasting GPU time.
+    // Keep the intro smooth on ordinary laptops and phones. The previous
+    // DOM-anchor implementation forced layout reads/writes every frame.
     const dpr = Math.min(
       window.devicePixelRatio || 1,
-      coarsePointer ? 1 : 1.25
+      coarsePointer ? 1 : 1.18
     );
-    const samples = coarsePointer ? 3800 : 5600;
+    const samples = coarsePointer ? 3000 : 4600;
 
     const readSize = () => {
       const rect = root.getBoundingClientRect();
-      sizeRef.current = Math.max(
-        320,
-        Math.round(Math.min(rect.width, rect.height))
-      );
+      const width = Math.max(320, Math.round(rect.width));
+      const height = Math.max(320, Math.round(rect.height));
+
+      sizeRef.current = {
+        width,
+        height,
+        dpr
+      };
+
+      pinsCanvas.width = Math.max(1, Math.round(width * dpr));
+      pinsCanvas.height = Math.max(1, Math.round(height * dpr));
     };
 
     readSize();
@@ -268,26 +489,27 @@ export function GlobalStockGlobe({
 
     const globe = createGlobe(canvas, {
       devicePixelRatio: dpr,
-      width: sizeRef.current,
-      height: sizeRef.current,
+      width: sizeRef.current.width,
+      height: sizeRef.current.height,
       phi: phiRef.current,
       theta: thetaRef.current,
       dark: 1,
-      diffuse: 1.28,
+      diffuse: 1.26,
       mapSamples: samples,
-      mapBrightness: 6.25,
+      mapBrightness: 6.2,
       mapBaseBrightness: 0,
       baseColor: [0.04, 0.042, 0.048],
-      markerColor: [0.82, 0.04, 0.08],
       glowColor: [0.25, 0.012, 0.018],
       arcColor: [0.96, 0.08, 0.12],
-      arcWidth: coarsePointer ? 1 : 1.15,
-      arcHeight: 0.17,
-      markerElevation: MARKER_ELEVATION,
+      arcWidth: coarsePointer ? 0.9 : 1.05,
+      arcHeight: 0.15,
+      markerElevation: 0,
       opacity: 0.95,
       scale: GLOBE_SCALE,
       offset: [0, 0],
-      markers: COBE_MARKERS,
+      // No native marker billboards and no DOM anchors. Every pin below is a
+      // custom vector rendered on our own canvas from the exact globe transform.
+      markers: [],
       arcs: ROUTES.length ? [ROUTES[0]] : [],
       context: {
         alpha: true,
@@ -304,22 +526,30 @@ export function GlobalStockGlobe({
     const resizeObserver = new ResizeObserver(() => {
       const before = sizeRef.current;
       readSize();
+      const after = sizeRef.current;
 
-      if (before !== sizeRef.current) {
+      if (
+        before.width !== after.width ||
+        before.height !== after.height
+      ) {
         globe.update({
-          width: sizeRef.current,
-          height: sizeRef.current
+          width: after.width,
+          height: after.height
         });
       }
     });
+
     resizeObserver.observe(root);
 
     const intersectionObserver = new IntersectionObserver(
       ([entry]) => {
         visibleRef.current = Boolean(entry?.isIntersecting);
       },
-      { threshold: 0.01 }
+      {
+        threshold: 0.01
+      }
     );
+
     intersectionObserver.observe(root);
 
     const tick = (timestamp: number) => {
@@ -335,7 +565,7 @@ export function GlobalStockGlobe({
 
         if (!pointerRef.current) {
           if (!reducedMotion) {
-            phiRef.current += coarsePointer ? 0.000045 : 0.00007;
+            phiRef.current += coarsePointer ? 0.00004 : 0.000065;
           }
 
           if (Math.abs(velocityRef.current.phi) > 0.00004) {
@@ -346,7 +576,10 @@ export function GlobalStockGlobe({
           if (Math.abs(velocityRef.current.theta) > 0.00004) {
             thetaRef.current = Math.max(
               -0.28,
-              Math.min(0.28, thetaRef.current + velocityRef.current.theta)
+              Math.min(
+                0.28,
+                thetaRef.current + velocityRef.current.theta
+              )
             );
             velocityRef.current.theta *= 0.918;
           }
@@ -366,6 +599,7 @@ export function GlobalStockGlobe({
 
         if (routeIndex !== activeRouteRef.current) {
           activeRouteRef.current = routeIndex;
+
           globeRef.current.update({
             arcs: ROUTES.length ? [ROUTES[routeIndex]] : []
           });
@@ -377,51 +611,20 @@ export function GlobalStockGlobe({
         });
 
         const activeDestinationId =
-          MARKERS[routeIndex + 1]?.id ?? MARKERS[1]?.id;
-        const wrapper = canvas.parentElement;
-        const cssSize = sizeRef.current;
+          MARKERS[routeIndex + 1]?.id ?? MARKERS[1]?.id ?? "";
 
-        for (const marker of MARKERS) {
-          const element = markerRefs.current.get(marker.id);
-          const labelElement = labelRefs.current.get(marker.id);
-          if (!element || !labelElement) continue;
+        const { width, height } = sizeRef.current;
 
-          const anchor = findAnchor(wrapper, marker.id);
-          const left = anchor
-            ? Number.parseFloat(anchor.style.left)
-            : Number.NaN;
-          const top = anchor
-            ? Number.parseFloat(anchor.style.top)
-            : Number.NaN;
-          const visible = projectVisibility(
-            marker.location,
-            phi,
-            theta
-          );
-
-          if (!visible || !Number.isFinite(left) || !Number.isFinite(top)) {
-            element.style.opacity = "0";
-            element.style.visibility = "hidden";
-            continue;
-          }
-
-          const pinX = (left / 100) * cssSize;
-          const pinY = (top / 100) * cssSize;
-          const activeDestination = marker.id === activeDestinationId;
-
-          element.style.visibility = "visible";
-          element.style.opacity =
-            marker.primary || activeDestination ? "1" : "0.46";
-          element.style.transform =
-            `translate3d(${pinX.toFixed(1)}px,${pinY.toFixed(1)}px,0) translate(-50%,-100%)`;
-
-          const shouldShowLabel =
-            marker.primary || activeDestination;
-          labelElement.style.opacity = shouldShowLabel ? "1" : "0";
-          labelElement.style.transform = shouldShowLabel
-            ? "translate3d(0,0,0)"
-            : "translate3d(-4px,0,0)";
-        }
+        paintPins(
+          pinsCanvas,
+          MARKERS,
+          activeDestinationId,
+          phi,
+          theta,
+          width,
+          height,
+          dpr
+        );
       }
 
       rafRef.current = requestAnimationFrame(tick);
@@ -433,6 +636,7 @@ export function GlobalStockGlobe({
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }
+
       resizeObserver.disconnect();
       intersectionObserver.disconnect();
       globe.destroy();
@@ -453,52 +657,11 @@ export function GlobalStockGlobe({
         aria-label="Red global de Global Stock"
       />
 
-      <div className="pointer-events-none absolute inset-0 z-[4] overflow-hidden">
-        {MARKERS.map((marker) => (
-          <div
-            key={marker.id}
-            ref={(element) => {
-              if (element) markerRefs.current.set(marker.id, element);
-              else markerRefs.current.delete(marker.id);
-            }}
-            className={
-              "gs-cobe-marker gs-cobe-marker-projected " +
-              (marker.primary ? "gs-cobe-marker-primary" : "")
-            }
-          >
-            <span className="gs-cobe-marker-content">
-              <span className="gs-cobe-pin-icon" aria-hidden="true">
-                <svg
-                  viewBox="0 0 36 48"
-                  className="gs-cobe-pin-svg"
-                  focusable="false"
-                >
-                  <path
-                    className="gs-cobe-pin-shape"
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M18 1C8.61 1 1 8.61 1 18c0 12.45 17 29 17 29s17-16.55 17-29C35 8.61 27.39 1 18 1Zm0 9.2a7.8 7.8 0 1 0 0 15.6 7.8 7.8 0 0 0 0-15.6Z"
-                  />
-                  <path
-                    className="gs-cobe-pin-shine"
-                    d="M8.1 19.2C8.1 10.9 13.7 5.7 20.7 5.4c4.2-.2 7.4 1.4 9.4 3.7-2.6-1.5-5.3-2.3-8.5-2.1-6.3.4-11.4 4.9-12 12.2-.2 2.7.3 5.2 1.2 7.5-1.8-2.1-2.7-4.5-2.7-7.5Z"
-                  />
-                </svg>
-              </span>
-
-              <span
-                ref={(element) => {
-                  if (element) labelRefs.current.set(marker.id, element);
-                  else labelRefs.current.delete(marker.id);
-                }}
-                className="gs-cobe-marker-name"
-              >
-                {marker.label}
-              </span>
-            </span>
-          </div>
-        ))}
-      </div>
+      <canvas
+        ref={pinsCanvasRef}
+        className="pointer-events-none absolute inset-0 z-[4] h-full w-full"
+        aria-hidden="true"
+      />
     </div>
   );
 }
