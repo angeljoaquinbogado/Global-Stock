@@ -48,7 +48,7 @@ export function DownloadMetricStrip() {
 
             <div className="min-w-0">
               <div
-                className="text-[28px] font-semibold leading-none tracking-[-0.055em] sm:text-[30px]"
+                className="text-[28px] font-semibold leading-none tracking-[-0.055em] transition-[filter,transform] duration-150 group-hover:brightness-110 sm:text-[30px]"
                 style={{ color: accent }}
               >
                 {value}
