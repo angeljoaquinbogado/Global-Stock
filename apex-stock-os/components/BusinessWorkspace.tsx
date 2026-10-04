@@ -65,6 +65,7 @@ import type {
   Product,
   TrendPoint
 } from "@/lib/types";
+import { demoProducts, demoTrend } from "@/lib/demo-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 import { ApexIntelligence } from "./ApexIntelligence";
@@ -1061,6 +1062,48 @@ export function BusinessWorkspace({
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!demoMode) return;
+
+    const seededKey = "global-stock-demo-seeded-v1";
+    if (window.localStorage.getItem(seededKey) === "1") return;
+
+    setProducts(demoProducts.map((product) => ({ ...product })));
+    setTrend(demoTrend.map((point) => ({ ...point })));
+    setBusinessName("Global Stock Demo");
+    setBusinessType("retail");
+    setBusinessCountry("Argentina");
+    setBusinessDescription(
+      "Cuenta demo con productos, stock, ventas y métricas de prueba."
+    );
+    setActivities([
+      {
+        id: "demo-sale-1",
+        kind: "sale",
+        createdAt: new Date(Date.now() - 18 * 60 * 1000).toISOString(),
+        product: "Reel Frontal Apex 4000",
+        units: 2,
+        total: 145800
+      },
+      {
+        id: "demo-restock-1",
+        kind: "restock",
+        createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+        product: "Caña Carbon Pro 2.40 m",
+        units: 8
+      }
+    ]);
+    setNotes([
+      {
+        id: "demo-note-1",
+        text: "Revisar reposición de stock crítico antes del viernes.",
+        date: localDateKey(new Date())
+      }
+    ]);
+
+    window.localStorage.setItem(seededKey, "1");
+  }, [demoMode]);
 
   useEffect(() => {
     const releaseMouseButtonFocus = (event: PointerEvent) => {
