@@ -111,15 +111,15 @@ export function DownloadSectorShowcase() {
         <div className="grid gap-12 lg:grid-cols-[.74fr_1.26fr] lg:items-start">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#50c7d9]">
-              Para quién
+              Para quién es
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-              Mismo núcleo.
-              <span className="block text-white/34">Distinto negocio.</span>
+              Para negocios que
+              <span className="block text-white/34">necesitan control.</span>
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-[#a8a8b0]">
-              Elegí un perfil y mirá qué parte de Global Stock toma protagonismo
-              en esa operación.
+              Comercios, gastronomía, ecommerce, distribución, industria, autónomos,
+              pymes y asesorías pueden adaptar Global Stock a su forma de trabajar.
             </p>
           </div>
 
