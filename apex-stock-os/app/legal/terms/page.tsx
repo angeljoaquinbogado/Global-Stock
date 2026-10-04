@@ -20,11 +20,10 @@ export default function TermsPage() {
           Global Stock es un proyecto de software creado y operado actualmente
           por <strong>Angel Joaquin Bogado</strong>, con base en la Provincia de
           Buenos Aires, Argentina. Global Stock no constituye hoy una sociedad
-          separada del operador. Para soporte puede escribirse a{" "}
+          separada del operador. Soporte:{" "}
           <a href="mailto:angeljoaquinbogado@gmail.com">
             angeljoaquinbogado@gmail.com
-          </a>{" "}
-          y para asuntos legales o de privacidad a{" "}
+          </a>. Asuntos legales o de privacidad:{" "}
           <a href="mailto:joaquinbogado555@gmail.com">
             joaquinbogado555@gmail.com
           </a>.
@@ -37,28 +36,31 @@ export default function TermsPage() {
           Global Stock ofrece herramientas para organizar inventario, ventas,
           punto de venta, proveedores, reposición, códigos de barras, ecommerce,
           comprobantes internos, notas, cotizaciones e inteligencia operativa.
-          Algunas funciones pueden depender de servicios externos o de una
-          integración autorizada por el usuario.
+          Algunas funciones dependen de servicios externos o de una integración
+          autorizada por el usuario.
         </p>
       </section>
 
       <section>
-        <h2>3. Cuenta y seguridad</h2>
+        <h2>3. Capacidad y cuentas</h2>
         <p>
-          La persona usuaria es responsable de mantener seguras sus credenciales,
-          de utilizar datos correctos y de impedir accesos no autorizados a su
-          cuenta. No deben compartirse contraseñas, claves de servicio ni tokens
-          de integración fuera de los canales previstos por la plataforma.
+          Quien cree o administre una cuenta debe tener capacidad legal
+          suficiente o la autorización necesaria conforme a la legislación que le
+          resulte aplicable. La persona usuaria es responsable de mantener seguras
+          sus credenciales y de impedir accesos no autorizados. No deben
+          compartirse contraseñas, claves de servicio ni tokens fuera de los
+          canales previstos por la plataforma.
         </p>
       </section>
 
       <section>
-        <h2>4. Datos del negocio</h2>
+        <h2>4. Datos y operaciones del negocio</h2>
         <p>
-          El usuario conserva la responsabilidad sobre la exactitud de los datos
-          cargados o sincronizados, incluidos costos, precios, stock, proveedores
-          y movimientos. Global Stock no debe completar como hechos reales los
-          datos que no hayan sido suministrados o verificados.
+          El usuario conserva la responsabilidad sobre la legitimidad y exactitud
+          de los datos que carga o sincroniza, incluidos datos de terceros,
+          costos, precios, stock, proveedores y movimientos. Global Stock no debe
+          completar como hechos reales los datos que no hayan sido suministrados
+          o verificados.
         </p>
       </section>
 
@@ -67,7 +69,7 @@ export default function TermsPage() {
         <p>
           Detectar una URL pública no concede permiso para leer información
           privada ni modificar stock. Las funciones de sincronización requieren
-          una autorización adicional del administrador del canal, mediante OAuth,
+          autorización adicional del administrador del canal mediante OAuth,
           credenciales de API, un token emitido por el comercio u otro mecanismo
           equivalente. El usuario declara contar con autorización suficiente para
           conectar y administrar cada servicio externo.
@@ -77,11 +79,11 @@ export default function TermsPage() {
       <section>
         <h2>6. Inteligencia artificial</h2>
         <p>
-          Global Intelligence puede utilizar un proveedor externo de IA para
-          responder consultas. Sus respuestas son asistencia operativa y pueden
-          contener errores. Las decisiones comerciales, contables, fiscales,
-          jurídicas o financieras siguen siendo responsabilidad de la persona
-          usuaria y deben verificarse cuando corresponda.
+          Global Intelligence puede utilizar proveedores externos de IA. Sus
+          respuestas son asistencia operativa y pueden contener errores. Las
+          decisiones comerciales, contables, fiscales, jurídicas, financieras o
+          de otra naturaleza profesional siguen siendo responsabilidad de la
+          persona usuaria y deben verificarse cuando corresponda.
         </p>
       </section>
 
@@ -90,8 +92,9 @@ export default function TermsPage() {
         <p>
           Los comprobantes generados dentro de Global Stock son registros
           internos salvo que exista una integración fiscal específica habilitada
-          para la jurisdicción correspondiente. La plataforma no convierte por sí
-          sola un registro interno en una factura fiscal válida.
+          y correctamente configurada para la jurisdicción correspondiente. La
+          plataforma no convierte por sí sola un registro interno en una factura
+          fiscal válida ni garantiza el cumplimiento tributario de cada negocio.
         </p>
       </section>
 
@@ -99,9 +102,10 @@ export default function TermsPage() {
         <h2>8. Uso permitido</h2>
         <p>
           No está permitido utilizar Global Stock para vulnerar sistemas,
-          introducir malware, intentar acceder a cuentas o tiendas sin
-          autorización, evadir controles de seguridad, abusar de APIs externas o
-          utilizar la plataforma de manera contraria a la ley.
+          introducir malware, acceder a cuentas o tiendas sin autorización,
+          evadir controles de seguridad, abusar de APIs externas, infringir
+          derechos de terceros, almacenar contenido ilícito o utilizar la
+          plataforma de manera contraria a la ley.
         </p>
       </section>
 
@@ -111,7 +115,8 @@ export default function TermsPage() {
           Global Stock puede recibir actualizaciones, mejoras, cambios de
           interfaz, mantenimiento o ajustes de compatibilidad. Algunas funciones
           pueden no estar disponibles temporalmente si dependen de terceros,
-          credenciales vencidas, límites de API o servicios fuera de línea.
+          credenciales vencidas, límites de API, conectividad o servicios fuera
+          de línea. No se garantiza disponibilidad ininterrumpida.
         </p>
       </section>
 
@@ -121,7 +126,7 @@ export default function TermsPage() {
           Shopify, Tiendanube, WooCommerce, Mercado Libre, proveedores de nube,
           autenticación, inteligencia artificial y otros servicios externos
           mantienen sus propios términos y políticas. Global Stock no controla
-          sus interrupciones, cambios de API ni decisiones sobre cuentas
+          sus interrupciones, cambios de API, precios ni decisiones sobre cuentas
           administradas por esos terceros.
         </p>
       </section>
@@ -139,18 +144,31 @@ export default function TermsPage() {
       </section>
 
       <section>
-        <h2>12. Legislación aplicable</h2>
+        <h2>12. Responsabilidad y límites</h2>
         <p>
-          Estos términos se interpretan conforme a la normativa aplicable al
-          operador y al usuario. Para el operador actual, la referencia territorial
-          es la Provincia de Buenos Aires, República Argentina, sin perjuicio de
-          las normas de protección al consumidor, privacidad o jurisdicción que
-          puedan resultar obligatorias en otros lugares.
+          En la medida permitida por la normativa aplicable, Global Stock se
+          ofrece como herramienta de apoyo a la gestión y no reemplaza los
+          controles internos, copias de seguridad, asesoramiento profesional ni
+          verificaciones que correspondan al negocio. Ninguna cláusula de estos
+          términos excluye derechos o responsabilidades que legalmente no puedan
+          excluirse.
         </p>
       </section>
 
       <section>
-        <h2>13. Contacto</h2>
+        <h2>13. Legislación y derechos obligatorios</h2>
+        <p>
+          Estos términos se interpretan conforme a la normativa aplicable al
+          operador y al usuario. Para el operador actual, la referencia territorial
+          es la Provincia de Buenos Aires, República Argentina, sin perjuicio de
+          las normas obligatorias de protección al consumidor, privacidad,
+          contratación o jurisdicción que puedan resultar aplicables en otros
+          lugares.
+        </p>
+      </section>
+
+      <section>
+        <h2>14. Contacto</h2>
         <p>
           Consultas de soporte:{" "}
           <a href="mailto:angeljoaquinbogado@gmail.com">
