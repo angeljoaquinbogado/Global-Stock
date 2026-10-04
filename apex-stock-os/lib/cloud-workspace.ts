@@ -167,33 +167,12 @@ export async function saveCloudWorkspace(
 
   if (!session?.user?.id) return false;
 
-  const now = Date.now();
-
-  const { data: existing } = await supabase
-    .from("global_stock_workspaces")
-    .select("state")
-    .eq("business_id", businessId)
-    .maybeSingle();
-
-  const currentState =
-    existing?.state && typeof existing.state === "object"
-      ? (existing.state as CloudWorkspaceState)
-      : {};
-
-  const mergedState: CloudWorkspaceState = {
-    ...currentState,
-    ...state
-  };
-
-  const { error } = await supabase.from("global_stock_workspaces").upsert(
+  const { error } = await supabase.rpc(
+    "global_stock_merge_workspace_state",
     {
-      business_id: businessId,
-      state: mergedState,
-      revision: now,
-      updated_by: session.user.id,
-      updated_at: new Date(now).toISOString()
-    },
-    { onConflict: "business_id" }
+      target_business_id: businessId,
+      state_patch: state
+    }
   );
 
   return !error;
