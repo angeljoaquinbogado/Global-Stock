@@ -127,22 +127,68 @@ export function ApexSelect({
 
       const rect = button.getBoundingClientRect();
       const viewportPadding = 12;
-      const maxHeight = Math.min(320, window.innerHeight - viewportPadding * 2);
-      const spaceBelow = window.innerHeight - rect.bottom - viewportPadding;
-      const spaceAbove = rect.top - viewportPadding;
-      const openAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
+      const gap = 8;
+
+      const visualViewport = window.visualViewport;
+      const viewportTop = visualViewport?.offsetTop ?? 0;
+      const viewportHeight = visualViewport?.height ?? window.innerHeight;
+      const viewportBottom = viewportTop + viewportHeight;
+      const viewportWidth = visualViewport?.width ?? window.innerWidth;
+
+      const spaceBelow = Math.max(
+        0,
+        viewportBottom - rect.bottom - gap - viewportPadding
+      );
+      const spaceAbove = Math.max(
+        0,
+        rect.top - viewportTop - gap - viewportPadding
+      );
+
+      // Enough for every option up to the menu cap. If it does not fit below,
+      // use the side with more room and make the menu scroll inside that space.
+      const preferredHeight = Math.min(
+        320,
+        Math.max(52, options.length * 44 + 12)
+      );
+      const openAbove =
+        spaceBelow < preferredHeight && spaceAbove > spaceBelow;
+
+      const availableSpace = openAbove ? spaceAbove : spaceBelow;
+      const menuHeight = Math.max(
+        52,
+        Math.min(preferredHeight, availableSpace)
+      );
+
+      const menuWidth = Math.min(
+        Math.max(180, rect.width),
+        viewportWidth - viewportPadding * 2
+      );
+      const left = Math.min(
+        Math.max(viewportPadding, rect.left),
+        Math.max(
+          viewportPadding,
+          viewportWidth - viewportPadding - menuWidth
+        )
+      );
+
+      const top = openAbove
+        ? Math.max(
+            viewportTop + viewportPadding,
+            rect.top - gap - menuHeight
+          )
+        : Math.min(
+            rect.bottom + gap,
+            viewportBottom - viewportPadding - menuHeight
+          );
 
       setMenuStyle({
         position: "fixed",
-        left: Math.max(viewportPadding, rect.left),
-        width: Math.max(180, rect.width),
-        maxWidth: Math.min(
-          Math.max(180, rect.width),
-          window.innerWidth - viewportPadding * 2
-        ),
-        maxHeight,
-        top: openAbove ? undefined : rect.bottom + 8,
-        bottom: openAbove ? window.innerHeight - rect.top + 8 : undefined,
+        left,
+        width: menuWidth,
+        maxWidth: menuWidth,
+        maxHeight: menuHeight,
+        top,
+        bottom: undefined,
         zIndex: 10000
       });
     };
@@ -169,12 +215,16 @@ export function ApexSelect({
 
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
+    window.visualViewport?.addEventListener("resize", updatePosition);
+    window.visualViewport?.addEventListener("scroll", updatePosition);
     document.addEventListener("pointerdown", close);
     document.addEventListener("keydown", onKey);
 
     return () => {
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
+      window.visualViewport?.removeEventListener("resize", updatePosition);
+      window.visualViewport?.removeEventListener("scroll", updatePosition);
       document.removeEventListener("pointerdown", close);
       document.removeEventListener("keydown", onKey);
     };
@@ -262,7 +312,7 @@ export function ApexSelect({
             aria-label={ariaLabel}
             style={menuStyle}
             className={
-              "apex-select-menu overflow-y-auto rounded-2xl border border-white/10 bg-[#171719] p-1.5 text-[13px] text-white shadow-[0_22px_60px_rgba(0,0,0,.5)] " +
+              "apex-select-menu overscroll-contain overflow-y-auto rounded-2xl border border-white/10 bg-[#171719] p-1.5 text-[13px] text-white shadow-[0_22px_60px_rgba(0,0,0,.5)] " +
               (menuClassName ?? "")
             }
           >
