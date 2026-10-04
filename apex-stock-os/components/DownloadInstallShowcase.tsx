@@ -96,14 +96,14 @@ function PlatformTabs({
   return (
     <GridBeamBorder
       color="#8F0000"
-      duration={5.2}
-      strength={0.58}
+      duration={4.6}
+      strength={0.95}
       breathe={false}
       borderRadius={20}
-      className="w-full max-w-[430px] bg-white p-[1px] shadow-[0_16px_40px_rgba(0,0,0,.24),0_0_24px_rgba(143,0,0,.08)]"
+      className="w-full max-w-[430px] bg-[#070708] p-[2px] shadow-[0_16px_40px_rgba(0,0,0,.24),0_0_26px_rgba(143,0,0,.10)]"
     >
       <div
-        className="gs-storefront-scroll grid w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[19px] bg-white p-1.5"
+        className="gs-storefront-scroll grid w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[18px] bg-[#070708] p-1.5"
         role="tablist"
         aria-label="Plataforma"
       >
@@ -111,57 +111,43 @@ function PlatformTabs({
           const selected = active === id;
 
           return (
-            <GridBeamBorder
+            <button
               key={id}
-              color="#8F0000"
-              active={selected}
-              duration={3.05}
-              strength={selected ? 0.95 : 0.4}
-              breathe={false}
-              borderRadius={14}
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => onChange(id)}
               className={
-                "w-full bg-white p-[1px] " +
+                "flex h-14 w-full items-center justify-center gap-2.5 rounded-[13px] border border-[#8F0000] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
                 (selected
-                  ? "shadow-[0_8px_22px_rgba(143,0,0,.14)]"
-                  : "shadow-none")
+                  ? "shadow-[0_7px_20px_rgba(143,0,0,.12),inset_0_0_0_1px_rgba(143,0,0,.04)]"
+                  : "hover:bg-[#fafafa]")
               }
             >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={selected}
-                onClick={() => onChange(id)}
-                className={
-                  "flex h-14 w-full items-center justify-center gap-3 rounded-[13px] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
-                  (selected
-                    ? "bg-[#fafafa] shadow-[inset_0_0_0_1px_rgba(143,0,0,.08)]"
-                    : "hover:bg-[#f7f7f8]")
-                }
-              >
-                <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible">
-                  <img
-                    src={logoSrc}
-                    alt=""
-                    className={
-                      id === "android"
-                        ? "h-[31px] w-[31px] object-contain"
-                        : id === "iphone"
-                          ? "h-[30px] w-[30px] object-contain"
-                          : "h-[30px] w-[30px] object-contain"
-                    }
-                    aria-hidden="true"
-                    draggable={false}
-                  />
-                </span>
-                <span>{label}</span>
-              </button>
-            </GridBeamBorder>
+              <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible">
+                <img
+                  src={logoSrc}
+                  alt=""
+                  className={
+                    id === "android"
+                      ? "h-[34px] w-[34px] object-contain"
+                      : id === "iphone"
+                        ? "h-[32px] w-[32px] object-contain"
+                        : "h-[32px] w-[32px] object-contain"
+                  }
+                  aria-hidden="true"
+                  draggable={false}
+                />
+              </span>
+              <span>{label}</span>
+            </button>
           );
         })}
       </div>
     </GridBeamBorder>
   );
 }
+
 export function DownloadPlatformQuickTabs() {
   const [active, setActive] = useState<PlatformId>("web");
 
