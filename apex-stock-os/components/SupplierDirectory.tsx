@@ -16,6 +16,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type SupplierStat = {
@@ -45,6 +50,8 @@ type Props = {
   stats: SupplierStat[];
   money: (value: number) => string;
   onRemoveSupplier: (name: string) => void;
+  businessId: string | null;
+  demoMode: boolean;
 };
 
 const copy = {
@@ -201,7 +208,14 @@ const emptyDraft = {
   notes: ""
 };
 
-export function SupplierDirectory({ language, stats, money, onRemoveSupplier }: Props) {
+export function SupplierDirectory({
+  language,
+  stats,
+  money,
+  onRemoveSupplier,
+  businessId,
+  demoMode
+}: Props) {
   const t = copy[language];
   const [profiles, setProfiles] = useState<SupplierProfile[]>([]);
   const [ready, setReady] = useState(false);
@@ -210,26 +224,69 @@ export function SupplierDirectory({ language, stats, money, onRemoveSupplier }: 
   const [error, setError] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("global-stock-suppliers-v1");
-      if (raw) {
-        const parsed = JSON.parse(raw) as SupplierProfile[];
-        if (Array.isArray(parsed)) setProfiles(parsed);
+    let cancelled = false;
+
+    async function hydrate() {
+      let next: SupplierProfile[] = [];
+      const storageKey = businessStorageKey(
+        "global-stock-suppliers-v1",
+        businessId,
+        demoMode
+      );
+
+      try {
+        const raw = storageKey ? localStorage.getItem(storageKey) : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as SupplierProfile[];
+          if (Array.isArray(parsed)) next = parsed;
+        }
+      } catch {
+        next = [];
       }
-    } catch {
-      // Invalid local data must not block the workspace.
-    } finally {
-      setReady(true);
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        if (Array.isArray(cloud?.state.supplierProfiles)) {
+          next = cloud.state.supplierProfiles as SupplierProfile[];
+        }
+      }
+
+      if (!cancelled) {
+        setProfiles(next);
+        setReady(true);
+      }
     }
-  }, []);
+
+    setReady(false);
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!ready) return;
-    localStorage.setItem(
+
+    const storageKey = businessStorageKey(
       "global-stock-suppliers-v1",
-      JSON.stringify(profiles)
+      businessId,
+      demoMode
     );
-  }, [profiles, ready]);
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(profiles));
+    }
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        supplierProfiles: profiles
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, profiles, ready]);
 
   useEffect(() => {
     if (editingId === null) return;
