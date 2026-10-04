@@ -1,0 +1,78 @@
+name: Strix Security Review
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "apex-stock-os/**"
+      - ".github/workflows/strix-security.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: strix-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  strix:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (vars.STRIX_ENABLED == 'true' &&
+       github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Strix configuration
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "${STRIX_LLM:-}" ] || [ -z "${LLM_API_KEY:-}" ]; then
+            echo "Missing STRIX_LLM or LLM_API_KEY repository secrets." >&2
+            exit 1
+          fi
+
+      - name: Install Strix
+        run: |
+          set -euo pipefail
+          curl --proto "=https" --tlsv1.2 -fsSL https://strix.ai/install | bash
+
+      - name: Run exploit-validated review
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+        run: |
+          set -euo pipefail
+
+          args=(-n -t ./apex-stock-os --scan-mode quick --max-budget 10)
+
+          if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
+            git fetch origin "${{ github.base_ref }}:refs/remotes/origin/${{ github.base_ref }}" --force
+            args+=(--scope-mode diff --diff-base "origin/${{ github.base_ref }}")
+          fi
+
+          set +e
+          strix "${args[@]}"
+          scan_exit=$?
+          set -e
+
+          run_json="$(ls -t apex-stock-os/strix_runs/*/run.json 2>/dev/null | head -1 || true)"
+          if [ -z "$run_json" ]; then
+            echo "Strix did not produce run.json; treating the scan as incomplete." >&2
+            exit 1
+          fi
+
+          status="$(jq -r '.status // "unknown"' "$run_json")"
+          if [ "$status" != "completed" ]; then
+            echo "Strix scan status is $status; refusing to fail open." >&2
+            exit 1
+          fi
+
+          exit "$scan_exit"
