@@ -8,8 +8,8 @@ type AuthorizedRequest = {
 
 type UnauthorizedRequest = {
   ok: false;
-  code: "AUTH_REQUIRED" | "AUTH_NOT_CONFIGURED";
-  status: 401 | 503;
+  code: "AUTH_REQUIRED" | "AUTH_NOT_CONFIGURED" | "FORBIDDEN";
+  status: 401 | 403 | 503;
 };
 
 export type ApiAuthorization = AuthorizedRequest | UnauthorizedRequest;
@@ -124,6 +124,90 @@ export async function authorizeApiRequest(
       ok: false,
       code: "AUTH_REQUIRED",
       status: 401
+    };
+  }
+}
+
+
+export type BusinessApiAuthorization =
+  | (AuthorizedRequest & { role: string })
+  | UnauthorizedRequest;
+
+export async function authorizeBusinessRequest(
+  request: Request,
+  businessId: string,
+  allowedRoles?: readonly string[]
+): Promise<BusinessApiAuthorization> {
+  const authorization = await authorizeApiRequest(request);
+  if (!authorization.ok) return authorization;
+
+  if (authorization.mode === "local-demo") {
+    return {
+      ...authorization,
+      role: "owner"
+    };
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const bearer = request.headers.get("authorization")?.trim() ?? "";
+
+  if (!url || !anonKey || !bearer.startsWith("Bearer ")) {
+    return {
+      ok: false,
+      code: "AUTH_NOT_CONFIGURED",
+      status: 503
+    };
+  }
+
+  const supabase = createClient(url, anonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    },
+    global: {
+      headers: {
+        Authorization: bearer
+      }
+    }
+  });
+
+  try {
+    const { data: membership, error } = await supabase
+      .from("global_stock_members")
+      .select("role,active")
+      .eq("business_id", businessId)
+      .eq("user_id", authorization.userId)
+      .eq("active", true)
+      .maybeSingle();
+
+    const role = String(membership?.role || "");
+    if (error || !membership?.active || !role) {
+      return {
+        ok: false,
+        code: "FORBIDDEN",
+        status: 403
+      };
+    }
+
+    if (allowedRoles?.length && !allowedRoles.includes(role)) {
+      return {
+        ok: false,
+        code: "FORBIDDEN",
+        status: 403
+      };
+    }
+
+    return {
+      ...authorization,
+      role
+    };
+  } catch {
+    return {
+      ok: false,
+      code: "FORBIDDEN",
+      status: 403
     };
   }
 }

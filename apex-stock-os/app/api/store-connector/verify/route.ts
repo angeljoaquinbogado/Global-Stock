@@ -11,6 +11,12 @@ import {
   connectorFetch
 } from "@/lib/remote-store";
 import { authorizeApiRequest } from "@/lib/server-auth";
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  readJsonBody,
+  securityErrorResponse
+} from "@/lib/security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,6 +33,13 @@ type BindPayload = {
 function validUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
     value
+  );
+}
+
+function blocked(error: unknown) {
+  return securityErrorResponse(error) ?? NextResponse.json(
+    { error: "REQUEST_BLOCKED" },
+    { status: 403, headers: noStoreHeaders() }
   );
 }
 
@@ -76,40 +89,52 @@ async function validateRemote(url: string, token: string) {
     throw new Error("OWNER_VERIFICATION_FAILED");
   }
 
-  const scopes = Array.isArray(payload.scopes) ? payload.scopes : [];
+  const scopes = Array.isArray(payload.scopes)
+    ? payload.scopes.filter((scope) => typeof scope === "string").slice(0, 30)
+    : [];
+
   if (!scopes.includes("catalog:read") || !scopes.includes("inventory:read")) {
     throw new Error("INSUFFICIENT_SCOPES");
   }
 
   return {
     storeUrl: publicUrl.origin,
-    storeId: String(payload.store.id),
-    storeName: String(payload.store.name || publicUrl.hostname),
-    currency: String(payload.store.currency || "ARS"),
-    platform: String(payload.store.platform || "Connected store"),
+    storeId: String(payload.store.id).slice(0, 240),
+    storeName: String(payload.store.name || publicUrl.hostname).slice(0, 240),
+    currency: String(payload.store.currency || "ARS").slice(0, 8),
+    platform: String(payload.store.platform || "Connected store").slice(0, 100),
     scopes
   };
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "connector-verify-post",
+      limit: 30
+    });
+  } catch (error) {
+    return blocked(error);
+  }
+
   let body: VerifyPayload;
 
   try {
-    body = (await request.json()) as VerifyPayload;
-  } catch {
-    return NextResponse.json(
+    body = await readJsonBody<VerifyPayload>(request, 12_000);
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
       { error: "INVALID_REQUEST" },
-      { status: 400 }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
   const url = body.url?.trim() ?? "";
   const token = body.token?.trim() ?? "";
 
-  if (!url || token.length < 24 || token.length > 500) {
+  if (!url || url.length > 2_000 || token.length < 24 || token.length > 500) {
     return NextResponse.json(
       { error: "MISSING_CREDENTIALS" },
-      { status: 400 }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -137,7 +162,7 @@ export async function POST(request: NextRequest) {
         verifiedAt,
         bound: false
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: noStoreHeaders() }
     );
   } catch (error) {
     const code =
@@ -152,7 +177,7 @@ export async function POST(request: NextRequest) {
       { error: code },
       {
         status,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
     );
   }
@@ -163,17 +188,27 @@ export async function PATCH(request: NextRequest) {
   if (!authorization.ok) {
     return NextResponse.json(
       { error: authorization.code },
-      { status: authorization.status }
+      { status: authorization.status, headers: noStoreHeaders() }
     );
+  }
+
+  try {
+    guardApiRequest(request, {
+      scope: "connector-verify-patch",
+      limit: 30,
+      identity: authorization.userId
+    });
+  } catch (error) {
+    return blocked(error);
   }
 
   let body: BindPayload;
   try {
-    body = (await request.json()) as BindPayload;
-  } catch {
-    return NextResponse.json(
+    body = await readJsonBody<BindPayload>(request, 4_000);
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
       { error: "INVALID_REQUEST" },
-      { status: 400 }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -181,7 +216,7 @@ export async function PATCH(request: NextRequest) {
   if (!validUuid(businessId)) {
     return NextResponse.json(
       { error: "INVALID_BUSINESS" },
-      { status: 400 }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -189,14 +224,14 @@ export async function PATCH(request: NextRequest) {
   if (!session) {
     return NextResponse.json(
       { error: "STORE_NOT_VERIFIED" },
-      { status: 401 }
+      { status: 401, headers: noStoreHeaders() }
     );
   }
 
   if (session.businessId && session.businessId !== businessId) {
     return NextResponse.json(
       { error: "STORE_BOUND_TO_ANOTHER_BUSINESS" },
-      { status: 409 }
+      { status: 409, headers: noStoreHeaders() }
     );
   }
 
@@ -204,7 +239,7 @@ export async function PATCH(request: NextRequest) {
   if (!supabase) {
     return NextResponse.json(
       { error: "AUTH_NOT_CONFIGURED" },
-      { status: 503 }
+      { status: 503, headers: noStoreHeaders() }
     );
   }
 
@@ -222,7 +257,7 @@ export async function PATCH(request: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "BUSINESS_ADMIN_REQUIRED" },
-      { status: 403 }
+      { status: 403, headers: noStoreHeaders() }
     );
   }
 
@@ -261,7 +296,7 @@ export async function PATCH(request: NextRequest) {
   if (integrationError) {
     return NextResponse.json(
       { error: "INTEGRATION_STATE_SAVE_FAILED" },
-      { status: 500 }
+      { status: 500, headers: noStoreHeaders() }
     );
   }
 
@@ -281,18 +316,27 @@ export async function PATCH(request: NextRequest) {
       verifiedAt,
       bound: true
     },
-    { headers: { "Cache-Control": "no-store" } }
+    { headers: noStoreHeaders() }
   );
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "connector-verify-get",
+      limit: 60
+    });
+  } catch (error) {
+    return blocked(error);
+  }
+
   const session = await readConnectorSession();
   if (!session) {
     return NextResponse.json(
       { verified: false },
       {
         status: 401,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
     );
   }
@@ -313,7 +357,7 @@ export async function GET(request: NextRequest) {
       },
       {
         status: 409,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
     );
   }
@@ -336,7 +380,7 @@ export async function GET(request: NextRequest) {
         businessId: session.businessId ?? null,
         bound: Boolean(session.businessId)
       },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: noStoreHeaders() }
     );
   } catch {
     await clearConnectorSession();
@@ -344,13 +388,22 @@ export async function GET(request: NextRequest) {
       { verified: false },
       {
         status: 401,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
     );
   }
 }
 
 export async function DELETE(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "connector-verify-delete",
+      limit: 30
+    });
+  } catch (error) {
+    return blocked(error);
+  }
+
   const session = await readConnectorSession();
   const requestedBusiness =
     request.nextUrl.searchParams.get("businessId")?.trim() ?? "";
@@ -362,7 +415,7 @@ export async function DELETE(request: NextRequest) {
   ) {
     return NextResponse.json(
       { error: "STORE_BOUND_TO_ANOTHER_BUSINESS" },
-      { status: 409 }
+      { status: 409, headers: noStoreHeaders() }
     );
   }
 
@@ -382,6 +435,6 @@ export async function DELETE(request: NextRequest) {
   await clearConnectorSession();
   return NextResponse.json(
     { ok: true, revokedRemote: Boolean(session) },
-    { headers: { "Cache-Control": "no-store" } }
+    { headers: noStoreHeaders() }
   );
 }

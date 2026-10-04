@@ -24,6 +24,7 @@ import {
   useState
 } from "react";
 
+import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Product } from "@/lib/types";
 
 type NativeBarcode = { rawValue: string };
@@ -318,9 +319,19 @@ export const BarcodeScanner = forwardRef<
     setMessage(copy.detected(normalized));
 
     try {
+      const supabase = getSupabaseBrowserClient();
+      const accessToken = supabase
+        ? (await supabase.auth.getSession()).data.session?.access_token
+        : null;
+
       const response = await fetch(
         `/api/product-lookup?barcode=${encodeURIComponent(normalized)}`,
-        { cache: "no-store" }
+        {
+          cache: "no-store",
+          headers: accessToken
+            ? { Authorization: `Bearer ${accessToken}` }
+            : undefined
+        }
       );
 
       if (!response.ok) throw new Error(copy.missing);

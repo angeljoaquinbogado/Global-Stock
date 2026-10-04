@@ -5,21 +5,38 @@ import {
   isIntelligenceConfigured
 } from "@/lib/ai-provider";
 import { isApiAuthAvailable, isApiAuthConfigured } from "@/lib/server-auth";
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  securityErrorResponse
+} from "@/lib/security";
 
 export const dynamic = "force-dynamic";
 
-function filled(value: string | undefined) {
-  return Boolean(value?.trim());
-}
+export async function GET(request: Request) {
+  try {
+    guardApiRequest(request, {
+      scope: "health",
+      limit: 120
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { ok: false },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
 
-export async function GET() {
+  if (process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { ok: true },
+      { headers: noStoreHeaders() }
+    );
+  }
+
   const supabase = isApiAuthConfigured();
-
   const connector =
     (process.env.GLOBAL_STOCK_CONNECTOR_SECRET?.trim().length ?? 0) >= 32;
-
   const aiProvider = isIntelligenceConfigured();
-  const aiProviderName = getIntelligenceProvider();
 
   return NextResponse.json(
     {
@@ -28,23 +45,14 @@ export async function GET() {
       checks: {
         ai: aiProvider && isApiAuthAvailable(),
         aiProvider,
-        aiProviderName,
+        aiProviderName: getIntelligenceProvider(),
         auth: supabase,
-        connector,
-        providers: {
-          shopify: false,
-          tiendanube: false,
-          mercadolibre: false,
-          woocommerce: false,
-          custom: true
-        }
+        connector
       },
       checkedAt: new Date().toISOString()
     },
     {
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      headers: noStoreHeaders()
     }
   );
 }

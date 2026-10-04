@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  securityErrorResponse
+} from "@/lib/security";
+
 const currencies = [
   "ARS",
   "USD",
@@ -188,6 +194,18 @@ function asCurrency(value: string | null, fallback: Currency) {
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "fx",
+      limit: 90
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { error: "REQUEST_BLOCKED" },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
+
   const base = asCurrency(
     request.nextUrl.searchParams.get("base"),
     "ARS"

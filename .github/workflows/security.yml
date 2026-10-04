@@ -1,0 +1,31 @@
+name: Security checks
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  schedule:
+    - cron: "23 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  security:
+    name: Type safety and dependency audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apex-stock-os
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install dependencies without lifecycle scripts
+        run: npm install --ignore-scripts
+      - name: TypeScript security gate
+        run: npm run typecheck
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high

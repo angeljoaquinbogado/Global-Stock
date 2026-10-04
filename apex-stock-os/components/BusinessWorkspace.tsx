@@ -1021,6 +1021,19 @@ function parseCartKey(key: string) {
   };
 }
 
+async function connectedApiAuthHeaders() {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return null;
+
+  const {
+    data: { session }
+  } = await supabase.auth.getSession();
+
+  return session?.access_token
+    ? { Authorization: `Bearer ${session.access_token}` }
+    : null;
+}
+
 export function BusinessWorkspace({
   dark,
   language,
@@ -2761,6 +2774,9 @@ export function BusinessWorkspace({
   async function flushConnectedProductWrites() {
     if (!cloudBusinessId) return 0;
 
+    const authHeaders = await connectedApiAuthHeaders();
+    if (!authHeaders) return 0;
+
     const queue = readConnectedWriteQueue(cloudBusinessId);
     if (!queue.length) return 0;
 
@@ -2772,7 +2788,10 @@ export function BusinessWorkspace({
         const response = await fetch("/api/store-connector/product", {
           method: "PATCH",
           cache: "no-store",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            ...authHeaders
+          },
           body: JSON.stringify({
             businessId: cloudBusinessId,
             externalId: item.externalId,
@@ -2797,6 +2816,9 @@ export function BusinessWorkspace({
   ) {
     if (demoMode) return true;
 
+    const authHeaders = await connectedApiAuthHeaders();
+    if (!authHeaders) return false;
+
     if (
       product.source !== "connected" ||
       !product.externalId
@@ -2808,7 +2830,10 @@ export function BusinessWorkspace({
       const response = await fetch("/api/store-connector/product", {
         method: "PATCH",
         cache: "no-store",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+            ...authHeaders
+          },
         body: JSON.stringify({
           businessId: cloudBusinessId,
           externalId: product.externalId,

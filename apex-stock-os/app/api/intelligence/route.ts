@@ -13,6 +13,12 @@ import {
   isApiAuthAvailable,
   isApiAuthConfigured
 } from "@/lib/server-auth";
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  readJsonBody,
+  securityErrorResponse
+} from "@/lib/security";
 import type { BusinessSnapshot } from "@/lib/types";
 
 type IntelligenceRequest = {
@@ -25,22 +31,35 @@ type IntelligenceRequest = {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+export async function GET(request: Request) {
+  try {
+    guardApiRequest(request, {
+      scope: "intelligence-status",
+      limit: 60
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { configured: false },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
+
   const providerConfigured = isIntelligenceConfigured();
-  const provider = getIntelligenceProvider();
-  const authConfigured = isApiAuthConfigured();
+  const configured = providerConfigured && isApiAuthAvailable();
 
   return NextResponse.json(
     {
-      configured: providerConfigured && isApiAuthAvailable(),
-      providerConfigured,
-      provider,
-      authConfigured
+      configured,
+      ...(process.env.NODE_ENV !== "production"
+        ? {
+            providerConfigured,
+            provider: getIntelligenceProvider(),
+            authConfigured: isApiAuthConfigured()
+          }
+        : {})
     },
     {
-      headers: {
-        "Cache-Control": "no-store"
-      }
+      headers: noStoreHeaders()
     }
   );
 }
@@ -54,7 +73,7 @@ export async function POST(request: Request) {
       },
       {
         status: 503,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
     );
   }
@@ -68,19 +87,35 @@ export async function POST(request: Request) {
       },
       {
         status: authorization.status,
-        headers: { "Cache-Control": "no-store" }
+        headers: noStoreHeaders()
       }
+    );
+  }
+
+  try {
+    guardApiRequest(request, {
+      scope: "intelligence",
+      limit: 30,
+      identity: authorization.userId
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { code: "REQUEST_BLOCKED" },
+      { status: 403, headers: noStoreHeaders() }
     );
   }
 
   let body: IntelligenceRequest;
 
   try {
-    body = (await request.json()) as IntelligenceRequest;
-  } catch {
-    return NextResponse.json(
-      { code: "INVALID_REQUEST", error: "Invalid request body." },
-      { status: 400 }
+    body = await readJsonBody<IntelligenceRequest>(request, 2_000_000);
+  } catch (error) {
+    return (
+      securityErrorResponse(error) ??
+      NextResponse.json(
+        { code: "INVALID_REQUEST", error: "Invalid request body." },
+        { status: 400, headers: noStoreHeaders() }
+      )
     );
   }
 
@@ -93,7 +128,7 @@ export async function POST(request: Request) {
         code: "MISSING_INPUT",
         error: "The message and business context are required."
       },
-      { status: 400 }
+      { status: 400, headers: noStoreHeaders() }
     );
   }
 
@@ -103,7 +138,7 @@ export async function POST(request: Request) {
         code: "MESSAGE_TOO_LONG",
         error: "The message is too long."
       },
-      { status: 413 }
+      { status: 413, headers: noStoreHeaders() }
     );
   }
 
@@ -111,16 +146,14 @@ export async function POST(request: Request) {
     const answer = await generateIntelligenceAnswer({
       snapshot,
       message,
-      history: Array.isArray(body.history) ? body.history : [],
+      history: Array.isArray(body.history) ? body.history.slice(-20) : [],
       runtime: body.runtime ?? {}
     });
 
     return NextResponse.json(
       { answer, configured: true },
       {
-        headers: {
-          "Cache-Control": "no-store"
-        }
+        headers: noStoreHeaders()
       }
     );
   } catch (error) {
@@ -130,7 +163,7 @@ export async function POST(request: Request) {
           code: "AI_NOT_CONNECTED",
           configured: false
         },
-        { status: 503 }
+        { status: 503, headers: noStoreHeaders() }
       );
     }
 
@@ -139,7 +172,7 @@ export async function POST(request: Request) {
         code: "AI_PROVIDER_ERROR",
         configured: true
       },
-      { status: 502 }
+      { status: 502, headers: noStoreHeaders() }
     );
   }
 }

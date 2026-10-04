@@ -2,6 +2,12 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import { authorizeApiRequest } from "@/lib/server-auth";
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  readJsonBody,
+  securityErrorResponse
+} from "@/lib/security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,15 +71,31 @@ export async function POST(request: Request) {
   if (!authorization.ok) {
     return NextResponse.json(
       { code: authorization.code },
-      { status: authorization.status }
+      { status: authorization.status, headers: noStoreHeaders() }
+    );
+  }
+
+  try {
+    guardApiRequest(request, {
+      scope: "fiscal-issue",
+      limit: 20,
+      identity: authorization.userId
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { code: "REQUEST_BLOCKED" },
+      { status: 403, headers: noStoreHeaders() }
     );
   }
 
   let body: IssueBody;
   try {
-    body = (await request.json()) as IssueBody;
-  } catch {
-    return NextResponse.json({ code: "INVALID_REQUEST" }, { status: 400 });
+    body = await readJsonBody<IssueBody>(request, 32_000);
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { code: "INVALID_REQUEST" },
+      { status: 400, headers: noStoreHeaders() }
+    );
   }
 
   const businessId = body.businessId?.trim() ?? "";

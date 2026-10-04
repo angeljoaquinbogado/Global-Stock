@@ -722,11 +722,23 @@ export function ConnectedCommerceHub({
     setError("");
     setSyncing(true);
     try {
+      const supabase = getSupabaseBrowserClient();
+      const accessToken = supabase
+        ? (await supabase.auth.getSession()).data.session?.access_token
+        : null;
+
+      if (!accessToken) throw new Error("auth");
+
       const response = await fetch(
         `/api/store-connector/products?businessId=${encodeURIComponent(
           businessId ?? ""
         )}&t=${Date.now()}`,
-        { cache: "no-store" }
+        {
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
       );
       const payload = (await response.json().catch(() => ({}))) as
         | ConnectedCatalogPayload

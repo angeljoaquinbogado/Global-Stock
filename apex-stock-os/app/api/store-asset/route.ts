@@ -3,6 +3,12 @@ import { isIP } from "node:net";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  securityErrorResponse
+} from "@/lib/security";
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -61,6 +67,22 @@ async function assertPublicUrl(value: string) {
     throw new Error("UNSUPPORTED_PROTOCOL");
   }
 
+  if (url.username || url.password) {
+    throw new Error("URL_CREDENTIALS_NOT_ALLOWED");
+  }
+
+  if (process.env.NODE_ENV === "production" && url.protocol !== "https:") {
+    throw new Error("HTTPS_REQUIRED");
+  }
+
+  if (
+    process.env.NODE_ENV === "production" &&
+    url.port &&
+    url.port !== "443"
+  ) {
+    throw new Error("NON_STANDARD_PORT");
+  }
+
   const host = url.hostname.toLowerCase().replace(/^\[|\]$/g, "");
 
   if (
@@ -73,6 +95,10 @@ async function assertPublicUrl(value: string) {
   }
 
   const directIp = isIP(host);
+
+  if (process.env.NODE_ENV === "production" && directIp) {
+    throw new Error("DIRECT_IP_NOT_ALLOWED");
+  }
 
   if (directIp === 4 && isPrivateIpv4(host)) {
     throw new Error("PRIVATE_HOST");
@@ -101,6 +127,18 @@ async function assertPublicUrl(value: string) {
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "store-asset",
+      limit: 120
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { error: "REQUEST_BLOCKED" },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
+
   const raw = request.nextUrl.searchParams.get("url")?.trim();
 
   if (!raw) {

@@ -5,6 +5,11 @@ import {
   assertPublicStoreUrl,
   connectorFetch
 } from "@/lib/remote-store";
+import {
+  guardApiRequest,
+  noStoreHeaders,
+  securityErrorResponse
+} from "@/lib/security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,6 +81,19 @@ async function exchangeGrant(storeOrigin: string, grant: string) {
 }
 
 export async function GET(request: NextRequest) {
+  try {
+    guardApiRequest(request, {
+      scope: "connector-callback",
+      limit: 30,
+      sameOrigin: false
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.redirect(
+      new URL("/", request.nextUrl.origin),
+      303
+    );
+  }
+
   const fallback = new URL("/", request.nextUrl.origin);
   fallback.searchParams.set("store_connection", "failed");
 
