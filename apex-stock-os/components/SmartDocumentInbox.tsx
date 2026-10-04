@@ -9,6 +9,11 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { DocumentsHub } from "./BusinessOperations";
 import { FiscalDocumentsCenter } from "./FiscalDocumentsCenter";
@@ -97,28 +102,75 @@ export function SmartDocumentInbox({
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) {
-        const parsed: unknown = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          setDocuments(parsed as SmartDocument[]);
+    let cancelled = false;
+
+    async function hydrate() {
+      let next: SmartDocument[] = [];
+      const storageKey = businessStorageKey(
+        STORAGE_KEY,
+        businessId,
+        demoMode
+      );
+
+      try {
+        const raw = storageKey
+          ? window.localStorage.getItem(storageKey)
+          : null;
+        if (raw) {
+          const parsed: unknown = JSON.parse(raw);
+          if (Array.isArray(parsed)) {
+            next = parsed as SmartDocument[];
+          }
+        }
+      } catch {
+        next = [];
+      }
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        if (Array.isArray(cloud?.state.smartDocuments)) {
+          next = cloud.state.smartDocuments as SmartDocument[];
         }
       }
-    } catch {
-      setDocuments([]);
+
+      if (!cancelled) {
+        setDocuments(next);
+        setLoaded(true);
+      }
     }
 
-    setLoaded(true);
-  }, []);
+    setLoaded(false);
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!loaded) return;
-    window.localStorage.setItem(
+
+    const storageKey = businessStorageKey(
       STORAGE_KEY,
-      JSON.stringify(documents.slice(0, 250))
+      businessId,
+      demoMode
     );
-  }, [documents, loaded]);
+    const value = documents.slice(0, 250);
+
+    if (storageKey) {
+      window.localStorage.setItem(storageKey, JSON.stringify(value));
+    }
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        smartDocuments: value
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, documents, loaded]);
 
   async function scan(file: File) {
     setMessage("");
@@ -450,6 +502,8 @@ export function SmartDocumentInbox({
         language={language}
         currency={currency}
         locale={locale}
+        businessId={businessId}
+        demoMode={demoMode}
       />
     </div>
   );
