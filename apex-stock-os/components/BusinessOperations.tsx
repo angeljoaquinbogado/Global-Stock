@@ -22,6 +22,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type ConnectionState = "not_connected" | "configured";
@@ -1060,11 +1065,15 @@ export function OnlineCommerceHub({
 export function DocumentsHub({
   language,
   currency,
-  locale
+  locale,
+  businessId,
+  demoMode
 }: {
   language: LanguageCode;
   currency: string;
   locale: string;
+  businessId: string | null;
+  demoMode: boolean;
 }) {
   const t = copy[language];
   const [documents, setDocuments] = useState<BusinessDocument[]>([]);
@@ -1075,34 +1084,81 @@ export function DocumentsHub({
   const [total, setTotal] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(
-        "global-stock-documents-v1"
+    let cancelled = false;
+
+    async function hydrate() {
+      let next: BusinessDocument[] = [];
+      const storageKey = businessStorageKey(
+        "global-stock-documents-v1",
+        businessId,
+        demoMode
       );
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as BusinessDocument[];
-      if (Array.isArray(parsed)) {
-        setDocuments(
-          parsed.map((document) => ({
-            ...document,
-            currency: document.currency || "ARS"
-          }))
-        );
+
+      try {
+        const raw = storageKey
+          ? localStorage.getItem(storageKey)
+          : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as BusinessDocument[];
+          if (Array.isArray(parsed)) {
+            next = parsed.map((document) => ({
+              ...document,
+              currency: document.currency || "ARS"
+            }));
+          }
+        }
+      } catch {
+        next = [];
       }
-    } catch {
-      // Ignore invalid local document data.
-    } finally {
-      setDocumentsReady(true);
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        if (Array.isArray(cloud?.state.internalDocuments)) {
+          next = (cloud.state.internalDocuments as BusinessDocument[]).map(
+            (document) => ({
+              ...document,
+              currency: document.currency || "ARS"
+            })
+          );
+        }
+      }
+
+      if (!cancelled) {
+        setDocuments(next);
+        setDocumentsReady(true);
+      }
     }
-  }, []);
+
+    setDocumentsReady(false);
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!documentsReady) return;
-    localStorage.setItem(
+
+    const storageKey = businessStorageKey(
       "global-stock-documents-v1",
-      JSON.stringify(documents)
+      businessId,
+      demoMode
     );
-  }, [documents, documentsReady]);
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(documents));
+    }
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        internalDocuments: documents
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, documents, documentsReady]);
 
   const totals = useMemo(
     () =>
