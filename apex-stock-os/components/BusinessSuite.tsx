@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import {
   Building2,
   CheckCircle2,
@@ -672,11 +673,11 @@ export function BusinessSuite({
               </div>
               <div className="mt-4 grid gap-2">
                 <input className="apex-input p-3" placeholder={tr(language, { es: "Nombre de la cuenta", en: "Account name" })} value={accountName} onChange={(event) => setAccountName(event.target.value)} />
-                <select className="apex-input min-h-11 px-3" value={accountType} onChange={(event) => setAccountType(event.target.value as FinanceAccount["type"])}>
+                <ApexSelect className="apex-input min-h-11 px-3" value={accountType} onChange={(event) => setAccountType(event.target.value as FinanceAccount["type"])}>
                   <option value="bank">{tr(language, { es: "Banco", en: "Bank" })}</option>
                   <option value="cash">{tr(language, { es: "Caja", en: "Cash" })}</option>
                   <option value="wallet">{tr(language, { es: "Billetera", en: "Wallet" })}</option>
-                </select>
+                </ApexSelect>
                 <input className="apex-input p-3" inputMode="decimal" placeholder={tr(language, { es: "Saldo inicial", en: "Opening balance" })} value={accountBalance} onChange={(event) => setAccountBalance(event.target.value)} />
                 <PrimaryButton onClick={addAccount} label={tr(language, { es: "Agregar cuenta", en: "Add account" })} />
               </div>
@@ -701,12 +702,12 @@ export function BusinessSuite({
                 </h3>
               </div>
               <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-5">
-                <select className="apex-input min-h-11 px-3 xl:col-span-1" value={movementAccount} onChange={(event) => setMovementAccount(event.target.value)}>
+                <ApexSelect className="apex-input min-h-11 px-3 xl:col-span-1" value={movementAccount} onChange={(event) => setMovementAccount(event.target.value)}>
                   <option value="">{tr(language, { es: "Cuenta", en: "Account" })}</option>
                   {state.financeAccounts.map((account) => (
                     <option key={account.id} value={account.id}>{account.name}</option>
                   ))}
-                </select>
+                </ApexSelect>
                 <input className="apex-input p-3" type="date" value={movementDate} onChange={(event) => setMovementDate(event.target.value)} />
                 <input className="apex-input p-3 xl:col-span-2" placeholder={tr(language, { es: "Descripción", en: "Description" })} value={movementDescription} onChange={(event) => setMovementDescription(event.target.value)} />
                 <div className="flex gap-2">
@@ -797,13 +798,13 @@ export function BusinessSuite({
                       <p className="mt-0.5 text-xs text-[var(--apex-muted)]">{item.company || item.email || "—"}</p>
                       <p className="mt-2 text-sm font-semibold">{money(item.value)}</p>
                       {item.nextAction && <p className="mt-1 text-[11px] text-[var(--apex-muted)]">{item.nextAction}</p>}
-                      <select className="apex-input mt-3 min-h-9 px-2 text-xs" value={item.stage} onChange={(event) => updateOpportunity(item.id, { stage: event.target.value as Opportunity["stage"] })}>
+                      <ApexSelect className="apex-input mt-3 min-h-9 px-2 text-xs" value={item.stage} onChange={(event) => updateOpportunity(item.id, { stage: event.target.value as Opportunity["stage"] })}>
                         <option value="lead">lead</option>
                         <option value="contacted">contacted</option>
                         <option value="proposal">proposal</option>
                         <option value="won">won</option>
                         <option value="lost">lost</option>
-                      </select>
+                      </ApexSelect>
                     </div>
                   ))}
                 </div>
@@ -854,12 +855,12 @@ export function BusinessSuite({
                       <input className="apex-input w-20 p-2 text-xs" inputMode="decimal" value={project.hoursUsed} onChange={(event) => updateProject(project.id, { hoursUsed: Math.max(0, Number(event.target.value) || 0) })} />
                       <span className="text-xs text-[var(--apex-muted)]">/ {project.hoursPlanned}h</span>
                     </div>
-                    <select className="apex-input min-h-10 px-3 text-xs" value={project.status} onChange={(event) => updateProject(project.id, { status: event.target.value as Project["status"] })}>
+                    <ApexSelect className="apex-input min-h-10 px-3 text-xs" value={project.status} onChange={(event) => updateProject(project.id, { status: event.target.value as Project["status"] })}>
                       <option value="planned">planned</option>
                       <option value="active">active</option>
                       <option value="paused">paused</option>
                       <option value="done">done</option>
-                    </select>
+                    </ApexSelect>
                   </div>
                 );
               }) : <EmptyText text={tr(language, { es: "Todavía no hay proyectos.", en: "No projects yet." })} />}
@@ -899,11 +900,11 @@ export function BusinessSuite({
                     <span className="text-[var(--apex-muted)]">{tr(language, { es: "Licencia", en: "Leave" })}</span>
                     <input className="apex-input w-16 p-2 text-xs" inputMode="numeric" value={person.leaveDays} onChange={(event) => updatePerson(person.id, { leaveDays: Math.max(0, Number(event.target.value) || 0) })} />
                   </label>
-                  <select className="apex-input min-h-10 px-3 text-xs" value={person.status} onChange={(event) => updatePerson(person.id, { status: event.target.value as Person["status"] })}>
+                  <ApexSelect className="apex-input min-h-10 px-3 text-xs" value={person.status} onChange={(event) => updatePerson(person.id, { status: event.target.value as Person["status"] })}>
                     <option value="active">active</option>
                     <option value="leave">leave</option>
                     <option value="inactive">inactive</option>
-                  </select>
+                  </ApexSelect>
                 </div>
               )) : <EmptyText text={tr(language, { es: "Todavía no hay personas cargadas.", en: "No people yet." })} />}
             </div>

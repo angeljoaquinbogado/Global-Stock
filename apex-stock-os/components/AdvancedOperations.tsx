@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import {
   ArchiveRestore,
   BarChart3,
@@ -1301,7 +1302,7 @@ export function AdvancedOperations({
                   value={orderTotal}
                   onChange={(event) => setOrderTotal(event.target.value)}
                 />
-                <select
+                <ApexSelect
                   className="apex-input w-full p-3"
                   value={orderFulfillment}
                   onChange={(event) =>
@@ -1313,7 +1314,7 @@ export function AdvancedOperations({
                   <option value="shipping">Envío</option>
                   <option value="dine_in">Mesa</option>
                   <option value="service">Servicio</option>
-                </select>
+                </ApexSelect>
                 <Action
                   onClick={() => void createOrder()}
                   label={tr(language, {
@@ -1336,7 +1337,7 @@ export function AdvancedOperations({
                   order.created_at
                 ).toLocaleString(locale)}`}
                 action={
-                  <select
+                  <ApexSelect
                     className="apex-input min-h-9 px-2 text-xs"
                     value={order.status}
                     onChange={(event) =>
@@ -1357,7 +1358,7 @@ export function AdvancedOperations({
                         {status}
                       </option>
                     ))}
-                  </select>
+                  </ApexSelect>
                 }
               />
             ))}
@@ -1374,7 +1375,7 @@ export function AdvancedOperations({
                 </h4>
               </div>
               <div className="mt-4 grid gap-3 lg:grid-cols-[1fr_1fr_1fr_140px_auto]">
-                <select
+                <ApexSelect
                   className="apex-input min-h-11 px-3"
                   value={shipmentOrder}
                   onChange={(event) => setShipmentOrder(event.target.value)}
@@ -1396,7 +1397,7 @@ export function AdvancedOperations({
                         )}
                       </option>
                     ))}
-                </select>
+                </ApexSelect>
                 <input
                   className="apex-input min-h-11 px-3"
                   placeholder="Transportista"
@@ -1441,7 +1442,7 @@ export function AdvancedOperations({
                           {money(shipment.shipping_cost, currency, locale)}
                         </p>
                       </div>
-                      <select
+                      <ApexSelect
                         className="apex-input min-h-9 px-2 text-xs"
                         value={shipment.status}
                         onChange={(event) =>
@@ -1465,7 +1466,7 @@ export function AdvancedOperations({
                             {status}
                           </option>
                         ))}
-                      </select>
+                      </ApexSelect>
                     </div>
                   ))
                 ) : (
@@ -1484,7 +1485,7 @@ export function AdvancedOperations({
                 en: "Count & adjust"
               })}
             >
-              <select
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={countLocation}
                 onChange={(event) => setCountLocation(event.target.value)}
@@ -1495,8 +1496,8 @@ export function AdvancedOperations({
                     {location.name}
                   </option>
                 ))}
-              </select>
-              <select
+              </ApexSelect>
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={countProduct}
                 onChange={(event) => {
@@ -1512,7 +1513,7 @@ export function AdvancedOperations({
                     {product.name}
                   </option>
                 ))}
-              </select>
+              </ApexSelect>
               <div className="grid grid-cols-2 gap-2">
                 <input
                   className="apex-input w-full p-3"
@@ -1556,7 +1557,7 @@ export function AdvancedOperations({
                 en: "Transfer locations"
               })}
             >
-              <select
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={transferFrom}
                 onChange={(event) => setTransferFrom(event.target.value)}
@@ -1567,8 +1568,8 @@ export function AdvancedOperations({
                     {location.name}
                   </option>
                 ))}
-              </select>
-              <select
+              </ApexSelect>
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={transferTo}
                 onChange={(event) => setTransferTo(event.target.value)}
@@ -1581,8 +1582,8 @@ export function AdvancedOperations({
                       {location.name}
                     </option>
                   ))}
-              </select>
-              <select
+              </ApexSelect>
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={transferProduct}
                 onChange={(event) => setTransferProduct(event.target.value)}
@@ -1593,7 +1594,7 @@ export function AdvancedOperations({
                     {product.name}
                   </option>
                 ))}
-              </select>
+              </ApexSelect>
               <input
                 className="apex-input w-full p-3"
                 inputMode="decimal"
@@ -1628,7 +1629,7 @@ export function AdvancedOperations({
                 en: "Lots & expiry"
               })}
             >
-              <select
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={lotProductKey}
                 onChange={(event) => setLotProductKey(event.target.value)}
@@ -1639,7 +1640,7 @@ export function AdvancedOperations({
                     {product.name}
                   </option>
                 ))}
-              </select>
+              </ApexSelect>
               <input
                 className="apex-input w-full p-3"
                 placeholder="Lote"
@@ -1729,7 +1730,7 @@ export function AdvancedOperations({
                 }
                 value={money(service.estimated_total, currency, locale)}
                 action={
-                  <select
+                  <ApexSelect
                     className="apex-input min-h-9 px-2 text-xs"
                     value={service.status}
                     onChange={(event) =>
@@ -1752,7 +1753,7 @@ export function AdvancedOperations({
                         {status}
                       </option>
                     ))}
-                  </select>
+                  </ApexSelect>
                 }
               />
             ))}
@@ -1782,7 +1783,7 @@ export function AdvancedOperations({
                   setAutomationName(event.target.value)
                 }
               />
-              <select
+              <ApexSelect
                 className="apex-input w-full p-3"
                 value={automationEvent}
                 onChange={(event) =>
@@ -1797,7 +1798,7 @@ export function AdvancedOperations({
                 <option value="low_cash">Caja / bancos debajo del umbral</option>
                 <option value="project_over_hours">Proyecto excedido en horas</option>
                 <option value="document_needs_review">Comprobante para revisar</option>
-              </select>
+              </ApexSelect>
               {(automationEvent === "low_margin" ||
                 automationEvent === "low_cash") && (
                 <input
@@ -1916,7 +1917,7 @@ export function AdvancedOperations({
                   title={table.name}
                   subtitle={`${table.seats} personas`}
                   action={
-                    <select
+                    <ApexSelect
                       className="apex-input min-h-9 px-2 text-xs"
                       value={table.status}
                       onChange={(event) =>
@@ -1934,7 +1935,7 @@ export function AdvancedOperations({
                           {status}
                         </option>
                       ))}
-                    </select>
+                    </ApexSelect>
                   }
                 />
               ))}
@@ -1947,7 +1948,7 @@ export function AdvancedOperations({
               </div>
 
               <div className="mt-4 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
-                <select
+                <ApexSelect
                   className="apex-input min-h-11 px-3"
                   value={kitchenOrder}
                   onChange={(event) => setKitchenOrder(event.target.value)}
@@ -1965,7 +1966,7 @@ export function AdvancedOperations({
                         {order.id.slice(0, 8)} · {order.status}
                       </option>
                     ))}
-                </select>
+                </ApexSelect>
                 <input
                   className="apex-input min-h-11 px-3"
                   placeholder="Estación (barra, cocina...)"
@@ -1999,7 +2000,7 @@ export function AdvancedOperations({
                           )}
                         </p>
                       </div>
-                      <select
+                      <ApexSelect
                         className="apex-input min-h-9 px-2 text-xs"
                         value={ticket.status}
                         onChange={(event) =>
@@ -2020,7 +2021,7 @@ export function AdvancedOperations({
                             {status}
                           </option>
                         ))}
-                      </select>
+                      </ApexSelect>
                     </div>
                   ))
                 ) : (

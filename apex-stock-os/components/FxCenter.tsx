@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import { ArrowLeftRight, RefreshCw, TrendingUp } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -625,7 +626,7 @@ function CurrencySelect({
       <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
         {label}
       </span>
-      <select
+      <ApexSelect
         value={value}
         onChange={(event) =>
           onChange(event.target.value as Currency)
@@ -637,7 +638,7 @@ function CurrencySelect({
             {currency} · {currencyNames[currency][language]}
           </option>
         ))}
-      </select>
+      </ApexSelect>
     </label>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import {
   Banknote,
   Building2,
@@ -1112,20 +1113,20 @@ export function OperationsCenter({
                 <p className="mt-1 text-xs text-[var(--apex-muted)]">{t.currentCash}</p>
 
                 <div className="mt-5 grid grid-cols-2 gap-2">
-                  <select className="apex-input p-3 text-sm" value={movementKind} onChange={(e)=>setMovementKind(e.target.value)}>
+                  <ApexSelect className="apex-input p-3 text-sm" value={movementKind} onChange={(e)=>setMovementKind(e.target.value)}>
                     <option value="income">Ingreso</option>
                     <option value="expense">Gasto</option>
                     <option value="deposit">Depósito</option>
                     <option value="withdrawal">Retiro</option>
                     <option value="adjustment">Ajuste</option>
-                  </select>
-                  <select className="apex-input p-3 text-sm" value={paymentMethod} onChange={(e)=>setPaymentMethod(e.target.value)}>
+                  </ApexSelect>
+                  <ApexSelect className="apex-input p-3 text-sm" value={paymentMethod} onChange={(e)=>setPaymentMethod(e.target.value)}>
                     <option value="cash">Efectivo</option>
                     <option value="debit">Débito</option>
                     <option value="credit">Crédito</option>
                     <option value="transfer">Transferencia</option>
                     <option value="qr">QR</option>
-                  </select>
+                  </ApexSelect>
                 </div>
                 <input className="apex-input mt-2 w-full p-3" inputMode="decimal" placeholder={t.amount} value={movementAmount} onChange={(e)=>setMovementAmount(e.target.value)} />
                 <input className="apex-input mt-2 w-full p-3" placeholder={t.description} value={movementDescription} onChange={(e)=>setMovementDescription(e.target.value)} />
@@ -1202,13 +1203,13 @@ export function OperationsCenter({
           form={
             <>
               <input className="apex-input w-full p-3" placeholder={t.name} value={locationName} onChange={(e)=>setLocationName(e.target.value)} />
-              <select className="apex-input w-full p-3" value={locationKind} onChange={(e)=>setLocationKind(e.target.value)}>
+              <ApexSelect className="apex-input w-full p-3" value={locationKind} onChange={(e)=>setLocationKind(e.target.value)}>
                 <option value="store">Local</option>
                 <option value="warehouse">Depósito</option>
                 <option value="kitchen">Cocina</option>
                 <option value="office">Oficina</option>
                 <option value="other">Otro</option>
-              </select>
+              </ApexSelect>
               <input className="apex-input w-full p-3" placeholder={t.address} value={locationAddress} onChange={(e)=>setLocationAddress(e.target.value)} />
               <PrimaryButton onClick={()=>void addLocation()}>{t.add}</PrimaryButton>
             </>

@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import JsBarcode from "jsbarcode";
 import {
   Barcode,
@@ -330,7 +331,7 @@ export function BarcodeLabelStudio({
             <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
               {t.product}
             </span>
-            <select
+            <ApexSelect
               value={selectedProduct?.id ?? ""}
               onChange={(event) => {
                 setProductId(event.target.value);
@@ -343,7 +344,7 @@ export function BarcodeLabelStudio({
                   {product.name}
                 </option>
               ))}
-            </select>
+            </ApexSelect>
           </label>
 
           <label className="block">

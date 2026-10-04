@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import {
   AlertTriangle,
   BadgeCheck,
@@ -680,7 +681,7 @@ export function FiscalDocumentsCenter({
                 }))
               }
             />
-            <select
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={profile.tax_condition}
               onChange={(event) =>
@@ -695,7 +696,7 @@ export function FiscalDocumentsCenter({
               <option value="monotributo">Monotributo</option>
               <option value="exento">Exento</option>
               <option value="otro">Otro</option>
-            </select>
+            </ApexSelect>
             <input
               className="apex-input px-3 py-2.5 text-sm"
               placeholder={l(language, "Ingresos Brutos (opcional)", "Gross income tax ID (optional)")}
@@ -794,7 +795,7 @@ export function FiscalDocumentsCenter({
           </div>
 
           <div className="mt-4 grid gap-3 sm:grid-cols-3">
-            <select
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={kind}
               onChange={(event) =>
@@ -808,8 +809,8 @@ export function FiscalDocumentsCenter({
               <option value="invoice">{l(language, "Factura", "Invoice")}</option>
               <option value="credit_note">{l(language, "Nota de crédito", "Credit note")}</option>
               <option value="debit_note">{l(language, "Nota de débito", "Debit note")}</option>
-            </select>
-            <select
+            </ApexSelect>
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={letter || ""}
               onChange={(event) =>
@@ -824,8 +825,8 @@ export function FiscalDocumentsCenter({
                   {value}
                 </option>
               ))}
-            </select>
-            <select
+            </ApexSelect>
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={saleId}
               onChange={(event) => selectSale(event.target.value)}
@@ -842,12 +843,12 @@ export function FiscalDocumentsCenter({
                   }).format(Number(sale.total) || 0)}
                 </option>
               ))}
-            </select>
+            </ApexSelect>
           </div>
 
           {kind !== "invoice" ? (
             <div className="mt-3">
-              <select
+              <ApexSelect
                 className="apex-input w-full px-3 py-2.5 text-sm"
                 value={relatedDocumentId}
                 onChange={(event) => setRelatedDocumentId(event.target.value)}
@@ -871,7 +872,7 @@ export function FiscalDocumentsCenter({
                         : document.local_reference}
                     </option>
                   ))}
-              </select>
+              </ApexSelect>
               <p className="mt-1 text-[10px] leading-4 text-[var(--apex-muted)]">
                 {l(
                   language,
@@ -889,7 +890,7 @@ export function FiscalDocumentsCenter({
               value={customerName}
               onChange={(event) => setCustomerName(event.target.value)}
             />
-            <select
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={customerTaxCondition}
               onChange={(event) => setCustomerTaxCondition(event.target.value)}
@@ -899,8 +900,8 @@ export function FiscalDocumentsCenter({
               <option value="Monotributo">Monotributo</option>
               <option value="Exento">Exento</option>
               <option value="Otro">Otro</option>
-            </select>
-            <select
+            </ApexSelect>
+            <ApexSelect
               className="apex-input px-3 py-2.5 text-sm"
               value={customerDocumentType}
               onChange={(event) => setCustomerDocumentType(event.target.value)}
@@ -910,7 +911,7 @@ export function FiscalDocumentsCenter({
               <option value="CUIL">CUIL</option>
               <option value="PASAPORTE">Pasaporte</option>
               <option value="OTRO">Otro</option>
-            </select>
+            </ApexSelect>
             <input
               className="apex-input px-3 py-2.5 text-sm"
               placeholder={l(language, "Número de documento", "Document number")}

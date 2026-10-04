@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import { Boxes, Layers3, PackageOpen, Ruler } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
@@ -268,7 +269,7 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
       <Select value={recipeProduct} onChange={setRecipeProduct} options={products.map(p=>({value:p.client_key,label:p.name}))}/>
       <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">{tr(language,"Ingrediente / componente","Ingredient / component")}</label>
       <Select value={componentKey} onChange={setComponentKey} options={products.map(p=>({value:p.client_key,label:p.name}))}/>
-      <div className="grid grid-cols-2 gap-2"><Input value={recipeQty} setValue={setRecipeQty} placeholder={tr(language,"Cantidad","Quantity")} numeric/><select className="apex-input w-full p-3" value={recipeUnit} onChange={e=>setRecipeUnit(e.target.value)}>{["unit","g","kg","ml","l","m","pack","box"].map(u=><option key={u} value={u}>{u}</option>)}</select></div>
+      <div className="grid grid-cols-2 gap-2"><Input value={recipeQty} setValue={setRecipeQty} placeholder={tr(language,"Cantidad","Quantity")} numeric/><ApexSelect className="apex-input w-full p-3" value={recipeUnit} onChange={e=>setRecipeUnit(e.target.value)}>{["unit","g","kg","ml","l","m","pack","box"].map(u=><option key={u} value={u}>{u}</option>)}</ApexSelect></div>
       <Input value={wastage} setValue={setWastage} placeholder={tr(language,"Merma %","Waste %")} numeric/>
       <Action label={tr(language,"Agregar componente","Add component")} onClick={()=>void addRecipe()}/>
     </>}>
@@ -277,7 +278,7 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
 
     {tab==="units"&&<Split title={tr(language,"Unidad de venta y stock objetivo","Selling unit & target stock")} form={<>
       <Select value={unitProduct} onChange={setUnitProduct} options={products.map(p=>({value:p.id,label:p.name}))}/>
-      <select className="apex-input w-full p-3" value={unit} onChange={e=>setUnit(e.target.value)}>{["unit","pack","box","dozen","g","kg","ml","l","m","roll"].map(u=><option key={u} value={u}>{u}</option>)}</select>
+      <ApexSelect className="apex-input w-full p-3" value={unit} onChange={e=>setUnit(e.target.value)}>{["unit","pack","box","dozen","g","kg","ml","l","m","roll"].map(u=><option key={u} value={u}>{u}</option>)}</ApexSelect>
       <Input value={maxStock} setValue={setMaxStock} placeholder={tr(language,"Stock máximo objetivo","Target maximum stock")} numeric/>
       <Action label={tr(language,"Guardar configuración","Save settings")} onClick={()=>void saveUnit()}/>
     </>}>
@@ -288,7 +289,7 @@ export function CatalogTools({businessId,language,currency,locale}:Props){
 
 function TabButton({active,onClick,icon,label}:{active:boolean;onClick:()=>void;icon:React.ReactNode;label:string}){return <button type="button" onClick={onClick} className={"inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold "+(active?"border-[#8F0000]/60 bg-[#8F0000]/10 text-[#8F0000]":"border-[var(--apex-border)]")}>{icon}{label}</button>}
 function Input({value,setValue,placeholder,numeric=false}:{value:string;setValue:(v:string)=>void;placeholder:string;numeric?:boolean}){return <input className="apex-input w-full p-3" inputMode={numeric?"decimal":undefined} placeholder={placeholder} value={value} onChange={e=>setValue(e.target.value)}/>}
-function Select({value,onChange,options}:{value:string;onChange:(v:string)=>void;options:Array<{value:string;label:string}>}){return <select className="apex-input w-full p-3" value={value} onChange={e=>onChange(e.target.value)}><option value="">—</option>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</select>}
+function Select({value,onChange,options}:{value:string;onChange:(v:string)=>void;options:Array<{value:string;label:string}>}){return <ApexSelect className="apex-input w-full p-3" value={value} onChange={e=>onChange(e.target.value)}><option value="">—</option>{options.map(o=><option key={o.value} value={o.value}>{o.label}</option>)}</ApexSelect>}
 function Action({label,onClick}:{label:string;onClick:()=>void}){return <button type="button" onClick={onClick} className="min-h-11 w-full rounded-2xl bg-[#8F0000] px-4 text-sm font-semibold text-white">{label}</button>}
 function Split({title,form,children}:{title:string;form:React.ReactNode;children:React.ReactNode}){return <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]"><section className="apex-card p-5"><div className="flex items-center gap-2"><Boxes size={16}/><h3 className="font-semibold">{title}</h3></div><div className="mt-4 space-y-2">{form}</div></section><section className="apex-card overflow-hidden"><div className="divide-y divide-[var(--apex-border)]">{children}</div></section></div>}
 function Row({title,subtitle,value,action}:{title:string;subtitle:string;value?:string;action?:React.ReactNode}){return <div className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"><div className="min-w-0"><p className="truncate text-sm font-semibold">{title}</p><p className="mt-1 text-[10px] text-[var(--apex-muted)]">{subtitle}</p></div><div className="flex items-center gap-3">{value&&<strong className="text-sm">{value}</strong>}{action}</div></div>}

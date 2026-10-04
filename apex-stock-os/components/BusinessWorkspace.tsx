@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Activity as ActivityIcon,
@@ -4469,7 +4470,7 @@ function PosModule({
                       : "Stock is deducted from this store or warehouse."}
                 </p>
               </div>
-              <select
+              <ApexSelect
                 className="apex-input min-h-11 min-w-52 px-3 text-sm"
                 value={selectedLocation}
                 onChange={(event) => setSelectedLocation(event.target.value)}
@@ -4480,7 +4481,7 @@ function PosModule({
                     {location.name}
                   </option>
                 ))}
-              </select>
+              </ApexSelect>
             </div>
           )}
 
@@ -4544,7 +4545,7 @@ function PosModule({
                 </p>
 
                 {variants.length > 0 && (
-                  <select
+                  <ApexSelect
                     className="apex-input mt-3 min-h-10 w-full px-3 text-xs"
                     value={selectedVariantId}
                     onChange={(event) =>
@@ -4562,7 +4563,7 @@ function PosModule({
                           : ""}
                       </option>
                     ))}
-                  </select>
+                  </ApexSelect>
                 )}
 
                 <p className="mt-4 text-lg font-semibold">
@@ -4712,7 +4713,7 @@ function PosModule({
                       ? "Kunde"
                       : "Customer"}
             </p>
-            <select
+            <ApexSelect
               className="apex-input mt-2 min-h-11 w-full px-3 text-sm"
               value={customerId}
               onChange={(event) => setCustomerId(event.target.value)}
@@ -4730,7 +4731,7 @@ function PosModule({
                     : ""}
                 </option>
               ))}
-            </select>
+            </ApexSelect>
 
             <div className="mt-4 flex items-center justify-between gap-3">
               <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
@@ -4765,7 +4766,7 @@ function PosModule({
             </div>
 
             <div className="mt-2 grid grid-cols-2 gap-2">
-              <select
+              <ApexSelect
                 className="apex-input min-h-11 px-3 text-sm"
                 value={paymentMethod}
                 onChange={(event) => setPaymentMethod(event.target.value)}
@@ -4786,7 +4787,7 @@ function PosModule({
                 <option value="account">
                   {language === "es" ? "Cuenta corriente" : language === "pt" ? "Conta corrente" : language === "fr" ? "Compte client" : language === "de" ? "Kundenkonto" : "Customer account"}
                 </option>
-              </select>
+              </ApexSelect>
 
               {paymentMethod === "cash" ? (
                 <input
@@ -4836,7 +4837,7 @@ function PosModule({
                     setSplitFirstAmount(event.target.value)
                   }
                 />
-                <select
+                <ApexSelect
                   className="apex-input min-h-11 px-3 text-sm"
                   value={secondPaymentMethod}
                   onChange={(event) =>
@@ -4849,7 +4850,7 @@ function PosModule({
                   <option value="transfer">Transferencia</option>
                   <option value="qr">QR</option>
                   <option value="account">Cuenta corriente</option>
-                </select>
+                </ApexSelect>
                 <div className="col-span-2 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-xs">
                   <span className="text-[var(--apex-muted)]">
                     {language === "es"
