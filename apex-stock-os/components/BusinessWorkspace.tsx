@@ -3934,6 +3934,7 @@ export function BusinessWorkspace({
       <ApexIntelligence
         snapshot={snapshot}
         demoMode={demoMode}
+        businessId={cloudBusinessId}
         raiseOnMobile={
           activeModule === "pos" && cartLines.length > 0
         }
