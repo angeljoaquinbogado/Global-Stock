@@ -60,12 +60,14 @@ export default function PrivacyPage() {
         <p>
           Cuando Global Intelligence está habilitada, la consulta del usuario y
           el contexto necesario para responder pueden enviarse al proveedor de
-          IA configurado por la plataforma. La configuración prevista para el
-          lanzamiento inicial utiliza la API de OpenAI mediante una clave
-          almacenada exclusivamente del lado del servidor. Ese contexto puede incluir, cuando
-          sea pertinente, inventario, ventas, actividad, notas, pedidos online y
-          métricas del negocio. Global Stock procura enviar únicamente la
-          información necesaria para la función solicitada.
+          IA configurado por la plataforma. Global Stock puede utilizar
+          proveedores de IA externos, incluido Google Gemini u otros proveedores
+          compatibles que se configuren en el servidor. Las claves de acceso a
+          esos servicios se mantienen exclusivamente del lado del servidor. Ese
+          contexto puede incluir, cuando sea pertinente, inventario, ventas,
+          actividad, notas, pedidos online y métricas del negocio. Global Stock
+          procura enviar únicamente la información necesaria para la función
+          solicitada.
         </p>
       </section>
 
@@ -97,8 +99,11 @@ export default function PrivacyPage() {
         <p>
           La plataforma puede depender de proveedores de infraestructura,
           autenticación, base de datos, despliegue, correo, inteligencia
-          artificial, pagos o ecommerce. Cada servicio externo puede aplicar sus
-          propias condiciones y políticas a los datos que reciba directamente.
+          artificial, pagos o ecommerce. Algunos proveedores pueden procesar
+          información desde otros países o regiones. Cada servicio externo puede
+          aplicar sus propias condiciones y políticas a los datos que reciba
+          directamente, y Global Stock debe revisar esos proveedores cuando
+          cambien las integraciones o la infraestructura.
         </p>
       </section>
 

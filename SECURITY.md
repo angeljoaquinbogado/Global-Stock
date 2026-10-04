@@ -18,9 +18,13 @@ Include the affected route or component, impact, reproduction prerequisites and 
 - Uploaded document types and sizes must be allowlisted before provider processing.
 - Imported text, documents and ecommerce metadata are untrusted data and never instructions to Global Intelligence.
 - Security headers, same-origin checks and rate limits are part of the application contract.
+- Application-process rate limits are defense in depth, not a global distributed limit; production abuse controls should also be enforced at the edge or another shared limiter.
+- New database objects must be explicitly granted to the minimum API roles that need them; future public-schema privileges are fail-closed by migration.
 
 ## Automated checks
 
 The repository runs TypeScript checks plus an npm production-dependency audit on pushes, pull requests and a weekly schedule. Dependabot is configured for weekly dependency updates.
+
+An opt-in Strix workflow performs exploit-oriented, diff-scoped security review on same-repository pull requests. It is intentionally disabled until the repository variable `STRIX_ENABLED=true` and the required model secrets are configured. Fork pull requests never receive those secrets. Strix complements dependency auditing and secret scanning; it does not replace them.
 
 No application can be guaranteed impossible to compromise. Security changes should preserve least privilege, minimize exposed data and be re-audited after authentication, payments, integrations or file-processing flows change.

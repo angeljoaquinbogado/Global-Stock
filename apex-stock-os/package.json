@@ -22,7 +22,7 @@
     "react-dom": "^19.2.0",
     "recharts": "^2.12.7",
     "jsbarcode": "^3.11.6",
-    "cobe": "latest"
+    "cobe": "2.0.1"
   },
   "devDependencies": {
     "@types/node": "^22.7.4",
