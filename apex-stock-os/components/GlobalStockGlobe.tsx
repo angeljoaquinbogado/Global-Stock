@@ -499,6 +499,7 @@ export function GlobalStockGlobe({
       mapBrightness: 6.2,
       mapBaseBrightness: 0,
       baseColor: [0.04, 0.042, 0.048],
+      markerColor: [0.86, 0.04, 0.08],
       glowColor: [0.25, 0.012, 0.018],
       arcColor: [0.96, 0.08, 0.12],
       arcWidth: coarsePointer ? 0.9 : 1.05,
