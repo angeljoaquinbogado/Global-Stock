@@ -255,7 +255,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       <button
         type="button"
         onClick={() => void install()}
-        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#A10A0A] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#A10A0A] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
+        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#8F0000] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#8F0000] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
         aria-label={labels.install}
       >
         <Download size={15} />
@@ -320,7 +320,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                   <button
                     type="button"
                     onClick={() => void launchNativeInstall()}
-                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#A10A0A] bg-[#8F0000] px-4 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.22)] transition hover:bg-[#A10A0A]"
+                    className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#8F0000] bg-[#8F0000] px-4 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.22)] transition hover:bg-[#8F0000]"
                   >
                     <Download size={15} />
                     {labels.installNow}

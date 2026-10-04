@@ -68,7 +68,7 @@ export function PublicHeader() {
             </Link>
             <Link
               href="/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(201,21,39,.18)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#df2033] hover:shadow-[0_14px_34px_rgba(201,21,39,.24)]"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_14px_34px_rgba(143,0,0,.32)]"
             >
               Abrir Global Stock
             </Link>
@@ -187,7 +187,7 @@ export function LegalArticle({
   return (
     <PublicPage>
       <main className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#e85d69]">
+        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8F0000]">
           {eyebrow}
         </p>
         <h1 className="mt-4 text-4xl font-semibold tracking-[-0.055em] sm:text-6xl">

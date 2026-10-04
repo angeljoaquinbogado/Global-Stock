@@ -19,8 +19,8 @@ const groups = [
     body:
       "Vendé, cobrá y actualizá existencias sin duplicar movimientos ni saltar entre herramientas.",
     icon: ShoppingCart,
-    accent: "#ff5b67",
-    surface: "rgba(255,91,103,.10)",
+    accent: "#8F0000",
+    surface: "rgba(143,0,0,.12)",
     items: ["Punto de venta", "Stock y códigos", "Historial de actividad"]
   },
   {
@@ -69,7 +69,7 @@ export function DownloadFeatureCatalog() {
     <section className="border-t border-white/[0.045] bg-[#08090b] text-white">
       <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ff6773]">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
             Funcionalidades
           </p>
           <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">

@@ -4,6 +4,7 @@ import { Check, Download } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { GridBeamBorder } from "@/components/ui/grid-beam-border";
 
 type PlatformId = "web" | "iphone" | "android";
 
@@ -93,11 +94,19 @@ function PlatformTabs({
   onChange: (platform: PlatformId) => void;
 }) {
   return (
-    <div
-      className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[16px] border border-[#7d1722] bg-[#09090b] p-1.5 shadow-[0_14px_34px_rgba(0,0,0,.28),0_0_0_1px_rgba(201,21,39,.08)]"
-      role="tablist"
-      aria-label="Plataforma"
+    <GridBeamBorder
+      color="#8F0000"
+      duration={3.1}
+      strength={1.05}
+      breathe
+      borderRadius={18}
+      className="inline-block max-w-full p-[1px] shadow-[0_14px_34px_rgba(0,0,0,.30),0_0_22px_rgba(143,0,0,.16)]"
     >
+      <div
+        className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[17px] bg-[#09090b] p-1.5"
+        role="tablist"
+        aria-label="Plataforma"
+      >
       {platforms.map(({ id, label, logoSrc }) => {
         const selected = active === id;
 
@@ -111,8 +120,8 @@ function PlatformTabs({
             className={
               "flex min-h-11 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-semibold text-white outline-none transition-[background-color,border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[120px] " +
               (selected
-                ? "border-[#df2033] bg-[#1a0b0e] shadow-[0_0_0_1px_rgba(223,32,51,.18),0_8px_22px_rgba(0,0,0,.30)]"
-                : "border-[#48131a] bg-[#0d0e12] hover:border-[#8f1d29] hover:bg-[#141116]")
+                ? "border-[#8F0000] bg-[rgba(143,0,0,.16)] shadow-[0_0_0_1px_rgba(143,0,0,.26),0_8px_22px_rgba(0,0,0,.30)]"
+                : "border-[#8F0000] bg-[#0d0e12] hover:bg-[rgba(143,0,0,.08)]")
             }
           >
             <span className="grid h-6 w-6 shrink-0 place-items-center overflow-visible">
@@ -132,7 +141,8 @@ function PlatformTabs({
           </button>
         );
       })}
-    </div>
+      </div>
+    </GridBeamBorder>
   );
 }
 
@@ -258,7 +268,7 @@ export function DownloadInstallShowcase({
                     href={nativeLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#8f1d29] bg-[#190b0e] px-4 text-xs font-semibold text-white transition-colors duration-150 hover:border-[#df2033] hover:bg-[#221015]"
+                    className="inline-flex h-11 items-center gap-2 rounded-xl border border-[#8F0000] bg-[#190b0e] px-4 text-xs font-semibold text-white transition-colors duration-150 hover:border-[#8F0000] hover:bg-[#221015]"
                   >
                     <Download size={15} />
                     Abrir tienda oficial
@@ -285,7 +295,7 @@ export function DownloadInstallShowcase({
                     (index > 0 ? "border-t border-white/[0.045]" : "")
                   }
                 >
-                  <span className="text-[11px] font-bold text-[#ef3a4e]">
+                  <span className="text-[11px] font-bold text-[#8F0000]">
                     0{index + 1}
                   </span>
                   <p className="text-sm leading-6 text-white/60">{step}</p>

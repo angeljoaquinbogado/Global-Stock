@@ -44,8 +44,8 @@ const flowItems = [
     icon: ShoppingCart,
     title: "Venta",
     body: "La operación entra una sola vez.",
-    accent: "#ff5b67",
-    surface: "rgba(255,91,103,.10)"
+    accent: "#8F0000",
+    surface: "rgba(143,0,0,.12)"
   },
   {
     icon: Boxes,
@@ -119,7 +119,7 @@ export default function DownloadPage() {
               <div className="mt-9 flex flex-wrap items-center gap-3" id="instalar">
                 <Link
                   href="/"
-                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#c91527] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(201,21,39,.22)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#df2033] hover:shadow-[0_18px_44px_rgba(201,21,39,.28)]"
+                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(143,0,0,.30)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_18px_44px_rgba(143,0,0,.38)]"
                 >
                   Abrir Global Stock
                   <ArrowRight size={15} />
@@ -165,7 +165,7 @@ export default function DownloadPage() {
           <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
             <div className="grid gap-10 lg:grid-cols-[.82fr_1.18fr] lg:items-end">
               <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ff6773]">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
                   Flujo conectado
                 </p>
                 <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
@@ -185,7 +185,7 @@ export default function DownloadPage() {
             <div className="mt-12 overflow-hidden rounded-[34px] bg-[#111217] shadow-[0_34px_90px_rgba(0,0,0,.30)]">
               <div className="grid lg:grid-cols-[1.08fr_.92fr]">
                 <div className="relative min-h-[430px] overflow-hidden p-6 sm:p-8">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(201,21,39,.12),transparent_34%),radial-gradient(circle_at_78%_74%,rgba(110,168,255,.08),transparent_34%)]" />
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(143,0,0,.16),transparent_34%),radial-gradient(circle_at_78%_74%,rgba(110,168,255,.08),transparent_34%)]" />
 
                   <div className="relative mx-auto max-w-xl">
                     <div className="flex items-center justify-between">
@@ -197,7 +197,7 @@ export default function DownloadPage() {
                           Venta conectada
                         </h3>
                       </div>
-                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#ff5b67]/10 text-[#ff6f7b]">
+                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[rgba(143,0,0,.14)] text-[#8F0000]">
                         <ShoppingCart size={20} />
                       </span>
                     </div>
@@ -429,7 +429,7 @@ export default function DownloadPage() {
               <div className="flex flex-wrap gap-3 lg:justify-end">
                 <Link
                   href="/"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#c91527] px-4 text-xs font-semibold text-white transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#df2033]"
+                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000]"
                 >
                   Abrir Global Stock
                   <ArrowRight size={14} />

@@ -96,7 +96,7 @@ export function DownloadScrollNavigator() {
             className={
               "rounded-full transition-all duration-200 " +
               (index === activeIndex
-                ? "h-5 w-1.5 bg-red-500"
+                ? "h-5 w-1.5 bg-[#8F0000]"
                 : "h-1.5 w-1.5 bg-white/25 hover:bg-white/50")
             }
             aria-label={"Ir a sección " + (index + 1)}

@@ -20,8 +20,8 @@ const sectors = [
     group: "Sector",
     title: "Vendé y controlá stock sin separar caja e inventario.",
     body: "Punto de venta, códigos, clientes, sucursales y stock conectados.",
-    accent: "#ff5b67",
-    surface: "rgba(255,91,103,.10)"
+    accent: "#8F0000",
+    surface: "rgba(143,0,0,.12)"
   },
   {
     id: "gastronomy",
