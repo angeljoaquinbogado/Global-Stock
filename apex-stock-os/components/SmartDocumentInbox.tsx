@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { DocumentsHub } from "./BusinessOperations";
+import { FiscalDocumentsCenter } from "./FiscalDocumentsCenter";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -86,6 +87,7 @@ export function SmartDocumentInbox({
   language,
   currency,
   locale,
+  businessId,
   demoMode
 }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -435,6 +437,14 @@ export function SmartDocumentInbox({
           )}
         </div>
       </section>
+
+      <FiscalDocumentsCenter
+        language={language}
+        currency={currency}
+        locale={locale}
+        businessId={businessId}
+        demoMode={demoMode}
+      />
 
       <DocumentsHub
         language={language}

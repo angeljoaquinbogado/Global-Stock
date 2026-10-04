@@ -229,9 +229,9 @@ const copy: Record<
     syncArchitectureBody:
       "El mismo inventario puede alimentar tienda física y canales online. Las conexiones reales requieren credenciales de cada plataforma.",
     documentsEyebrow: "Administración",
-    documentsTitle: "Facturas y comprobantes",
+    documentsTitle: "Comprobantes internos",
     documentsSubtitle:
-      "Registrá comprobantes internos, recibos y notas de crédito desde Global Stock.",
+      "Recibos y registros internos para la operación. No sustituyen un comprobante fiscal autorizado.",
     newDocument: "Nuevo comprobante",
     type: "Tipo",
     invoice: "Factura interna",
@@ -245,7 +245,7 @@ const copy: Record<
     delete: "Eliminar",
     noDocuments: "Todavía no hay comprobantes.",
     internalNotice:
-      "Estos documentos son registros internos. La facturación fiscal válida requiere integración con el organismo fiscal correspondiente.",
+      "Documento interno sin validez fiscal. Para una factura fiscal usá Facturación fiscal y emitila únicamente cuando ARCA o el proveedor fiscal la autorice.",
     documentCreated: "Comprobante creado"
   },
   en: {
@@ -276,9 +276,9 @@ const copy: Record<
     syncArchitectureBody:
       "The same inventory can power physical and online channels. Real connections require each platform's credentials.",
     documentsEyebrow: "Administration",
-    documentsTitle: "Invoices & receipts",
+    documentsTitle: "Internal documents",
     documentsSubtitle:
-      "Record internal invoices, receipts and credit notes from Global Stock.",
+      "Internal receipts and records for operations. They do not replace an authorized fiscal document.",
     newDocument: "New document",
     type: "Type",
     invoice: "Internal invoice",
@@ -292,7 +292,7 @@ const copy: Record<
     delete: "Delete",
     noDocuments: "No documents yet.",
     internalNotice:
-      "These are internal records. Legally valid tax invoices require integration with the corresponding tax authority.",
+      "Internal document with no fiscal validity. Use Fiscal invoicing and issue only after the tax authority or provider authorizes it.",
     documentCreated: "Document created"
   },
   pt: {
@@ -323,9 +323,9 @@ const copy: Record<
     syncArchitectureBody:
       "O mesmo estoque pode alimentar loja física e canais online. Conexões reais exigem credenciais de cada plataforma.",
     documentsEyebrow: "Administração",
-    documentsTitle: "Faturas e comprovantes",
+    documentsTitle: "Comprovantes internos",
     documentsSubtitle:
-      "Registre comprovantes internos, recibos e notas de crédito no Global Stock.",
+      "Recibos e registros internos da operação. Não substituem um documento fiscal autorizado.",
     newDocument: "Novo comprovante",
     type: "Tipo",
     invoice: "Fatura interna",
@@ -339,7 +339,7 @@ const copy: Record<
     delete: "Excluir",
     noDocuments: "Ainda não há comprovantes.",
     internalNotice:
-      "Estes documentos são registros internos. Faturas fiscais válidas exigem integração com a autoridade fiscal correspondente.",
+      "Documento interno sem validade fiscal. Use a emissão fiscal e só emita após autorização da autoridade ou do provedor fiscal.",
     documentCreated: "Comprovante criado"
   },
   fr: {
@@ -370,9 +370,9 @@ const copy: Record<
     syncArchitectureBody:
       "Le même stock peut alimenter le magasin physique et les canaux en ligne. Les connexions réelles nécessitent les identifiants de chaque plateforme.",
     documentsEyebrow: "Administration",
-    documentsTitle: "Factures et justificatifs",
+    documentsTitle: "Documents internes",
     documentsSubtitle:
-      "Enregistrez factures internes, reçus et avoirs depuis Global Stock.",
+      "Reçus et enregistrements internes. Ils ne remplacent pas un document fiscal autorisé.",
     newDocument: "Nouveau document",
     type: "Type",
     invoice: "Facture interne",
@@ -386,7 +386,7 @@ const copy: Record<
     delete: "Supprimer",
     noDocuments: "Aucun document.",
     internalNotice:
-      "Ces documents sont des registres internes. La facturation fiscale valide nécessite une intégration avec l’autorité fiscale correspondante.",
+      "Document interne sans validité fiscale. Utilisez la facturation fiscale et n’émettez qu’après autorisation de l’autorité ou du fournisseur fiscal.",
     documentCreated: "Document créé"
   },
   de: {
@@ -417,9 +417,9 @@ const copy: Record<
     syncArchitectureBody:
       "Ein Bestand kann Filiale und Onlinekanäle speisen. Echte Verbindungen benötigen Plattform-Zugangsdaten.",
     documentsEyebrow: "Verwaltung",
-    documentsTitle: "Rechnungen & Belege",
+    documentsTitle: "Interne Belege",
     documentsSubtitle:
-      "Interne Rechnungen, Belege und Gutschriften in Global Stock erfassen.",
+      "Interne Belege und Aufzeichnungen. Sie ersetzen kein autorisiertes Steuerdokument.",
     newDocument: "Neuer Beleg",
     type: "Typ",
     invoice: "Interne Rechnung",
@@ -433,7 +433,7 @@ const copy: Record<
     delete: "Löschen",
     noDocuments: "Noch keine Belege.",
     internalNotice:
-      "Diese Dokumente sind interne Aufzeichnungen. Rechtsgültige Steuerrechnungen benötigen die Integration mit der zuständigen Steuerbehörde.",
+      "Internes Dokument ohne steuerliche Gültigkeit. Steuerdokumente dürfen erst nach Autorisierung durch Behörde oder Anbieter ausgestellt werden.",
     documentCreated: "Beleg erstellt"
   }
 };
@@ -1183,12 +1183,14 @@ export function DocumentsHub({
             .row{display:flex;justify-content:space-between;gap:20px;padding:12px 0;border-bottom:1px solid #eee}
             .row:last-child{border-bottom:0}
             .muted{color:#666;font-size:12px}
+            .invalid{margin:20px 0;border:2px dashed #b42318;padding:14px;text-align:center;font-size:13px;font-weight:800;color:#b42318}
             .total{font-size:28px;font-weight:700;margin-top:24px}
           </style>
         </head>
         <body>
           <div class="brand">GLOBAL STOCK</div>
           <h1>${escapeHtml(typeLabel)}</h1>
+          <div class="invalid">SIN VALIDEZ FISCAL</div>
           <div class="card">
             <div class="row"><span>${escapeHtml(document.number)}</span><span>${escapeHtml(new Date(document.createdAt).toLocaleString(locale))}</span></div>
             <div class="row"><span>${escapeHtml(t.customer)}</span><strong>${escapeHtml(document.customer)}</strong></div>
