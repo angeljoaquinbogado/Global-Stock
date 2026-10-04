@@ -556,8 +556,15 @@ export function GlobalStockGlobe({
     const tick = (timestamp: number) => {
       if (!globeRef.current) return;
 
+      // The cinematic globe is only animated during the intro. Once the
+      // authentication panel is visible, keep the last rendered frame instead
+      // of waking the main thread on every display refresh.
+      if (!activeRef.current) {
+        rafRef.current = null;
+        return;
+      }
+
       const shouldRender =
-        activeRef.current &&
         visibleRef.current &&
         document.visibilityState === "visible";
 
