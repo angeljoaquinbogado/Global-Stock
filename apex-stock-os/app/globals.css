@@ -709,7 +709,7 @@ textarea:focus-visible {
 }
 
 
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html.gs-download-arrow-scroll,
   body.gs-download-arrow-scroll {
     scrollbar-width: none;
@@ -989,7 +989,7 @@ textarea:focus-visible {
 
 /* Download uses its own section navigator; hide the native desktop scrollbar immediately,
    including before client hydration, to avoid the Windows scrollbar flash. */
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   html:has(.gs-storefront),
   body:has(.gs-storefront) {
     scrollbar-width: none;

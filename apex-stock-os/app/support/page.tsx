@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function SupportPage() {
   return (
-    <PublicPage>
+    <PublicPage downloadBrand>
       <main className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-500">
           Soporte
