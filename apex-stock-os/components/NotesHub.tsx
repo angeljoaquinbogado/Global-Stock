@@ -14,6 +14,11 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import {
+  loadCloudWorkspace,
+  saveCloudWorkspace
+} from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import type { LanguageCode } from "./GlobalPreferences";
 
 export type CalendarNote = {
@@ -47,6 +52,8 @@ type Props = {
   removeNote: (id: string) => void;
   calendarMonth: Date;
   setCalendarMonth: (date: Date) => void;
+  businessId: string | null;
+  demoMode: boolean;
 };
 
 type Tab = "bloc" | "tasks" | "calendar";
@@ -237,7 +244,9 @@ export function NotesHub({
   toggleNote,
   removeNote,
   calendarMonth,
-  setCalendarMonth
+  setCalendarMonth,
+  businessId,
+  demoMode
 }: Props) {
   const t = copy[language];
   const [tab, setTab] = useState<Tab>("bloc");
@@ -247,25 +256,69 @@ export function NotesHub({
   const [freeBody, setFreeBody] = useState("");
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("global-stock-free-notes-v1");
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as FreeNote[];
-      if (Array.isArray(parsed)) setFreeNotes(parsed);
-    } catch {
-      // Ignore invalid local note data.
-    } finally {
-      setFreeNotesReady(true);
+    let cancelled = false;
+
+    async function hydrate() {
+      let next: FreeNote[] = [];
+      const storageKey = businessStorageKey(
+        "global-stock-free-notes-v1",
+        businessId,
+        demoMode
+      );
+
+      try {
+        const raw = storageKey ? localStorage.getItem(storageKey) : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as FreeNote[];
+          if (Array.isArray(parsed)) next = parsed;
+        }
+      } catch {
+        next = [];
+      }
+
+      if (!demoMode && businessId) {
+        const cloud = await loadCloudWorkspace(businessId);
+        if (Array.isArray(cloud?.state.freeNotes)) {
+          next = cloud.state.freeNotes as FreeNote[];
+        }
+      }
+
+      if (!cancelled) {
+        setFreeNotes(next);
+        setFreeNotesReady(true);
+      }
     }
-  }, []);
+
+    setFreeNotesReady(false);
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [businessId, demoMode]);
 
   useEffect(() => {
     if (!freeNotesReady) return;
-    localStorage.setItem(
+
+    const storageKey = businessStorageKey(
       "global-stock-free-notes-v1",
-      JSON.stringify(freeNotes)
+      businessId,
+      demoMode
     );
-  }, [freeNotes, freeNotesReady]);
+    if (storageKey) {
+      localStorage.setItem(storageKey, JSON.stringify(freeNotes));
+    }
+
+    if (demoMode || !businessId) return;
+
+    const timer = window.setTimeout(() => {
+      void saveCloudWorkspace(businessId, {
+        freeNotes
+      });
+    }, 350);
+
+    return () => window.clearTimeout(timer);
+  }, [businessId, demoMode, freeNotes, freeNotesReady]);
 
   const sortedFreeNotes = useMemo(
     () =>
