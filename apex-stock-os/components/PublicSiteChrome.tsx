@@ -56,6 +56,12 @@ export function PublicHeader({
         <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/52 lg:flex">
           <Link
             className="transition-colors duration-150 hover:text-white"
+            href="/download"
+          >
+            Inicio
+          </Link>
+          <Link
+            className="transition-colors duration-150 hover:text-white"
             href="/download#download-features"
           >
             Producto
