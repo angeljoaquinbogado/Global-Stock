@@ -3622,6 +3622,8 @@ export function BusinessWorkspace({
                 stats={supplierStats}
                 money={money}
                 onRemoveSupplier={removeSupplier}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
               />
             )}
 
