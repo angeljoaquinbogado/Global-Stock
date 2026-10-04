@@ -23,7 +23,7 @@ import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { GlobalStockPhonePreview } from "@/components/GlobalStockPhonePreview";
 import { InstallAppButton } from "@/components/InstallAppButton";
-import { Logo } from "@/components/Logo";
+import { DownloadLogo } from "@/components/DownloadLogo";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 export const metadata: Metadata = {
@@ -73,7 +73,7 @@ const flowItems = [
 
 export default function DownloadPage() {
   return (
-    <PublicPage>
+    <PublicPage downloadBrand>
       <DownloadScrollNavigator />
 
       <main className="gs-storefront overflow-x-clip bg-[#070708]">
@@ -88,7 +88,7 @@ export default function DownloadPage() {
           <div className="relative mx-auto grid min-h-[calc(100svh-68px)] w-full max-w-[1240px] items-center gap-12 px-5 py-14 sm:px-8 lg:grid-cols-[1.04fr_.96fr] lg:gap-16 lg:py-16">
             <div className="gs-hero-copy max-w-[680px]">
               <div className="flex items-center gap-4">
-                <Logo className="h-[68px] w-auto shrink-0 object-contain sm:h-[74px]" />
+                <DownloadLogo className="h-[68px] w-[68px] shrink-0 sm:h-[74px] sm:w-[74px]" />
                 <div>
                   <p className="text-sm font-semibold tracking-[-.02em] text-white/90">
                     Global Stock

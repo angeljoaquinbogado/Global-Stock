@@ -1,27 +1,55 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { DownloadLogo } from "./DownloadLogo";
 import { Logo } from "./Logo";
 import { PublicMobileNav } from "./PublicMobileNav";
 
-function PublicBrand({ compact = false }: { compact?: boolean }) {
+function PublicBrand({
+  compact = false,
+  downloadBrand = false
+}: {
+  compact?: boolean;
+  downloadBrand?: boolean;
+}) {
+  if (downloadBrand) {
+    if (compact) {
+      return <DownloadLogo className="h-9 w-9 shrink-0" />;
+    }
+
+    return (
+      <div className="flex items-center gap-3 text-white">
+        <DownloadLogo className="h-10 w-10 shrink-0" />
+        <div className="leading-none">
+          <div className="text-[15px] font-semibold tracking-[-0.03em]">
+            Global Stock
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (compact) {
-    return <Logo className="h-9 w-auto shrink-0" />;
+    return <Logo className="h-9 w-9 shrink-0" />;
   }
 
   return <Logo withWordmark className="text-white" />;
 }
 
-export function PublicHeader() {
+export function PublicHeader({
+  downloadBrand = false
+}: {
+  downloadBrand?: boolean;
+}) {
   return (
     <header className="sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
         <Link href="/download" aria-label="Global Stock" className="shrink-0">
           <span className="sm:hidden">
-            <PublicBrand compact />
+            <PublicBrand compact downloadBrand={downloadBrand} />
           </span>
           <span className="hidden sm:block">
-            <PublicBrand />
+            <PublicBrand downloadBrand={downloadBrand} />
           </span>
         </Link>
 
@@ -81,13 +109,17 @@ export function PublicHeader() {
   );
 }
 
-export function PublicFooter() {
+export function PublicFooter({
+  downloadBrand = false
+}: {
+  downloadBrand?: boolean;
+}) {
   return (
     <footer className="border-t border-white/[0.045] bg-[#060607]">
       <div className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.25fr_.75fr_.75fr_.75fr]">
           <div>
-            <PublicBrand />
+            <PublicBrand downloadBrand={downloadBrand} />
             <p className="mt-5 max-w-sm text-sm leading-6 text-[#96969f]">
               Ventas, inventario, compras, proveedores, finanzas y gestión
               conectados desde una sola plataforma.
@@ -160,15 +192,17 @@ export function PublicFooter() {
 }
 
 export function PublicPage({
-  children
+  children,
+  downloadBrand = false
 }: {
   children: ReactNode;
+  downloadBrand?: boolean;
 }) {
   return (
     <div className="min-h-[100dvh] bg-[#070708] text-white">
-      <PublicHeader />
+      <PublicHeader downloadBrand={downloadBrand} />
       {children}
-      <PublicFooter />
+      <PublicFooter downloadBrand={downloadBrand} />
     </div>
   );
 }
