@@ -182,11 +182,19 @@ const CONNECTED_WRITE_QUEUE_KEY =
 const BUSINESS_WORKSPACE_CACHE_KEY =
   "global-stock-workspace-cache-v1";
 
-function readConnectedWriteQueue(): PendingConnectedWrite[] {
+function connectedWriteQueueKey(businessId: string) {
+  return `${CONNECTED_WRITE_QUEUE_KEY}:business:${businessId}`;
+}
+
+function readConnectedWriteQueue(
+  businessId: string
+): PendingConnectedWrite[] {
   if (typeof window === "undefined") return [];
 
   try {
-    const raw = window.localStorage.getItem(CONNECTED_WRITE_QUEUE_KEY);
+    const raw = window.localStorage.getItem(
+      connectedWriteQueueKey(businessId)
+    );
     if (!raw) return [];
     const parsed = JSON.parse(raw) as PendingConnectedWrite[];
     return Array.isArray(parsed) ? parsed : [];
@@ -195,19 +203,23 @@ function readConnectedWriteQueue(): PendingConnectedWrite[] {
   }
 }
 
-function saveConnectedWriteQueue(queue: PendingConnectedWrite[]) {
+function saveConnectedWriteQueue(
+  businessId: string,
+  queue: PendingConnectedWrite[]
+) {
   if (typeof window === "undefined") return;
   window.localStorage.setItem(
-    CONNECTED_WRITE_QUEUE_KEY,
+    connectedWriteQueueKey(businessId),
     JSON.stringify(queue.slice(-500))
   );
 }
 
 function queueConnectedWrite(
+  businessId: string,
   externalId: string,
   patch: Record<string, unknown>
 ) {
-  const queue = readConnectedWriteQueue();
+  const queue = readConnectedWriteQueue(businessId);
   const index = queue.findIndex(
     (item) => item.externalId === externalId
   );
@@ -224,7 +236,7 @@ function queueConnectedWrite(
   if (index >= 0) queue[index] = next;
   else queue.push(next);
 
-  saveConnectedWriteQueue(queue);
+  saveConnectedWriteQueue(businessId, queue);
 }
 
 type ActivityKind =
@@ -2746,7 +2758,9 @@ export function BusinessWorkspace({
   }
 
   async function flushConnectedProductWrites() {
-    const queue = readConnectedWriteQueue();
+    if (!cloudBusinessId) return 0;
+
+    const queue = readConnectedWriteQueue(cloudBusinessId);
     if (!queue.length) return 0;
 
     const remaining: PendingConnectedWrite[] = [];
@@ -2772,7 +2786,7 @@ export function BusinessWorkspace({
       }
     }
 
-    saveConnectedWriteQueue(remaining);
+    saveConnectedWriteQueue(cloudBusinessId, remaining);
     return flushed;
   }
 
@@ -2804,7 +2818,13 @@ export function BusinessWorkspace({
       if (!response.ok) throw new Error("remote write failed");
       return true;
     } catch {
-      queueConnectedWrite(product.externalId, patch);
+      if (cloudBusinessId) {
+        queueConnectedWrite(
+          cloudBusinessId,
+          product.externalId,
+          patch
+        );
+      }
       setNotice(connectedSyncErrorText());
       window.setTimeout(() => setNotice(""), 4200);
       return false;
