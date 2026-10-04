@@ -8,8 +8,7 @@ import {
   Cloud,
   Globe2,
   ShieldCheck,
-  ShoppingCart,
-  Sparkles
+  ShoppingCart
 } from "lucide-react";
 
 import {
@@ -41,30 +40,34 @@ const storeLinks = {
 
 const flowItems = [
   {
-    icon: ShoppingCart,
-    title: "Venta",
-    body: "La operación entra una sola vez.",
-    accent: "#8F0000",
-    surface: "rgba(143,0,0,.12)"
-  },
-  {
     icon: Boxes,
     title: "Stock",
-    body: "Las existencias se actualizan en el mismo flujo.",
+    value: "12 → 11 unidades",
+    body: "La unidad vendida se descuenta automáticamente.",
     accent: "#34d399",
     surface: "rgba(52,211,153,.10)"
   },
   {
     icon: CircleDollarSign,
     title: "Caja",
-    body: "Cobros y movimientos quedan vinculados.",
+    value: "+ $48.900 en efectivo",
+    body: "El cobro queda registrado con la misma venta.",
     accent: "#f6b95b",
     surface: "rgba(246,185,91,.10)"
   },
   {
-    icon: Sparkles,
-    title: "Inteligencia",
-    body: "Los datos quedan listos para analizar y consultar.",
+    icon: Check,
+    title: "Historial",
+    value: "Movimiento guardado",
+    body: "Quedan fecha, usuario, producto y medio de pago.",
+    accent: "#6ea8ff",
+    surface: "rgba(110,168,255,.10)"
+  },
+  {
+    icon: Cloud,
+    title: "Tienda online",
+    value: "11 unidades disponibles",
+    body: "Si la integración está activa, el stock también se sincroniza.",
     accent: "#b989ff",
     surface: "rgba(185,137,255,.10)"
   }
@@ -163,122 +166,139 @@ export default function DownloadPage() {
           <DownloadMetricStrip />
 
           <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
-            <div className="grid gap-10 lg:grid-cols-[.82fr_1.18fr] lg:items-end">
+            <div className="grid gap-8 lg:grid-cols-[.92fr_1.08fr] lg:items-end">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
                   Cómo funciona
                 </p>
-                <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
-                  Registrás una vez.
-                  <span className="block text-white/34">
-                    El resto se actualiza.
+                <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
+                  Una venta actualiza
+                  <span className="block text-white/36">
+                    stock, caja e historial.
                   </span>
                 </h2>
               </div>
 
               <p className="max-w-2xl text-base leading-7 text-[#a8a8b0] sm:text-lg">
-                Una venta puede actualizar stock, caja y actividad dentro del mismo
-                flujo para que no tengas que repetir la misma información en varios lugares.
+                Registrás el producto y el medio de pago una sola vez. Al confirmar,
+                Global Stock descuenta la unidad, registra el cobro y guarda el movimiento.
+                Si tu tienda online está conectada, también mantiene las existencias alineadas.
               </p>
             </div>
 
-            <div className="mt-12 overflow-hidden rounded-[34px] bg-[#111217] shadow-[0_34px_90px_rgba(0,0,0,.30)]">
-              <div className="grid lg:grid-cols-[1.08fr_.92fr]">
-                <div className="relative min-h-[430px] overflow-hidden p-6 sm:p-8">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,rgba(143,0,0,.16),transparent_34%),radial-gradient(circle_at_78%_74%,rgba(110,168,255,.08),transparent_34%)]" />
-
-                  <div className="relative mx-auto max-w-xl">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/32">
-                          Operación en vivo
-                        </p>
-                        <h3 className="mt-2 text-2xl font-semibold tracking-[-.04em]">
-                          Venta conectada
-                        </h3>
-                      </div>
-                      <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[rgba(143,0,0,.14)] text-[#8F0000]">
-                        <ShoppingCart size={20} />
-                      </span>
+            <div className="mt-12 overflow-hidden rounded-[30px] bg-[#111217] shadow-[0_28px_76px_rgba(0,0,0,.24)]">
+              <div className="grid lg:grid-cols-[1.03fr_.97fr]">
+                <div className="p-6 sm:p-8">
+                  <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[.15em] text-white/30">
+                        Ejemplo de venta
+                      </p>
+                      <h3 className="mt-2 text-2xl font-semibold tracking-[-.04em]">
+                        Venta #1048
+                      </h3>
                     </div>
 
-                    <div className="mt-8 rounded-[28px] bg-[#090a0d] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,.045)]">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-semibold text-white/82">
-                            Reel Shimano Sedona
-                          </p>
-                          <p className="mt-1 text-xs text-white/34">
-                            1 unidad · caja principal
-                          </p>
-                        </div>
-                        <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-300">
-                          Disponible
-                        </span>
-                      </div>
+                    <span className="inline-flex min-h-9 items-center gap-2 rounded-full bg-emerald-500/10 px-3 text-[11px] font-semibold text-emerald-300">
+                      <Check size={13} />
+                      Confirmada
+                    </span>
+                  </div>
 
-                      <div className="mt-6 grid gap-3 sm:grid-cols-2">
-                        <div className="rounded-2xl bg-white/[0.035] p-4">
-                          <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/28">
-                            Venta
-                          </p>
-                          <p className="mt-2 text-lg font-semibold text-white/82">
-                            $ 48.900
-                          </p>
-                        </div>
-                        <div className="rounded-2xl bg-white/[0.035] p-4">
-                          <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-white/28">
-                            Stock
-                          </p>
-                          <p className="mt-2 text-lg font-semibold text-emerald-300">
-                            12 → 11
-                          </p>
-                        </div>
+                  <div className="mt-8">
+                    <div className="flex items-center justify-between gap-5 border-b border-white/[0.055] pb-5">
+                      <div>
+                        <p className="text-base font-semibold text-white/88">
+                          Reel Shimano Sedona
+                        </p>
+                        <p className="mt-1 text-sm text-white/38">
+                          1 unidad · SKU RS-2500
+                        </p>
                       </div>
+                      <p className="shrink-0 text-base font-semibold text-white/88">
+                        $ 48.900
+                      </p>
+                    </div>
 
-                      <div className="mt-3 flex items-center gap-2 rounded-2xl bg-[#6ea8ff]/[0.07] px-4 py-3 text-xs font-medium text-[#9dc2ff]">
-                        <Cloud size={14} />
-                        Tienda online sincronizada
+                    <div className="grid gap-4 py-5 sm:grid-cols-2">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[.13em] text-white/28">
+                          Medio de pago
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-white/76">
+                          Efectivo
+                        </p>
                       </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[.13em] text-white/28">
+                          Punto de venta
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-white/76">
+                          Caja principal
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-4 border-t border-white/[0.055] pt-5">
+                      <span className="text-sm text-white/42">Total cobrado</span>
+                      <span className="text-2xl font-semibold tracking-[-.04em] text-white">
+                        $ 48.900
+                      </span>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-[#0d0e12] p-6 sm:p-8 lg:border-l lg:border-white/[0.045]">
-                  <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/28">
-                    Qué pasa después
-                  </p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-[10px] font-bold uppercase tracking-[.15em] text-white/30">
+                        Resultado de la venta
+                      </p>
+                      <h3 className="mt-2 text-xl font-semibold tracking-[-.035em] text-white/88">
+                        Todo queda actualizado.
+                      </h3>
+                    </div>
+                    <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[rgba(143,0,0,.14)] text-[#8F0000]">
+                      <ShoppingCart size={19} />
+                    </span>
+                  </div>
 
-                  <div className="mt-3">
-                    {flowItems.map(({ icon: Icon, title, body, accent, surface }, index) => (
+                  <div className="mt-5">
+                    {flowItems.map(({ icon: Icon, title, value, body, accent, surface }, index) => (
                       <div
                         key={title}
                         className={
-                          "grid grid-cols-[46px_1fr] gap-4 py-5 " +
-                          (index > 0 ? "border-t border-white/[0.045]" : "")
+                          "grid grid-cols-[44px_1fr] gap-4 py-4 " +
+                          (index > 0 ? "border-t border-white/[0.05]" : "")
                         }
                       >
                         <span
-                          className="grid h-11 w-11 place-items-center rounded-2xl"
+                          className="grid h-10 w-10 place-items-center rounded-xl"
                           style={{ background: surface, color: accent }}
                         >
-                          <Icon size={18} />
+                          <Icon size={17} />
                         </span>
-                        <div>
-                          <h3 className="text-sm font-semibold text-white/84">{title}</h3>
-                          <p className="mt-1 text-sm leading-6 text-white/42">{body}</p>
+
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <h4 className="text-sm font-semibold text-white/82">
+                              {title}
+                            </h4>
+                            <span className="text-xs font-semibold" style={{ color: accent }}>
+                              {value}
+                            </span>
+                          </div>
+                          <p className="mt-1 text-sm leading-6 text-white/40">
+                            {body}
+                          </p>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  <Link
-                    href="/"
-                    className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-white/72 transition-colors duration-150 hover:text-white"
-                  >
-                    Probar la aplicación
-                    <ArrowRight size={14} />
-                  </Link>
+                  <p className="mt-5 border-t border-white/[0.05] pt-5 text-sm leading-6 text-white/38">
+                    No tenés que volver a cargar la misma venta en cada módulo.
+                  </p>
                 </div>
               </div>
             </div>
