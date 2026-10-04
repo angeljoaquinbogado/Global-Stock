@@ -3,8 +3,10 @@
 import { Check, ChevronDown } from "lucide-react";
 import {
   Children,
+  Fragment,
   isValidElement,
   type ChangeEvent,
+  type CSSProperties,
   type ReactElement,
   type ReactNode,
   type SelectHTMLAttributes,
@@ -57,7 +59,7 @@ function collectOptions(children: ReactNode): OptionRecord[] {
 
       if (
         child.type === "optgroup" ||
-        child.type === Symbol.for("react.fragment")
+        child.type === Fragment
       ) {
         walk(
           (child as ReactElement<{ children?: ReactNode }>).props.children
@@ -102,7 +104,7 @@ export function ApexSelect({
 
   const [internalValue, setInternalValue] = useState(initialValue);
   const [open, setOpen] = useState(false);
-  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+  const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
 
   const selectedValue =
     value !== undefined ? String(value) : internalValue;
