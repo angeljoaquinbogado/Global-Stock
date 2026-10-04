@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
+import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { Product } from "@/lib/types";
 import { BusinessReports } from "./BusinessReports";
@@ -703,14 +704,25 @@ export function AdvancedOperations({
     }> = [];
 
     try {
-      const rawSuite = window.localStorage.getItem(
-        "global-stock-business-suite-v1"
+      const suiteKey = businessStorageKey(
+        "global-stock-business-suite-v1",
+        businessId,
+        false
       );
+      const documentsKey = businessStorageKey(
+        "global-stock-smart-documents-v1",
+        businessId,
+        false
+      );
+
+      const rawSuite = suiteKey
+        ? window.localStorage.getItem(suiteKey)
+        : null;
       if (rawSuite) suite = JSON.parse(rawSuite);
 
-      const rawDocuments = window.localStorage.getItem(
-        "global-stock-smart-documents-v1"
-      );
+      const rawDocuments = documentsKey
+        ? window.localStorage.getItem(documentsKey)
+        : null;
       if (rawDocuments) {
         const parsed = JSON.parse(rawDocuments);
         if (Array.isArray(parsed)) smartDocuments = parsed;
