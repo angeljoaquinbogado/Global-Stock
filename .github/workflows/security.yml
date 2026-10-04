@@ -23,8 +23,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - name: Install dependencies without lifecycle scripts
-        run: npm install --ignore-scripts
+          cache: npm
+          cache-dependency-path: apex-stock-os/package-lock.json
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts --no-audit --no-fund
       - name: TypeScript security gate
         run: npm run typecheck
       - name: Production dependency audit
