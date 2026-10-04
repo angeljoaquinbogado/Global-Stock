@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import ts from "typescript";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, "..");
@@ -19,33 +20,93 @@ async function collect(dir) {
   return files;
 }
 
+function jsxAttributes(node) {
+  return node.attributes.properties.filter(ts.isJsxAttribute);
+}
+
+function hasAttribute(attributes, name) {
+  return attributes.some(
+    (attribute) => attribute.name.getText() === name
+  );
+}
+
+function literalAttributeValue(attributes, name) {
+  const attribute = attributes.find(
+    (candidate) => candidate.name.getText() === name
+  );
+
+  if (!attribute?.initializer || !ts.isStringLiteral(attribute.initializer)) {
+    return null;
+  }
+
+  return attribute.initializer.text;
+}
+
 const files = await collect(componentsDir);
 const issues = [];
 
 for (const file of files) {
   const source = await readFile(file, "utf8");
   const relative = path.relative(root, file).replaceAll("\\", "/");
+  const scriptKind = file.endsWith(".jsx")
+    ? ts.ScriptKind.JSX
+    : ts.ScriptKind.TSX;
+  const sourceFile = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    scriptKind
+  );
 
-  for (const match of source.matchAll(/<button\b[\s\S]*?>/g)) {
-    const tag = match[0];
-    const actionable = /onClick\s*=/.test(tag) || /type\s*=\s*["']submit["']/.test(tag);
-    if (!actionable) {
-      issues.push(`${relative}: button without onClick or submit behavior`);
+  function report(node, message) {
+    const { line } = sourceFile.getLineAndCharacterOfPosition(
+      node.getStart(sourceFile)
+    );
+    issues.push(`${relative}:${line + 1}: ${message}`);
+  }
+
+  function visit(node) {
+    if (
+      ts.isJsxOpeningElement(node) ||
+      ts.isJsxSelfClosingElement(node)
+    ) {
+      const tagName = node.tagName.getText(sourceFile);
+      const attributes = jsxAttributes(node);
+
+      if (tagName === "button") {
+        const actionable =
+          hasAttribute(attributes, "onClick") ||
+          literalAttributeValue(attributes, "type") === "submit";
+
+        if (!actionable) {
+          report(
+            node,
+            "button without keyboard-compatible onClick or submit behavior"
+          );
+        }
+      }
+
+      if (["input", "select", "textarea"].includes(tagName)) {
+        const controlled = hasAttribute(attributes, "value");
+        const writable =
+          hasAttribute(attributes, "onChange") ||
+          hasAttribute(attributes, "readOnly");
+
+        if (controlled && !writable) {
+          report(node, "controlled field without onChange/readOnly");
+        }
+      }
+
+      if (literalAttributeValue(attributes, "href") === "#") {
+        report(node, 'placeholder href="#" found');
+      }
     }
+
+    ts.forEachChild(node, visit);
   }
 
-  for (const match of source.matchAll(/<(input|select|textarea)\b[\s\S]*?>/g)) {
-    const tag = match[0];
-    const controlled = /value\s*=/.test(tag);
-    const writable = /onChange\s*=/.test(tag) || /readOnly\b/.test(tag);
-    if (controlled && !writable) {
-      issues.push(`${relative}: controlled field without onChange/readOnly`);
-    }
-  }
-
-  if (/href\s*=\s*["']#["']/.test(source)) {
-    issues.push(`${relative}: placeholder href="#" found`);
-  }
+  visit(sourceFile);
 }
 
 if (issues.length) {
