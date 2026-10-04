@@ -4,6 +4,7 @@ import { isIP } from "node:net";
 import { NextRequest, NextResponse } from "next/server";
 
 import { createSignedAssetPath } from "@/lib/asset-signing";
+import { authorizeApiRequest } from "@/lib/server-auth";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -602,8 +603,29 @@ async function detectGlobalStockConnector(base: URL) {
 export async function GET(request: NextRequest) {
   try {
     guardApiRequest(request, {
-      scope: "store-preview",
-      limit: 40
+      scope: "store-preview-ip",
+      limit: 30
+    });
+  } catch (error) {
+    return securityErrorResponse(error) ?? NextResponse.json(
+      { error: "REQUEST_BLOCKED" },
+      { status: 403, headers: noStoreHeaders() }
+    );
+  }
+
+  const authorization = await authorizeApiRequest(request);
+  if (!authorization.ok) {
+    return NextResponse.json(
+      { error: authorization.code },
+      { status: authorization.status, headers: noStoreHeaders() }
+    );
+  }
+
+  try {
+    guardApiRequest(request, {
+      scope: "store-preview-user",
+      limit: 20,
+      identity: authorization.userId
     });
   } catch (error) {
     return securityErrorResponse(error) ?? NextResponse.json(

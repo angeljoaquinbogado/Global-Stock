@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { setConnectorIntent } from "@/lib/connector-session";
 import { assertPublicStoreUrl } from "@/lib/remote-store";
+import { authorizeApiRequest } from "@/lib/server-auth";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -19,8 +20,32 @@ type IntentPayload = {
 export async function POST(request: Request) {
   try {
     guardApiRequest(request, {
-      scope: "connector-intent",
+      scope: "connector-intent-ip",
       limit: 20
+    });
+  } catch (error) {
+    return (
+      securityErrorResponse(error) ??
+      NextResponse.json(
+        { error: "REQUEST_BLOCKED" },
+        { status: 403, headers: noStoreHeaders() }
+      )
+    );
+  }
+
+  const authorization = await authorizeApiRequest(request);
+  if (!authorization.ok) {
+    return NextResponse.json(
+      { error: authorization.code },
+      { status: authorization.status, headers: noStoreHeaders() }
+    );
+  }
+
+  try {
+    guardApiRequest(request, {
+      scope: "connector-intent-user",
+      limit: 10,
+      identity: authorization.userId
     });
   } catch (error) {
     return (

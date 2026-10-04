@@ -694,11 +694,32 @@ export function ConnectedCommerceHub({
       return;
     }
 
+    if (demoMode) {
+      setError(
+        language === "es"
+          ? "La inspección de tiendas externas requiere una cuenta real."
+          : "External store inspection requires a real account."
+      );
+      return;
+    }
+
     setDetecting(true);
     try {
+      const supabase = getSupabaseBrowserClient();
+      const accessToken = supabase
+        ? (await supabase.auth.getSession()).data.session?.access_token
+        : null;
+
+      if (!accessToken) throw new Error("auth");
+
       const response = await fetch(
         `/api/store-preview?url=${encodeURIComponent(normalized)}&t=${Date.now()}`,
-        { cache: "no-store" }
+        {
+          cache: "no-store",
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
       );
       const payload = (await response.json().catch(() => ({}))) as PublicPreview;
 
@@ -724,11 +745,19 @@ export function ConnectedCommerceHub({
     setError("");
 
     try {
+      const supabase = getSupabaseBrowserClient();
+      const accessToken = supabase
+        ? (await supabase.auth.getSession()).data.session?.access_token
+        : null;
+
+      if (!accessToken) throw new Error("auth");
+
       const response = await fetch("/api/store-connector/intent", {
         method: "POST",
         cache: "no-store",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`
         },
         body: JSON.stringify({
           storeUrl: preview.url
