@@ -1,6 +1,6 @@
 "use client";
 
-import createGlobe from "cobe";
+import createGlobe, { type Arc, type Globe, type Marker } from "cobe";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -13,28 +13,9 @@ type GlobeMarker = {
   primary?: boolean;
 };
 
-type GlobeRoute = {
-  id: string;
-  destinationMarkerId: string;
-  from: Location;
-  to: Location;
-};
-
-type ScreenPoint = {
-  x: number;
-  y: number;
-  depth: number;
-  visible: boolean;
-};
-
-type CobeGlobeHandle = {
-  update: (state: Record<string, unknown>) => void;
-  destroy: () => void;
-};
-
 const ARGENTINA: Location = [-34.6037, -58.3816];
 
-const markers: GlobeMarker[] = [
+const MARKERS: GlobeMarker[] = [
   {
     id: "argentina",
     label: "ARGENTINA",
@@ -73,86 +54,56 @@ const markers: GlobeMarker[] = [
   }
 ];
 
-const routes: GlobeRoute[] = markers
-  .filter((marker) => !marker.primary)
-  .map((marker) => ({
-    id: "argentina-" + marker.id,
-    destinationMarkerId: marker.id,
-    from: ARGENTINA,
-    to: marker.location
-  }));
-
-const ROUTE_SLOT_MS = 2650;
-
-const cobeAnchorMarkers = markers.map((marker) => ({
+const COBE_MARKERS: Marker[] = MARKERS.map((marker) => ({
   id: marker.id,
   location: marker.location,
-  // Keep the WebGL marker degenerate/invisible. COBE still creates and
-  // updates its native DOM anchor for this exact latitude/longitude.
-  size: 0
+  // Keep COBE's native marker almost invisible. Its native anchor remains the
+  // single source of truth for our custom pin position.
+  size: marker.primary ? 0.008 : 0.005,
+  color: marker.primary ? [1, 0.12, 0.16] : [0.78, 0.04, 0.07]
 }));
 
-function clamp01(value: number) {
-  return Math.max(0, Math.min(1, value));
-}
+const ROUTES: Arc[] = MARKERS.filter((marker) => !marker.primary).map(
+  (marker) => ({
+    id: "argentina-" + marker.id,
+    from: ARGENTINA,
+    to: marker.location,
+    color: [0.96, 0.08, 0.12]
+  })
+);
 
-function easeOutCubic(value: number) {
-  const t = clamp01(value);
-  return 1 - Math.pow(1 - t, 3);
-}
+const ROUTE_SLOT_MS = 2800;
+const GLOBE_RADIUS = 0.8;
+const MARKER_ELEVATION = 0.05;
+const GLOBE_SCALE = 0.98;
 
-function projectLocation(
+function projectVisibility(
   [lat, lon]: Location,
   phi: number,
-  theta: number,
-  width: number,
-  height: number
-): ScreenPoint {
+  theta: number
+) {
   const latRad = (lat * Math.PI) / 180;
   const lonRad = (lon * Math.PI) / 180 - Math.PI;
   const cosLat = Math.cos(latRad);
+  const radius = GLOBE_RADIUS + MARKER_ELEVATION;
 
-  // COBE renders markers at globe radius 0.8 + 0.05 elevation.
-  const radius = 0.85;
   const px = -cosLat * Math.cos(lonRad) * radius;
   const py = Math.sin(latRad) * radius;
   const pz = cosLat * Math.sin(lonRad) * radius;
 
   const cx = Math.cos(theta);
-  const sx = Math.sin(theta);
   const cy = Math.cos(phi);
+  const sx = Math.sin(theta);
   const sy = Math.sin(phi);
 
-  // Same world-to-view transform as COBE's marker shader.
   const rx = cy * px + sy * pz;
   const ry = sy * sx * px + cx * py - cy * sx * pz;
   const rz = -sy * cx * px + sx * py + cy * cx * pz;
 
-  const scale = 0.98;
-  const aspect = width / Math.max(height, 1);
-  const ndcX = (rx / aspect) * scale;
-  const ndcY = ry * scale;
-
-  const screenX = ((ndcX + 1) / 2) * width;
-  const screenY = ((1 - ndcY) / 2) * height;
-
-  return {
-    x: screenX,
-    y: screenY,
-    depth: rz,
-    visible:
-      (rz >= 0 || rx * rx + ry * ry >= 0.64) &&
-      screenX > 16 &&
-      screenX < width - 16 &&
-      screenY > 16 &&
-      screenY < height - 16
-  };
+  return rz >= 0 || rx * rx + ry * ry >= GLOBE_RADIUS * GLOBE_RADIUS;
 }
 
-function findCobeAnchor(
-  wrapper: HTMLElement | null,
-  markerId: string
-) {
+function findAnchor(wrapper: HTMLElement | null, markerId: string) {
   if (!wrapper) return null;
 
   for (const child of Array.from(wrapper.children)) {
@@ -169,75 +120,36 @@ function findCobeAnchor(
   return null;
 }
 
-function routeGeometry(from: ScreenPoint, to: ScreenPoint) {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const distance = Math.max(1, Math.hypot(dx, dy));
-  const nx = -dy / distance;
-  const ny = dx / distance;
-  const bend = Math.min(92, Math.max(28, distance * 0.18));
-  const direction = to.x >= from.x ? -1 : 1;
-
-  const cx = (from.x + to.x) / 2 + nx * bend * direction;
-  const cy = (from.y + to.y) / 2 + ny * bend * direction - bend * 0.35;
-
-  return {
-    path: `M ${from.x.toFixed(2)} ${from.y.toFixed(2)} Q ${cx.toFixed(2)} ${cy.toFixed(2)} ${to.x.toFixed(2)} ${to.y.toFixed(2)}`,
-    cx,
-    cy
-  };
-}
-
-function quadraticPoint(
-  from: ScreenPoint,
-  to: ScreenPoint,
-  cx: number,
-  cy: number,
-  progress: number
-) {
-  const t = clamp01(progress);
-  const inverse = 1 - t;
-
-  return {
-    x:
-      inverse * inverse * from.x +
-      2 * inverse * t * cx +
-      t * t * to.x,
-    y:
-      inverse * inverse * from.y +
-      2 * inverse * t * cy +
-      t * t * to.y
-  };
-}
-
-export function GlobalStockGlobe() {
+export function GlobalStockGlobe({
+  active = true
+}: {
+  active?: boolean;
+}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const globeRef = useRef<CobeGlobeHandle | null>(null);
+  const globeRef = useRef<Globe | null>(null);
   const rafRef = useRef<number | null>(null);
   const markerRefs = useRef(new Map<string, HTMLDivElement>());
   const labelRefs = useRef(new Map<string, HTMLSpanElement>());
-  const routeRefs = useRef(new Map<string, SVGPathElement>());
-  const pulseRef = useRef<SVGCircleElement | null>(null);
 
-  const sizeRef = useRef({ css: 680, pixels: 680 });
+  const sizeRef = useRef(680);
+  const activeRef = useRef(active);
+  const visibleRef = useRef(true);
   const phiRef = useRef(-1.02);
   const thetaRef = useRef(0.08);
   const dragRef = useRef({ phi: 0, theta: 0 });
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
-  const velocityRef = useRef({ phi: 0, theta: 0 });
   const lastPointerRef = useRef<{ x: number; y: number; t: number } | null>(
     null
   );
+  const velocityRef = useRef({ phi: 0, theta: 0 });
   const animationStartRef = useRef(0);
   const lastFrameRef = useRef(0);
+  const activeRouteRef = useRef(-1);
 
-  const stopAnimation = useCallback(() => {
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-  }, []);
+  useEffect(() => {
+    activeRef.current = active;
+  }, [active]);
 
   const handlePointerMove = useCallback((event: PointerEvent) => {
     if (!pointerRef.current) return;
@@ -257,12 +169,12 @@ export function GlobalStockGlobe() {
       const elapsed = Math.max(now - previous.t, 1);
       velocityRef.current = {
         phi: Math.max(
-          -0.045,
-          Math.min(0.045, ((event.clientX - previous.x) / elapsed) * 0.08)
+          -0.04,
+          Math.min(0.04, ((event.clientX - previous.x) / elapsed) * 0.075)
         ),
         theta: Math.max(
-          -0.025,
-          Math.min(0.025, ((event.clientY - previous.y) / elapsed) * 0.03)
+          -0.02,
+          Math.min(0.02, ((event.clientY - previous.y) / elapsed) * 0.028)
         )
       };
     }
@@ -334,79 +246,101 @@ export function GlobalStockGlobe() {
       "(prefers-reduced-motion: reduce)"
     ).matches;
     const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+
+    // COBE applies DPR internally. Passing CSS dimensions here avoids the
+    // previous double-DPR render target that was wasting GPU time.
     const dpr = Math.min(
       window.devicePixelRatio || 1,
-      coarsePointer ? 1.1 : 1.3
+      coarsePointer ? 1 : 1.25
     );
-    const samples = coarsePointer ? 4200 : 6800;
+    const samples = coarsePointer ? 3800 : 5600;
 
     const readSize = () => {
       const rect = root.getBoundingClientRect();
-      const cssSize = Math.max(
+      sizeRef.current = Math.max(
         320,
         Math.round(Math.min(rect.width, rect.height))
       );
-      const pixelSize = Math.max(480, Math.round(cssSize * dpr));
-
-      sizeRef.current = { css: cssSize, pixels: pixelSize };
-      canvas.width = pixelSize;
-      canvas.height = pixelSize;
     };
 
     readSize();
     animationStartRef.current = performance.now();
 
-    const globe = createGlobe(
-      canvas,
-      {
-        devicePixelRatio: dpr,
-        width: sizeRef.current.pixels,
-        height: sizeRef.current.pixels,
-        phi: phiRef.current,
-        theta: thetaRef.current,
-        dark: 1,
-        diffuse: 1.32,
-        mapSamples: samples,
-        mapBrightness: 6.6,
-        baseColor: [0.04, 0.042, 0.048],
-        markerColor: [0.12, 0.018, 0.022],
-        glowColor: [0.28, 0.015, 0.022],
-        opacity: 0.95,
-        scale: 0.98,
-        offset: [0, 0],
-        markers: cobeAnchorMarkers
-      } as never
-    ) as unknown as CobeGlobeHandle;
+    const globe = createGlobe(canvas, {
+      devicePixelRatio: dpr,
+      width: sizeRef.current,
+      height: sizeRef.current,
+      phi: phiRef.current,
+      theta: thetaRef.current,
+      dark: 1,
+      diffuse: 1.28,
+      mapSamples: samples,
+      mapBrightness: 6.25,
+      mapBaseBrightness: 0,
+      baseColor: [0.04, 0.042, 0.048],
+      markerColor: [0.82, 0.04, 0.08],
+      glowColor: [0.25, 0.012, 0.018],
+      arcColor: [0.96, 0.08, 0.12],
+      arcWidth: coarsePointer ? 1 : 1.15,
+      arcHeight: 0.17,
+      markerElevation: MARKER_ELEVATION,
+      opacity: 0.95,
+      scale: GLOBE_SCALE,
+      offset: [0, 0],
+      markers: COBE_MARKERS,
+      arcs: ROUTES.length ? [ROUTES[0]] : [],
+      context: {
+        alpha: true,
+        antialias: true,
+        depth: false,
+        stencil: false,
+        preserveDrawingBuffer: false,
+        powerPreference: "high-performance"
+      }
+    });
 
     globeRef.current = globe;
 
-    const observer = new ResizeObserver(() => {
+    const resizeObserver = new ResizeObserver(() => {
+      const before = sizeRef.current;
       readSize();
-      globe.update({
-        width: sizeRef.current.pixels,
-        height: sizeRef.current.pixels
-      });
-    });
 
-    observer.observe(root);
+      if (before !== sizeRef.current) {
+        globe.update({
+          width: sizeRef.current,
+          height: sizeRef.current
+        });
+      }
+    });
+    resizeObserver.observe(root);
+
+    const intersectionObserver = new IntersectionObserver(
+      ([entry]) => {
+        visibleRef.current = Boolean(entry?.isIntersecting);
+      },
+      { threshold: 0.01 }
+    );
+    intersectionObserver.observe(root);
 
     const tick = (timestamp: number) => {
       if (!globeRef.current) return;
 
-      if (
-        document.visibilityState === "visible" &&
-        timestamp - lastFrameRef.current >= 16
-      ) {
+      const shouldRender =
+        activeRef.current &&
+        visibleRef.current &&
+        document.visibilityState === "visible";
+
+      if (shouldRender && timestamp - lastFrameRef.current >= 15.5) {
         lastFrameRef.current = timestamp;
 
         if (!pointerRef.current) {
           if (!reducedMotion) {
-            phiRef.current += coarsePointer ? 0.000055 : 0.000075;
+            phiRef.current += coarsePointer ? 0.000045 : 0.00007;
           }
 
           if (Math.abs(velocityRef.current.phi) > 0.00004) {
             phiRef.current += velocityRef.current.phi;
-            velocityRef.current.phi *= 0.935;
+            velocityRef.current.phi *= 0.932;
           }
 
           if (Math.abs(velocityRef.current.theta) > 0.00004) {
@@ -414,7 +348,7 @@ export function GlobalStockGlobe() {
               -0.28,
               Math.min(0.28, thetaRef.current + velocityRef.current.theta)
             );
-            velocityRef.current.theta *= 0.92;
+            velocityRef.current.theta *= 0.918;
           }
         }
 
@@ -424,129 +358,69 @@ export function GlobalStockGlobe() {
           Math.min(0.28, thetaRef.current + dragRef.current.theta)
         );
 
+        const routeIndex = reducedMotion
+          ? 0
+          : Math.floor(
+              (timestamp - animationStartRef.current) / ROUTE_SLOT_MS
+            ) % ROUTES.length;
+
+        if (routeIndex !== activeRouteRef.current) {
+          activeRouteRef.current = routeIndex;
+          globeRef.current.update({
+            arcs: ROUTES.length ? [ROUTES[routeIndex]] : []
+          });
+        }
+
         globeRef.current.update({
           phi,
-          theta,
-          width: sizeRef.current.pixels,
-          height: sizeRef.current.pixels
+          theta
         });
 
-        const elapsed = timestamp - animationStartRef.current;
-        const activeIndex = reducedMotion
-          ? 0
-          : Math.floor(elapsed / ROUTE_SLOT_MS) % routes.length;
-        const activeRoute = routes[activeIndex];
-        const routePhase = reducedMotion
-          ? 1
-          : (elapsed % ROUTE_SLOT_MS) / ROUTE_SLOT_MS;
-        const drawProgress = easeOutCubic(
-          Math.min(1, routePhase / 0.68)
-        );
-        const routeOpacity = reducedMotion
-          ? 0.82
-          : routePhase < 0.82
-            ? 0.86
-            : Math.max(0, (1 - routePhase) / 0.18) * 0.86;
+        const activeDestinationId =
+          MARKERS[routeIndex + 1]?.id ?? MARKERS[1]?.id;
+        const wrapper = canvas.parentElement;
+        const cssSize = sizeRef.current;
 
-        const { css } = sizeRef.current;
-        const projected = new Map<string, ScreenPoint>();
-
-        for (const marker of markers) {
-          const point = projectLocation(
-            marker.location,
-            phi,
-            theta,
-            css,
-            css
-          );
-          projected.set(marker.id, point);
-
+        for (const marker of MARKERS) {
           const element = markerRefs.current.get(marker.id);
           const labelElement = labelRefs.current.get(marker.id);
           if (!element || !labelElement) continue;
 
-          const activeDestination =
-            marker.id === activeRoute?.destinationMarkerId;
-          const shouldShowLabel =
-            marker.primary || activeDestination;
+          const anchor = findAnchor(wrapper, marker.id);
+          const left = anchor
+            ? Number.parseFloat(anchor.style.left)
+            : Number.NaN;
+          const top = anchor
+            ? Number.parseFloat(anchor.style.top)
+            : Number.NaN;
+          const visible = projectVisibility(
+            marker.location,
+            phi,
+            theta
+          );
 
-          if (!point.visible) {
+          if (!visible || !Number.isFinite(left) || !Number.isFinite(top)) {
             element.style.opacity = "0";
             element.style.visibility = "hidden";
             continue;
           }
 
-          // COBE v2 already calculates the exact screen position for every
-          // latitude/longitude using the same phi/theta as the Earth.
-          // Read that native anchor instead of maintaining a second projection.
-          const wrapper = canvas.parentElement;
-          const anchor = findCobeAnchor(wrapper, marker.id);
-          const left = anchor ? Number.parseFloat(anchor.style.left) : NaN;
-          const top = anchor ? Number.parseFloat(anchor.style.top) : NaN;
-
-          const pinX = Number.isFinite(left)
-            ? (left / 100) * css
-            : point.x;
-          const pinY = Number.isFinite(top)
-            ? (top / 100) * css
-            : point.y;
+          const pinX = (left / 100) * cssSize;
+          const pinY = (top / 100) * cssSize;
+          const activeDestination = marker.id === activeDestinationId;
 
           element.style.visibility = "visible";
           element.style.opacity =
-            marker.primary || activeDestination ? "1" : "0.48";
+            marker.primary || activeDestination ? "1" : "0.46";
           element.style.transform =
             `translate3d(${pinX.toFixed(1)}px,${pinY.toFixed(1)}px,0) translate(-50%,-100%)`;
+
+          const shouldShowLabel =
+            marker.primary || activeDestination;
           labelElement.style.opacity = shouldShowLabel ? "1" : "0";
           labelElement.style.transform = shouldShowLabel
             ? "translate3d(0,0,0)"
             : "translate3d(-4px,0,0)";
-        }
-
-        for (const route of routes) {
-          const pathElement = routeRefs.current.get(route.id);
-          if (!pathElement) continue;
-
-          pathElement.style.opacity = "0";
-          pathElement.style.visibility = "hidden";
-        }
-
-        const origin = projected.get("argentina");
-        const destination = activeRoute
-          ? projected.get(activeRoute.destinationMarkerId)
-          : null;
-        const pathElement = activeRoute
-          ? routeRefs.current.get(activeRoute.id)
-          : null;
-        const pulse = pulseRef.current;
-
-        if (
-          origin?.visible &&
-          destination?.visible &&
-          pathElement &&
-          activeRoute
-        ) {
-          const geometry = routeGeometry(origin, destination);
-          pathElement.setAttribute("d", geometry.path);
-          pathElement.style.visibility = "visible";
-          pathElement.style.opacity = String(routeOpacity);
-          pathElement.style.strokeDashoffset = String(1 - drawProgress);
-
-          if (pulse) {
-            const pulsePoint = quadraticPoint(
-              origin,
-              destination,
-              geometry.cx,
-              geometry.cy,
-              drawProgress
-            );
-            pulse.setAttribute("cx", pulsePoint.x.toFixed(2));
-            pulse.setAttribute("cy", pulsePoint.y.toFixed(2));
-            pulse.style.opacity = String(
-              routeOpacity * (drawProgress > 0.04 ? 1 : 0)
-            );
-          }
-        } else if (pulse) {
-          pulse.style.opacity = "0";
         }
       }
 
@@ -556,12 +430,15 @@ export function GlobalStockGlobe() {
     rafRef.current = requestAnimationFrame(tick);
 
     return () => {
-      stopAnimation();
-      observer.disconnect();
+      if (rafRef.current !== null) {
+        cancelAnimationFrame(rafRef.current);
+      }
+      resizeObserver.disconnect();
+      intersectionObserver.disconnect();
       globe.destroy();
       globeRef.current = null;
     };
-  }, [stopAnimation]);
+  }, []);
 
   return (
     <div
@@ -576,45 +453,8 @@ export function GlobalStockGlobe() {
         aria-label="Red global de Global Stock"
       />
 
-      <svg
-        className="pointer-events-none absolute inset-0 z-[3] h-full w-full overflow-visible"
-        aria-hidden="true"
-      >
-        <defs>
-          <filter id="gs-route-glow" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="2.4" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-
-        {routes.map((route) => (
-          <path
-            key={route.id}
-            ref={(element) => {
-              if (element) routeRefs.current.set(route.id, element);
-              else routeRefs.current.delete(route.id);
-            }}
-            className="gs-cobe-route-path"
-            pathLength={1}
-            strokeDasharray="1"
-            strokeDashoffset="1"
-          />
-        ))}
-
-        <circle
-          ref={pulseRef}
-          className="gs-cobe-route-pulse"
-          cx="0"
-          cy="0"
-          r="3.2"
-        />
-      </svg>
-
       <div className="pointer-events-none absolute inset-0 z-[4] overflow-hidden">
-        {markers.map((marker) => (
+        {MARKERS.map((marker) => (
           <div
             key={marker.id}
             ref={(element) => {

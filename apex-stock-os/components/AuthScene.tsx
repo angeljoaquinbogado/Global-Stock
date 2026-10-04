@@ -21,7 +21,7 @@ export function AuthScene({
 
       <div className="gs-earth-stage absolute inset-0 grid place-items-center">
         <div className="gs-earth-wrap relative">
-          <GlobalStockGlobe />
+          <GlobalStockGlobe active={active} />
         </div>
       </div>
 
