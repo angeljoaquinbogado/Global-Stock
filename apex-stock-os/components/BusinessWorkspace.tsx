@@ -3693,6 +3693,7 @@ export function BusinessWorkspace({
                 updateSupplier={updateSupplier}
                 updateBarcode={updateBarcode}
                 integrateScannedProduct={integrateScannedProduct}
+                businessId={cloudBusinessId}
                 readOnly={inventoryReadOnly}
               />
             )}
@@ -4007,6 +4008,7 @@ export function BusinessWorkspace({
               <BarcodeScanner
                 ref={scannerRef}
                 language={language}
+                businessId={cloudBusinessId}
                 onProduct={integrateScannedProduct}
               />
             </div>
@@ -4967,6 +4969,7 @@ function InventoryModule({
   updateSupplier,
   updateBarcode,
   integrateScannedProduct,
+  businessId,
   readOnly
 }: {
   labels: (typeof copy)[LanguageCode];
@@ -4980,6 +4983,7 @@ function InventoryModule({
   updateSupplier: (id: string, supplier: string) => void;
   updateBarcode: (id: string, barcode: string) => void;
   integrateScannedProduct: (product: Product) => void;
+  businessId: string | null;
   readOnly: boolean;
 }) {
   return (
@@ -5166,6 +5170,7 @@ function InventoryModule({
           <BarcodeScanner
             onProduct={integrateScannedProduct}
             language={language}
+            businessId={businessId}
           />
         </>
       )}

@@ -56,6 +56,7 @@ type BarcodeScannerProps = {
   onProduct?: (product: Product) => void;
   language?: ScannerLanguage;
   autoStart?: boolean;
+  businessId?: string | null;
 };
 
 export type BarcodeScannerHandle = {
@@ -260,7 +261,8 @@ export const BarcodeScanner = forwardRef<
   {
     onProduct,
     language = "es",
-    autoStart = false
+    autoStart = false,
+    businessId = null
   },
   ref
 ) {
@@ -324,8 +326,13 @@ export const BarcodeScanner = forwardRef<
         ? (await supabase.auth.getSession()).data.session?.access_token
         : null;
 
+      const params = new URLSearchParams({
+        barcode: normalized
+      });
+      if (businessId) params.set("businessId", businessId);
+
       const response = await fetch(
-        `/api/product-lookup?barcode=${encodeURIComponent(normalized)}`,
+        `/api/product-lookup?${params.toString()}`,
         {
           cache: "no-store",
           headers: accessToken

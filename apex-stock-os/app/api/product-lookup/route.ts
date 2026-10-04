@@ -18,9 +18,16 @@ function validBarcode(value: string) {
   );
 }
 
+function validUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+    value
+  );
+}
+
 async function lookupAuthorizedProduct(
   request: Request,
-  barcode: string
+  barcode: string,
+  businessId: string
 ): Promise<Product | null> {
   const authorization = request.headers.get("authorization")?.trim() ?? "";
   if (!authorization.startsWith("Bearer ")) return null;
@@ -50,6 +57,7 @@ async function lookupAuthorizedProduct(
     .select(
       "id,barcode,name,category,supplier,stock,min_stock,cost,price,metadata"
     )
+    .eq("business_id", businessId)
     .eq("barcode", barcode)
     .eq("active", true)
     .limit(1);
@@ -90,6 +98,8 @@ export async function GET(request: NextRequest) {
   }
 
   const barcode = request.nextUrl.searchParams.get("barcode")?.trim() ?? "";
+  const businessId =
+    request.nextUrl.searchParams.get("businessId")?.trim() ?? "";
 
   if (!validBarcode(barcode)) {
     return NextResponse.json(
@@ -99,7 +109,10 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const product = await lookupAuthorizedProduct(request, barcode);
+    const product =
+      validUuid(businessId)
+        ? await lookupAuthorizedProduct(request, barcode, businessId)
+        : null;
     if (product) {
       return NextResponse.json(
         { product, source: "supabase" },
