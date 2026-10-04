@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { verifySignedAssetUrl } from "@/lib/asset-signing";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -143,6 +144,16 @@ export async function GET(request: NextRequest) {
 
   if (!raw) {
     return NextResponse.json({ error: "MISSING_URL" }, { status: 400 });
+  }
+
+  const expires = request.nextUrl.searchParams.get("expires");
+  const signature = request.nextUrl.searchParams.get("signature");
+
+  if (!verifySignedAssetUrl(raw, expires, signature)) {
+    return NextResponse.json(
+      { error: "INVALID_ASSET_TOKEN" },
+      { status: 403, headers: noStoreHeaders() }
+    );
   }
 
   let current: URL;

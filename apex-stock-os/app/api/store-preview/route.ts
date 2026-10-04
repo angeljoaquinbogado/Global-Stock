@@ -3,6 +3,7 @@ import { isIP } from "node:net";
 
 import { NextRequest, NextResponse } from "next/server";
 
+import { createSignedAssetPath } from "@/lib/asset-signing";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -54,9 +55,7 @@ function proxyPublicAsset(
   base: URL
 ) {
   const resolved = resolvePublicAsset(value, base);
-  return resolved
-    ? `/api/store-asset?url=${encodeURIComponent(resolved)}`
-    : null;
+  return resolved ? createSignedAssetPath(resolved) : null;
 }
 
 function isPrivateIpv4(address: string) {
