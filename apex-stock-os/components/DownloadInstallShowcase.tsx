@@ -124,16 +124,16 @@ function PlatformTabs({
                   : "hover:bg-[#fafafa]")
               }
             >
-              <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible">
+              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-visible">
                 <img
                   src={logoSrc}
                   alt=""
                   className={
                     id === "android"
-                      ? "h-[34px] w-[34px] object-contain"
+                      ? "h-[42px] w-[42px] max-w-none object-contain"
                       : id === "iphone"
-                        ? "h-[32px] w-[32px] object-contain"
-                        : "h-[32px] w-[32px] object-contain"
+                        ? "h-[38px] w-[38px] max-w-none object-contain"
+                        : "h-[39px] w-[39px] max-w-none object-contain"
                   }
                   aria-hidden="true"
                   draggable={false}
@@ -240,10 +240,10 @@ export function DownloadInstallShowcase({
                   alt=""
                   className={
                     active === "android"
-                      ? "h-[22px] w-[22px] object-contain"
+                      ? "h-[28px] w-[28px] max-w-none object-contain"
                       : active === "iphone"
-                        ? "h-[26px] w-[26px] object-contain"
-                        : "h-5 w-5 object-contain"
+                        ? "h-[28px] w-[28px] max-w-none object-contain"
+                        : "h-[27px] w-[27px] max-w-none object-contain"
                   }
                   aria-hidden="true"
                   draggable={false}
