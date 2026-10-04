@@ -2,6 +2,7 @@
 
 import { ApexSelect } from "@/components/ui/ApexSelect";
 import { AnimatePresence, motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import {
   Activity as ActivityIcon,
   BarChart3,
@@ -82,17 +83,75 @@ import {
 import { InstallAppButton } from "./InstallAppButton";
 import { Logo } from "./Logo";
 import { FxCenter } from "./FxCenter";
-import { PremiumCharts } from "./PremiumCharts";
-import { NotesHub } from "./NotesHub";
-import { OperationsCenter } from "./OperationsCenter";
-import { SupplierDirectory } from "./SupplierDirectory";
-import { BusinessSuite } from "./BusinessSuite";
-import { SmartDocumentInbox } from "./SmartDocumentInbox";
-import {
-  ConnectedCommerceHub,
-  type ConnectedCatalogPayload,
-  type ConnectedStore
+import type {
+  ConnectedCatalogPayload,
+  ConnectedStore
 } from "./ConnectedCommerceHub";
+
+function LazyModuleFallback() {
+  return (
+    <section className="apex-card min-h-56 animate-pulse p-5">
+      <div className="h-4 w-32 rounded-full bg-[var(--apex-border)]" />
+      <div className="mt-5 h-24 rounded-2xl bg-[var(--apex-border)]/60" />
+    </section>
+  );
+}
+
+const ConnectedCommerceHub = dynamic(
+  () =>
+    import("./ConnectedCommerceHub").then(
+      (module) => module.ConnectedCommerceHub
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const PremiumCharts = dynamic(
+  () =>
+    import("./PremiumCharts").then(
+      (module) => module.PremiumCharts
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const SupplierDirectory = dynamic(
+  () =>
+    import("./SupplierDirectory").then(
+      (module) => module.SupplierDirectory
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const SmartDocumentInbox = dynamic(
+  () =>
+    import("./SmartDocumentInbox").then(
+      (module) => module.SmartDocumentInbox
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const NotesHub = dynamic(
+  () =>
+    import("./NotesHub").then(
+      (module) => module.NotesHub
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const OperationsCenter = dynamic(
+  () =>
+    import("./OperationsCenter").then(
+      (module) => module.OperationsCenter
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const BusinessSuite = dynamic(
+  () =>
+    import("./BusinessSuite").then(
+      (module) => module.BusinessSuite
+    ),
+  { ssr: false, loading: LazyModuleFallback }
+);
 
 type ModuleId =
   | "overview"
