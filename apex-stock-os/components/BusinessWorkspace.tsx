@@ -1098,7 +1098,9 @@ export function BusinessWorkspace({
       {
         id: "demo-note-1",
         text: "Revisar reposición de stock crítico antes del viernes.",
-        date: localDateKey(new Date())
+        date: localDateKey(new Date()),
+        done: false,
+        createdAt: new Date().toISOString()
       }
     ]);
 
