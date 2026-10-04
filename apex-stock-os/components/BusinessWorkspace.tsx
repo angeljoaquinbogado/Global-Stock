@@ -3461,10 +3461,13 @@ export function BusinessWorkspace({
             </div>
 
             <div className="hidden min-w-0 lg:block">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
-                Global Stock
-              </p>
-              <h1 className="truncate text-lg font-semibold tracking-[-0.03em]">
+              <div className="flex items-center gap-2">
+                <Logo className="h-5 w-5 shrink-0" aria-hidden="true" />
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+                  Global Stock
+                </p>
+              </div>
+              <h1 className="mt-1 truncate text-lg font-semibold tracking-[-0.03em]">
                 {labels.nav[activeModule]}
               </h1>
             </div>
@@ -3865,9 +3868,12 @@ export function BusinessWorkspace({
             <div className="mx-auto max-w-5xl">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
-                    Global Stock
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <Logo className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+                      Global Stock
+                    </p>
+                  </div>
                   <h2 className="mt-1 text-xl font-semibold">
                     {labels.scannerTitle}
                   </h2>
@@ -5570,9 +5576,12 @@ function PageIntro({
 }) {
   return (
     <section>
-      <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-        Global Stock
-      </p>
+      <div className="flex items-center gap-2">
+        <Logo className="h-5 w-5 shrink-0" aria-hidden="true" />
+        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
+          Global Stock
+        </p>
+      </div>
       <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
         {title}
       </h2>
