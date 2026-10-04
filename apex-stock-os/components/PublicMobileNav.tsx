@@ -6,6 +6,7 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const links = [
+  { href: "/download", label: "Inicio" },
   { href: "/download#download-features", label: "Producto" },
   { href: "/download#download-feature-catalog", label: "Funcionalidades" },
   { href: "/download#download-sectors", label: "Para quién" },
