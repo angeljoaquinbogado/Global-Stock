@@ -3668,6 +3668,8 @@ export function BusinessWorkspace({
                 removeNote={removeNote}
                 calendarMonth={calendarMonth}
                 setCalendarMonth={setCalendarMonth}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
               />
             )}
 
