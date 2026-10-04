@@ -124,14 +124,16 @@ function PlatformTabs({
                 : "border-[#8F0000] bg-[#0d0e12] hover:bg-[rgba(143,0,0,.08)]")
             }
           >
-            <span className="grid h-6 w-6 shrink-0 place-items-center overflow-visible">
+            <span className="grid h-7 w-7 shrink-0 place-items-center overflow-visible">
               <img
                 src={logoSrc}
                 alt=""
                 className={
                   id === "android"
-                    ? "h-[19px] w-[19px] object-contain"
-                    : "h-[17px] w-[17px] object-contain"
+                    ? "h-[24px] w-[24px] object-contain"
+                    : id === "web"
+                      ? "h-[23px] w-[23px] object-contain"
+                      : "h-[22px] w-[22px] object-contain"
                 }
                 aria-hidden="true"
                 draggable={false}

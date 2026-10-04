@@ -103,8 +103,7 @@ export function DownloadMetricStrip() {
                     <span
                       className="text-[24px] font-semibold leading-none tracking-[-0.05em] sm:text-[27px]"
                       style={{
-                        color: expanded ? accent : "#f5f5f7",
-                        transition: "color 140ms ease"
+                        color: accent
                       }}
                     >
                       {value}
