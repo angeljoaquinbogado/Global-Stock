@@ -538,6 +538,7 @@ export function AuthScreen({
         email: normalizedEmail,
         password,
         options: {
+          emailRedirectTo: window.location.origin,
           data: {
             app: "global_stock",
             full_name: name.trim(),
