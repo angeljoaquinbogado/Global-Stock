@@ -100,10 +100,10 @@ function PlatformTabs({
       strength={1.05}
       breathe
       borderRadius={18}
-      className="inline-block max-w-full p-[1px] shadow-[0_14px_34px_rgba(0,0,0,.30),0_0_22px_rgba(143,0,0,.16)]"
+      className="inline-block max-w-full bg-[#050506] p-[2px] shadow-[0_14px_34px_rgba(0,0,0,.30),0_0_24px_rgba(143,0,0,.18)]"
     >
       <div
-        className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[17px] bg-[#09090b] p-1.5"
+        className="gs-storefront-scroll inline-grid max-w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[16px] bg-[#050506] p-1.5"
         role="tablist"
         aria-label="Plataforma"
       >
@@ -118,20 +118,13 @@ function PlatformTabs({
             aria-selected={selected}
             onClick={() => onChange(id)}
             className={
-              "flex min-h-11 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-semibold text-white outline-none transition-[background-color,border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[120px] " +
+              "flex min-h-11 min-w-[108px] shrink-0 items-center justify-center gap-2 rounded-[11px] border px-3 text-[12px] font-semibold text-[#111114] outline-none transition-[background-color,border-color,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] sm:min-w-[120px] " +
               (selected
-                ? "border-[#8F0000] bg-[rgba(143,0,0,.16)] shadow-[0_0_0_1px_rgba(143,0,0,.26),0_8px_22px_rgba(0,0,0,.30)]"
-                : "border-[#8F0000] bg-[#0d0e12] hover:bg-[rgba(143,0,0,.08)]")
+                ? "border-[#8F0000] bg-[#f2f2f4] shadow-[0_8px_22px_rgba(0,0,0,.16)]"
+                : "border-[#8F0000] bg-white hover:bg-[#f6f6f7]")
             }
           >
-            <span
-              className={
-                "grid h-9 w-9 shrink-0 place-items-center overflow-visible rounded-[10px] " +
-                (id === "iphone"
-                  ? "bg-white shadow-[0_2px_8px_rgba(0,0,0,.18)]"
-                  : "")
-              }
-            >
+            <span className="grid h-9 w-9 shrink-0 place-items-center overflow-visible rounded-[10px]">
               <img
                 src={logoSrc}
                 alt=""
