@@ -1,8 +1,11 @@
 -- Global Stock: make browser-triggered financial/inventory RPCs server-authoritative.
 --
 -- IMPORTANT:
--- This migration is intentionally prepared for the dedicated Global Stock
--- Supabase project. Do not apply it to the Dorado reference-store database.
+-- This migration hardens only public.global_stock_* objects.
+-- The current Supabase Free organization is limited to two active projects,
+-- so Global Stock remains logically isolated by prefix inside the shared
+-- project until a dedicated project can be created without adding paid cost.
+-- No Dorado tables, functions or foreign keys are modified by this migration.
 --
 -- Strategy:
 -- 1. Preserve the battle-tested stock/cash side effects in renamed legacy
