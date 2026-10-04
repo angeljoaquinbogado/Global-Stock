@@ -1,4 +1,4 @@
-const CACHE_NAME = "global-stock-shell-v6";
+const CACHE_NAME = "global-stock-shell-v7";
 const APP_SHELL = [
   "/manifest.webmanifest",
   "/icons/icon-192.png",
@@ -53,20 +53,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Navigation is network-first. Offline fallback only uses a navigation
-  // response that was fetched by the current service worker version.
+  // Navigation is network-first. Cache each safe document under its own
+  // URL so a visit to /download, /support or a legal page can never replace
+  // the root app shell used by the installed PWA.
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((response) => {
           if (response.ok) {
             const copy = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put("/", copy));
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
           }
           return response;
         })
         .catch(async () => {
-          return (await caches.match("/")) || Response.error();
+          return (await caches.match(request)) || Response.error();
         })
     );
     return;

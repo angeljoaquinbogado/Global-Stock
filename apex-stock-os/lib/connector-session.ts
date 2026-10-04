@@ -13,8 +13,16 @@ export type ConnectorSession = {
   verifiedAt: string;
 };
 
+export type ConnectorIntent = {
+  storeOrigin: string;
+  nonce: string;
+  expiresAt: number;
+};
+
 const COOKIE_NAME = "global-stock-store-connection-v1";
+const INTENT_COOKIE_NAME = "global-stock-store-intent-v1";
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const INTENT_MAX_AGE = 10 * 60;
 
 function secretKey() {
   const configured = process.env.GLOBAL_STOCK_CONNECTOR_SECRET?.trim();
@@ -92,6 +100,56 @@ function decrypt(value: string): ConnectorSession | null {
   }
 }
 
+function signIntentPayload(payload: string) {
+  return encode(
+    crypto
+      .createHmac("sha256", secretKey())
+      .update(payload)
+      .digest()
+  );
+}
+
+function encodeIntent(intent: ConnectorIntent) {
+  const payload = encode(Buffer.from(JSON.stringify(intent), "utf8"));
+  return `${payload}.${signIntentPayload(payload)}`;
+}
+
+function decodeIntent(value: string): ConnectorIntent | null {
+  try {
+    const [payload, signature] = value.split(".");
+    if (!payload || !signature) return null;
+
+    const expected = signIntentPayload(payload);
+    const actualBuffer = Buffer.from(signature, "utf8");
+    const expectedBuffer = Buffer.from(expected, "utf8");
+
+    if (
+      actualBuffer.length !== expectedBuffer.length ||
+      !crypto.timingSafeEqual(actualBuffer, expectedBuffer)
+    ) {
+      return null;
+    }
+
+    const parsed = JSON.parse(
+      decode(payload).toString("utf8")
+    ) as ConnectorIntent;
+
+    if (
+      typeof parsed.storeOrigin !== "string" ||
+      typeof parsed.nonce !== "string" ||
+      typeof parsed.expiresAt !== "number" ||
+      parsed.expiresAt <= Date.now() ||
+      !/^https:\/\//i.test(parsed.storeOrigin)
+    ) {
+      return null;
+    }
+
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 export async function setConnectorSession(session: ConnectorSession) {
   const store = await cookies();
   store.set(COOKIE_NAME, encrypt(session), {
@@ -116,6 +174,43 @@ export async function clearConnectorSession() {
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
     path: "/",
+    maxAge: 0
+  });
+}
+
+export async function setConnectorIntent(storeOrigin: string) {
+  const origin = new URL(storeOrigin).origin;
+  const intent: ConnectorIntent = {
+    storeOrigin: origin,
+    nonce: crypto.randomBytes(18).toString("base64url"),
+    expiresAt: Date.now() + INTENT_MAX_AGE * 1000
+  };
+
+  const store = await cookies();
+  store.set(INTENT_COOKIE_NAME, encodeIntent(intent), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/store-connector/callback",
+    maxAge: INTENT_MAX_AGE
+  });
+
+  return intent;
+}
+
+export async function readConnectorIntent() {
+  const store = await cookies();
+  const raw = store.get(INTENT_COOKIE_NAME)?.value;
+  return raw ? decodeIntent(raw) : null;
+}
+
+export async function clearConnectorIntent() {
+  const store = await cookies();
+  store.set(INTENT_COOKIE_NAME, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/api/store-connector/callback",
     maxAge: 0
   });
 }

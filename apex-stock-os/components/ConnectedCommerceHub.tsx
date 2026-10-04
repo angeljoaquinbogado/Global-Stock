@@ -501,6 +501,7 @@ export function ConnectedCommerceHub({
     useState<keyof IntegrationReadiness>("custom");
   const [enterpriseOpen, setEnterpriseOpen] = useState(false);
   const [requestingIntegration, setRequestingIntegration] = useState(false);
+  const [authorizingConnector, setAuthorizingConnector] = useState(false);
 
   const selectedProviderMeta =
     providerMethods[language].find(
@@ -713,6 +714,39 @@ export function ConnectedCommerceHub({
       setError(t.inspectError);
     } finally {
       setDetecting(false);
+    }
+  }
+
+  async function startConnectorAuthorization() {
+    if (!adminUrl || !preview?.url || authorizingConnector) return;
+
+    setAuthorizingConnector(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/store-connector/intent", {
+        method: "POST",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          storeUrl: preview.url
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error("CONNECTOR_INTENT_FAILED");
+      }
+
+      window.location.assign(adminUrl);
+    } catch {
+      setAuthorizingConnector(false);
+      setError(
+        language === "es"
+          ? "No se pudo iniciar la autorización segura de la tienda."
+          : "Could not start the secure store authorization."
+      );
     }
   }
 
@@ -1348,13 +1382,19 @@ export function ConnectedCommerceHub({
                 : "Global Stock never receives or stores the site's password. The technical connector credential is created server-side only after verification."}
             </p>
             {adminUrl && (
-              <a
-                href={adminUrl}
-                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white"
+              <button
+                type="button"
+                onClick={() => void startConnectorAuthorization()}
+                disabled={authorizingConnector}
+                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white disabled:cursor-wait disabled:opacity-60"
               >
                 <ExternalLink size={14} />
-                {t.openAdmin}
-              </a>
+                {authorizingConnector
+                  ? language === "es"
+                    ? "Preparando autorización…"
+                    : "Preparing authorization…"
+                  : t.openAdmin}
+              </button>
             )}
           </div>
         </section>

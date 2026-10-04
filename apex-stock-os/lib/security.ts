@@ -172,9 +172,33 @@ export async function readJsonBody<T>(
     throw new ApiSecurityError("REQUEST_TOO_LARGE", 413);
   }
 
-  const raw = await request.text();
-  if (new TextEncoder().encode(raw).byteLength > maxBytes) {
-    throw new ApiSecurityError("REQUEST_TOO_LARGE", 413);
+  const body = request.body;
+  if (!body) {
+    throw new ApiSecurityError("INVALID_JSON", 400);
+  }
+
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let raw = "";
+  let received = 0;
+
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      received += value.byteLength;
+      if (received > maxBytes) {
+        await reader.cancel("REQUEST_TOO_LARGE").catch(() => {});
+        throw new ApiSecurityError("REQUEST_TOO_LARGE", 413);
+      }
+
+      raw += decoder.decode(value, { stream: true });
+    }
+
+    raw += decoder.decode();
+  } finally {
+    reader.releaseLock();
   }
 
   if (!raw.trim()) {

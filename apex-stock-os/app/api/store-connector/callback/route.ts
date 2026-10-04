@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { setConnectorSession } from "@/lib/connector-session";
+import {
+  clearConnectorIntent,
+  readConnectorIntent,
+  setConnectorSession
+} from "@/lib/connector-session";
 import {
   assertPublicStoreUrl,
   connectorFetch
@@ -13,6 +17,14 @@ import {
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+
+function redirectNoStore(url: URL) {
+  const response = NextResponse.redirect(url, 303);
+  for (const [key, value] of Object.entries(noStoreHeaders())) {
+    response.headers.set(key, value);
+  }
+  return response;
+}
 
 async function exchangeGrant(storeOrigin: string, grant: string) {
   const origin = new URL(storeOrigin).origin;
@@ -88,9 +100,9 @@ export async function GET(request: NextRequest) {
       sameOrigin: false
     });
   } catch (error) {
-    return securityErrorResponse(error) ?? NextResponse.redirect(
-      new URL("/", request.nextUrl.origin),
-      303
+    return (
+      securityErrorResponse(error) ??
+      redirectNoStore(new URL("/", request.nextUrl.origin))
     );
   }
 
@@ -105,10 +117,19 @@ export async function GET(request: NextRequest) {
       !storeRaw ||
       !/^gs_grant_[A-Za-z0-9_-]{30,120}$/.test(grant)
     ) {
-      return NextResponse.redirect(fallback, 303);
+      return redirectNoStore(fallback);
     }
 
     const storeUrl = await assertPublicStoreUrl(storeRaw);
+    const intent = await readConnectorIntent();
+
+    if (!intent || intent.storeOrigin !== storeUrl.origin) {
+      return redirectNoStore(fallback);
+    }
+
+    // One browser intent may authorize exactly one callback attempt.
+    await clearConnectorIntent();
+
     const token = await exchangeGrant(storeUrl.origin, grant);
 
     const response = await connectorFetch({
@@ -136,7 +157,7 @@ export async function GET(request: NextRequest) {
       !scopes.includes("catalog:read") ||
       !scopes.includes("inventory:read")
     ) {
-      return NextResponse.redirect(fallback, 303);
+      return redirectNoStore(fallback);
     }
 
     await setConnectorSession({
@@ -152,8 +173,8 @@ export async function GET(request: NextRequest) {
 
     const success = new URL("/", request.nextUrl.origin);
     success.searchParams.set("store_connection", "verified");
-    return NextResponse.redirect(success, 303);
+    return redirectNoStore(success);
   } catch {
-    return NextResponse.redirect(fallback, 303);
+    return redirectNoStore(fallback);
   }
 }
