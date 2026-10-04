@@ -15,7 +15,7 @@ const contentSecurityPolicy = [
   "media-src 'self' blob:",
   "manifest-src 'self'",
   "frame-src 'self' https://www.google.com https://maps.google.com",
-  "upgrade-insecure-requests"
+  ...(isProduction ? ["upgrade-insecure-requests"] : [])
 ].join("; ");
 
 const securityHeaders = [
@@ -32,10 +32,14 @@ const securityHeaders = [
     value:
       "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()"
   },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload"
-  }
+  ...(isProduction
+    ? [
+        {
+          key: "Strict-Transport-Security",
+          value: "max-age=63072000; includeSubDomains; preload"
+        }
+      ]
+    : [])
 ];
 
 const nextConfig = {
