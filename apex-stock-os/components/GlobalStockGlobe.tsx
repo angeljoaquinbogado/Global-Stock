@@ -84,6 +84,14 @@ const routes: GlobeRoute[] = markers
 
 const ROUTE_SLOT_MS = 2650;
 
+const cobeAnchorMarkers = markers.map((marker) => ({
+  id: marker.id,
+  location: marker.location,
+  // Keep the WebGL marker degenerate/invisible. COBE still creates and
+  // updates its native DOM anchor for this exact latitude/longitude.
+  size: 0
+}));
+
 function clamp01(value: number) {
   return Math.max(0, Math.min(1, value));
 }
@@ -139,6 +147,26 @@ function projectLocation(
       screenY > 16 &&
       screenY < height - 16
   };
+}
+
+function findCobeAnchor(
+  wrapper: HTMLElement | null,
+  markerId: string
+) {
+  if (!wrapper) return null;
+
+  for (const child of Array.from(wrapper.children)) {
+    if (!(child instanceof HTMLElement)) continue;
+
+    if (
+      child.style.getPropertyValue("anchor-name").trim() ===
+      `--cobe-${markerId}`
+    ) {
+      return child;
+    }
+  }
+
+  return null;
 }
 
 function routeGeometry(from: ScreenPoint, to: ScreenPoint) {
@@ -346,7 +374,7 @@ export function GlobalStockGlobe() {
         opacity: 0.95,
         scale: 0.98,
         offset: [0, 0],
-        markers: []
+        markers: cobeAnchorMarkers
       } as never
     ) as unknown as CobeGlobeHandle;
 
@@ -448,11 +476,26 @@ export function GlobalStockGlobe() {
             continue;
           }
 
+          // COBE v2 already calculates the exact screen position for every
+          // latitude/longitude using the same phi/theta as the Earth.
+          // Read that native anchor instead of maintaining a second projection.
+          const wrapper = canvas.parentElement;
+          const anchor = findCobeAnchor(wrapper, marker.id);
+          const left = anchor ? Number.parseFloat(anchor.style.left) : NaN;
+          const top = anchor ? Number.parseFloat(anchor.style.top) : NaN;
+
+          const pinX = Number.isFinite(left)
+            ? (left / 100) * css
+            : point.x;
+          const pinY = Number.isFinite(top)
+            ? (top / 100) * css
+            : point.y;
+
           element.style.visibility = "visible";
           element.style.opacity =
             marker.primary || activeDestination ? "1" : "0.48";
           element.style.transform =
-            `translate3d(${point.x.toFixed(1)}px,${point.y.toFixed(1)}px,0) translate(-50%,-100%)`;
+            `translate3d(${pinX.toFixed(1)}px,${pinY.toFixed(1)}px,0) translate(-50%,-100%)`;
           labelElement.style.opacity = shouldShowLabel ? "1" : "0";
           labelElement.style.transform = shouldShowLabel
             ? "translate3d(0,0,0)"
