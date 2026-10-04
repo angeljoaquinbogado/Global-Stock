@@ -28,18 +28,11 @@ const metrics = [
 
 export function DownloadMetricStrip() {
   return (
-    <section className="border-y border-white/[0.045] bg-[#09090b]">
+    <section className="bg-[#09090b]">
       <div className="gs-storefront-scroll mx-auto flex w-full max-w-[1240px] items-center justify-start overflow-x-auto px-5 py-5 sm:justify-center sm:px-8 sm:py-6">
         <div className="flex min-w-max items-center">
-          {metrics.map(({ value, label, icon: Icon, accent, iconBg }, index) => (
-            <div key={label} className="flex items-center">
-              {index > 0 && (
-                <span
-                  aria-hidden="true"
-                  className="mx-3 h-7 w-px bg-white/[0.07] sm:mx-5"
-                />
-              )}
-
+          {metrics.map(({ value, label, icon: Icon, accent, iconBg }) => (
+            <div key={label} className="flex items-center px-3 sm:px-5">
               <div className="group relative">
                 <div className="flex h-14 min-w-[236px] items-center rounded-[13px] px-4 transition-[background-color,box-shadow] duration-200 [transition-timing-function:var(--ease-out)] hover:bg-white/[0.045] hover:shadow-[0_8px_24px_rgba(0,0,0,.18)] focus-within:bg-white/[0.045] sm:min-w-[254px]">
                   <span
