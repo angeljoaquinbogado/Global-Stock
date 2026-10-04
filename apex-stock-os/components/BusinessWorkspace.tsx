@@ -56,10 +56,12 @@ import {
   mirrorProductsToCloud,
   recordPosSale,
   recordStockAdjustment,
+  type CloudWorkspaceState,
   type PosPayment,
   saveCloudWorkspace,
   updateCloudBusiness
 } from "@/lib/cloud-workspace";
+import { businessStorageKey } from "@/lib/business-storage";
 import type {
   BusinessSnapshot,
   Product,
@@ -177,6 +179,8 @@ type PendingConnectedWrite = {
 
 const CONNECTED_WRITE_QUEUE_KEY =
   "global-stock-connected-write-queue-v1";
+const BUSINESS_WORKSPACE_CACHE_KEY =
+  "global-stock-workspace-cache-v1";
 
 function readConnectedWriteQueue(): PendingConnectedWrite[] {
   if (typeof window === "undefined") return [];
@@ -1752,6 +1756,11 @@ export function BusinessWorkspace({
   }, [moreOpen, scannerOpen]);
 
   useEffect(() => {
+    if (!demoMode) {
+      setStorageReady(true);
+      return;
+    }
+
     try {
       const currentProducts = localStorage.getItem("global-stock-products-v3");
       const legacyProducts = localStorage.getItem("global-stock-demo-products-v2");
@@ -1894,15 +1903,15 @@ export function BusinessWorkspace({
     } finally {
       setStorageReady(true);
     }
-  }, []);
+  }, [demoMode]);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !demoMode) return;
     localStorage.setItem(
       "global-stock-products-v3",
       JSON.stringify(products)
     );
-  }, [products, storageReady]);
+  }, [demoMode, products, storageReady]);
 
   useEffect(() => {
     if (!storageReady || demoMode) {
@@ -1930,12 +1939,36 @@ export function BusinessWorkspace({
       }
 
       setCloudBusinessId(business.id);
+
+      const cacheKey = businessStorageKey(
+        BUSINESS_WORKSPACE_CACHE_KEY,
+        business.id,
+        false
+      );
+      let cachedState: CloudWorkspaceState | null = null;
+
+      try {
+        const raw = cacheKey
+          ? window.localStorage.getItem(cacheKey)
+          : null;
+        if (raw) {
+          const parsed = JSON.parse(raw) as CloudWorkspaceState;
+          if (parsed && typeof parsed === "object") {
+            cachedState = parsed;
+          }
+        }
+      } catch {
+        cachedState = null;
+      }
+
       const remote = await loadCloudWorkspace(business.id);
 
       if (cancelled) return;
 
-      if (remote?.state) {
-        const state = remote.state;
+      const resolvedState = remote?.state ?? cachedState;
+
+      if (resolvedState) {
+        const state = resolvedState;
 
         if (Array.isArray(state.products)) setProducts(state.products);
         if (Array.isArray(state.trend)) setTrend(state.trend);
@@ -1988,6 +2021,17 @@ export function BusinessWorkspace({
         });
       }
 
+      if (cacheKey && resolvedState) {
+        try {
+          window.localStorage.setItem(
+            cacheKey,
+            JSON.stringify(resolvedState)
+          );
+        } catch {
+          // A local cache failure must not block the cloud workspace.
+        }
+      }
+
       cloudHydratedRef.current = true;
       setCloudReady(true);
     }
@@ -2029,6 +2073,19 @@ export function BusinessWorkspace({
         fxHistory,
         fxMarket
       };
+
+      const cacheKey = businessStorageKey(
+        BUSINESS_WORKSPACE_CACHE_KEY,
+        cloudBusinessId,
+        false
+      );
+      if (cacheKey) {
+        try {
+          window.localStorage.setItem(cacheKey, JSON.stringify(state));
+        } catch {
+          // Cloud persistence remains authoritative if browser storage is full.
+        }
+      }
 
       void Promise.all([
         saveCloudWorkspace(cloudBusinessId, state),
@@ -2124,27 +2181,27 @@ export function BusinessWorkspace({
   }, [cloudBusinessId, demoMode]);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !demoMode) return;
     localStorage.setItem("global-stock-trend-v2", JSON.stringify(trend));
-  }, [trend, storageReady]);
+  }, [demoMode, trend, storageReady]);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !demoMode) return;
     localStorage.setItem(
       "global-stock-activities-v1",
       JSON.stringify(activities)
     );
-  }, [activities, storageReady]);
+  }, [activities, demoMode, storageReady]);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !demoMode) return;
     localStorage.setItem("global-stock-notes-v1", JSON.stringify(notes));
-  }, [notes, storageReady]);
+  }, [demoMode, notes, storageReady]);
 
   useEffect(() => {
-    if (!storageReady) return;
+    if (!storageReady || !demoMode) return;
     localStorage.setItem("global-stock-fx-market-v1", fxMarket);
-  }, [fxMarket, storageReady]);
+  }, [demoMode, fxMarket, storageReady]);
 
   useEffect(() => {
     let cancelled = false;
@@ -2836,7 +2893,9 @@ export function BusinessWorkspace({
       businessName === "Global Stock Demo"
     ) {
       setBusinessName(store.name);
-      localStorage.setItem("global-stock-business-name", store.name);
+      if (demoMode) {
+        localStorage.setItem("global-stock-business-name", store.name);
+      }
     }
 
     setNotice(
@@ -3268,22 +3327,24 @@ export function BusinessWorkspace({
   }
 
   function saveBusinessName() {
-    localStorage.setItem(
-      "global-stock-business-name",
-      businessName.trim()
-    );
-    localStorage.setItem(
-      "global-stock-business-type",
-      businessType
-    );
-    localStorage.setItem(
-      "global-stock-business-country",
-      businessCountry.trim()
-    );
-    localStorage.setItem(
-      "global-stock-business-description",
-      businessDescription.trim()
-    );
+    if (demoMode) {
+      localStorage.setItem(
+        "global-stock-business-name",
+        businessName.trim()
+      );
+      localStorage.setItem(
+        "global-stock-business-type",
+        businessType
+      );
+      localStorage.setItem(
+        "global-stock-business-country",
+        businessCountry.trim()
+      );
+      localStorage.setItem(
+        "global-stock-business-description",
+        businessDescription.trim()
+      );
+    }
     addActivity("settings");
     setNotice(labels.saved);
     window.setTimeout(() => setNotice(""), 2200);
