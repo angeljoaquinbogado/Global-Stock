@@ -4,7 +4,7 @@ type LogoProps = ImgHTMLAttributes<HTMLImageElement> & {
   withWordmark?: boolean;
 };
 
-const BRAND_MARK = "/brand/global-stock-logo.png";
+const BRAND_MARK = "/brand/global-stock-mark.png";
 
 export function Logo({
   withWordmark = false,
