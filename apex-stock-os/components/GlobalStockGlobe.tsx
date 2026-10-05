@@ -389,15 +389,124 @@ function drawVectorPin(
 
 }
 
-function boxesOverlap(a: LabelLayout, b: LabelLayout) {
-  const gap = 5;
+function drawLabelBox(
+  ctx: CanvasRenderingContext2D,
+  item: LabelLayout,
+  connector: boolean
+) {
+  const labelCenterY = item.y + item.height / 2;
+  const labelOnLeft = item.x + item.width / 2 < item.projection.x;
+  const connectorX = labelOnLeft ? item.x + item.width : item.x;
 
-  return !(
-    a.x + a.width + gap <= b.x ||
-    b.x + b.width + gap <= a.x ||
-    a.y + a.height + gap <= b.y ||
-    b.y + b.height + gap <= a.y
+  if (connector) {
+    ctx.beginPath();
+    ctx.moveTo(item.projection.x, item.projection.y - 3);
+    ctx.lineTo(connectorX, labelCenterY);
+    ctx.strokeStyle = item.important
+      ? "rgba(255,72,86,.34)"
+      : "rgba(255,255,255,.14)";
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+  }
+
+  roundedRect(
+    ctx,
+    item.x,
+    item.y,
+    item.width,
+    item.height,
+    item.important ? 7 : 6
   );
+  ctx.fillStyle = item.important
+    ? "rgba(8,8,10,.92)"
+    : "rgba(8,8,10,.80)";
+  ctx.fill();
+  ctx.strokeStyle = item.marker.primary
+    ? "rgba(231,27,44,.78)"
+    : item.active
+      ? "rgba(255,255,255,.19)"
+      : "rgba(255,255,255,.10)";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  ctx.fillStyle = item.marker.primary
+    ? "#ff6672"
+    : item.active
+      ? "#f5f5f7"
+      : "rgba(243,243,245,.84)";
+  ctx.fillText(
+    item.marker.label,
+    item.x + (item.important ? 9 : 7),
+    item.y + item.height / 2 + 0.5
+  );
+}
+
+function layoutLabelColumn(
+  items: LabelLayout[],
+  side: "left" | "right",
+  width: number,
+  height: number
+) {
+  if (!items.length) return [];
+
+  const gap = 8;
+  const top = 14;
+  const bottom = height - 14;
+  const maxWidth = Math.max(...items.map((item) => item.width));
+  const railX =
+    side === "left"
+      ? Math.max(12, Math.min(width * 0.08, 44))
+      : Math.min(width - maxWidth - 12, Math.max(width * 0.72, width - maxWidth - 44));
+
+  const placed = items
+    .slice()
+    .sort((a, b) => a.projection.y - b.projection.y)
+    .map((item) => ({
+      ...item,
+      x: Math.max(10, Math.min(width - item.width - 10, railX)),
+      y: Math.max(
+        top,
+        Math.min(
+          bottom - item.height,
+          item.projection.y - item.height / 2
+        )
+      )
+    }));
+
+  for (let index = 1; index < placed.length; index += 1) {
+    const previous = placed[index - 1];
+    const current = placed[index];
+    const minY = previous.y + previous.height + gap;
+
+    if (current.y < minY) {
+      current.y = minY;
+    }
+  }
+
+  const last = placed[placed.length - 1];
+  const overflow = last.y + last.height - bottom;
+
+  if (overflow > 0) {
+    for (const item of placed) {
+      item.y -= overflow;
+    }
+  }
+
+  if (placed[0].y < top) {
+    placed[0].y = top;
+
+    for (let index = 1; index < placed.length; index += 1) {
+      const previous = placed[index - 1];
+      const current = placed[index];
+      const minY = previous.y + previous.height + gap;
+
+      if (current.y < minY) {
+        current.y = minY;
+      }
+    }
+  }
+
+  return placed;
 }
 
 function drawMarkerLabels(
@@ -442,104 +551,52 @@ function drawMarkerLabels(
         y: projection.y - pinHeight * 0.72 - labelHeight / 2
       } satisfies LabelLayout;
     })
-    .filter((item): item is LabelLayout => Boolean(item))
-    .sort((a, b) => {
-      const priorityA = a.marker.primary ? 3 : a.active ? 2 : 1;
-      const priorityB = b.marker.primary ? 3 : b.active ? 2 : 1;
+    .filter((item): item is LabelLayout => Boolean(item));
 
-      return priorityB - priorityA || a.projection.y - b.projection.y;
-    });
+  if (!showAllLabels) {
+    const compact: LabelLayout[] = [];
 
-  const placed: LabelLayout[] = [];
-  const verticalOffsets = [0, -24, 24, -48, 48, -72, 72, -96, 96];
+    for (const item of candidates) {
+      const prefersLeft = item.projection.x > width * 0.68;
+      const rawX = prefersLeft
+        ? item.projection.x - item.width - 14
+        : item.projection.x + 14;
+      const rawY = item.y;
+      const positioned: LabelLayout = {
+        ...item,
+        x: Math.max(10, Math.min(width - item.width - 10, rawX)),
+        y: Math.max(10, Math.min(height - item.height - 10, rawY))
+      };
 
-  for (const item of candidates) {
-    const prefersLeft = item.projection.x > width * 0.64;
-    const sideOrder = prefersLeft ? ["left", "right"] : ["right", "left"];
-    let chosen: LabelLayout | null = null;
-
-    for (const side of sideOrder) {
-      for (const offsetY of verticalOffsets) {
-        const rawX =
-          side === "left"
-            ? item.projection.x - 14 - item.width
-            : item.projection.x + 14;
-        const rawY = item.y + offsetY;
-        const candidate: LabelLayout = {
-          ...item,
-          x: Math.max(10, Math.min(width - item.width - 10, rawX)),
-          y: Math.max(10, Math.min(height - item.height - 10, rawY))
-        };
-
-        if (!placed.some((other) => boxesOverlap(candidate, other))) {
-          chosen = candidate;
-          break;
-        }
+      if (compact.some((other) => Math.abs(other.y - positioned.y) < 26)) {
+        positioned.y = Math.min(height - positioned.height - 10, positioned.y + 28);
       }
 
-      if (chosen) break;
+      compact.push(positioned);
     }
 
-    if (!chosen) {
-      chosen = {
-        ...item,
-        x: Math.max(10, Math.min(width - item.width - 10, item.x + 14)),
-        y: Math.max(10, Math.min(height - item.height - 10, item.y))
-      };
+    for (const item of compact) {
+      drawLabelBox(ctx, item, false);
     }
 
-    placed.push(chosen);
+    ctx.restore();
+    return;
   }
 
+  const leftItems = candidates.filter(
+    (item) => item.projection.x < width / 2
+  );
+  const rightItems = candidates.filter(
+    (item) => item.projection.x >= width / 2
+  );
+
+  const placed = [
+    ...layoutLabelColumn(leftItems, "left", width, height),
+    ...layoutLabelColumn(rightItems, "right", width, height)
+  ];
+
   for (const item of placed) {
-    const labelCenterY = item.y + item.height / 2;
-    const labelOnLeft = item.x + item.width / 2 < item.projection.x;
-    const connectorX = labelOnLeft ? item.x + item.width : item.x;
-
-    if (
-      Math.abs(labelCenterY - item.projection.y) > 11 ||
-      Math.abs(connectorX - item.projection.x) > 22
-    ) {
-      ctx.beginPath();
-      ctx.moveTo(item.projection.x, item.projection.y - 3);
-      ctx.lineTo(connectorX, labelCenterY);
-      ctx.strokeStyle = item.important
-        ? "rgba(255,72,86,.34)"
-        : "rgba(255,255,255,.12)";
-      ctx.lineWidth = 0.8;
-      ctx.stroke();
-    }
-
-    roundedRect(
-      ctx,
-      item.x,
-      item.y,
-      item.width,
-      item.height,
-      item.important ? 7 : 6
-    );
-    ctx.fillStyle = item.important
-      ? "rgba(8,8,10,.90)"
-      : "rgba(8,8,10,.76)";
-    ctx.fill();
-    ctx.strokeStyle = item.marker.primary
-      ? "rgba(231,27,44,.76)"
-      : item.active
-        ? "rgba(255,255,255,.18)"
-        : "rgba(255,255,255,.09)";
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    ctx.fillStyle = item.marker.primary
-      ? "#ff6672"
-      : item.active
-        ? "#f5f5f7"
-        : "rgba(243,243,245,.78)";
-    ctx.fillText(
-      item.marker.label,
-      item.x + (item.important ? 9 : 7),
-      item.y + item.height / 2 + 0.5
-    );
+    drawLabelBox(ctx, item, true);
   }
 
   ctx.restore();
