@@ -556,29 +556,40 @@ export function GlobalStockGlobe({
     const tick = (timestamp: number) => {
       if (!globeRef.current) return;
 
-      // The cinematic globe is only animated during the intro. Once the
-      // authentication panel is visible, keep the last rendered frame instead
-      // of waking the main thread on every display refresh.
-      if (!activeRef.current) {
-        rafRef.current = null;
-        return;
-      }
-
+      const cinematic = activeRef.current;
       const shouldRender =
         visibleRef.current &&
         document.visibilityState === "visible";
 
-      if (shouldRender && timestamp - lastFrameRef.current >= 15.5) {
+      // During the intro we target full refresh-rate motion. Once the auth
+      // panel is visible we keep a low-power idle animation instead of freezing
+      // COBE on an arbitrary in-flight route frame.
+      const frameInterval = cinematic
+        ? 15.5
+        : coarsePointer
+          ? 50
+          : 33;
+
+      if (
+        shouldRender &&
+        timestamp - lastFrameRef.current >= frameInterval
+      ) {
         lastFrameRef.current = timestamp;
 
         if (!pointerRef.current) {
           if (!reducedMotion) {
-            phiRef.current += coarsePointer ? 0.00004 : 0.000065;
+            phiRef.current += cinematic
+              ? coarsePointer
+                ? 0.00004
+                : 0.000065
+              : coarsePointer
+                ? 0.000055
+                : 0.000085;
           }
 
           if (Math.abs(velocityRef.current.phi) > 0.00004) {
             phiRef.current += velocityRef.current.phi;
-            velocityRef.current.phi *= 0.932;
+            velocityRef.current.phi *= cinematic ? 0.932 : 0.9;
           }
 
           if (Math.abs(velocityRef.current.theta) > 0.00004) {
@@ -589,7 +600,7 @@ export function GlobalStockGlobe({
                 thetaRef.current + velocityRef.current.theta
               )
             );
-            velocityRef.current.theta *= 0.918;
+            velocityRef.current.theta *= cinematic ? 0.918 : 0.89;
           }
         }
 
@@ -599,17 +610,23 @@ export function GlobalStockGlobe({
           Math.min(0.28, thetaRef.current + dragRef.current.theta)
         );
 
-        const routeIndex = reducedMotion
-          ? 0
-          : Math.floor(
-              (timestamp - animationStartRef.current) / ROUTE_SLOT_MS
-            ) % ROUTES.length;
+        const routeIndex =
+          cinematic && ROUTES.length
+            ? reducedMotion
+              ? 0
+              : Math.floor(
+                  (timestamp - animationStartRef.current) / ROUTE_SLOT_MS
+                ) % ROUTES.length
+            : -1;
 
         if (routeIndex !== activeRouteRef.current) {
           activeRouteRef.current = routeIndex;
 
           globeRef.current.update({
-            arcs: ROUTES.length ? [ROUTES[routeIndex]] : []
+            arcs:
+              routeIndex >= 0 && ROUTES[routeIndex]
+                ? [ROUTES[routeIndex]]
+                : []
           });
         }
 
@@ -619,7 +636,9 @@ export function GlobalStockGlobe({
         });
 
         const activeDestinationId =
-          MARKERS[routeIndex + 1]?.id ?? MARKERS[1]?.id ?? "";
+          routeIndex >= 0
+            ? (MARKERS[routeIndex + 1]?.id ?? "")
+            : "";
 
         const { width, height } = sizeRef.current;
 
