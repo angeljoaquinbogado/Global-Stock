@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, ShieldCheck, Trash2, Wrench } from "lucide-react";
+import { Mail, ShieldCheck, Wrench } from "lucide-react";
 
+import { AccountDeletionCard } from "@/components/AccountDeletionCard";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 export const metadata: Metadata = {
@@ -33,9 +34,9 @@ export default function SupportPage() {
             </p>
             <a
               className="mt-4 inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-              href="mailto:angeljoaquinbogado@gmail.com"
+              href="mailto:support.globalstock@gmail.com"
             >
-              angeljoaquinbogado@gmail.com
+              support.globalstock@gmail.com
             </a>
           </article>
 
@@ -49,28 +50,13 @@ export default function SupportPage() {
             </p>
             <a
               className="mt-4 inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-              href="mailto:joaquinbogado555@gmail.com"
+              href="mailto:support.globalstock@gmail.com"
             >
-              joaquinbogado555@gmail.com
+              support.globalstock@gmail.com
             </a>
           </article>
 
-          <article className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
-            <Trash2 size={19} className="text-red-500" />
-            <h2 className="mt-4 text-lg font-semibold">
-              Eliminación de cuenta y datos
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-white/52">
-              Podés solicitar el cierre de tu cuenta y la eliminación de los
-              datos asociados, sujeto a obligaciones legales de conservación.
-            </p>
-            <a
-              className="mt-4 inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-              href="mailto:joaquinbogado555@gmail.com?subject=Solicitud%20de%20eliminaci%C3%B3n%20de%20cuenta%20Global%20Stock"
-            >
-              Solicitar eliminación
-            </a>
-          </article>
+          <AccountDeletionCard />
         </div>
 
         <section className="mt-10 rounded-[28px] border border-white/10 bg-black p-6">
