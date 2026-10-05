@@ -113,28 +113,20 @@ function FloatingCard({
   const isTop = variant === "top";
 
   return (
-    <motion.div
+    <div
       className={
-        "absolute z-20 flex min-w-0 items-center gap-3 rounded-[18px] border bg-white px-3.5 py-3 text-[#101114] shadow-[0_16px_40px_rgba(2,6,23,.22)] sm:px-4 " +
+        "absolute z-20 flex min-w-0 transform-gpu items-center gap-2.5 rounded-[16px] border bg-white px-3 py-2.5 text-[#101114] shadow-[0_12px_30px_rgba(2,6,23,.18)] will-change-transform sm:px-3.5 " +
         (isTop
-          ? "left-[4%] top-[7%] w-[58%] max-w-[280px]"
-          : "left-[10%] top-[22%] w-[64%] max-w-[310px]")
+          ? "gs-sales-float-top left-[6%] top-[7%] w-[52%] max-w-[245px]"
+          : "gs-sales-float-bottom left-[11%] top-[20%] w-[56%] max-w-[265px]")
       }
-      animate={{
-        y: isTop ? [0, -5, 0] : [0, 5, 0],
-        x: isTop ? [0, 3, 0] : [0, -3, 0]
-      }}
-      transition={{
-        duration: isTop ? 5.8 : 6.4,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
       style={{
-        borderColor: isTop ? "rgba(15,23,42,.08)" : state.accent
+        borderColor: isTop ? "rgba(15,23,42,.08)" : state.accent,
+        backfaceVisibility: "hidden"
       }}
     >
       <span
-        className="grid h-9 w-9 shrink-0 place-items-center rounded-xl"
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
         style={{
           background: isTop ? "#F3F4F6" : state.soft,
           color: isTop ? "#64748B" : state.accent
@@ -158,18 +150,14 @@ function FloatingCard({
       >
         {isTop ? "$ 48.900" : state.total}
       </span>
-    </motion.div>
+    </div>
   );
 }
 
 function ReceiptMockup({
-  state,
-  index,
-  reducedMotion
+  state
 }: {
   state: ShowcaseState;
-  index: number;
-  reducedMotion: boolean | null;
 }) {
   const lineItems = useMemo(
     () => [
@@ -192,21 +180,9 @@ function ReceiptMockup({
   );
 
   return (
-    <motion.div
-      className="relative z-10 mx-auto mt-8 w-[78%] max-w-[410px] overflow-hidden rounded-[12px] bg-white text-[#111318] shadow-[0_28px_60px_rgba(2,6,23,.30)] sm:mt-10"
-      animate={
-        reducedMotion
-          ? undefined
-          : {
-              y: [0, -5, 0],
-              rotate: [0, index % 2 === 0 ? 0.25 : -0.25, 0]
-            }
-      }
-      transition={{
-        duration: 7,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }}
+    <div
+      className="gs-sales-receipt-float relative z-10 mx-auto mt-10 w-[72%] max-w-[370px] transform-gpu overflow-hidden rounded-[12px] bg-white text-[#111318] shadow-[0_24px_48px_rgba(2,6,23,.24)] will-change-transform sm:mt-11"
+      style={{ backfaceVisibility: "hidden" }}
     >
       <motion.div
         className="h-1.5 w-full"
@@ -340,7 +316,7 @@ function ReceiptMockup({
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
@@ -354,46 +330,89 @@ export function DownloadSalesFlow() {
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % showcaseStates.length);
-    }, 2850);
+    }, 4200);
 
     return () => window.clearInterval(timer);
   }, [reducedMotion]);
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-5 py-16 sm:px-8 sm:py-20 lg:py-24">
-      <div className="grid min-w-0 gap-12 lg:grid-cols-[minmax(0,.9fr)_minmax(0,1.1fr)] lg:items-center lg:gap-14 xl:gap-18">
+    <div className="mx-auto w-full max-w-[1240px] px-5 py-12 sm:px-8 sm:py-14 lg:py-16">
+      <style jsx global>{`
+        @keyframes gs-sales-float-top {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          25% { transform: translate3d(1px, -2px, 0); }
+          50% { transform: translate3d(2px, -4px, 0); }
+          75% { transform: translate3d(1px, -2px, 0); }
+        }
+
+        @keyframes gs-sales-float-bottom {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          25% { transform: translate3d(-1px, 2px, 0); }
+          50% { transform: translate3d(-2px, 4px, 0); }
+          75% { transform: translate3d(-1px, 2px, 0); }
+        }
+
+        @keyframes gs-sales-receipt-float {
+          0%, 100% { transform: translate3d(0, 0, 0); }
+          25% { transform: translate3d(0, -1px, 0); }
+          50% { transform: translate3d(0, -3px, 0); }
+          75% { transform: translate3d(0, -1px, 0); }
+        }
+
+        .gs-sales-float-top {
+          animation: gs-sales-float-top 8.8s linear infinite;
+        }
+
+        .gs-sales-float-bottom {
+          animation: gs-sales-float-bottom 9.4s linear infinite;
+        }
+
+        .gs-sales-receipt-float {
+          animation: gs-sales-receipt-float 10s linear infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .gs-sales-float-top,
+          .gs-sales-float-bottom,
+          .gs-sales-receipt-float {
+            animation: none;
+          }
+        }
+      `}</style>
+
+      <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,.94fr)_minmax(0,1.06fr)] lg:items-center lg:gap-12 xl:gap-14">
         <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-[0.17em] text-[#E32636]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.17em] text-[#E32636]">
             Cómo funciona
           </p>
 
-          <h2 className="mt-4 max-w-[620px] text-[clamp(2.4rem,4.3vw,4rem)] font-semibold leading-[.96] tracking-[-0.06em] text-white">
+          <h2 className="mt-3.5 max-w-[560px] text-[clamp(2.05rem,3.55vw,3.4rem)] font-semibold leading-[.98] tracking-[-0.055em] text-white">
             Vendé una vez.
             <span className="block text-white/38">
               Global Stock ordena todo lo demás.
             </span>
           </h2>
 
-          <p className="mt-6 max-w-[600px] text-[15px] leading-7 text-[#a8a8b0] sm:text-[17px]">
+          <p className="mt-5 max-w-[560px] text-[14px] leading-6 text-[#a8a8b0] sm:text-[15px]">
             Registrás la venta como lo harías en cualquier caja. Mientras vos seguís
             atendiendo, Global Stock actualiza el cobro, descuenta el stock y guarda
             el movimiento en segundo plano.
           </p>
 
-          <div className="mt-9 space-y-7">
+          <div className="mt-7 space-y-5">
             {benefits.map((item) => (
               <div
                 key={item.title}
-                className="grid grid-cols-[28px_minmax(0,1fr)] gap-3"
+                className="grid grid-cols-[26px_minmax(0,1fr)] gap-3"
               >
-                <span className="mt-0.5 grid h-7 w-7 place-items-center rounded-full bg-[#E32636]/10 text-[#ff727d]">
+                <span className="mt-0.5 grid h-[26px] w-[26px] place-items-center rounded-full bg-[#E32636]/10 text-[#ff727d]">
                   <Check size={14} />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-[15px] font-semibold leading-6 text-white/92">
+                  <h3 className="text-[14px] font-semibold leading-5 text-white/92 sm:text-[15px]">
                     {item.title}
                   </h3>
-                  <p className="mt-1.5 max-w-[540px] text-sm leading-6 text-white/46">
+                  <p className="mt-1.5 max-w-[500px] text-[13px] leading-5 text-white/46 sm:text-[13.5px]">
                     {item.body}
                   </p>
                 </div>
@@ -403,7 +422,7 @@ export function DownloadSalesFlow() {
 
           <Link
             href="/"
-            className="mt-9 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
+            className="mt-7 inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
           >
             Abrir punto de venta
             <ArrowRight size={14} />
@@ -411,17 +430,13 @@ export function DownloadSalesFlow() {
         </div>
 
         <div className="min-w-0">
-          <div className="relative min-h-[470px] overflow-hidden rounded-[30px] border border-white/[0.055] bg-[radial-gradient(circle_at_20%_100%,rgba(143,0,0,.28),transparent_34%),radial-gradient(circle_at_85%_0%,rgba(227,38,54,.08),transparent_30%),linear-gradient(145deg,#161923_0%,#10131b_58%,#0b0d12_100%)] p-4 shadow-[0_30px_80px_rgba(0,0,0,.30)] sm:min-h-[520px] sm:p-6">
+          <div className="relative min-h-[420px] overflow-hidden rounded-[28px] border border-white/[0.055] bg-[radial-gradient(circle_at_20%_100%,rgba(143,0,0,.24),transparent_34%),radial-gradient(circle_at_85%_0%,rgba(227,38,54,.07),transparent_30%),linear-gradient(145deg,#161923_0%,#10131b_58%,#0b0d12_100%)] p-4 shadow-[0_26px_64px_rgba(0,0,0,.28)] sm:min-h-[465px] sm:p-5">
             <div className="pointer-events-none absolute inset-0 opacity-[.18] [background-image:linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] [background-size:48px_48px]" />
 
             <FloatingCard state={state} variant="top" />
             <FloatingCard state={state} variant="bottom" />
 
-            <ReceiptMockup
-              state={state}
-              index={activeIndex}
-              reducedMotion={reducedMotion}
-            />
+            <ReceiptMockup state={state} />
 
             <div className="absolute bottom-5 right-5 z-30 flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/24 px-2 py-1.5 backdrop-blur-md sm:bottom-6 sm:right-6">
               {showcaseStates.map((item, index) => (
@@ -468,7 +483,7 @@ export function DownloadSalesFlow() {
             </div>
           </div>
 
-          <div className="mt-4 grid gap-3 sm:grid-cols-4">
+          <div className="mt-3 grid gap-2.5 sm:grid-cols-4">
             {[
               { icon: ReceiptText, label: "Venta" },
               { icon: CircleDollarSign, label: "Caja" },
@@ -480,7 +495,7 @@ export function DownloadSalesFlow() {
                 type="button"
                 onClick={() => setActiveIndex(index)}
                 className={
-                  "flex min-h-10 items-center justify-center gap-2 rounded-xl border px-3 text-[11px] font-semibold transition-colors " +
+                  "flex min-h-9 items-center justify-center gap-2 rounded-xl border px-3 text-[10px] font-semibold transition-colors " +
                   (activeIndex === index
                     ? "border-white/12 bg-white/[0.07] text-white"
                     : "border-white/[0.045] bg-white/[0.025] text-white/38 hover:bg-white/[0.05]")
