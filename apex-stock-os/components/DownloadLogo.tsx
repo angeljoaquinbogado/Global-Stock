@@ -7,7 +7,7 @@ export function DownloadLogo({
 }: ImgHTMLAttributes<HTMLImageElement>) {
   return (
     <img
-      src="/brand/global-stock-logo.png"
+      src="/brand/global-stock-mark.png"
       alt={alt}
       draggable={false}
       className={`object-contain ${className ?? ""}`}
