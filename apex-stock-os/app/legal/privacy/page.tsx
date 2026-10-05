@@ -145,14 +145,15 @@ export default function PrivacyPage() {
       <section>
         <h2>10. Eliminación de cuenta y datos</h2>
         <p>
-          Actualmente puede solicitarse el cierre de la cuenta y la eliminación
-          de los datos asociados escribiendo a{" "}
-          <a href="mailto:joaquinbogado555@gmail.com">
-            joaquinbogado555@gmail.com
-          </a>. La solicitud puede requerir verificación de identidad o de control
-          del negocio. La eliminación está sujeta a respaldos temporales,
-          prevención de fraude, seguridad y registros que deban conservarse por
-          una obligación legal o motivo legítimo documentado.
+          La persona autenticada puede iniciar la eliminación de su cuenta
+          directamente desde la página de Soporte de Global Stock. El flujo
+          exige confirmar el correo de la cuenta y una frase de eliminación. Si
+          la cuenta es propietaria de un espacio compartido con otros miembros,
+          primero debe transferir esa propiedad para evitar borrar datos de
+          terceros. Cuando la cuenta es la única propietaria de un espacio, la
+          eliminación de la cuenta también elimina ese espacio y los datos
+          asociados. Determinados registros pueden conservarse únicamente cuando
+          exista una obligación legal o un motivo legítimo documentado.
         </p>
       </section>
 
@@ -164,11 +165,11 @@ export default function PrivacyPage() {
           restricción o eliminación de sus datos. Algunas solicitudes pueden no
           corresponder en todas las jurisdicciones o pueden estar sujetas a
           excepciones legales. Consultas de privacidad:{" "}
-          <a href="mailto:joaquinbogado555@gmail.com">
-            joaquinbogado555@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>. Soporte general:{" "}
-          <a href="mailto:angeljoaquinbogado@gmail.com">
-            angeljoaquinbogado@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>.
         </p>
       </section>
