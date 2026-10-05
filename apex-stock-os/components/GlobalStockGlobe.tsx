@@ -27,6 +27,17 @@ type Projection = {
   visible: boolean;
 };
 
+type LabelLayout = {
+  marker: GlobeMarker;
+  projection: Projection;
+  active: boolean;
+  important: boolean;
+  width: number;
+  height: number;
+  x: number;
+  y: number;
+};
+
 const ARGENTINA: Location = [-34.6037, -58.3816];
 
 const MARKERS: GlobeMarker[] = [
@@ -264,22 +275,31 @@ function roundedRect(
   ctx.closePath();
 }
 
+function pinScale(
+  projection: Projection,
+  important: boolean,
+  pulseAmount: number
+) {
+  const depthFactor = Math.max(0, Math.min(1, projection.depth / 0.8));
+
+  return (
+    (important ? 1 : 0.82) *
+    (0.9 + depthFactor * 0.12) *
+    (1 + pulseAmount * 0.14)
+  );
+}
+
 function drawVectorPin(
   ctx: CanvasRenderingContext2D,
   marker: GlobeMarker,
   projection: Projection,
   activeDestination: boolean,
-  showAllLabels: boolean,
   pulseAmount: number
 ) {
   if (!projection.visible) return;
 
   const isImportant = marker.primary || activeDestination;
-  const depthFactor = Math.max(0, Math.min(1, projection.depth / 0.8));
-  const scale =
-    (isImportant ? 1 : 0.82) *
-    (0.9 + depthFactor * 0.12) *
-    (1 + pulseAmount * 0.14);
+  const scale = pinScale(projection, isImportant, pulseAmount);
   const pinHeight = 32 * scale;
   const pinWidth = 23 * scale;
   const x = projection.x;
@@ -367,45 +387,161 @@ function drawVectorPin(
 
   ctx.restore();
 
-  const showLabel = isImportant || showAllLabels;
-  if (!showLabel) return;
+}
 
+function boxesOverlap(a: LabelLayout, b: LabelLayout) {
+  const gap = 5;
+
+  return !(
+    a.x + a.width + gap <= b.x ||
+    b.x + b.width + gap <= a.x ||
+    a.y + a.height + gap <= b.y ||
+    b.y + b.height + gap <= a.y
+  );
+}
+
+function drawMarkerLabels(
+  ctx: CanvasRenderingContext2D,
+  markers: GlobeMarker[],
+  projections: Map<string, Projection>,
+  activeDestinationId: string,
+  showAllLabels: boolean,
+  strongestPulse: number,
+  width: number,
+  height: number
+) {
   ctx.save();
   ctx.font =
     "700 10px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif";
   ctx.textBaseline = "middle";
 
-  const textWidth = ctx.measureText(marker.label).width;
-  const labelWidth = textWidth + (isImportant ? 18 : 14);
-  const labelHeight = isImportant ? 24 : 20;
-  const preferredX = x + 14;
-  const maxX = ctx.canvas.width / (window.devicePixelRatio || 1) - labelWidth - 8;
-  const labelX = Math.min(preferredX, Math.max(8, maxX));
-  const labelY = y - pinHeight * 0.72 - labelHeight / 2;
+  const candidates = markers
+    .map((marker) => {
+      const projection = projections.get(marker.id);
+      if (!projection?.visible) return null;
 
-  roundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 7);
-  ctx.fillStyle = isImportant
-    ? "rgba(8,8,10,.88)"
-    : "rgba(8,8,10,.72)";
-  ctx.fill();
-  ctx.strokeStyle = marker.primary
-    ? "rgba(231,27,44,.72)"
-    : activeDestination
-      ? "rgba(255,255,255,.16)"
-      : "rgba(255,255,255,.08)";
-  ctx.lineWidth = 1;
-  ctx.stroke();
+      const active = marker.id === activeDestinationId;
+      const important = Boolean(marker.primary || active);
+      if (!important && !showAllLabels) return null;
 
-  ctx.fillStyle = marker.primary
-    ? "#ff6672"
-    : activeDestination
-      ? "#f3f3f5"
-      : "rgba(243,243,245,.72)";
-  ctx.fillText(
-    marker.label,
-    labelX + (isImportant ? 9 : 7),
-    labelY + labelHeight / 2 + 0.5
-  );
+      const pulse = active ? strongestPulse : 0;
+      const scale = pinScale(projection, important, pulse);
+      const pinHeight = 32 * scale;
+      const labelWidth =
+        ctx.measureText(marker.label).width + (important ? 18 : 14);
+      const labelHeight = important ? 24 : 20;
+
+      return {
+        marker,
+        projection,
+        active,
+        important,
+        width: labelWidth,
+        height: labelHeight,
+        x: projection.x,
+        y: projection.y - pinHeight * 0.72 - labelHeight / 2
+      } satisfies LabelLayout;
+    })
+    .filter((item): item is LabelLayout => Boolean(item))
+    .sort((a, b) => {
+      const priorityA = a.marker.primary ? 3 : a.active ? 2 : 1;
+      const priorityB = b.marker.primary ? 3 : b.active ? 2 : 1;
+
+      return priorityB - priorityA || a.projection.y - b.projection.y;
+    });
+
+  const placed: LabelLayout[] = [];
+  const verticalOffsets = [0, -24, 24, -48, 48, -72, 72, -96, 96];
+
+  for (const item of candidates) {
+    const prefersLeft = item.projection.x > width * 0.64;
+    const sideOrder = prefersLeft ? ["left", "right"] : ["right", "left"];
+    let chosen: LabelLayout | null = null;
+
+    for (const side of sideOrder) {
+      for (const offsetY of verticalOffsets) {
+        const rawX =
+          side === "left"
+            ? item.projection.x - 14 - item.width
+            : item.projection.x + 14;
+        const rawY = item.y + offsetY;
+        const candidate: LabelLayout = {
+          ...item,
+          x: Math.max(10, Math.min(width - item.width - 10, rawX)),
+          y: Math.max(10, Math.min(height - item.height - 10, rawY))
+        };
+
+        if (!placed.some((other) => boxesOverlap(candidate, other))) {
+          chosen = candidate;
+          break;
+        }
+      }
+
+      if (chosen) break;
+    }
+
+    if (!chosen) {
+      chosen = {
+        ...item,
+        x: Math.max(10, Math.min(width - item.width - 10, item.x + 14)),
+        y: Math.max(10, Math.min(height - item.height - 10, item.y))
+      };
+    }
+
+    placed.push(chosen);
+  }
+
+  for (const item of placed) {
+    const labelCenterY = item.y + item.height / 2;
+    const labelOnLeft = item.x + item.width / 2 < item.projection.x;
+    const connectorX = labelOnLeft ? item.x + item.width : item.x;
+
+    if (
+      Math.abs(labelCenterY - item.projection.y) > 11 ||
+      Math.abs(connectorX - item.projection.x) > 22
+    ) {
+      ctx.beginPath();
+      ctx.moveTo(item.projection.x, item.projection.y - 3);
+      ctx.lineTo(connectorX, labelCenterY);
+      ctx.strokeStyle = item.important
+        ? "rgba(255,72,86,.34)"
+        : "rgba(255,255,255,.12)";
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+    }
+
+    roundedRect(
+      ctx,
+      item.x,
+      item.y,
+      item.width,
+      item.height,
+      item.important ? 7 : 6
+    );
+    ctx.fillStyle = item.important
+      ? "rgba(8,8,10,.90)"
+      : "rgba(8,8,10,.76)";
+    ctx.fill();
+    ctx.strokeStyle = item.marker.primary
+      ? "rgba(231,27,44,.76)"
+      : item.active
+        ? "rgba(255,255,255,.18)"
+        : "rgba(255,255,255,.09)";
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = item.marker.primary
+      ? "#ff6672"
+      : item.active
+        ? "#f5f5f7"
+        : "rgba(243,243,245,.78)";
+    ctx.fillText(
+      item.marker.label,
+      item.x + (item.important ? 9 : 7),
+      item.y + item.height / 2 + 0.5
+    );
+  }
+
   ctx.restore();
 }
 
@@ -504,10 +640,20 @@ function paintNetworkOverlay(
       marker,
       projection,
       marker.id === activeDestinationId,
-      showAllLabels,
       marker.id === activeDestinationId ? strongestPulse : 0
     );
   }
+
+  drawMarkerLabels(
+    ctx,
+    markers,
+    projections,
+    activeDestinationId,
+    showAllLabels,
+    strongestPulse,
+    width,
+    height
+  );
 }
 
 export function GlobalStockGlobe({
