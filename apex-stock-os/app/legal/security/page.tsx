@@ -91,8 +91,8 @@ export default function SecurityPage() {
           Si encontrás una vulnerabilidad o un comportamiento que pueda exponer
           datos, credenciales o permisos de otro usuario, informalo de forma
           responsable a{" "}
-          <a href="mailto:angeljoaquinbogado@gmail.com">
-            angeljoaquinbogado@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>{" "}
           con una descripción reproducible. Evitá acceder, copiar o alterar datos
           que no te pertenecen.
