@@ -1,6 +1,6 @@
 "use client";
 
-import createGlobe, { type Arc, type Globe } from "cobe";
+import createGlobe, { type Globe } from "cobe";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import { useCallback, useEffect, useRef } from "react";
 
@@ -11,6 +11,13 @@ type GlobeMarker = {
   label: string;
   location: Location;
   primary?: boolean;
+};
+
+type GlobeRoute = {
+  id: string;
+  destinationId: string;
+  from: Location;
+  to: Location;
 };
 
 type Projection = {
@@ -61,16 +68,25 @@ const MARKERS: GlobeMarker[] = [
   }
 ];
 
-const ROUTES: Arc[] = MARKERS.filter((marker) => !marker.primary).map(
-  (marker) => ({
-    id: "argentina-" + marker.id,
-    from: ARGENTINA,
-    to: marker.location,
-    color: [0.96, 0.08, 0.12]
-  })
-);
+const ROUTES: GlobeRoute[] = MARKERS.filter(
+  (marker) => !marker.primary
+).map((marker) => ({
+  id: "argentina-" + marker.id,
+  destinationId: marker.id,
+  from: ARGENTINA,
+  to: marker.location
+}));
 
-const ROUTE_SLOT_MS = 2800;
+// Closely mirrors the reference video: pins are already present, then the
+// network propagates quickly from one origin, holds, softly fades, and repeats.
+const NETWORK_STAGGER_MS = 210;
+const NETWORK_DRAW_MS = 680;
+const NETWORK_HOLD_MS = 2200;
+const NETWORK_FADE_MS = 700;
+const NETWORK_BUILD_MS =
+  Math.max(0, ROUTES.length - 1) * NETWORK_STAGGER_MS + NETWORK_DRAW_MS;
+const NETWORK_CYCLE_MS =
+  NETWORK_BUILD_MS + NETWORK_HOLD_MS + NETWORK_FADE_MS;
 const GLOBE_RADIUS = 0.8;
 const GLOBE_SCALE = 0.98;
 
@@ -134,6 +150,92 @@ function projectLocation(
   };
 }
 
+function clamp01(value: number) {
+  return Math.max(0, Math.min(1, value));
+}
+
+function easeOutCubic(value: number) {
+  const t = clamp01(value);
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function quadraticPoint(
+  from: Projection,
+  control: { x: number; y: number },
+  to: Projection,
+  t: number
+) {
+  const inv = 1 - t;
+
+  return {
+    x: inv * inv * from.x + 2 * inv * t * control.x + t * t * to.x,
+    y: inv * inv * from.y + 2 * inv * t * control.y + t * t * to.y
+  };
+}
+
+function drawAnimatedRoute(
+  ctx: CanvasRenderingContext2D,
+  from: Projection,
+  to: Projection,
+  progress: number,
+  opacity: number,
+  routeIndex: number
+) {
+  if (!from.visible || !to.visible || progress <= 0 || opacity <= 0) return;
+
+  const eased = easeOutCubic(progress);
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const distance = Math.max(1, Math.hypot(dx, dy));
+  const bend = Math.min(22, distance * 0.055) * (routeIndex % 2 === 0 ? 1 : -1);
+  const control = {
+    x: (from.x + to.x) / 2 - (dy / distance) * bend,
+    y: (from.y + to.y) / 2 + (dx / distance) * bend
+  };
+  const steps = Math.max(10, Math.ceil(34 * eased));
+
+  const trace = () => {
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+
+    for (let step = 1; step <= steps; step += 1) {
+      const t = (step / steps) * eased;
+      const point = quadraticPoint(from, control, to, t);
+      ctx.lineTo(point.x, point.y);
+    }
+  };
+
+  ctx.save();
+  ctx.globalAlpha = opacity;
+
+  trace();
+  ctx.strokeStyle = "rgba(143,0,0,.54)";
+  ctx.lineWidth = 2.4;
+  ctx.shadowColor = "rgba(255,20,38,.22)";
+  ctx.shadowBlur = 8;
+  ctx.stroke();
+
+  trace();
+  ctx.strokeStyle = "rgba(255,43,59,.88)";
+  ctx.lineWidth = 1.05;
+  ctx.shadowColor = "rgba(255,31,49,.78)";
+  ctx.shadowBlur = 12;
+  ctx.stroke();
+
+  if (eased < 0.995) {
+    const head = quadraticPoint(from, control, to, eased);
+
+    ctx.beginPath();
+    ctx.arc(head.x, head.y, 2.5, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,105,116,.98)";
+    ctx.shadowColor = "rgba(255,32,50,.96)";
+    ctx.shadowBlur = 16;
+    ctx.fill();
+  }
+
+  ctx.restore();
+}
+
 function roundedRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -167,13 +269,17 @@ function drawVectorPin(
   marker: GlobeMarker,
   projection: Projection,
   activeDestination: boolean,
-  showAllLabels: boolean
+  showAllLabels: boolean,
+  pulseAmount: number
 ) {
   if (!projection.visible) return;
 
   const isImportant = marker.primary || activeDestination;
   const depthFactor = Math.max(0, Math.min(1, projection.depth / 0.8));
-  const scale = (isImportant ? 1 : 0.82) * (0.9 + depthFactor * 0.12);
+  const scale =
+    (isImportant ? 1 : 0.82) *
+    (0.9 + depthFactor * 0.12) *
+    (1 + pulseAmount * 0.14);
   const pinHeight = 32 * scale;
   const pinWidth = 23 * scale;
   const x = projection.x;
@@ -186,7 +292,7 @@ function drawVectorPin(
   ctx.shadowColor = isImportant
     ? "rgba(255,36,53,.62)"
     : "rgba(183,18,31,.34)";
-  ctx.shadowBlur = isImportant ? 14 : 8;
+  ctx.shadowBlur = (isImportant ? 14 : 8) + pulseAmount * 10;
 
   ctx.beginPath();
   ctx.moveTo(0, 0);
@@ -303,16 +409,18 @@ function drawVectorPin(
   ctx.restore();
 }
 
-function paintPins(
+function paintNetworkOverlay(
   canvas: HTMLCanvasElement,
   markers: GlobeMarker[],
-  activeDestinationId: string,
+  routes: GlobeRoute[],
+  networkElapsed: number,
   phi: number,
   theta: number,
   width: number,
   height: number,
   dpr: number,
-  showAllLabels: boolean
+  showAllLabels: boolean,
+  reducedMotion: boolean
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -320,21 +428,84 @@ function paintPins(
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, width, height);
 
+  const projections = new Map<string, Projection>();
   for (const marker of markers) {
-    const projection = projectLocation(
-      marker.location,
-      phi,
-      theta,
-      width,
-      height
+    projections.set(
+      marker.id,
+      projectLocation(marker.location, phi, theta, width, height)
     );
+  }
+
+  const argentinaProjection = projections.get("argentina");
+  let activeDestinationId = "";
+  let strongestPulse = 0;
+
+  const fadeStart = NETWORK_BUILD_MS + NETWORK_HOLD_MS;
+  const networkOpacity = reducedMotion
+    ? 1
+    : networkElapsed <= fadeStart
+      ? 1
+      : 1 - clamp01((networkElapsed - fadeStart) / NETWORK_FADE_MS);
+
+  if (argentinaProjection) {
+    ctx.save();
+    const globeRadius = Math.min(width, height) * 0.49;
+    ctx.beginPath();
+    ctx.arc(width / 2, height / 2, globeRadius, 0, Math.PI * 2);
+    ctx.clip();
+
+    routes.forEach((route, index) => {
+      const destinationProjection = projections.get(route.destinationId);
+      if (!destinationProjection) return;
+
+      const startAt = index * NETWORK_STAGGER_MS;
+      const localTime = reducedMotion
+        ? NETWORK_DRAW_MS
+        : networkElapsed - startAt;
+      const progress = reducedMotion
+        ? 1
+        : clamp01(localTime / NETWORK_DRAW_MS);
+
+      if (localTime >= 0 && progress > 0) {
+        drawAnimatedRoute(
+          ctx,
+          argentinaProjection,
+          destinationProjection,
+          progress,
+          networkOpacity,
+          index
+        );
+      }
+
+      if (!reducedMotion && localTime >= 0) {
+        activeDestinationId = route.destinationId;
+      }
+
+      const arrivalAt = startAt + NETWORK_DRAW_MS;
+      const pulse = reducedMotion
+        ? 0
+        : clamp01(1 - Math.abs(networkElapsed - arrivalAt) / 240);
+
+      if (pulse > strongestPulse) {
+        strongestPulse = pulse;
+        activeDestinationId = route.destinationId;
+      }
+    });
+
+    ctx.restore();
+  }
+
+  for (const marker of markers) {
+    const projection = projections.get(marker.id);
+    if (!projection) continue;
 
     drawVectorPin(
       ctx,
       marker,
       projection,
       marker.id === activeDestinationId,
-      showAllLabels
+      showAllLabels,
+      marker.id === activeDestinationId ? strongestPulse : 0
     );
   }
 }
@@ -365,12 +536,16 @@ export function GlobalStockGlobe({
     null
   );
   const velocityRef = useRef({ phi: 0, theta: 0 });
-  const animationStartRef = useRef(0);
+  const networkStartRef = useRef(0);
   const lastFrameRef = useRef(0);
-  const activeRouteRef = useRef(-1);
 
   useEffect(() => {
+    const wasActive = activeRef.current;
     activeRef.current = active;
+
+    if (wasActive && !active) {
+      networkStartRef.current = performance.now();
+    }
   }, [active]);
 
   const handlePointerMove = useCallback((event: PointerEvent) => {
@@ -501,7 +676,7 @@ export function GlobalStockGlobe({
     };
 
     readSize();
-    animationStartRef.current = performance.now();
+    networkStartRef.current = performance.now();
 
     const globe = createGlobe(canvas, {
       devicePixelRatio: dpr,
@@ -527,7 +702,7 @@ export function GlobalStockGlobe({
       // No native marker billboards and no DOM anchors. Every pin below is a
       // custom vector rendered on our own canvas from the exact globe transform.
       markers: [],
-      arcs: ROUTES.length ? [ROUTES[0]] : [],
+      arcs: [],
       context: {
         alpha: true,
         antialias: true,
@@ -626,48 +801,29 @@ export function GlobalStockGlobe({
           Math.min(0.28, thetaRef.current + dragRef.current.theta)
         );
 
-        const routeIndex = ROUTES.length
-          ? reducedMotion
-            ? 0
-            : Math.floor(
-                (timestamp - animationStartRef.current) /
-                  (cinematic ? ROUTE_SLOT_MS : ROUTE_SLOT_MS + 700)
-              ) % ROUTES.length
-          : -1;
-
-        if (routeIndex !== activeRouteRef.current) {
-          activeRouteRef.current = routeIndex;
-
-          globeRef.current.update({
-            arcs:
-              routeIndex >= 0 && ROUTES[routeIndex]
-                ? [ROUTES[routeIndex]]
-                : []
-          });
-        }
+        const networkElapsed = reducedMotion
+          ? NETWORK_BUILD_MS
+          : (timestamp - networkStartRef.current) % NETWORK_CYCLE_MS;
 
         globeRef.current.update({
           phi,
           theta
         });
 
-        const activeDestinationId =
-          routeIndex >= 0
-            ? (MARKERS[routeIndex + 1]?.id ?? "")
-            : "";
-
         const { width, height } = sizeRef.current;
 
-        paintPins(
+        paintNetworkOverlay(
           pinsCanvas,
           MARKERS,
-          activeDestinationId,
+          ROUTES,
+          networkElapsed,
           phi,
           theta,
           width,
           height,
           dpr,
-          !cinematic
+          !cinematic,
+          reducedMotion
         );
       }
 
