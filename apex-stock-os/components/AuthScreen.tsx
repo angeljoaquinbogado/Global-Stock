@@ -23,6 +23,7 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
 import { BusinessTypePicker, type BusinessTypeValue } from "./BusinessTypePicker";
 import { Logo } from "./Logo";
+import { GoogleIdentityButton } from "./GoogleIdentityButton";
 
 const AuthScene = dynamic(
   () => import("./AuthScene").then((module) => module.AuthScene),
@@ -569,23 +570,6 @@ export function AuthScreen({
     }
   }
 
-  async function signInWithGoogle() {
-    setError("");
-    const supabase = getSupabaseBrowserClient();
-
-    if (!supabase) {
-      setError(labels.oauthSetup);
-      return;
-    }
-
-    const { error: authError } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: window.location.origin }
-    });
-
-    if (authError) setError(labels.authError);
-  }
-
   const surfaceClass = dark
     ? "border-white/12 bg-black/[0.78] text-white shadow-[0_38px_120px_rgba(0,0,0,.62)]"
     : "border-black/10 bg-white/[0.96] text-[#111114] shadow-[0_32px_90px_rgba(0,0,0,.26)]";
@@ -990,18 +974,14 @@ export function AuthScreen({
                       {mode === "signin" ? labels.enter : labels.create}
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={signInWithGoogle}
-                      className={
-                        "w-full rounded-2xl border px-5 py-3 text-[13px] font-semibold transition active:scale-[.99] " +
-                        (dark
-                          ? "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.11]"
-                          : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
-                      }
-                    >
-                      {labels.google}
-                    </button>
+                    <GoogleIdentityButton
+                      dark={dark}
+                      label={labels.google}
+                      language={language}
+                      currency={currency}
+                      onAuthenticated={() => onAuthenticated()}
+                      onError={() => setError(labels.authError)}
+                    />
                   </form>
                 </motion.div>
               </AnimatePresence>
