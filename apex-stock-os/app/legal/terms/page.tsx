@@ -21,11 +21,11 @@ export default function TermsPage() {
           por <strong>Angel Joaquin Bogado</strong>, con base en la Provincia de
           Buenos Aires, Argentina. Global Stock no constituye hoy una sociedad
           separada del operador. Soporte:{" "}
-          <a href="mailto:angeljoaquinbogado@gmail.com">
-            angeljoaquinbogado@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>. Asuntos legales o de privacidad:{" "}
-          <a href="mailto:joaquinbogado555@gmail.com">
-            joaquinbogado555@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>.
         </p>
       </section>
@@ -171,11 +171,11 @@ export default function TermsPage() {
         <h2>14. Contacto</h2>
         <p>
           Consultas de soporte:{" "}
-          <a href="mailto:angeljoaquinbogado@gmail.com">
-            angeljoaquinbogado@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>. Consultas legales o de privacidad:{" "}
-          <a href="mailto:joaquinbogado555@gmail.com">
-            joaquinbogado555@gmail.com
+          <a href="mailto:support.globalstock@gmail.com">
+            support.globalstock@gmail.com
           </a>.
         </p>
       </section>
