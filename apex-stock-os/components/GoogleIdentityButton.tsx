@@ -16,18 +16,7 @@ type GoogleIdentityApi = {
     nonce?: string;
     use_fedcm_for_prompt?: boolean;
   }) => void;
-  renderButton: (
-    parent: HTMLElement,
-    options: {
-      type: "standard";
-      theme: "outline" | "filled_black";
-      size: "large";
-      text: "continue_with";
-      shape: "rectangular";
-      logo_alignment: "left";
-      width: number;
-    }
-  ) => void;
+  prompt: () => void;
 };
 
 declare global {
@@ -104,6 +93,33 @@ async function createGoogleNonce() {
   return { nonce, hashedNonce };
 }
 
+function GoogleMark() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 18 18"
+      className="h-[18px] w-[18px] shrink-0"
+    >
+      <path
+        fill="#4285F4"
+        d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.909c1.702-1.567 2.683-3.878 2.683-6.615Z"
+      />
+      <path
+        fill="#34A853"
+        d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.258c-.806.54-1.835.86-3.047.86-2.344 0-4.328-1.585-5.037-3.714H.957v2.332A9 9 0 0 0 9 18Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M3.963 10.708A5.42 5.42 0 0 1 3.682 9c0-.593.102-1.168.281-1.708V4.96H.957A9 9 0 0 0 0 9c0 1.45.347 2.824.957 4.04l3.006-2.332Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M9 3.58c1.322 0 2.508.454 3.442 1.345l2.582-2.582C13.463.89 11.427 0 9 0A9 9 0 0 0 .957 4.96l3.006 2.332C4.672 5.163 6.656 3.58 9 3.58Z"
+      />
+    </svg>
+  );
+}
+
 type GoogleIdentityButtonProps = {
   dark: boolean;
   label: string;
@@ -121,7 +137,6 @@ export function GoogleIdentityButton({
   onAuthenticated,
   onError
 }: GoogleIdentityButtonProps) {
-  const hostRef = useRef<HTMLDivElement>(null);
   const latestRef = useRef({
     language,
     currency,
@@ -129,6 +144,7 @@ export function GoogleIdentityButton({
     onError
   });
   const [pending, setPending] = useState(false);
+  const [ready, setReady] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID?.trim();
 
@@ -137,8 +153,7 @@ export function GoogleIdentityButton({
   }, [language, currency, onAuthenticated, onError]);
 
   useEffect(() => {
-    const host = hostRef.current;
-    if (!host || !clientId) return;
+    if (!clientId) return;
 
     let cancelled = false;
 
@@ -206,21 +221,7 @@ export function GoogleIdentityButton({
         }
       });
 
-      const width = Math.max(
-        240,
-        Math.min(400, Math.floor(host.getBoundingClientRect().width || 400))
-      );
-
-      host.replaceChildren();
-      window.google.accounts.id.renderButton(host, {
-        type: "standard",
-        theme: dark ? "filled_black" : "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "rectangular",
-        logo_alignment: "left",
-        width
-      });
+      setReady(true);
     };
 
     void setup().catch(() => {
@@ -229,36 +230,47 @@ export function GoogleIdentityButton({
 
     return () => {
       cancelled = true;
-      host.replaceChildren();
     };
-  }, [clientId, dark]);
+  }, [clientId]);
 
-  if (!clientId || unavailable) {
-    return (
-      <button
-        type="button"
-        onClick={onError}
-        className={
-          "w-full rounded-2xl border px-5 py-3 text-[13px] font-semibold transition active:scale-[.99] " +
-          (dark
-            ? "border-white/12 bg-white/[0.06] text-white hover:bg-white/[0.11]"
-            : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
-        }
-      >
-        {label}
-      </button>
-    );
-  }
+  const handleGoogleClick = () => {
+    if (!ready || unavailable || !window.google?.accounts?.id) {
+      onError();
+      return;
+    }
+
+    window.google.accounts.id.prompt();
+  };
 
   return (
-    <div
-      className={
-        "relative min-h-[44px] w-full overflow-hidden rounded-2xl transition " +
-        (pending ? "pointer-events-none opacity-60" : "")
-      }
+    <button
+      type="button"
+      onClick={handleGoogleClick}
+      disabled={pending || !ready || unavailable || !clientId}
       aria-busy={pending}
+      className={
+        "group relative flex min-h-[46px] w-full items-center justify-center gap-3 overflow-hidden rounded-2xl border px-5 py-3 text-[13px] font-semibold transition duration-150 active:scale-[.99] disabled:cursor-not-allowed disabled:opacity-55 " +
+        (dark
+          ? "border-white/12 bg-white/[0.06] text-white shadow-[inset_0_1px_0_rgba(255,255,255,.04)] hover:border-white/18 hover:bg-white/[0.10]"
+          : "border-black/10 bg-white text-[#111114] shadow-[0_1px_0_rgba(0,0,0,.03)] hover:bg-[#F5F5F7]")
+      }
     >
-      <div ref={hostRef} className="min-h-[44px] w-full" />
-    </div>
+      <span
+        aria-hidden="true"
+        className={
+          "grid h-7 w-7 place-items-center rounded-full transition-transform duration-150 group-hover:scale-[1.03] " +
+          (dark ? "bg-white/[0.08]" : "bg-[#F5F5F7]")
+        }
+      >
+        <GoogleMark />
+      </span>
+
+      <span>{pending ? "Conectando…" : label}</span>
+
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-8 bottom-0 h-px bg-gradient-to-r from-transparent via-[#8F0000]/45 to-transparent opacity-0 transition-opacity group-hover:opacity-100"
+      />
+    </button>
   );
 }
