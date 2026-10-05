@@ -166,7 +166,8 @@ function drawVectorPin(
   ctx: CanvasRenderingContext2D,
   marker: GlobeMarker,
   projection: Projection,
-  activeDestination: boolean
+  activeDestination: boolean,
+  showAllLabels: boolean
 ) {
   if (!projection.visible) return;
 
@@ -260,7 +261,8 @@ function drawVectorPin(
 
   ctx.restore();
 
-  if (!isImportant) return;
+  const showLabel = isImportant || showAllLabels;
+  if (!showLabel) return;
 
   ctx.save();
   ctx.font =
@@ -268,24 +270,36 @@ function drawVectorPin(
   ctx.textBaseline = "middle";
 
   const textWidth = ctx.measureText(marker.label).width;
-  const labelWidth = textWidth + 18;
-  const labelHeight = 24;
+  const labelWidth = textWidth + (isImportant ? 18 : 14);
+  const labelHeight = isImportant ? 24 : 20;
   const preferredX = x + 14;
   const maxX = ctx.canvas.width / (window.devicePixelRatio || 1) - labelWidth - 8;
   const labelX = Math.min(preferredX, Math.max(8, maxX));
   const labelY = y - pinHeight * 0.72 - labelHeight / 2;
 
   roundedRect(ctx, labelX, labelY, labelWidth, labelHeight, 7);
-  ctx.fillStyle = "rgba(8,8,10,.88)";
+  ctx.fillStyle = isImportant
+    ? "rgba(8,8,10,.88)"
+    : "rgba(8,8,10,.72)";
   ctx.fill();
   ctx.strokeStyle = marker.primary
     ? "rgba(231,27,44,.72)"
-    : "rgba(255,255,255,.10)";
+    : activeDestination
+      ? "rgba(255,255,255,.16)"
+      : "rgba(255,255,255,.08)";
   ctx.lineWidth = 1;
   ctx.stroke();
 
-  ctx.fillStyle = marker.primary ? "#ff6672" : "#f3f3f5";
-  ctx.fillText(marker.label, labelX + 9, labelY + labelHeight / 2 + 0.5);
+  ctx.fillStyle = marker.primary
+    ? "#ff6672"
+    : activeDestination
+      ? "#f3f3f5"
+      : "rgba(243,243,245,.72)";
+  ctx.fillText(
+    marker.label,
+    labelX + (isImportant ? 9 : 7),
+    labelY + labelHeight / 2 + 0.5
+  );
   ctx.restore();
 }
 
@@ -297,7 +311,8 @@ function paintPins(
   theta: number,
   width: number,
   height: number,
-  dpr: number
+  dpr: number,
+  showAllLabels: boolean
 ) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
@@ -318,7 +333,8 @@ function paintPins(
       ctx,
       marker,
       projection,
-      marker.id === activeDestinationId
+      marker.id === activeDestinationId,
+      showAllLabels
     );
   }
 }
@@ -583,8 +599,8 @@ export function GlobalStockGlobe({
                 ? 0.00004
                 : 0.000065
               : coarsePointer
-                ? 0.000055
-                : 0.000085;
+                ? 0.00055
+                : 0.0008;
           }
 
           if (Math.abs(velocityRef.current.phi) > 0.00004) {
@@ -610,14 +626,14 @@ export function GlobalStockGlobe({
           Math.min(0.28, thetaRef.current + dragRef.current.theta)
         );
 
-        const routeIndex =
-          cinematic && ROUTES.length
-            ? reducedMotion
-              ? 0
-              : Math.floor(
-                  (timestamp - animationStartRef.current) / ROUTE_SLOT_MS
-                ) % ROUTES.length
-            : -1;
+        const routeIndex = ROUTES.length
+          ? reducedMotion
+            ? 0
+            : Math.floor(
+                (timestamp - animationStartRef.current) /
+                  (cinematic ? ROUTE_SLOT_MS : ROUTE_SLOT_MS + 700)
+              ) % ROUTES.length
+          : -1;
 
         if (routeIndex !== activeRouteRef.current) {
           activeRouteRef.current = routeIndex;
@@ -650,7 +666,8 @@ export function GlobalStockGlobe({
           theta,
           width,
           height,
-          dpr
+          dpr,
+          !cinematic
         );
       }
 
