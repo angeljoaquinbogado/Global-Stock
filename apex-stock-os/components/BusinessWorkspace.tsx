@@ -1260,7 +1260,7 @@ export function BusinessWorkspace({
       window.removeEventListener("resize", updateSidebarScroll);
       observer?.disconnect();
     };
-  }, [language, visibleModuleIds.size]);
+  }, [demoMode, language, memberRole]);
 
   function scrollSidebar(direction: "up" | "down") {
     const nav = sidebarNavRef.current;
