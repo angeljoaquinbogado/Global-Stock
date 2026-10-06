@@ -11,6 +11,8 @@ import {
   Building2,
   CircleDollarSign,
   ClipboardList,
+  ChevronDown,
+  ChevronUp,
   LogOut,
   ReceiptText,
   ShoppingBag,
@@ -1197,6 +1199,13 @@ export function BusinessWorkspace({
   const [businessDescription, setBusinessDescription] = useState("");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
+  const sidebarNavRef = useRef<HTMLElement>(null);
+  const [sidebarScroll, setSidebarScroll] = useState({
+    visible: false,
+    canUp: false,
+    canDown: false,
+    progress: 0
+  });
   const [scannerOpen, setScannerOpen] = useState(false);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
@@ -1214,6 +1223,56 @@ export function BusinessWorkspace({
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const cloudSaveTimerRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    const nav = sidebarNavRef.current;
+    if (!nav) return;
+
+    const updateSidebarScroll = () => {
+      const maxScroll = Math.max(0, nav.scrollHeight - nav.clientHeight);
+      const visible = maxScroll > 4;
+      const progress = maxScroll > 0 ? nav.scrollTop / maxScroll : 0;
+
+      setSidebarScroll({
+        visible,
+        canUp: nav.scrollTop > 2,
+        canDown: nav.scrollTop < maxScroll - 2,
+        progress: Math.min(1, Math.max(0, progress))
+      });
+    };
+
+    updateSidebarScroll();
+
+    nav.addEventListener("scroll", updateSidebarScroll, { passive: true });
+    window.addEventListener("resize", updateSidebarScroll);
+
+    const observer =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(updateSidebarScroll)
+        : null;
+
+    observer?.observe(nav);
+    const firstChild = nav.firstElementChild;
+    if (firstChild instanceof HTMLElement) observer?.observe(firstChild);
+
+    return () => {
+      nav.removeEventListener("scroll", updateSidebarScroll);
+      window.removeEventListener("resize", updateSidebarScroll);
+      observer?.disconnect();
+    };
+  }, [language, visibleModuleIds.size]);
+
+  function scrollSidebar(direction: "up" | "down") {
+    const nav = sidebarNavRef.current;
+    if (!nav) return;
+
+    nav.scrollBy({
+      top:
+        (direction === "down" ? 1 : -1) *
+        Math.max(180, Math.round(nav.clientHeight * 0.72)),
+      behavior: "smooth"
+    });
+  }
 
   useEffect(() => {
     if (!demoMode) return;
@@ -3512,11 +3571,14 @@ export function BusinessWorkspace({
 
   return (
     <main className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
+      <aside className="relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
-        <div className="mt-6 min-h-0 flex-1">
-          <nav className="gs-sidebar-nav h-full overflow-y-auto pr-1 pt-1">
+        <div className="relative mt-6 min-h-0 flex-1">
+          <nav
+            ref={sidebarNavRef}
+            className="gs-sidebar-nav h-full overflow-y-auto pr-1 pt-1"
+          >
             <div className="space-y-5 pb-4">
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
@@ -3568,6 +3630,70 @@ export function BusinessWorkspace({
               })}
             </div>
           </nav>
+
+          {sidebarScroll.visible ? (
+            <div className="gs-sidebar-scroll-control absolute -right-[31px] top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex">
+              <button
+                type="button"
+                onClick={() => scrollSidebar("up")}
+                disabled={!sidebarScroll.canUp}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_24px_rgba(0,0,0,.16)] transition-[background-color,color,border-color,opacity,transform] duration-150 enabled:hover:border-[#8F0000]/45 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:scale-95 disabled:cursor-default disabled:opacity-25"
+                aria-label={
+                  language === "es"
+                    ? "Subir en el menú"
+                    : language === "pt"
+                      ? "Subir no menu"
+                      : language === "fr"
+                        ? "Monter dans le menu"
+                        : language === "de"
+                          ? "Im Menü nach oben"
+                          : "Scroll menu up"
+                }
+              >
+                <ChevronUp size={15} strokeWidth={2} />
+              </button>
+
+              <div
+                className="relative flex h-[118px] w-6 items-center justify-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] shadow-[0_8px_24px_rgba(0,0,0,.14)]"
+                aria-hidden="true"
+              >
+                <div className="absolute inset-y-3 left-1/2 w-[3px] -translate-x-1/2 rounded-full bg-[var(--apex-border)]" />
+                {[0, 0.25, 0.5, 0.75, 1].map((step) => (
+                  <span
+                    key={step}
+                    className="absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-[var(--apex-muted)]/35"
+                    style={{ top: `calc(12px + ${step * 88}px)` }}
+                  />
+                ))}
+                <span
+                  className="absolute left-1/2 h-5 w-[5px] -translate-x-1/2 rounded-full bg-[#8F0000] shadow-[0_0_12px_rgba(143,0,0,.26)] transition-[top] duration-150"
+                  style={{
+                    top: `calc(10px + ${sidebarScroll.progress * 86}px)`
+                  }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => scrollSidebar("down")}
+                disabled={!sidebarScroll.canDown}
+                className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_24px_rgba(0,0,0,.16)] transition-[background-color,color,border-color,opacity,transform] duration-150 enabled:hover:border-[#8F0000]/45 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:scale-95 disabled:cursor-default disabled:opacity-25"
+                aria-label={
+                  language === "es"
+                    ? "Bajar en el menú"
+                    : language === "pt"
+                      ? "Descer no menu"
+                      : language === "fr"
+                        ? "Descendre dans le menu"
+                        : language === "de"
+                          ? "Im Menü nach unten"
+                          : "Scroll menu down"
+                }
+              >
+                <ChevronDown size={15} strokeWidth={2} />
+              </button>
+            </div>
+          ) : null}
         </div>
 
         <div className="mt-auto space-y-3 pt-4">
@@ -4698,1172 +4824,3 @@ function PosModule({
         </section>
 
         <aside className="apex-card h-fit p-5 xl:sticky xl:top-24">
-          <h2 className="text-lg font-semibold">{labels.cart}</h2>
-
-          {!cartLines.length ? (
-            <p className="mt-4 text-sm text-[var(--apex-muted)]">
-              {labels.emptyCart}
-            </p>
-          ) : (
-            <div className="mt-4 space-y-3">
-              {cartLines.map(
-                ({ cartKey, product, variant, quantity }) => {
-                  const lineAvailable = variant
-                    ? selectedLocation
-                      ? variant.stockByLocation[selectedLocation] ?? 0
-                      : variant.stock
-                    : selectedLocation
-                      ? sellableStockByLocation[product.id]?.[
-                          selectedLocation
-                        ] ?? 0
-                      : sellableStockById.get(product.id) ?? product.stock;
-
-                  return (
-                <div
-                  key={cartKey}
-                  className="rounded-2xl border border-[var(--apex-border)] p-3"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {product.name}
-                      </p>
-                      {variant && (
-                        <p className="mt-1 text-[10px] font-semibold text-[#8F0000]">
-                          {variant.name}
-                        </p>
-                      )}
-                      <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-                        {money(variant?.price ?? product.price)}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setQuantity(
-                            cartKey,
-                            quantity - 1,
-                            lineAvailable
-                          )
-                        }
-                        className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
-                      >
-                        <Minus size={14} />
-                      </button>
-                      <span className="w-5 text-center text-sm font-semibold">
-                        {quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setQuantity(
-                            cartKey,
-                            quantity + 1,
-                            lineAvailable
-                          )
-                        }
-                        className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)]"
-                      >
-                        <Plus size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-                  );
-                }
-              )}
-            </div>
-          )}
-
-          <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm">
-            {promotionDiscount > 0 && (
-              <>
-                <div className="flex items-center justify-between">
-                  <span className="text-[var(--apex-muted)]">
-                    {language === "es" ? "Subtotal" : "Subtotal"}
-                  </span>
-                  <span>{money(cartSubtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between text-emerald-600">
-                  <span>
-                    {promotionLabel ||
-                      (language === "es" ? "Promoción" : "Promotion")}
-                  </span>
-                  <strong>-{money(promotionDiscount)}</strong>
-                </div>
-              </>
-            )}
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--apex-muted)]">
-                {labels.total}
-              </span>
-              <strong>{money(cartTotal)}</strong>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-[var(--apex-muted)]">
-                {labels.estimatedProfit}
-              </span>
-              <strong>{cartProfit === null ? "—" : money(cartProfit)}</strong>
-            </div>
-          </div>
-
-          <div className="mt-5 border-t border-[var(--apex-border)] pt-4">
-            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-              {language === "es"
-                ? "Cliente"
-                : language === "pt"
-                  ? "Cliente"
-                  : language === "fr"
-                    ? "Client"
-                    : language === "de"
-                      ? "Kunde"
-                      : "Customer"}
-            </p>
-            <ApexSelect
-              className="apex-input mt-2 min-h-11 w-full px-3 text-sm"
-              value={customerId}
-              onChange={(event) => setCustomerId(event.target.value)}
-            >
-              <option value="">
-                {language === "es"
-                  ? "Consumidor final / sin cliente"
-                  : "Walk-in / no customer"}
-              </option>
-              {customers.map((customer) => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                  {customer.account_balance
-                    ? ` · ${money(customer.account_balance)}`
-                    : ""}
-                </option>
-              ))}
-            </ApexSelect>
-
-            <div className="mt-4 flex items-center justify-between gap-3">
-              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {language === "es"
-                  ? "Medio de pago"
-                  : language === "pt"
-                    ? "Forma de pagamento"
-                    : language === "fr"
-                      ? "Moyen de paiement"
-                      : language === "de"
-                        ? "Zahlungsart"
-                        : "Payment method"}
-              </p>
-              <button
-                type="button"
-                onClick={() => setSplitPayment((current) => !current)}
-                className={
-                  "rounded-xl border px-2.5 py-1.5 text-[10px] font-semibold " +
-                  (splitPayment
-                    ? "border-[#8F0000]/50 bg-[#8F0000]/10 text-[#8F0000]"
-                    : "border-[var(--apex-border)] text-[var(--apex-muted)]")
-                }
-              >
-                {language === "es"
-                  ? splitPayment
-                    ? "Pago combinado ON"
-                    : "Pago combinado"
-                  : splitPayment
-                    ? "Split ON"
-                    : "Split payment"}
-              </button>
-            </div>
-
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <ApexSelect
-                className="apex-input min-h-11 px-3 text-sm"
-                value={paymentMethod}
-                onChange={(event) => setPaymentMethod(event.target.value)}
-              >
-                <option value="cash">
-                  {language === "es" ? "Efectivo" : language === "pt" ? "Dinheiro" : language === "fr" ? "Espèces" : language === "de" ? "Bargeld" : "Cash"}
-                </option>
-                <option value="debit">
-                  {language === "es" ? "Débito" : language === "pt" ? "Débito" : language === "fr" ? "Débit" : language === "de" ? "Debitkarte" : "Debit"}
-                </option>
-                <option value="credit">
-                  {language === "es" ? "Crédito" : language === "pt" ? "Crédito" : language === "fr" ? "Crédit" : language === "de" ? "Kreditkarte" : "Credit"}
-                </option>
-                <option value="transfer">
-                  {language === "es" ? "Transferencia" : language === "pt" ? "Transferência" : language === "fr" ? "Virement" : language === "de" ? "Überweisung" : "Transfer"}
-                </option>
-                <option value="qr">QR</option>
-                <option value="account">
-                  {language === "es" ? "Cuenta corriente" : language === "pt" ? "Conta corrente" : language === "fr" ? "Compte client" : language === "de" ? "Kundenkonto" : "Customer account"}
-                </option>
-              </ApexSelect>
-
-              {paymentMethod === "cash" ? (
-                <input
-                  className="apex-input min-h-11 px-3 text-sm"
-                  inputMode="decimal"
-                  placeholder={
-                    language === "es"
-                      ? "Recibido"
-                      : language === "pt"
-                        ? "Recebido"
-                        : language === "fr"
-                          ? "Reçu"
-                          : language === "de"
-                            ? "Erhalten"
-                            : "Received"
-                  }
-                  value={receivedAmount}
-                  onChange={(event) => setReceivedAmount(event.target.value)}
-                />
-              ) : (
-                <div className="flex min-h-11 items-center rounded-2xl border border-[var(--apex-border)] px-3 text-xs text-[var(--apex-muted)]">
-                  {language === "es"
-                    ? "Cobro electrónico"
-                    : language === "pt"
-                      ? "Pagamento eletrônico"
-                      : language === "fr"
-                        ? "Paiement électronique"
-                        : language === "de"
-                          ? "Elektronische Zahlung"
-                          : "Electronic payment"}
-                </div>
-              )}
-            </div>
-
-            {splitPayment && (
-              <div className="mt-2 grid grid-cols-2 gap-2">
-                <input
-                  className="apex-input min-h-11 px-3 text-sm"
-                  inputMode="decimal"
-                  placeholder={
-                    language === "es"
-                      ? "Importe primer medio"
-                      : "First payment amount"
-                  }
-                  value={splitFirstAmount}
-                  onChange={(event) =>
-                    setSplitFirstAmount(event.target.value)
-                  }
-                />
-                <ApexSelect
-                  className="apex-input min-h-11 px-3 text-sm"
-                  value={secondPaymentMethod}
-                  onChange={(event) =>
-                    setSecondPaymentMethod(event.target.value)
-                  }
-                >
-                  <option value="cash">Efectivo</option>
-                  <option value="debit">Débito</option>
-                  <option value="credit">Crédito</option>
-                  <option value="transfer">Transferencia</option>
-                  <option value="qr">QR</option>
-                  <option value="account">Cuenta corriente</option>
-                </ApexSelect>
-                <div className="col-span-2 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-xs">
-                  <span className="text-[var(--apex-muted)]">
-                    {language === "es"
-                      ? "Segundo medio"
-                      : "Second payment"}
-                  </span>
-                  <strong>{money(secondSplit)}</strong>
-                </div>
-              </div>
-            )}
-
-            {accountPaymentUsed && !customerId && (
-              <p className="mt-2 rounded-xl border border-amber-500/25 bg-amber-500/[0.06] px-3 py-2 text-[10px] text-amber-600">
-                {language === "es"
-                  ? "Elegí un cliente para usar cuenta corriente."
-                  : "Choose a customer for customer-account payment."}
-              </p>
-            )}
-
-            {!splitPayment && paymentMethod === "cash" && cartLines.length > 0 && (
-              <div className="mt-3 flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5 text-sm">
-                <span className="text-[var(--apex-muted)]">
-                  {language === "es"
-                    ? "Vuelto"
-                    : language === "pt"
-                      ? "Troco"
-                      : language === "fr"
-                        ? "Monnaie"
-                        : language === "de"
-                          ? "Rückgeld"
-                          : "Change"}
-                </span>
-                <strong>{money(change)}</strong>
-              </div>
-            )}
-          </div>
-
-          <button
-            type="button"
-            disabled={
-              !cartLines.length ||
-              cashInsufficient ||
-              splitInvalid ||
-              customerRequired
-            }
-            onClick={finishSale}
-            className="mt-5 w-full rounded-2xl bg-[#8F0000] px-4 py-3.5 text-sm font-semibold text-white disabled:opacity-35"
-          >
-            {labels.completeSale}
-          </button>
-        </aside>
-      </div>
-
-      {cartLines.length > 0 && (
-        <div className="fixed inset-x-3 bottom-[calc(82px+env(safe-area-inset-bottom,0px))] z-[70] rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/96 p-2.5 shadow-[0_18px_60px_rgba(0,0,0,.28)] backdrop-blur-lg lg:hidden">
-          <div className="flex items-center gap-3">
-            <div className="min-w-0 flex-1 px-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
-                {labels.total}
-              </p>
-              <p className="truncate text-base font-semibold">{money(cartTotal)}</p>
-            </div>
-            <button
-              type="button"
-              onClick={finishSale}
-              disabled={
-                cashInsufficient || splitInvalid || customerRequired
-              }
-              className="min-h-12 shrink-0 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_10px_26px_rgba(143,0,0,.24)] disabled:opacity-35"
-            >
-              {labels.completeSale}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function InventoryModule({
-  labels,
-  language,
-  products,
-  money,
-  updateStock,
-  updatePrice,
-  updateCost,
-  updateMinStock,
-  updateSupplier,
-  updateBarcode,
-  integrateScannedProduct,
-  businessId,
-  readOnly
-}: {
-  labels: (typeof copy)[LanguageCode];
-  language: LanguageCode;
-  products: Product[];
-  money: (value: number) => string;
-  updateStock: (id: string, stock: number) => void;
-  updatePrice: (id: string, price: number) => void;
-  updateCost: (id: string, value: string) => void;
-  updateMinStock: (id: string, minStock: number) => void;
-  updateSupplier: (id: string, supplier: string) => void;
-  updateBarcode: (id: string, barcode: string) => void;
-  integrateScannedProduct: (product: Product) => void;
-  businessId: string | null;
-  readOnly: boolean;
-}) {
-  return (
-    <div className="space-y-5">
-      <PageIntro
-        title={labels.inventoryTitle}
-        subtitle={labels.inventorySubtitle}
-      />
-      <WorkflowHelp {...workflowHelp[language].inventory} />
-
-      <section className="apex-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left">
-            <thead className="border-b border-[var(--apex-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--apex-muted)]">
-              <tr>
-                <th className="px-5 py-4">{labels.product}</th>
-                <th className="px-4 py-4">{labels.category}</th>
-                <th className="px-4 py-4">{labels.supplier}</th>
-                {!readOnly && (
-                  <>
-                    <th className="px-4 py-4">{labels.cost}</th>
-                    <th className="px-4 py-4">{labels.price}</th>
-                  </>
-                )}
-                <th className="px-4 py-4">{labels.stock}</th>
-                <th className="px-4 py-4">
-                  {language === "es"
-                    ? "Mínimo"
-                    : language === "pt"
-                      ? "Mínimo"
-                      : language === "fr"
-                        ? "Minimum"
-                        : language === "de"
-                          ? "Minimum"
-                          : "Minimum"}
-                </th>
-                <th className="px-4 py-4">{labels.status}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => {
-                const status = getStockStatus(product);
-                return (
-                  <tr
-                    key={product.id}
-                    className="border-b border-[var(--apex-border)] last:border-0"
-                  >
-                    <td className="px-5 py-4">
-                      <p className="text-sm font-semibold">
-                        {product.name}
-                      </p>
-                      <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-                        {product.barcode}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
-                      {product.category}
-                    </td>
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-xs text-[var(--apex-muted)]">
-                          {product.supplier || "—"}
-                        </span>
-                      ) : (
-                        <input
-                          value={product.supplier}
-                          onChange={(event) =>
-                            updateSupplier(product.id, event.target.value)
-                          }
-                          placeholder="—"
-                          className="apex-input w-36 px-3 py-2 text-xs"
-                        />
-                      )}
-                    </td>
-                    {!readOnly && (
-                      <>
-                        <td className="px-4 py-4">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={
-                              product.costKnown === false
-                                ? ""
-                                : product.cost
-                            }
-                            onChange={(event) =>
-                              updateCost(product.id, event.target.value)
-                            }
-                            placeholder="—"
-                            className="apex-input w-28 px-3 py-2 text-xs"
-                          />
-                        </td>
-                        <td className="px-4 py-4">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={product.originalPrice ?? product.price}
-                            onChange={(event) =>
-                              updatePrice(
-                                product.id,
-                                Number(event.target.value)
-                              )
-                            }
-                            className="apex-input w-28 px-3 py-2 text-xs"
-                          />
-                        </td>
-                      </>
-                    )}
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-sm font-semibold">
-                          {product.stock}
-                        </span>
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.stock}
-                          onChange={(event) =>
-                            updateStock(
-                              product.id,
-                              Number(event.target.value)
-                            )
-                          }
-                          className="apex-input w-20 px-3 py-2 text-xs"
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-sm">{product.minStock}</span>
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.minStock}
-                          onChange={(event) =>
-                            updateMinStock(
-                              product.id,
-                              Number(event.target.value)
-                            )
-                          }
-                          className="apex-input w-20 px-3 py-2 text-xs"
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={
-                          "rounded-full px-2.5 py-1 text-[10px] font-bold " +
-                          (status === "normal"
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : status === "low"
-                              ? "bg-amber-500/10 text-amber-600"
-                              : "bg-red-500/10 text-red-600")
-                        }
-                      >
-                        {status === "normal"
-                          ? labels.normal
-                          : status === "low"
-                            ? labels.low
-                            : labels.out}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      {!readOnly && (
-        <>
-          <BarcodeLabelStudio
-            language={language}
-            products={products}
-            money={money}
-            onAssignBarcode={updateBarcode}
-          />
-
-          <BarcodeScanner
-            onProduct={integrateScannedProduct}
-            language={language}
-            businessId={businessId}
-          />
-        </>
-      )}
-    </div>
-  );
-}
-
-function PurchasesModule({
-  labels,
-  language,
-  restock,
-  money,
-  showFinancials,
-  receiveRestock
-}: {
-  labels: (typeof copy)[LanguageCode];
-  language: LanguageCode;
-  restock: ReturnType<typeof rankRestockNeeds>;
-  money: (value: number) => string;
-  showFinancials: boolean;
-  receiveRestock: (id: string, units: number) => void;
-}) {
-  const [plannedUnits, setPlannedUnits] = useState<Record<string, number>>({});
-
-  const noRestockText =
-    language === "es"
-      ? "No hay productos que requieran reposición con los datos actuales."
-      : language === "pt"
-        ? "Não há produtos que precisem de reposição com os dados atuais."
-        : language === "fr"
-          ? "Aucun produit ne nécessite de réapprovisionnement avec les données actuelles."
-          : language === "de"
-            ? "Mit den aktuellen Daten ist keine Nachbestellung erforderlich."
-            : "No products need restocking with the current data.";
-
-  return (
-    <div className="space-y-5">
-      <PageIntro
-        title={labels.purchasesTitle}
-        subtitle={labels.purchasesSubtitle}
-      />
-      <WorkflowHelp {...workflowHelp[language].purchases} />
-
-      {!restock.length ? (
-        <section className="apex-card p-6 text-sm text-[var(--apex-muted)]">
-          {noRestockText}
-        </section>
-      ) : (
-        <div className="grid gap-3">
-          {restock.map(
-            ({ product, daysCover, suggestedUnits }) => {
-              const units = Math.max(
-                1,
-                Math.round(plannedUnits[product.id] ?? suggestedUnits)
-              );
-
-              return (
-                <article key={product.id} className="apex-card p-5">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-                    <div className="min-w-0 xl:w-[260px]">
-                      <h3 className="truncate text-sm font-semibold">
-                        {product.name}
-                      </h3>
-                      <p className="mt-1 truncate text-[11px] text-[var(--apex-muted)]">
-                        {product.supplier || "—"}
-                      </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 xl:min-w-[470px]">
-                      <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5">
-                        <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                          {labels.suggested}
-                        </p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <input
-                            type="number"
-                            min={1}
-                            step={1}
-                            value={units}
-                            onChange={(event) =>
-                              setPlannedUnits((current) => ({
-                                ...current,
-                                [product.id]: Math.max(
-                                  1,
-                                  Math.round(Number(event.target.value) || 1)
-                                )
-                              }))
-                            }
-                            className="w-20 bg-transparent text-base font-semibold outline-none"
-                            aria-label={labels.suggested}
-                          />
-                          <span className="text-[10px] text-[var(--apex-muted)]">
-                            {suggestedUnits !== units
-                              ? language === "es"
-                                ? `sugerencia: ${suggestedUnits}`
-                                : language === "pt"
-                                  ? `sugestão: ${suggestedUnits}`
-                                  : language === "fr"
-                                    ? `suggestion : ${suggestedUnits}`
-                                    : language === "de"
-                                      ? `Vorschlag: ${suggestedUnits}`
-                                      : `suggested: ${suggestedUnits}`
-                              : ""}
-                          </span>
-                        </div>
-                      </div>
-
-                      <MiniStat
-                        label={labels.coverage}
-                        value={`${daysCover.toFixed(1)} ${labels.days}`}
-                      />
-                      <MiniStat
-                        label={
-                          showFinancials
-                            ? labels.estimatedCost
-                            : labels.stock
-                        }
-                        value={
-                          showFinancials
-                            ? product.costKnown === false
-                              ? "—"
-                              : money(units * product.cost)
-                            : String(product.stock)
-                        }
-                      />
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => receiveRestock(product.id, units)}
-                      className="min-h-11 rounded-2xl bg-[#8F0000] px-4 py-3 text-xs font-semibold text-white"
-                    >
-                      {labels.receivePurchase}
-                    </button>
-                  </div>
-                </article>
-              );
-            }
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function ActivitiesModule({
-  labels,
-  activities,
-  locale,
-  activityText
-}: {
-  labels: (typeof copy)[LanguageCode];
-  activities: ActivityRecord[];
-  locale: string;
-  activityText: (activity: ActivityRecord) => string;
-}) {
-  return (
-    <div className="space-y-5">
-      <PageIntro
-        title={labels.activitiesTitle}
-        subtitle={labels.activitiesSubtitle}
-      />
-
-      <section className="apex-card p-5 sm:p-6">
-        {!activities.length ? (
-          <p className="text-sm text-[var(--apex-muted)]">
-            {labels.noActivities}
-          </p>
-        ) : (
-          <div className="space-y-1">
-            {activities.map((activity, index) => (
-              <div
-                key={activity.id}
-                className="relative flex gap-4 py-4"
-              >
-                {index < activities.length - 1 && (
-                  <div className="absolute left-[15px] top-9 h-[calc(100%-20px)] w-px bg-[var(--apex-border)]" />
-                )}
-                <span className="relative z-10 mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#8F0000]/12 text-[#8F0000]">
-                  <ActivityIcon size={14} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold">
-                    {activityText(activity)}
-                  </p>
-                  <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-                    {new Intl.DateTimeFormat(locale, {
-                      dateStyle: "medium",
-                      timeStyle: "short"
-                    }).format(new Date(activity.createdAt))}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function SettingsModule({
-  labels,
-  language,
-  currency,
-  dark,
-  businessName,
-  businessType,
-  businessCountry,
-  businessDescription,
-  setBusinessName,
-  setBusinessType,
-  setBusinessCountry,
-  setBusinessDescription,
-  onLanguageChange,
-  onCurrencyChange,
-  onToggleTheme,
-  onSignOut,
-  saveBusinessName,
-  locale
-}: {
-  labels: (typeof copy)[LanguageCode];
-  language: LanguageCode;
-  currency: string;
-  dark: boolean;
-  businessName: string;
-  businessType: BusinessType;
-  businessCountry: string;
-  businessDescription: string;
-  setBusinessName: (value: string) => void;
-  setBusinessType: (value: BusinessType) => void;
-  setBusinessCountry: (value: string) => void;
-  setBusinessDescription: (value: string) => void;
-  onLanguageChange: (language: LanguageCode) => void;
-  onCurrencyChange: (currency: string) => void;
-  onToggleTheme: () => void;
-  onSignOut: () => void;
-  saveBusinessName: () => void;
-  locale: string;
-}) {
-  const settingsCopy = {
-    es: {
-      profile: "Perfil operativo",
-      profileHelp:
-        "Definí el tipo de operación para que Global Stock pueda adaptar análisis, IA y flujos a tu negocio.",
-      activity: "Actividad",
-      country: "País de operación",
-      countryPlaceholder: "Ej.: Argentina",
-      description: "¿A qué se dedica el negocio?",
-      descriptionPlaceholder:
-        "Ej.: local de pesca con ventas presenciales y ecommerce",
-      industry: "Industria / fabricación",
-      save: "Guardar perfil"
-    },
-    en: {
-      profile: "Operating profile",
-      profileHelp:
-        "Define the operation so Global Stock can adapt analytics, AI and workflows to your business.",
-      activity: "Activity",
-      country: "Operating country",
-      countryPlaceholder: "Example: United States",
-      description: "What does the business do?",
-      descriptionPlaceholder:
-        "Example: fishing retailer with in-store and online sales",
-      industry: "Industry / manufacturing",
-      save: "Save profile"
-    },
-    pt: {
-      profile: "Perfil operacional",
-      profileHelp:
-        "Defina a operação para que o Global Stock adapte análises, IA e fluxos ao seu negócio.",
-      activity: "Atividade",
-      country: "País de operação",
-      countryPlaceholder: "Ex.: Brasil",
-      description: "Qual é a atividade do negócio?",
-      descriptionPlaceholder:
-        "Ex.: loja de pesca com vendas físicas e ecommerce",
-      industry: "Indústria / fabricação",
-      save: "Salvar perfil"
-    },
-    fr: {
-      profile: "Profil opérationnel",
-      profileHelp:
-        "Définissez l’activité afin que Global Stock adapte analyses, IA et flux à votre entreprise.",
-      activity: "Activité",
-      country: "Pays d’activité",
-      countryPlaceholder: "Ex. : France",
-      description: "Que fait l’entreprise ?",
-      descriptionPlaceholder:
-        "Ex. : magasin de pêche avec ventes physiques et ecommerce",
-      industry: "Industrie / fabrication",
-      save: "Enregistrer"
-    },
-    de: {
-      profile: "Betriebsprofil",
-      profileHelp:
-        "Definiere den Betrieb, damit Global Stock Analysen, KI und Abläufe an dein Unternehmen anpassen kann.",
-      activity: "Tätigkeit",
-      country: "Betriebsland",
-      countryPlaceholder: "Beispiel: Deutschland",
-      description: "Was macht das Unternehmen?",
-      descriptionPlaceholder:
-        "Beispiel: Angelgeschäft mit Filial- und Onlineverkauf",
-      industry: "Industrie / Fertigung",
-      save: "Profil speichern"
-    }
-  }[language];
-
-  return (
-    <div className="space-y-5">
-      <PageIntro
-        title={labels.settingsTitle}
-        subtitle={labels.settingsSubtitle}
-      />
-
-      <div className="grid gap-4 xl:grid-cols-2">
-        <section className="apex-card p-5 xl:col-span-2">
-          <div className="max-w-3xl">
-            <h3 className="text-sm font-semibold">
-              {settingsCopy.profile}
-            </h3>
-            <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
-              {settingsCopy.profileHelp}
-            </p>
-          </div>
-
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {labels.businessName}
-              </span>
-              <input
-                value={businessName}
-                onChange={(event) =>
-                  setBusinessName(event.target.value)
-                }
-                className="apex-input mt-2 px-4 py-3"
-              />
-            </label>
-
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {settingsCopy.activity}
-              </span>
-              <BusinessTypePicker
-                language={language}
-                value={businessType}
-                onChange={(value) => setBusinessType(value as BusinessType)}
-                className="mt-2"
-              />
-            </label>
-
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {settingsCopy.country}
-              </span>
-              <input
-                value={businessCountry}
-                onChange={(event) =>
-                  setBusinessCountry(event.target.value)
-                }
-                placeholder={settingsCopy.countryPlaceholder}
-                className="apex-input mt-2 px-4 py-3"
-              />
-            </label>
-
-            <label>
-              <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                {settingsCopy.description}
-              </span>
-              <textarea
-                value={businessDescription}
-                onChange={(event) =>
-                  setBusinessDescription(event.target.value)
-                }
-                rows={2}
-                placeholder={settingsCopy.descriptionPlaceholder}
-                className="apex-input mt-2 resize-none px-4 py-3 text-sm"
-              />
-            </label>
-          </div>
-
-          <button
-            type="button"
-            onClick={saveBusinessName}
-            className="mt-4 rounded-2xl bg-[#8F0000] px-5 py-3 text-sm font-semibold text-white"
-          >
-            {settingsCopy.save}
-          </button>
-        </section>
-
-        <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.preferences}
-          </h3>
-          <div className="mt-4">
-            <GlobalPreferences
-              language={language}
-              currency={currency}
-              onLanguageChange={onLanguageChange}
-              onCurrencyChange={onCurrencyChange}
-            />
-          </div>
-        </section>
-
-        <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.appearance}
-          </h3>
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="mt-4 flex items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm font-semibold"
-          >
-            {dark ? <Sun size={17} /> : <Moon size={17} />}
-            {labels.theme}
-          </button>
-        </section>
-
-        <div className="xl:col-span-2">
-          <FxCenter
-            language={language}
-            locale={locale}
-            defaultCurrency={currency}
-          />
-        </div>
-
-        <section className="apex-card p-5 xl:col-span-2">
-          <h3 className="text-sm font-semibold">
-            {labels.install}
-          </h3>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <InstallAppButton language={language} />
-            <button
-              type="button"
-              onClick={onSignOut}
-              className="flex items-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-sm font-semibold text-[var(--apex-muted)]"
-            >
-              <LogOut size={16} />
-              {labels.signOut}
-            </button>
-          </div>
-        </section>
-      </div>
-    </div>
-  );
-}
-
-function describeActivity(
-  activity: ActivityRecord,
-  labels: (typeof copy)[LanguageCode],
-  money: (value: number) => string,
-  includeMoney = true
-) {
-  if (activity.kind === "sale") {
-    return includeMoney
-      ? `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units} · ${money(activity.total ?? 0)}`
-      : `${labels.saleActivity} · ${activity.units ?? 0} ${labels.units}`;
-  }
-  if (activity.kind === "restock") {
-    return `${labels.restockActivity} · ${activity.product ?? ""} · +${activity.units ?? 0}`;
-  }
-  if (activity.kind === "scan") {
-    return `${labels.scanActivity} · ${activity.product ?? ""}`;
-  }
-  if (activity.kind === "note") {
-    return labels.noteActivity;
-  }
-  return labels.settingsActivity;
-}
-
-function MobileNavButton({
-  active,
-  icon,
-  label,
-  onClick
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-current={active ? "page" : undefined}
-      className={
-        "flex min-h-12 flex-col items-center justify-center gap-1 rounded-2xl text-[10px] font-semibold transition-colors " +
-        (active
-          ? "bg-[#8F0000]/12 text-[#8F0000]"
-          : "text-[var(--apex-muted)]")
-      }
-    >
-      {icon}
-      <span>{label}</span>
-    </button>
-  );
-}
-
-function ChartCard({
-  title,
-  children
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="apex-card p-5 sm:p-6">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <div className="mt-5 h-[330px]">{children}</div>
-    </section>
-  );
-}
-
-function PageIntro({
-  title,
-  subtitle
-}: {
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <section>
-      <div className="flex items-center gap-2">
-        <Logo className="h-5 w-5 shrink-0" aria-hidden="true" />
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-          Global Stock
-        </p>
-      </div>
-      <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-        {title}
-      </h2>
-      <p className="mt-2 max-w-2xl text-sm leading-6 text-[var(--apex-muted)]">
-        {subtitle}
-      </p>
-    </section>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  detail,
-  icon
-}: {
-  label: string;
-  value: string;
-  detail?: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <article className="apex-card p-5">
-      <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
-        {icon}
-      </span>
-      <p className="mt-4 text-xs font-semibold text-[var(--apex-muted)]">
-        {label}
-      </p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">
-        {value}
-      </p>
-      {detail && (
-        <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-          {detail}
-        </p>
-      )}
-    </article>
-  );
-}
-
-function WorkflowHelp({
-  title,
-  steps
-}: {
-  title: string;
-  steps: string[];
-}) {
-  return (
-    <section className="rounded-[22px] border border-[#8F0000]/18 bg-[#8F0000]/[0.045] p-4">
-      <p className="text-xs font-semibold text-[var(--apex-text)]">{title}</p>
-      <div className="mt-3 grid gap-2 md:grid-cols-3">
-        {steps.map((step, index) => (
-          <div
-            key={step}
-            className="flex items-start gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 py-3"
-          >
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#8F0000] text-[10px] font-bold text-white">
-              {index + 1}
-            </span>
-            <p className="text-[11px] leading-5 text-[var(--apex-muted)]">
-              {step}
-            </p>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function MiniStat({
-  label,
-  value
-}: {
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
-      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-        {label}
-      </p>
-      <p className="mt-1.5 text-sm font-semibold">{value}</p>
-    </div>
-  );
-}
