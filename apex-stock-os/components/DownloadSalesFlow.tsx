@@ -51,8 +51,8 @@ const showcaseStates: ShowcaseState[] = [
     eyebrow: "Caja actualizada",
     title: "Cobro registrado",
     body: "El importe queda asociado a la venta sin volver a cargar datos.",
-    accent: "#F2A93B",
-    soft: "rgba(242,169,59,.13)",
+    accent: "#F59E0B",
+    soft: "rgba(245,158,11,.14)",
     total: "$ 48.900",
     badge: "Pagada",
     secondaryLabel: "Medio de pago",
@@ -65,8 +65,8 @@ const showcaseStates: ShowcaseState[] = [
     eyebrow: "Stock sincronizado",
     title: "12 → 11 unidades",
     body: "La unidad vendida se descuenta y queda lista para tienda y sucursales.",
-    accent: "#39C98A",
-    soft: "rgba(57,201,138,.13)",
+    accent: "#22C55E",
+    soft: "rgba(34,197,94,.14)",
     total: "11 disponibles",
     badge: "Sincronizado",
     secondaryLabel: "Producto",
@@ -79,8 +79,8 @@ const showcaseStates: ShowcaseState[] = [
     eyebrow: "Historial guardado",
     title: "Todo queda trazado",
     body: "Fecha, usuario, producto y medio de pago quedan vinculados a la operación.",
-    accent: "#6EA8FF",
-    soft: "rgba(110,168,255,.13)",
+    accent: "#3B82F6",
+    soft: "rgba(59,130,246,.14)",
     total: "Guardado",
     badge: "Registrado",
     secondaryLabel: "Usuario",
@@ -125,7 +125,16 @@ function FloatingCard({
         backfaceVisibility: "hidden"
       }}
     >
-      <span
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={isTop ? "sale" : state.id}
+          className="flex min-w-0 w-full items-center gap-2.5"
+          initial={isTop ? false : { opacity: 0, x: 10, scale: 0.985 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          exit={isTop ? undefined : { opacity: 0, x: -8, scale: 0.99 }}
+          transition={{ duration: 0.34, ease: [0.23, 1, 0.32, 1] }}
+        >
+          <span
         className="grid h-8 w-8 shrink-0 place-items-center rounded-xl"
         style={{
           background: isTop ? "#F3F4F6" : state.soft,
@@ -144,12 +153,14 @@ function FloatingCard({
         </p>
       </div>
 
-      <span
-        className="ml-auto shrink-0 text-[11px] font-semibold sm:text-xs"
-        style={{ color: isTop ? "#111827" : state.accent }}
-      >
-        {isTop ? "$ 48.900" : state.total}
-      </span>
+          <span
+            className="ml-auto shrink-0 text-[11px] font-semibold sm:text-xs"
+            style={{ color: isTop ? "#111827" : state.accent }}
+          >
+            {isTop ? "$ 48.900" : state.total}
+          </span>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }
@@ -340,35 +351,33 @@ export function DownloadSalesFlow() {
       <style jsx global>{`
         @keyframes gs-sales-float-top {
           0%, 100% { transform: translate3d(0, 0, 0); }
-          25% { transform: translate3d(1px, -2px, 0); }
-          50% { transform: translate3d(2px, -4px, 0); }
-          75% { transform: translate3d(1px, -2px, 0); }
+          25% { transform: translate3d(2px, -4px, 0); }
+          50% { transform: translate3d(4px, -8px, 0); }
+          75% { transform: translate3d(1px, -4px, 0); }
         }
 
         @keyframes gs-sales-float-bottom {
           0%, 100% { transform: translate3d(0, 0, 0); }
-          25% { transform: translate3d(-1px, 2px, 0); }
-          50% { transform: translate3d(-2px, 4px, 0); }
-          75% { transform: translate3d(-1px, 2px, 0); }
+          25% { transform: translate3d(-2px, 4px, 0); }
+          50% { transform: translate3d(-4px, 8px, 0); }
+          75% { transform: translate3d(-1px, 4px, 0); }
         }
 
         @keyframes gs-sales-receipt-float {
-          0%, 100% { transform: translate3d(0, 0, 0); }
-          25% { transform: translate3d(0, -1px, 0); }
-          50% { transform: translate3d(0, -3px, 0); }
-          75% { transform: translate3d(0, -1px, 0); }
+          0%, 100% { transform: translate3d(0, 0, 0) rotateZ(0deg); }
+          50% { transform: translate3d(0, -6px, 0) rotateZ(.12deg); }
         }
 
         .gs-sales-float-top {
-          animation: gs-sales-float-top 8.8s linear infinite;
+          animation: gs-sales-float-top 6.8s ease-in-out infinite;
         }
 
         .gs-sales-float-bottom {
-          animation: gs-sales-float-bottom 9.4s linear infinite;
+          animation: gs-sales-float-bottom 7.4s ease-in-out infinite;
         }
 
         .gs-sales-receipt-float {
-          animation: gs-sales-receipt-float 10s linear infinite;
+          animation: gs-sales-receipt-float 8.2s ease-in-out infinite;
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -405,7 +414,7 @@ export function DownloadSalesFlow() {
                 key={item.title}
                 className="grid grid-cols-[26px_minmax(0,1fr)] gap-3"
               >
-                <span className="mt-0.5 grid h-[26px] w-[26px] place-items-center rounded-full bg-[#E32636]/10 text-[#ff727d]">
+                <span className="gs-download-sales-check mt-0.5 grid h-[26px] w-[26px] place-items-center rounded-full bg-[#E32636]/10 text-[#ff727d]">
                   <Check size={14} />
                 </span>
                 <div className="min-w-0">
@@ -422,7 +431,7 @@ export function DownloadSalesFlow() {
 
           <Link
             href="/"
-            className="mt-7 inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
+            className="gs-download-sales-cta mt-7 inline-flex min-h-10 items-center gap-2 rounded-xl bg-white px-4 text-xs font-semibold text-black transition-[background-color,transform,box-shadow,border-color] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-white/90"
           >
             Abrir punto de venta
             <ArrowRight size={14} />
@@ -461,7 +470,7 @@ export function DownloadSalesFlow() {
               ))}
             </div>
 
-            <div className="absolute bottom-5 left-5 z-20 hidden items-center gap-2 rounded-full border border-white/[0.07] bg-black/20 px-3 py-2 text-[10px] font-semibold text-white/48 backdrop-blur-md sm:flex sm:bottom-6 sm:left-6">
+            <div className="gs-sales-status-pill absolute bottom-5 left-5 z-20 hidden items-center gap-2 rounded-full border border-white/[0.14] bg-black/35 px-3 py-2 text-[10px] font-semibold text-white/[0.82] shadow-[0_8px_24px_rgba(0,0,0,.18)] backdrop-blur-md sm:flex sm:bottom-6 sm:left-6">
               <span
                 className="h-2 w-2 rounded-full"
                 style={{
@@ -483,7 +492,7 @@ export function DownloadSalesFlow() {
             </div>
           </div>
 
-          <div className="mt-3 grid gap-2.5 sm:grid-cols-4">
+          <div className="gs-download-sales-tabs mt-3 grid gap-2.5 sm:grid-cols-4">
             {[
               { icon: ReceiptText, label: "Venta" },
               { icon: CircleDollarSign, label: "Caja" },
@@ -493,9 +502,10 @@ export function DownloadSalesFlow() {
               <button
                 key={label}
                 type="button"
+                data-active={activeIndex === index ? "true" : "false"}
                 onClick={() => setActiveIndex(index)}
                 className={
-                  "flex min-h-9 items-center justify-center gap-2 rounded-xl border px-3 text-[10px] font-semibold transition-colors " +
+                  "gs-download-sales-tab flex min-h-9 items-center justify-center gap-2 rounded-xl border px-3 text-[10px] font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 " +
                   (activeIndex === index
                     ? "border-white/12 bg-white/[0.07] text-white"
                     : "border-white/[0.045] bg-white/[0.025] text-white/38 hover:bg-white/[0.05]")
