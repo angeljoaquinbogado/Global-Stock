@@ -10,6 +10,8 @@ import {
   Boxes,
   Building2,
   CircleDollarSign,
+  ChevronDown,
+  ChevronUp,
   ClipboardList,
   LogOut,
   ReceiptText,
@@ -3679,7 +3681,42 @@ export function BusinessWorkspace({
           </nav>
 
           {sidebarScroll.visible ? (
-            <div className="gs-sidebar-scroll-control absolute -right-[26px] top-1/2 z-30 hidden -translate-y-1/2 lg:block">
+            <div
+              className="gs-sidebar-scroll-control absolute -right-[31px] top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
+              onWheel={(event) => {
+                const nav = sidebarNavRef.current;
+                if (!nav) return;
+                event.preventDefault();
+                nav.scrollBy({ top: event.deltaY, behavior: "auto" });
+              }}
+            >
+              <button
+                type="button"
+                aria-label={
+                  language === "es"
+                    ? "Subir en el menú lateral"
+                    : language === "pt"
+                      ? "Subir no menu lateral"
+                      : language === "fr"
+                        ? "Monter dans le menu latéral"
+                        : language === "de"
+                          ? "Im Seitenmenü nach oben"
+                          : "Scroll sidebar up"
+                }
+                disabled={sidebarScroll.progress <= 0.002}
+                onClick={() => {
+                  const nav = sidebarNavRef.current;
+                  if (!nav) return;
+                  nav.scrollBy({
+                    top: -Math.max(120, Math.round(nav.clientHeight * 0.42)),
+                    behavior: "smooth"
+                  });
+                }}
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_22px_rgba(0,0,0,.13)] transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 enabled:hover:-translate-y-px enabled:hover:border-[#8F0000]/35 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:translate-y-0 disabled:cursor-default disabled:opacity-35"
+              >
+                <ChevronUp size={16} strokeWidth={2.1} />
+              </button>
+
               <div
                 role="scrollbar"
                 tabIndex={0}
@@ -3703,12 +3740,6 @@ export function BusinessWorkspace({
                   if (!scrollSidebarByKeyboard(event.key)) return;
                   event.preventDefault();
                 }}
-                onWheel={(event) => {
-                  const nav = sidebarNavRef.current;
-                  if (!nav) return;
-                  event.preventDefault();
-                  nav.scrollBy({ top: event.deltaY, behavior: "auto" });
-                }}
                 onPointerDown={(event) => {
                   const rail = event.currentTarget;
                   rail.setPointerCapture(event.pointerId);
@@ -3729,47 +3760,78 @@ export function BusinessWorkspace({
                     (event.clientY - rect.top - thumbHalf) / usable;
                   scrollSidebarToProgress(next, "auto");
                 }}
-                className="relative h-[132px] w-6 cursor-ns-resize touch-none rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] outline-none shadow-[0_10px_26px_rgba(0,0,0,.14)] transition-[border-color,box-shadow] duration-150 focus-visible:border-[#8F0000]/45 focus-visible:shadow-[0_0_0_2px_rgba(143,0,0,.10),0_10px_26px_rgba(0,0,0,.14)]"
+                className="group relative h-[126px] w-7 cursor-ns-resize touch-none rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] outline-none shadow-[0_10px_26px_rgba(0,0,0,.12)] transition-[border-color,box-shadow,background-color] duration-150 hover:bg-[var(--apex-surface-strong)] focus-visible:border-[#8F0000]/45 focus-visible:shadow-[0_0_0_2px_rgba(143,0,0,.10),0_10px_26px_rgba(0,0,0,.14)]"
               >
-                <div className="pointer-events-none absolute inset-[5px] overflow-hidden rounded-full">
+                <div className="pointer-events-none absolute inset-[5px] overflow-hidden rounded-full bg-[var(--apex-bg)]/55">
                   <div className="absolute inset-0 grid grid-rows-3">
-                    {[0, 1, 2].map((zone) => (
-                      <span key={zone} className="relative bg-transparent">
-                        {zone < 2 ? (
-                          <span className="absolute inset-x-[2px] bottom-0 h-px bg-[var(--apex-border)]/70" />
-                        ) : null}
-                      </span>
-                    ))}
+                    {[0, 1, 2].map((zone) => {
+                      const activeZone = Math.min(
+                        2,
+                        Math.floor(sidebarScroll.progress * 3)
+                      );
+
+                      return (
+                        <span
+                          key={zone}
+                          className={
+                            "relative transition-colors duration-150 " +
+                            (zone === activeZone
+                              ? "bg-[#8F0000]/[0.07]"
+                              : "bg-transparent")
+                          }
+                        >
+                          {zone < 2 ? (
+                            <span className="absolute inset-x-[3px] bottom-0 h-px bg-[var(--apex-border)]/80" />
+                          ) : null}
+
+                          <span
+                            className={
+                              "absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background-color,transform,opacity] duration-150 " +
+                              (zone === activeZone
+                                ? "scale-110 bg-[#8F0000] opacity-100"
+                                : "bg-[var(--apex-muted)]/35 opacity-75")
+                            }
+                          />
+                        </span>
+                      );
+                    })}
                   </div>
 
-                  {[1 / 6, 3 / 6, 5 / 6].map((step, index) => {
-                    const activeZone = Math.min(
-                      2,
-                      Math.floor(sidebarScroll.progress * 3)
-                    );
-
-                    return (
-                      <span
-                        key={step}
-                        className={
-                          "absolute left-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background-color,transform,opacity] duration-150 " +
-                          (index === activeZone
-                            ? "scale-110 bg-[#8F0000] opacity-100"
-                            : "bg-[var(--apex-muted)]/35 opacity-80")
-                        }
-                        style={{ top: `${step * 100}%` }}
-                      />
-                    );
-                  })}
-
                   <span
-                    className="absolute left-1/2 h-6 w-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8F0000] shadow-[0_0_9px_rgba(143,0,0,.24)] transition-[top] duration-100"
+                    className="absolute left-1/2 h-6 w-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8F0000] shadow-[0_0_10px_rgba(143,0,0,.28)] transition-[top] duration-100"
                     style={{
                       top: `calc(${sidebarScroll.progress * 100}% + ${12 - sidebarScroll.progress * 24}px)`
                     }}
                   />
                 </div>
               </div>
+
+              <button
+                type="button"
+                aria-label={
+                  language === "es"
+                    ? "Bajar en el menú lateral"
+                    : language === "pt"
+                      ? "Descer no menu lateral"
+                      : language === "fr"
+                        ? "Descendre dans le menu latéral"
+                        : language === "de"
+                          ? "Im Seitenmenü nach unten"
+                          : "Scroll sidebar down"
+                }
+                disabled={sidebarScroll.progress >= 0.998}
+                onClick={() => {
+                  const nav = sidebarNavRef.current;
+                  if (!nav) return;
+                  nav.scrollBy({
+                    top: Math.max(120, Math.round(nav.clientHeight * 0.42)),
+                    behavior: "smooth"
+                  });
+                }}
+                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_22px_rgba(0,0,0,.13)] transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 enabled:hover:translate-y-px enabled:hover:border-[#8F0000]/35 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:translate-y-0 disabled:cursor-default disabled:opacity-35"
+              >
+                <ChevronDown size={16} strokeWidth={2.1} />
+              </button>
             </div>
           ) : null}
         </div>
