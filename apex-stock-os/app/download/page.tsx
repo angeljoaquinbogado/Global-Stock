@@ -56,28 +56,28 @@ export default function DownloadPage() {
               <div className="flex items-center gap-4">
                 <DownloadLogo className="h-[68px] w-[68px] shrink-0 sm:h-[74px] sm:w-[74px]" />
                 <div>
-                  <p className="text-sm font-semibold tracking-[-.02em] text-white/90">
+                  <p className="gs-download-brand-title text-sm font-semibold tracking-[-.02em] text-white/90">
                     Global Stock
                   </p>
-                  <p className="mt-1 text-xs font-medium text-white/38">
+                  <p className="gs-download-brand-subtitle mt-1 text-xs font-medium text-white/38">
                     Ventas, stock, caja y gestión en un solo lugar
                   </p>
                 </div>
               </div>
 
-              <div className="mt-8 inline-flex min-h-8 items-center gap-2.5 rounded-full bg-white/[0.035] px-3 text-[11px] font-semibold text-white/48 ring-1 ring-white/[0.045]">
+              <div className="gs-download-free-badge mt-8 inline-flex min-h-8 items-center gap-2.5 rounded-full bg-white/[0.035] px-3 text-[11px] font-semibold text-white/48 ring-1 ring-white/[0.045]">
                 <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_14px_rgba(52,211,153,.42)]" />
                 Global Stock es gratis
               </div>
 
-              <h1 className="mt-7 text-[clamp(3.4rem,6vw,6.8rem)] font-semibold leading-[.9] tracking-[-0.07em] text-white">
+              <h1 className="gs-download-hero-title mt-7 text-[clamp(3.4rem,6vw,6.8rem)] font-semibold leading-[.9] tracking-[-0.07em] text-white">
                 Controlá tu negocio
-                <span className="mt-2 block text-white/38">
+                <span className="gs-download-hero-title-muted mt-2 block text-white/38">
                   desde un solo lugar.
                 </span>
               </h1>
 
-              <p className="mt-7 max-w-[620px] text-base leading-7 text-[#b4b4bc] sm:text-xl sm:leading-8">
+              <p className="gs-download-hero-copy mt-7 max-w-[620px] text-base leading-7 text-[#b4b4bc] sm:text-xl sm:leading-8">
                 Global Stock reúne ventas, inventario, caja, compras, clientes,
                 proveedores y análisis para que trabajes con menos pasos y más control.
               </p>
@@ -85,7 +85,7 @@ export default function DownloadPage() {
               <div className="mt-9 flex flex-wrap items-center gap-3" id="instalar">
                 <Link
                   href="/"
-                  className="inline-flex h-12 items-center gap-2 rounded-xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(143,0,0,.30)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_18px_44px_rgba(143,0,0,.38)]"
+                  className="gs-download-primary-action inline-flex h-12 items-center gap-2 rounded-xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_14px_34px_rgba(143,0,0,.30)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_18px_44px_rgba(143,0,0,.38)]"
                 >
                   Abrir Global Stock
                   <ArrowRight size={15} />
@@ -94,14 +94,14 @@ export default function DownloadPage() {
                 <InstallAppButton language="es" />
               </div>
 
-              <div className="mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-white/40">
+              <div className="gs-download-feature-meta mt-7 flex flex-wrap gap-x-5 gap-y-2 text-xs font-medium text-white/40">
                 {[
                   "Punto de venta",
                   "Inventario conectado",
                   "Roles y permisos"
                 ].map((item) => (
                   <span key={item} className="inline-flex items-center gap-2">
-                    <span className="grid h-4 w-4 place-items-center rounded-full bg-white/[0.045] text-white/55">
+                    <span className="gs-download-feature-check grid h-4 w-4 place-items-center rounded-full bg-white/[0.045] text-white/55">
                       <Check size={10} />
                     </span>
                     {item}
@@ -274,7 +274,7 @@ export default function DownloadPage() {
               <div className="flex flex-wrap gap-3 lg:justify-end">
                 <Link
                   href="/"
-                  className="inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000]"
+                  className="gs-download-primary-action inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white transition-[background-color,transform] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000]"
                 >
                   Abrir Global Stock
                   <ArrowRight size={14} />

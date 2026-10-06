@@ -1336,3 +1336,186 @@ textarea:focus-visible {
 .gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark {
   color-scheme: dark;
 }
+
+/* Download light theme polish */
+.gs-download-theme[data-download-theme="light"] {
+  --gs-download-bg: #f8fafc;
+  --gs-download-bg-alt: #ffffff;
+  --gs-download-surface: #ffffff;
+  --gs-download-surface-raised: #f3f5f8;
+  --gs-download-text: #0f172a;
+  --gs-download-muted: #667085;
+  --gs-download-subtle: #98a2b3;
+  --gs-download-border: #e4e7ec;
+  --gs-download-header: rgba(255, 255, 255, 0.94);
+  --gs-download-footer: #f8fafc;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-header {
+  box-shadow: 0 1px 0 rgba(15, 23, 42, 0.02);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-brand,
+.gs-download-theme[data-download-theme="light"] .gs-download-brand-title,
+.gs-download-theme[data-download-theme="light"] .gs-download-hero-title {
+  color: #111827 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-brand-subtitle {
+  color: #98a2b3 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-nav {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-nav a {
+  color: inherit !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-nav a:hover {
+  color: #111827 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-login-action {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-login-action:hover {
+  background: #f2f4f7 !important;
+  color: #111827 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-theme-toggle {
+  border-color: #e4e7ec;
+  background: #ffffff;
+  color: #344054;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-theme-toggle:hover {
+  background: #f8fafc;
+  border-color: #d0d5dd;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-free-badge {
+  background: #ffffff !important;
+  color: #475467 !important;
+  box-shadow: 0 0 0 1px #e4e7ec, 0 4px 14px rgba(15, 23, 42, 0.05);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-hero-title-muted {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-hero-copy {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-feature-meta {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-feature-check {
+  background: #eef2f6 !important;
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-primary-action,
+.gs-download-theme[data-download-theme="light"] .gs-download-primary-action *,
+.gs-download-theme[data-download-theme="light"] a.gs-download-primary-action,
+.gs-download-theme[data-download-theme="light"] button.gs-download-primary-action {
+  color: #ffffff !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-primary-action {
+  background: #a40000 !important;
+  border-color: #a40000 !important;
+  box-shadow: 0 10px 28px rgba(164, 0, 0, 0.18) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-primary-action:hover {
+  background: #8f0000 !important;
+  border-color: #8f0000 !important;
+  box-shadow: 0 14px 32px rgba(143, 0, 0, 0.24) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] #download-hero {
+  background: #ffffff;
+}
+
+.gs-download-theme[data-download-theme="light"] #download-features,
+.gs-download-theme[data-download-theme="light"] #download-install,
+.gs-download-theme[data-download-theme="light"] #download-faq {
+  background: #f8fafc !important;
+}
+
+.gs-download-theme[data-download-theme="light"] #download-security,
+.gs-download-theme[data-download-theme="light"] #download-feature-catalog,
+.gs-download-theme[data-download-theme="light"] #download-sectors {
+  background: #ffffff !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-platform-tabs {
+  background: #e4e7ec !important;
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.09) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-platform-tabs-inner {
+  background: #f8fafc !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-platform-tab {
+  border-color: #e4e7ec !important;
+  background: #ffffff !important;
+  color: #344054 !important;
+  box-shadow: none !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-platform-tab:hover {
+  background: #f9fafb !important;
+  border-color: #d0d5dd !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-platform-tab[aria-selected="true"] {
+  border-color: #a40000 !important;
+  color: #111827 !important;
+  box-shadow:
+    0 0 0 1px rgba(164, 0, 0, 0.04),
+    0 6px 18px rgba(15, 23, 42, 0.06) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-nav > button,
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-nav > div {
+  border-color: #d0d5dd !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  color: #667085 !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.10) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-nav > button:hover:enabled {
+  background: #ffffff !important;
+  color: #111827 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-nav > div button:not([class*="bg-[#8F0000]"]) {
+  background: #cfd4dc !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-footer p,
+.gs-download-theme[data-download-theme="light"] .gs-public-footer a {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-footer [class*="uppercase"] {
+  color: #98a2b3 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-footer a:hover {
+  color: #111827 !important;
+}
+
+/* Keep purposefully dark product-demo regions isolated from the light palette. */
+.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark {
+  color-scheme: dark;
+}

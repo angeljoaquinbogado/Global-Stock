@@ -100,10 +100,10 @@ function PlatformTabs({
       strength={0.95}
       breathe={false}
       borderRadius={20}
-      className="w-full max-w-[430px] bg-[#070708] p-[2px] shadow-[0_16px_40px_rgba(0,0,0,.24),0_0_26px_rgba(143,0,0,.10)]"
+      className="gs-download-platform-tabs w-full max-w-[430px] bg-[#070708] p-[2px] shadow-[0_16px_40px_rgba(0,0,0,.24),0_0_26px_rgba(143,0,0,.10)]"
     >
       <div
-        className="gs-storefront-scroll grid w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[18px] bg-[#070708] p-1.5"
+        className="gs-download-platform-tabs-inner gs-storefront-scroll grid w-full grid-cols-3 gap-1.5 overflow-x-auto rounded-[18px] bg-[#070708] p-1.5"
         role="tablist"
         aria-label="Plataforma"
       >
@@ -118,7 +118,7 @@ function PlatformTabs({
               aria-selected={selected}
               onClick={() => onChange(id)}
               className={
-                "flex h-14 w-full items-center justify-center gap-2.5 rounded-[13px] border border-[#8F0000] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
+                "gs-download-platform-tab flex h-14 w-full items-center justify-center gap-2.5 rounded-[13px] border border-[#8F0000] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
                 (selected
                   ? "shadow-[0_7px_20px_rgba(143,0,0,.12),inset_0_0_0_1px_rgba(143,0,0,.04)]"
                   : "hover:bg-[#fafafa]")

@@ -76,7 +76,7 @@ export function DownloadScrollNavigator() {
   };
 
   return (
-    <div className="fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
+    <div className="gs-download-scroll-nav fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
       <button
         type="button"
         onClick={() => goTo(Math.max(0, activeIndex - 1))}

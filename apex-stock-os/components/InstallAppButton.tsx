@@ -255,7 +255,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
       <button
         type="button"
         onClick={() => void install()}
-        className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#8F0000] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#8F0000] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
+        className="gs-download-primary-action inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#8F0000] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#8F0000] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
         aria-label={labels.install}
       >
         <Download size={15} />
@@ -292,7 +292,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              className="my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
+              className="gs-theme-fixed-dark my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#8F0000] text-white">
