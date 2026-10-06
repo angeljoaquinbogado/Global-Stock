@@ -430,8 +430,8 @@ export function DownloadSalesFlow() {
         </div>
 
         <div className="min-w-0">
-          <div className="relative min-h-[420px] overflow-hidden rounded-[28px] border border-white/[0.055] bg-[radial-gradient(circle_at_20%_100%,rgba(143,0,0,.24),transparent_34%),radial-gradient(circle_at_85%_0%,rgba(227,38,54,.07),transparent_30%),linear-gradient(145deg,#161923_0%,#10131b_58%,#0b0d12_100%)] p-4 shadow-[0_26px_64px_rgba(0,0,0,.28)] sm:min-h-[465px] sm:p-5">
-            <div className="pointer-events-none absolute inset-0 opacity-[.18] [background-image:linear-gradient(rgba(255,255,255,.025)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.025)_1px,transparent_1px)] [background-size:48px_48px]" />
+          <div className="relative min-h-[420px] overflow-hidden rounded-[28px] border border-[#6ea8ff]/15 bg-[radial-gradient(circle_at_78%_88%,rgba(96,165,250,.86),transparent_22%),radial-gradient(circle_at_60%_82%,rgba(37,99,235,.92),transparent_35%),radial-gradient(circle_at_12%_12%,rgba(30,64,175,.30),transparent_34%),linear-gradient(145deg,#11182b_0%,#162a4c_46%,#1d4ea8_74%,#2f72e8_100%)] p-4 shadow-[0_28px_70px_rgba(13,33,76,.36)] sm:min-h-[465px] sm:p-5">
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.035),transparent_34%),radial-gradient(circle_at_50%_110%,rgba(255,255,255,.16),transparent_36%)]" />
 
             <FloatingCard state={state} variant="top" />
             <FloatingCard state={state} variant="bottom" />
