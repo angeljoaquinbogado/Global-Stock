@@ -1568,3 +1568,88 @@ textarea:focus-visible {
 .gs-download-theme[data-download-theme="light"] .gs-download-sales-benefit-copy {
   color: #475467 !important;
 }
+
+/* Restored sales showcase motion contrast */
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-check {
+  border: 1px solid #fda4af;
+  background: #fff1f2 !important;
+  color: #be123c !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-cta {
+  border: 1px solid #d0d5dd;
+  background: #ffffff !important;
+  color: #101828 !important;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-cta:hover {
+  border-color: #98a2b3;
+  background: #f9fafb !important;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, 0.11);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tabs {
+  --gs-sales-tab-text: #344054;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab {
+  border-color: #d0d5dd !important;
+  background: #ffffff !important;
+  color: var(--gs-sales-tab-text) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:hover {
+  border-color: #98a2b3 !important;
+  background: #f9fafb !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab[data-active="true"] {
+  font-weight: 700;
+  box-shadow: 0 7px 18px rgba(15, 23, 42, 0.10);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(1)[data-active="true"] {
+  border-color: #c8102e !important;
+  background: #fff1f3 !important;
+  color: #9f1239 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(2)[data-active="true"] {
+  border-color: #d97706 !important;
+  background: #fffbeb !important;
+  color: #92400e !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(3)[data-active="true"] {
+  border-color: #079455 !important;
+  background: #ecfdf3 !important;
+  color: #067647 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(4)[data-active="true"] {
+  border-color: #2563eb !important;
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(1)[data-active="true"] svg {
+  color: #c8102e !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(2)[data-active="true"] svg {
+  color: #d97706 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(3)[data-active="true"] svg {
+  color: #079455 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab:nth-child(4)[data-active="true"] svg {
+  color: #2563eb !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-tab[data-active="false"] svg {
+  color: #475467 !important;
+}
