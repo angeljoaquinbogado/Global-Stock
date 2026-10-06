@@ -1095,3 +1095,244 @@ textarea:focus-visible {
     text-wrap: pretty;
   }
 }
+
+/* Download page theme system */
+.gs-download-theme {
+  --gs-download-bg: #f6f7f9;
+  --gs-download-bg-alt: #ffffff;
+  --gs-download-surface: #ffffff;
+  --gs-download-surface-raised: #f1f3f6;
+  --gs-download-text: #111318;
+  --gs-download-muted: #667085;
+  --gs-download-border: rgba(15, 23, 42, 0.09);
+  --gs-download-header: rgba(255, 255, 255, 0.88);
+  --gs-download-footer: #f2f4f7;
+  min-height: 100dvh;
+  background: var(--gs-download-bg);
+  color: var(--gs-download-text);
+  color-scheme: light;
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+
+.gs-download-theme[data-download-theme="dark"] {
+  --gs-download-bg: #070708;
+  --gs-download-bg-alt: #09090b;
+  --gs-download-surface: #111217;
+  --gs-download-surface-raised: #16171c;
+  --gs-download-text: #f5f5f7;
+  --gs-download-muted: #a8a8b0;
+  --gs-download-border: rgba(255, 255, 255, 0.055);
+  --gs-download-header: rgba(7, 7, 8, 0.96);
+  --gs-download-footer: #060607;
+  color-scheme: dark;
+}
+
+.gs-download-theme .gs-public-header {
+  border-color: var(--gs-download-border);
+  background: var(--gs-download-header);
+  color: var(--gs-download-text);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease;
+}
+
+.gs-download-theme .gs-public-footer {
+  border-color: var(--gs-download-border);
+  background: var(--gs-download-footer);
+  color: var(--gs-download-text);
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease;
+}
+
+.gs-download-theme .gs-download-theme-toggle {
+  border-color: var(--gs-download-border);
+  background: color-mix(in srgb, var(--gs-download-surface) 90%, transparent);
+  color: var(--gs-download-text);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+.gs-download-theme .gs-download-theme-toggle:hover {
+  background: var(--gs-download-surface-raised);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-download-theme-toggle {
+  box-shadow: none;
+}
+
+.gs-download-theme .gs-storefront {
+  background: var(--gs-download-bg) !important;
+  color: var(--gs-download-text);
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-storefront {
+  --gs-store-bg: #f6f7f9;
+  --gs-store-surface: #ffffff;
+  --gs-store-surface-raised: #f1f3f6;
+  --gs-store-text: #111318;
+  --gs-store-muted: #667085;
+  color-scheme: light;
+}
+
+/* Theme the authored dark surfaces while leaving product demos that explicitly
+   opt into .gs-theme-fixed-dark untouched. */
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-[#070708]"],
+  [class~="bg-[#08090b]"],
+  [class~="bg-[#09090b]"],
+  [class~="bg-[#0a090b]"],
+  [class~="bg-[#0a0a0c]"],
+  [class~="bg-[#060607]"]
+):not(.gs-theme-fixed-dark *) {
+  background-color: var(--gs-download-bg) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-[#111217]"],
+  [class~="bg-[#111216]"],
+  [class~="bg-[#0d0e12]"]
+):not(.gs-theme-fixed-dark *) {
+  background-color: var(--gs-download-surface) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-[#16171c]"],
+  [class~="bg-[#15161b]"],
+  [class~="bg-[#120b0d]"],
+  [class~="bg-[#190b0e]"],
+  [class~="bg-[#221015]"]
+):not(.gs-theme-fixed-dark *) {
+  background-color: var(--gs-download-surface-raised) !important;
+}
+
+.gs-download-theme[data-download-theme="light"]
+  [class~="bg-[linear-gradient(180deg,#070708_0%,#08090b_100%)]"]:not(.gs-theme-fixed-dark *) {
+  background: linear-gradient(180deg, #ffffff 0%, #f4f6f8 100%) !important;
+}
+
+.gs-download-theme[data-download-theme="light"]
+  [class~="bg-[linear-gradient(135deg,#121318,#0d0d10)]"]:not(.gs-theme-fixed-dark *) {
+  background: linear-gradient(135deg, #ffffff, #eef1f5) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-white/[0.025]"],
+  [class~="bg-white/[0.03]"],
+  [class~="bg-white/[0.035]"],
+  [class~="bg-white/[0.04]"],
+  [class~="bg-white/[0.045]"],
+  [class~="bg-white/[0.05]"],
+  [class~="bg-white/[0.07]"],
+  [class~="bg-white/[0.075]"]
+):not(.gs-theme-fixed-dark *) {
+  background-color: rgba(15, 23, 42, 0.045) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-white"]
+):not(.gs-theme-fixed-dark *) {
+  color: var(--gs-download-text) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-white/90"],
+  [class~="text-white/84"],
+  [class~="text-white/75"],
+  [class~="text-white/72"],
+  [class~="text-white/70"],
+  [class~="text-white/62"],
+  [class~="text-white/60"],
+  [class~="text-white/58"],
+  [class~="text-white/55"],
+  [class~="text-white/52"],
+  [class~="text-white/48"],
+  [class~="text-white/46"],
+  [class~="text-white/44"],
+  [class~="text-white/42"],
+  [class~="text-white/40"],
+  [class~="text-white/38"],
+  [class~="text-white/36"],
+  [class~="text-white/35"],
+  [class~="text-white/34"],
+  [class~="text-white/32"],
+  [class~="text-white/30"],
+  [class~="text-white/28"],
+  [class~="text-white/20"]
+):not(.gs-theme-fixed-dark *) {
+  color: var(--gs-download-muted) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-[#b4b4bc]"],
+  [class~="text-[#a8a8b0]"],
+  [class~="text-[#a0a0a9]"],
+  [class~="text-[#9f9fa8]"],
+  [class~="text-[#9b9ba4]"],
+  [class~="text-[#96969f]"]
+):not(.gs-theme-fixed-dark *) {
+  color: var(--gs-download-muted) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="border-white/[0.045]"],
+  [class~="border-white/[0.05]"],
+  [class~="border-white/[0.06]"],
+  [class~="border-white/[0.07]"],
+  [class~="border-white/[0.08]"],
+  [class~="border-white/8"],
+  [class~="border-white/10"],
+  [class~="border-white/12"],
+  [class~="border-white/80"]
+):not(.gs-theme-fixed-dark *) {
+  border-color: var(--gs-download-border) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="ring-white/[0.045]"]
+):not(.gs-theme-fixed-dark *) {
+  --tw-ring-color: var(--gs-download-border) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-[#8F0000]"],
+  [class~="bg-[#c91527]"]
+) {
+  color: #ffffff !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-footer [class~="border-white/[0.045]"] {
+  border-color: var(--gs-download-border) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-header nav a:hover,
+.gs-download-theme[data-download-theme="light"] .gs-public-footer a:hover {
+  color: #111318 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-phone-preview-arrow {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: rgba(255, 255, 255, 0.96);
+  color: #111318;
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-phone-preview-arrow:hover {
+  border-color: rgba(143, 0, 0, 0.28);
+  background: #ffffff;
+  box-shadow:
+    0 16px 38px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(143, 0, 0, 0.08);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark {
+  color-scheme: dark;
+}

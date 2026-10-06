@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { DownloadLogo } from "./DownloadLogo";
+import { DownloadThemeRoot, DownloadThemeToggle } from "./DownloadTheme";
 import { Logo } from "./Logo";
 import { PublicMobileNav } from "./PublicMobileNav";
 
@@ -42,7 +43,7 @@ export function PublicHeader({
   downloadBrand?: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
+    <header className="gs-public-header sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
       <div className="mx-auto flex min-h-[68px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
         <Link href="/download" aria-label="Global Stock" className="shrink-0">
           <span className="sm:hidden">
@@ -93,6 +94,8 @@ export function PublicHeader({
         </nav>
 
         <div className="flex items-center gap-2">
+          {downloadBrand ? <DownloadThemeToggle /> : null}
+
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               href="/"
@@ -121,7 +124,7 @@ export function PublicFooter({
   downloadBrand?: boolean;
 }) {
   return (
-    <footer className="border-t border-white/[0.045] bg-[#060607]">
+    <footer className="gs-public-footer border-t border-white/[0.045] bg-[#060607]">
       <div className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[1.25fr_.75fr_.75fr_.75fr]">
           <div>
@@ -204,11 +207,21 @@ export function PublicPage({
   children: ReactNode;
   downloadBrand?: boolean;
 }) {
+  if (downloadBrand) {
+    return (
+      <DownloadThemeRoot>
+        <PublicHeader downloadBrand />
+        {children}
+        <PublicFooter downloadBrand />
+      </DownloadThemeRoot>
+    );
+  }
+
   return (
     <div className="gs-public-shell min-h-[100dvh] min-w-0 overflow-x-clip bg-[#070708] text-white">
-      <PublicHeader downloadBrand={downloadBrand} />
+      <PublicHeader />
       {children}
-      <PublicFooter downloadBrand={downloadBrand} />
+      <PublicFooter />
     </div>
   );
 }

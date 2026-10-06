@@ -180,7 +180,7 @@ export function GlobalStockPhonePreview() {
         className="gs-phone-preview-stage"
         onPointerDown={(event) => event.stopPropagation()}
       >
-        <div className="gs-phone-preview-device pointer-events-auto">
+        <div className="gs-theme-fixed-dark gs-phone-preview-device pointer-events-auto">
           <IPhone17ProMax
             batteryLevel={94}
             dynamicIslandSize={dynamicIslandSize}
