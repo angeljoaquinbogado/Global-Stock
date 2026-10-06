@@ -292,7 +292,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              className="my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
+              className="gs-theme-fixed-dark my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#8F0000] text-white">
