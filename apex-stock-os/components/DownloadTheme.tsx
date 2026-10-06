@@ -28,15 +28,19 @@ export function DownloadThemeRoot({
   children: ReactNode;
 }) {
   const [theme, setTheme] = useState<DownloadTheme>("light");
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored === "dark" || stored === "light") {
       setTheme(stored);
     }
+    setInitialized(true);
   }, []);
 
   useEffect(() => {
+    if (!initialized) return;
+
     window.localStorage.setItem(STORAGE_KEY, theme);
 
     document
@@ -44,7 +48,7 @@ export function DownloadThemeRoot({
       .forEach((meta) => {
         meta.content = theme === "light" ? "#F6F7F9" : "#070708";
       });
-  }, [theme]);
+  }, [initialized, theme]);
 
   const value = useMemo<DownloadThemeContextValue>(
     () => ({
