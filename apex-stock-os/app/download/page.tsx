@@ -145,7 +145,7 @@ export default function DownloadPage() {
         >
           <div className="relative mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
             <div className="max-w-3xl">
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#6ea8ff]">
+              <p className="gs-download-kicker text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
                 Cómo lo usás
               </p>
               <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
@@ -177,7 +177,7 @@ export default function DownloadPage() {
         >
           <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.92fr_1.08fr] lg:items-center">
             <div>
-              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#34d399]">
+              <p className="gs-download-kicker text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
                 Tus datos
               </p>
               <h2 className="mt-4 max-w-2xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
@@ -259,7 +259,7 @@ export default function DownloadPage() {
           <div className="relative mx-auto max-w-[1240px] overflow-hidden rounded-[34px] bg-[linear-gradient(135deg,#121318,#0d0d10)] px-6 py-10 shadow-[0_30px_90px_rgba(0,0,0,.30)] sm:px-10 sm:py-12">
             <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-center">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/32">
+                <p className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.16em] text-[#8F0000]">
                   Precio
                 </p>
                 <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-[1.02] tracking-[-.045em] sm:text-4xl">

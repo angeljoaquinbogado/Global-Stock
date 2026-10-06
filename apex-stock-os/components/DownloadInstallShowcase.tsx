@@ -251,8 +251,8 @@ export function DownloadInstallShowcase({
               </span>
               <div>
                 <p
-                  className="text-[10px] font-bold uppercase tracking-[.14em]"
-                  style={{ color: current.accent }}
+                  className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.14em] text-[#8F0000]"
+                  style={{ color: "#8F0000" }}
                 >
                   {current.eyebrow}
                 </p>
@@ -293,7 +293,7 @@ export function DownloadInstallShowcase({
           </div>
 
           <div className="bg-[#0d0e12] p-6 sm:p-8 lg:border-l lg:border-white/[0.045]">
-            <p className="text-[10px] font-bold uppercase tracking-[.14em] text-white/28">
+            <p className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.14em] text-[#8F0000]">
               Instalación
             </p>
 

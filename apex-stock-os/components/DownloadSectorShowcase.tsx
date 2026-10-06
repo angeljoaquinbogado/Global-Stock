@@ -110,7 +110,7 @@ export function DownloadSectorShowcase() {
       <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
         <div className="grid gap-12 lg:grid-cols-[.74fr_1.26fr] lg:items-start">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#50c7d9]">
+            <p className="gs-download-kicker text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
               Para quién es
             </p>
             <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
@@ -191,8 +191,8 @@ export function DownloadSectorShowcase() {
 
                 <div>
                   <p
-                    className="text-[10px] font-bold uppercase tracking-[.14em]"
-                    style={{ color: current.accent }}
+                    className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.14em] text-[#8F0000]"
+                    style={{ color: "#8F0000" }}
                   >
                     {current.group}
                   </p>

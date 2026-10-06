@@ -69,7 +69,7 @@ export function DownloadFeatureCatalog() {
     <section className="border-t border-white/[0.045] bg-[#08090b] text-white">
       <div className="mx-auto grid w-full max-w-[1240px] gap-12 px-5 py-20 sm:px-8 sm:py-28 lg:grid-cols-[.7fr_1.3fr] lg:gap-20">
         <div className="lg:sticky lg:top-24 lg:self-start">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
+          <p className="gs-download-kicker text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
             Qué incluye
           </p>
           <h2 className="mt-4 max-w-xl text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
@@ -120,8 +120,8 @@ export function DownloadFeatureCatalog() {
 
               <div>
                 <p
-                  className="gs-download-feature-kicker text-[10px] font-bold uppercase tracking-[.15em]"
-                  style={{ color: accent }}
+                  className="gs-download-kicker gs-download-feature-kicker text-[10px] font-bold uppercase tracking-[.15em] text-[#8F0000]"
+                  style={{ color: "#8F0000" }}
                 >
                   {kicker}
                 </p>
