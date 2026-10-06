@@ -1515,41 +1515,7 @@ textarea:focus-visible {
   color: #111827 !important;
 }
 
-/* Keep purposefully dark product-demo regions truly dark even inside light mode. */
-.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark,
-.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark * {
+/* Keep purposefully dark product-demo regions isolated from the light palette. */
+.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark {
   color-scheme: dark;
-}
-
-.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark [class~="text-white"] {
-  color: #ffffff !important;
-}
-
-.gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark :where(
-  [class~="text-white/92"],
-  [class~="text-white/90"],
-  [class~="text-white/84"],
-  [class~="text-white/75"],
-  [class~="text-white/72"],
-  [class~="text-white/70"],
-  [class~="text-white/62"],
-  [class~="text-white/60"],
-  [class~="text-white/58"],
-  [class~="text-white/55"],
-  [class~="text-white/52"],
-  [class~="text-white/48"],
-  [class~="text-white/46"],
-  [class~="text-white/44"],
-  [class~="text-white/42"],
-  [class~="text-white/40"],
-  [class~="text-white/38"],
-  [class~="text-white/36"],
-  [class~="text-white/35"],
-  [class~="text-white/34"],
-  [class~="text-white/32"],
-  [class~="text-white/30"],
-  [class~="text-white/28"],
-  [class~="text-white/20"]
-) {
-  color: rgba(255, 255, 255, 0.66) !important;
 }
