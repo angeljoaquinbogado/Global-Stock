@@ -1675,3 +1675,79 @@ textarea:focus-visible {
   background: #8b5cf6 !important;
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.10);
 }
+
+/* Stronger light gray hierarchy */
+.gs-download-theme[data-download-theme="light"] {
+  --gs-download-muted: #475467;
+  --gs-download-subtle: #667085;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-brand-subtitle,
+.gs-download-theme[data-download-theme="light"] .gs-public-footer [class*="uppercase"] {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-nav,
+.gs-download-theme[data-download-theme="light"] .gs-download-login-action,
+.gs-download-theme[data-download-theme="light"] .gs-download-hero-copy,
+.gs-download-theme[data-download-theme="light"] .gs-download-feature-meta,
+.gs-download-theme[data-download-theme="light"] .gs-public-footer p,
+.gs-download-theme[data-download-theme="light"] .gs-public-footer a {
+  color: #475467 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-public-footer a:hover,
+.gs-download-theme[data-download-theme="light"] .gs-download-nav a:hover,
+.gs-download-theme[data-download-theme="light"] .gs-download-login-action:hover {
+  color: #344054 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-[#b4b4bc]"],
+  [class~="text-[#a8a8b0]"],
+  [class~="text-[#a0a0a9]"],
+  [class~="text-[#9f9fa8]"],
+  [class~="text-[#9b9ba4]"],
+  [class~="text-[#96969f]"]
+):not(.gs-theme-fixed-dark *) {
+  color: #475467 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-white/72"],
+  [class~="text-white/70"],
+  [class~="text-white/62"],
+  [class~="text-white/60"],
+  [class~="text-white/58"],
+  [class~="text-white/55"],
+  [class~="text-white/52"],
+  [class~="text-white/48"],
+  [class~="text-white/46"],
+  [class~="text-white/44"],
+  [class~="text-white/42"],
+  [class~="text-white/40"],
+  [class~="text-white/38"],
+  [class~="text-white/36"],
+  [class~="text-white/35"],
+  [class~="text-white/34"],
+  [class~="text-white/32"],
+  [class~="text-white/30"],
+  [class~="text-white/28"]
+):not(.gs-theme-fixed-dark *) {
+  color: #475467 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="text-white/20"]
+):not(.gs-theme-fixed-dark *) {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] :where(
+  [class~="bg-white/[0.045]"],
+  [class~="bg-white/[0.05]"],
+  [class~="bg-white/[0.07]"],
+  [class~="bg-white/[0.075]"]
+):not(.gs-theme-fixed-dark *) {
+  background-color: #eef2f6 !important;
+}
