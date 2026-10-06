@@ -121,7 +121,7 @@ export function DownloadFAQ() {
     <section className="border-t border-white/[0.045] bg-[#08090b] text-white">
       <div className="mx-auto w-full max-w-[980px] px-5 py-20 sm:px-8 sm:py-28">
         <div className="text-center">
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#b989ff]">
+          <p className="gs-download-kicker text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
             Preguntas frecuentes
           </p>
           <h2 className="mt-4 text-4xl font-semibold leading-[.98] tracking-[-0.055em] sm:text-6xl">
