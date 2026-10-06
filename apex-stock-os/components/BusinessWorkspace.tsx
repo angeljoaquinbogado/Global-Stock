@@ -3495,7 +3495,7 @@ export function BusinessWorkspace({
           <nav
             ref={desktopNavRef}
             onScroll={updateSidebarScrollState}
-            className="apex-scrollbar h-full overflow-y-auto py-8 pr-8"
+            className="gs-sidebar-nav h-full overflow-y-auto pb-14 pr-1 pt-3"
           >
             <div className="space-y-1.5">
               {primaryModules.map(({ id, icon: Icon }) => {
@@ -3565,31 +3565,39 @@ export function BusinessWorkspace({
             )}
           </nav>
 
-          <div className="pointer-events-none absolute inset-y-0 right-0 flex w-7 flex-col items-center justify-between py-1">
-            <button
-              type="button"
-              onClick={() => scrollSidebar("up")}
-              disabled={!sidebarCanScrollUp}
-              aria-label={
-                language === "es" ? "Desplazar menú hacia arriba" : "Scroll menu up"
-              }
-              className="pointer-events-auto grid h-7 w-7 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] shadow-sm transition enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-25"
-            >
-              <ChevronUp size={14} />
-            </button>
+          {(sidebarCanScrollUp || sidebarCanScrollDown) && (
+            <div className="pointer-events-none absolute bottom-1 right-1 z-10">
+              <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface)]/95 p-1 shadow-[0_8px_24px_rgba(0,0,0,.12)] backdrop-blur-md">
+                <button
+                  type="button"
+                  onClick={() => scrollSidebar("up")}
+                  disabled={!sidebarCanScrollUp}
+                  aria-label={
+                    language === "es"
+                      ? "Desplazar menú hacia arriba"
+                      : "Scroll menu up"
+                  }
+                  className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] transition-colors enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-30"
+                >
+                  <ChevronUp size={15} />
+                </button>
 
-            <button
-              type="button"
-              onClick={() => scrollSidebar("down")}
-              disabled={!sidebarCanScrollDown}
-              aria-label={
-                language === "es" ? "Desplazar menú hacia abajo" : "Scroll menu down"
-              }
-              className="pointer-events-auto grid h-7 w-7 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] shadow-sm transition enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-25"
-            >
-              <ChevronDown size={14} />
-            </button>
-          </div>
+                <button
+                  type="button"
+                  onClick={() => scrollSidebar("down")}
+                  disabled={!sidebarCanScrollDown}
+                  aria-label={
+                    language === "es"
+                      ? "Desplazar menú hacia abajo"
+                      : "Scroll menu down"
+                  }
+                  className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] transition-colors enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-30"
+                >
+                  <ChevronDown size={15} />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="mt-auto space-y-3 pt-4">
