@@ -19,7 +19,7 @@ function PublicBrand({
     }
 
     return (
-      <div className="flex items-center gap-3 text-white">
+      <div className="gs-download-brand flex items-center gap-3 text-white">
         <DownloadLogo className="h-10 w-10 shrink-0" />
         <div className="leading-none">
           <div className="text-[15px] font-semibold tracking-[-0.03em]">
@@ -54,7 +54,7 @@ export function PublicHeader({
           </span>
         </Link>
 
-        <nav className="hidden items-center gap-7 text-[13px] font-medium text-white/52 lg:flex">
+        <nav className="gs-download-nav hidden items-center gap-7 text-[13px] font-medium text-white/52 lg:flex">
           <Link
             className="transition-colors duration-150 hover:text-white"
             href="/download"
@@ -99,13 +99,13 @@ export function PublicHeader({
           <div className="hidden items-center gap-2 lg:flex">
             <Link
               href="/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[0.045] hover:text-white"
+              className="gs-download-login-action inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[0.045] hover:text-white"
             >
               Iniciar sesión
             </Link>
             <Link
               href="/"
-              className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_14px_34px_rgba(143,0,0,.32)]"
+              className="gs-download-primary-action inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_14px_34px_rgba(143,0,0,.32)]"
             >
               Abrir Global Stock
             </Link>
