@@ -8,8 +8,6 @@ import {
   BarChart3,
   BellRing,
   Boxes,
-  ChevronDown,
-  ChevronUp,
   Building2,
   CircleDollarSign,
   ClipboardList,
@@ -47,10 +45,7 @@ import {
   getStockStatus,
   rankRestockNeeds
 } from "@/lib/analytics";
-import {
-  canAccessModule,
-  primaryModulesForRole
-} from "@/lib/access-control";
+import { canAccessModule } from "@/lib/access-control";
 import {
   ensureCloudBusiness,
   flushOfflineBusinessOperations,
@@ -451,7 +446,7 @@ const copy: Record<
       operations: "Gestión",
       settings: "Configuración"
     },
-    more: "Más",
+    more: "Menú",
     overviewTitle: "Centro de control",
     overviewSubtitle: "Una vista completa de la operación de tu negocio.",
     revenue: "Ingresos",
@@ -558,7 +553,7 @@ const copy: Record<
       operations: "Operations",
       settings: "Settings"
     },
-    more: "More",
+    more: "Menu",
     overviewTitle: "Control center",
     overviewSubtitle: "A complete view of your business operation.",
     revenue: "Revenue",
@@ -665,7 +660,7 @@ const copy: Record<
       operations: "Gestão",
       settings: "Configurações"
     },
-    more: "Mais",
+    more: "Menu",
     overviewTitle: "Centro de controle",
     overviewSubtitle: "Uma visão completa da operação do seu negócio.",
     revenue: "Receita",
@@ -772,7 +767,7 @@ const copy: Record<
       operations: "Gestion",
       settings: "Paramètres"
     },
-    more: "Plus",
+    more: "Menu",
     overviewTitle: "Centre de contrôle",
     overviewSubtitle: "Une vue complète de l’activité de votre entreprise.",
     revenue: "Revenus",
@@ -879,7 +874,7 @@ const copy: Record<
       operations: "Verwaltung",
       settings: "Einstellungen"
     },
-    more: "Mehr",
+    more: "Menü",
     overviewTitle: "Kontrollzentrum",
     overviewSubtitle: "Eine vollständige Sicht auf deinen Geschäftsbetrieb.",
     revenue: "Umsatz",
@@ -1057,6 +1052,78 @@ const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "settings", icon: Settings2 }
 ];
 
+type NavigationGroupId =
+  | "core"
+  | "business"
+  | "stock"
+  | "organization";
+
+const navigationGroups: Array<{
+  id: NavigationGroupId;
+  modules: readonly ModuleId[];
+}> = [
+  {
+    id: "core",
+    modules: ["overview", "pos", "inventory"]
+  },
+  {
+    id: "business",
+    modules: ["online", "charts", "operations"]
+  },
+  {
+    id: "stock",
+    modules: ["purchases", "suppliers", "documents"]
+  },
+  {
+    id: "organization",
+    modules: ["activities", "notes", "settings"]
+  }
+];
+
+const navigationGroupLabels: Record<
+  LanguageCode,
+  Record<NavigationGroupId, string>
+> = {
+  es: {
+    core: "Principal",
+    business: "Negocio",
+    stock: "Stock y compras",
+    organization: "Organización"
+  },
+  en: {
+    core: "Main",
+    business: "Business",
+    stock: "Stock & purchasing",
+    organization: "Organization"
+  },
+  pt: {
+    core: "Principal",
+    business: "Negócio",
+    stock: "Estoque e compras",
+    organization: "Organização"
+  },
+  fr: {
+    core: "Principal",
+    business: "Entreprise",
+    stock: "Stock et achats",
+    organization: "Organisation"
+  },
+  de: {
+    core: "Hauptbereich",
+    business: "Geschäft",
+    stock: "Lager & Einkauf",
+    organization: "Organisation"
+  }
+};
+
+const mobileMenuSubtitle: Record<LanguageCode, string> = {
+  es: "Herramientas secundarias, organizadas por área.",
+  en: "Secondary tools, organized by area.",
+  pt: "Ferramentas secundárias, organizadas por área.",
+  fr: "Outils secondaires, organisés par domaine.",
+  de: "Weitere Werkzeuge, nach Bereich geordnet."
+};
+
 function localDateKey(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -1130,11 +1197,7 @@ export function BusinessWorkspace({
   const [businessDescription, setBusinessDescription] = useState("");
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
-  const [desktopMoreOpen, setDesktopMoreOpen] = useState(false);
-  const [sidebarCanScrollUp, setSidebarCanScrollUp] = useState(false);
-  const [sidebarCanScrollDown, setSidebarCanScrollDown] = useState(false);
   const [scannerOpen, setScannerOpen] = useState(false);
-  const desktopNavRef = useRef<HTMLElement>(null);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
   const [activities, setActivities] = useState<ActivityRecord[]>([]);
@@ -1216,29 +1279,6 @@ export function BusinessWorkspace({
         true
       );
   }, []);
-
-  const updateSidebarScrollState = () => {
-    const nav = desktopNavRef.current;
-    if (!nav) {
-      setSidebarCanScrollUp(false);
-      setSidebarCanScrollDown(false);
-      return;
-    }
-
-    const maxScroll = Math.max(0, nav.scrollHeight - nav.clientHeight);
-    setSidebarCanScrollUp(nav.scrollTop > 2);
-    setSidebarCanScrollDown(nav.scrollTop < maxScroll - 2);
-  };
-
-  const scrollSidebar = (direction: "up" | "down") => {
-    const nav = desktopNavRef.current;
-    if (!nav) return;
-
-    nav.scrollBy({
-      top: direction === "up" ? -180 : 180,
-      behavior: "smooth"
-    });
-  };
 
   useEffect(() => {
     if (demoMode) {
@@ -2408,34 +2448,6 @@ export function BusinessWorkspace({
     [demoMode, memberRole]
   );
 
-  const primaryModuleIds = useMemo(
-    () =>
-      new Set(
-        primaryModulesForRole(memberRole, demoMode) as readonly ModuleId[]
-      ),
-    [demoMode, memberRole]
-  );
-
-  const primaryModules = useMemo(
-    () => visibleModules.filter(({ id }) => primaryModuleIds.has(id)),
-    [primaryModuleIds, visibleModules]
-  );
-
-  const secondaryModules = useMemo(
-    () => visibleModules.filter(({ id }) => !primaryModuleIds.has(id)),
-    [primaryModuleIds, visibleModules]
-  );
-
-  useEffect(() => {
-    const frame = window.requestAnimationFrame(updateSidebarScrollState);
-    window.addEventListener("resize", updateSidebarScrollState);
-
-    return () => {
-      window.cancelAnimationFrame(frame);
-      window.removeEventListener("resize", updateSidebarScrollState);
-    };
-  }, [desktopMoreOpen, primaryModules.length, secondaryModules.length]);
-
   const visibleModuleIds = useMemo(
     () => new Set(visibleModules.map((module) => module.id)),
     [visibleModules]
@@ -2453,11 +2465,23 @@ export function BusinessWorkspace({
       ? "inventory"
       : "activities";
 
-  const mobileRightModule: ModuleId = visibleModuleIds.has("charts")
-    ? "charts"
-    : visibleModuleIds.has("operations")
-      ? "operations"
-      : "notes";
+  const mobileRightModule: ModuleId = visibleModuleIds.has("inventory")
+    ? "inventory"
+    : visibleModuleIds.has("charts")
+      ? "charts"
+      : visibleModuleIds.has("operations")
+        ? "operations"
+        : "notes";
+
+  const mobileDockModuleIds = new Set<ModuleId>([
+    "overview",
+    mobileLeftModule,
+    mobileRightModule
+  ]);
+
+  const activeModuleLivesInMenu =
+    visibleModuleIds.has(activeModule) &&
+    !mobileDockModuleIds.has(activeModule);
 
   const MobileLeftIcon =
     modules.find((module) => module.id === mobileLeftModule)?.icon ??
@@ -3491,113 +3515,59 @@ export function BusinessWorkspace({
       <aside className="sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
-        <div className="relative mt-6 min-h-0 flex-1">
-          <nav
-            ref={desktopNavRef}
-            onScroll={updateSidebarScrollState}
-            className="gs-sidebar-nav h-full overflow-y-auto pb-14 pr-1 pt-3"
-          >
-            <div className="space-y-1.5">
-              {primaryModules.map(({ id, icon: Icon }) => {
-                const active = activeModule === id;
+        <div className="mt-6 min-h-0 flex-1">
+          <nav className="gs-sidebar-nav h-full overflow-y-auto pr-1 pt-1">
+            <div className="space-y-5 pb-4">
+              {navigationGroups.map((group) => {
+                const groupItems = group.modules
+                  .filter((id) => visibleModuleIds.has(id))
+                  .map((id) =>
+                    modules.find((module) => module.id === id)
+                  )
+                  .filter(
+                    (
+                      item
+                    ): item is (typeof modules)[number] =>
+                      Boolean(item)
+                  );
+
+                if (!groupItems.length) return null;
+
                 return (
-                  <button
-                    key={id}
-                    type="button"
-                    onClick={() => setActiveModule(id)}
-                    className={
-                      "flex min-h-11 w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm font-semibold transition-colors " +
-                      (active
-                        ? "bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.2)]"
-                        : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
-                    }
-                  >
-                    <Icon size={17} />
-                    {labels.nav[id]}
-                  </button>
+                  <section key={group.id}>
+                    <p className="mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70">
+                      {navigationGroupLabels[language][group.id]}
+                    </p>
+
+                    <div className="space-y-1">
+                      {groupItems.map(({ id, icon: Icon }) => {
+                        const active = activeModule === id;
+
+                        return (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => setActiveModule(id)}
+                            className={
+                              "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150 " +
+                              (active
+                                ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.18)]"
+                                : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
+                            }
+                          >
+                            <Icon size={16} />
+                            <span className="truncate">
+                              {labels.nav[id]}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </section>
                 );
               })}
             </div>
-
-            {secondaryModules.length > 0 && (
-              <div className="mt-3 border-t border-[var(--apex-border)] pt-3">
-                <button
-                  type="button"
-                  onClick={() => setDesktopMoreOpen((value) => !value)}
-                  className="flex min-h-10 w-full items-center justify-between rounded-xl px-3 text-xs font-semibold text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]"
-                >
-                  <span>{labels.more}</span>
-                  <span
-                    aria-hidden="true"
-                    className={
-                      "text-base transition-transform " +
-                      (desktopMoreOpen ? "rotate-45" : "")
-                    }
-                  >
-                    +
-                  </span>
-                </button>
-
-                {desktopMoreOpen && (
-                  <div className="mt-1.5 space-y-1">
-                    {secondaryModules.map(({ id, icon: Icon }) => {
-                      const active = activeModule === id;
-                      return (
-                        <button
-                          key={id}
-                          type="button"
-                          onClick={() => setActiveModule(id)}
-                          className={
-                            "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-xs font-semibold transition-colors " +
-                            (active
-                              ? "bg-[#8F0000]/12 text-[#8F0000]"
-                              : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
-                          }
-                        >
-                          <Icon size={15} />
-                          {labels.nav[id]}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            )}
           </nav>
-
-          {(sidebarCanScrollUp || sidebarCanScrollDown) && (
-            <div className="pointer-events-none absolute bottom-1 right-1 z-10">
-              <div className="pointer-events-auto flex items-center gap-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface)]/95 p-1 shadow-[0_8px_24px_rgba(0,0,0,.12)] backdrop-blur-md">
-                <button
-                  type="button"
-                  onClick={() => scrollSidebar("up")}
-                  disabled={!sidebarCanScrollUp}
-                  aria-label={
-                    language === "es"
-                      ? "Desplazar menú hacia arriba"
-                      : "Scroll menu up"
-                  }
-                  className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] transition-colors enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-30"
-                >
-                  <ChevronUp size={15} />
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => scrollSidebar("down")}
-                  disabled={!sidebarCanScrollDown}
-                  aria-label={
-                    language === "es"
-                      ? "Desplazar menú hacia abajo"
-                      : "Scroll menu down"
-                  }
-                  className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] transition-colors enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] disabled:cursor-default disabled:opacity-30"
-                >
-                  <ChevronDown size={15} />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="mt-auto space-y-3 pt-4">
@@ -3948,7 +3918,7 @@ export function BusinessWorkspace({
             onClick={() => setActiveModule(mobileRightModule)}
           />
           <MobileNavButton
-            active={false}
+            active={activeModuleLivesInMenu}
             icon={<Menu size={18} />}
             label={labels.more}
             onClick={() => setMoreOpen(true)}
@@ -3975,58 +3945,101 @@ export function BusinessWorkspace({
                 duration: 0.28,
                 ease: [0.32, 0.72, 0, 1]
               }}
-              className="apex-scrollbar max-h-[88dvh] w-full overflow-y-auto rounded-t-[30px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))]"
+              className="apex-scrollbar max-h-[84dvh] w-full overflow-y-auto rounded-t-[32px] border-t border-[var(--apex-border)] bg-[var(--apex-surface)] p-4 pb-[max(20px,env(safe-area-inset-bottom))] shadow-[0_-18px_60px_rgba(0,0,0,.18)]"
             >
-              <div className="mb-4 flex items-center justify-between">
-                <Logo withWordmark />
+              <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--apex-border)]" />
+
+              <div className="mb-5 flex items-start justify-between gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2.5">
+                    <Logo className="h-7 w-7 shrink-0" aria-hidden="true" />
+                    <p className="text-base font-semibold">
+                      {labels.more}
+                    </p>
+                  </div>
+                  <p className="mt-1.5 max-w-[260px] text-xs leading-5 text-[var(--apex-muted)]">
+                    {mobileMenuSubtitle[language]}
+                  </p>
+                </div>
+
                 <button
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)]"
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)]"
                   aria-label={labels.close}
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                {(
-                  [
-                    "inventory",
-                    "online",
-                    "purchases",
-                    "suppliers",
-                    "activities",
-                    "documents",
-                    "notes",
-                    "operations",
-                    "settings"
-                  ] as ModuleId[]
-                )
-                  .filter((id) => visibleModuleIds.has(id))
-                  .map((id) => {
-                  const item = modules.find(
-                    (module) => module.id === id
-                  )!;
-                  const Icon = item.icon;
+              <div className="space-y-5">
+                {navigationGroups.map((group) => {
+                  const groupItems = group.modules
+                    .filter(
+                      (id) =>
+                        visibleModuleIds.has(id) &&
+                        !mobileDockModuleIds.has(id)
+                    )
+                    .map((id) =>
+                      modules.find((module) => module.id === id)
+                    )
+                    .filter(
+                      (
+                        item
+                      ): item is (typeof modules)[number] =>
+                        Boolean(item)
+                    );
+
+                  if (!groupItems.length) return null;
+
                   return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => {
-                        setActiveModule(id);
-                        setMoreOpen(false);
-                      }}
-                      className="flex min-h-14 items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4 text-left text-sm font-semibold"
-                    >
-                      <Icon size={18} className="text-[#8F0000]" />
-                      {labels.nav[id]}
-                    </button>
+                    <section key={group.id}>
+                      <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]">
+                        {navigationGroupLabels[language][group.id]}
+                      </p>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        {groupItems.map(({ id, icon: Icon }) => {
+                          const active = activeModule === id;
+
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => {
+                                setActiveModule(id);
+                                setMoreOpen(false);
+                              }}
+                              className={
+                                "flex min-h-[62px] items-center gap-3 rounded-2xl border p-3.5 text-left text-sm font-semibold transition-[background-color,border-color,color,box-shadow] " +
+                                (active
+                                  ? "border-[#8F0000]/35 bg-[#8F0000]/10 text-[var(--apex-text)] shadow-[0_8px_22px_rgba(143,0,0,.08)]"
+                                  : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)]")
+                              }
+                            >
+                              <span
+                                className={
+                                  "grid h-9 w-9 shrink-0 place-items-center rounded-xl " +
+                                  (active
+                                    ? "bg-[#8F0000] text-white"
+                                    : "bg-[#8F0000]/10 text-[#8F0000]")
+                                }
+                              >
+                                <Icon size={17} />
+                              </span>
+                              <span className="min-w-0 leading-tight">
+                                {labels.nav[id]}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </section>
                   );
                 })}
               </div>
 
-              <div className="mt-3">
+              <div className="mt-5 border-t border-[var(--apex-border)] pt-5">
                 <GlobalPreferences
                   language={language}
                   currency={currency}
