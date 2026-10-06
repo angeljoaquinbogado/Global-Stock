@@ -105,7 +105,7 @@ export function DownloadMetricStrip() {
   }, []);
 
   return (
-    <section ref={sectionRef} className="bg-[#09090b]">
+    <section ref={sectionRef} className="gs-download-metric-strip bg-[#09090b]">
       <div className="gs-storefront-scroll mx-auto flex w-full max-w-[1240px] items-center justify-start overflow-x-auto px-5 py-5 sm:justify-center sm:px-8 sm:py-6">
         <div className="flex min-w-max items-center">
           {metrics.map(
@@ -113,7 +113,7 @@ export function DownloadMetricStrip() {
               const value = Math.round(target * progress);
 
               return (
-                <div key={label} className="flex items-center px-3 sm:px-5">
+                <div key={label} className="gs-download-metric-item flex items-center px-3 sm:px-5">
                   <div className="group relative">
                     <div className="flex h-14 min-w-[236px] items-center rounded-[13px] px-4 transition-[background-color,box-shadow] duration-200 [transition-timing-function:var(--ease-out)] hover:bg-white/[0.045] hover:shadow-[0_8px_24px_rgba(0,0,0,.18)] focus-within:bg-white/[0.045] sm:min-w-[254px]">
                       <span
@@ -126,7 +126,7 @@ export function DownloadMetricStrip() {
 
                       <div className="flex items-baseline whitespace-nowrap transition-transform duration-200 [transition-timing-function:var(--ease-out)] group-hover:translate-x-[40px] group-focus-within:translate-x-[40px]">
                         <span
-                          className="inline-flex min-w-[4ch] tabular-nums text-[27px] font-semibold leading-none tracking-[-0.055em] sm:text-[29px]"
+                          className="gs-download-metric-value inline-flex min-w-[4ch] tabular-nums text-[27px] font-semibold leading-none tracking-[-0.055em] sm:text-[29px]"
                           style={{
                             color: accent,
                             textShadow: `0 0 18px ${accent}1a`
@@ -139,7 +139,7 @@ export function DownloadMetricStrip() {
                           </span>
                         </span>
 
-                        <span className="ml-2 text-[12px] font-medium text-[#9b9ba4] sm:text-[13px]">
+                        <span className="gs-download-metric-label ml-2 text-[12px] font-medium text-[#9b9ba4] sm:text-[13px]">
                           {label}
                         </span>
                       </div>

@@ -382,18 +382,18 @@ export function DownloadSalesFlow() {
 
       <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,.94fr)_minmax(0,1.06fr)] lg:items-center lg:gap-12 xl:gap-14">
         <div className="min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-[0.17em] text-[#E32636]">
+          <p className="gs-download-sales-eyebrow text-[10px] font-bold uppercase tracking-[0.17em] text-[#E32636]">
             Cómo funciona
           </p>
 
-          <h2 className="mt-3.5 max-w-[560px] text-[clamp(2.05rem,3.55vw,3.4rem)] font-semibold leading-[.98] tracking-[-0.055em] text-white">
+          <h2 className="gs-download-sales-title mt-3.5 max-w-[560px] text-[clamp(2.05rem,3.55vw,3.4rem)] font-semibold leading-[.98] tracking-[-0.055em] text-white">
             Vendé una vez.
-            <span className="block text-white/38">
+            <span className="gs-download-sales-title-muted block text-white/38">
               Global Stock ordena todo lo demás.
             </span>
           </h2>
 
-          <p className="mt-5 max-w-[560px] text-[14px] leading-6 text-[#a8a8b0] sm:text-[15px]">
+          <p className="gs-download-sales-copy mt-5 max-w-[560px] text-[14px] leading-6 text-[#a8a8b0] sm:text-[15px]">
             Registrás la venta como lo harías en cualquier caja. Mientras vos seguís
             atendiendo, Global Stock actualiza el cobro, descuenta el stock y guarda
             el movimiento en segundo plano.
@@ -409,10 +409,10 @@ export function DownloadSalesFlow() {
                   <Check size={14} />
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-[14px] font-semibold leading-5 text-white/92 sm:text-[15px]">
+                  <h3 className="gs-download-sales-benefit-title text-[14px] font-semibold leading-5 text-white/92 sm:text-[15px]">
                     {item.title}
                   </h3>
-                  <p className="mt-1.5 max-w-[500px] text-[13px] leading-5 text-white/46 sm:text-[13.5px]">
+                  <p className="gs-download-sales-benefit-copy mt-1.5 max-w-[500px] text-[13px] leading-5 text-white/46 sm:text-[13.5px]">
                     {item.body}
                   </p>
                 </div>

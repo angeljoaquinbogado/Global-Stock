@@ -1519,3 +1519,52 @@ textarea:focus-visible {
 .gs-download-theme[data-download-theme="light"] .gs-theme-fixed-dark {
   color-scheme: dark;
 }
+
+/* Stronger download light accents */
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-strip {
+  background: #f8fafc !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-label {
+  color: #475467 !important;
+  font-weight: 600;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(1) .gs-download-metric-value {
+  color: #079455 !important;
+  text-shadow: 0 0 18px rgba(7, 148, 85, 0.10) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(2) .gs-download-metric-value {
+  color: #d97706 !important;
+  text-shadow: 0 0 18px rgba(217, 119, 6, 0.10) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(3) .gs-download-metric-value {
+  color: #2563eb !important;
+  text-shadow: 0 0 18px rgba(37, 99, 235, 0.10) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-eyebrow {
+  color: #c8102e !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-title {
+  color: #101828 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-title-muted {
+  color: #475467 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-copy {
+  color: #475467 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-benefit-title {
+  color: #1d2939 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-download-sales-benefit-copy {
+  color: #475467 !important;
+}
