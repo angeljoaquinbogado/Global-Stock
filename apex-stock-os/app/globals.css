@@ -1546,7 +1546,7 @@ textarea:focus-visible {
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-download-sales-eyebrow {
-  color: #c8102e !important;
+  color: #8F0000 !important;
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-download-sales-title {
@@ -1666,7 +1666,7 @@ textarea:focus-visible {
 .gs-download-theme[data-download-theme="light"]
   .gs-download-feature-group[data-feature-group="intelligence"]
   .gs-download-feature-kicker {
-  color: #7c3aed !important;
+  color: #8F0000 !important;
 }
 
 .gs-download-theme[data-download-theme="light"]
@@ -1750,4 +1750,9 @@ textarea:focus-visible {
   [class~="bg-white/[0.075]"]
 ):not(.gs-theme-fixed-dark *) {
   background-color: #eef2f6 !important;
+}
+
+/* Unified download kickers */
+.gs-download-theme .gs-download-kicker {
+  color: #8F0000 !important;
 }
