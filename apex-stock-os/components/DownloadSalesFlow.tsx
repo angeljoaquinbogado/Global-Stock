@@ -391,7 +391,7 @@ export function DownloadSalesFlow() {
 
       <div className="grid min-w-0 gap-10 lg:grid-cols-[minmax(0,.94fr)_minmax(0,1.06fr)] lg:items-center lg:gap-12 xl:gap-14">
         <div className="min-w-0">
-          <p className="gs-download-sales-eyebrow text-[10px] font-bold uppercase tracking-[0.17em] text-[#E32636]">
+          <p className="gs-download-kicker gs-download-sales-eyebrow text-[10px] font-bold uppercase tracking-[0.17em] text-[#8F0000]">
             Cómo funciona
           </p>
 
