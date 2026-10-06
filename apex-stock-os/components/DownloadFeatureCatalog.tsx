@@ -105,13 +105,14 @@ export function DownloadFeatureCatalog() {
           {groups.map(({ title, kicker, body, icon: Icon, accent, surface, items }, index) => (
             <article
               key={title}
+              data-feature-group={title === "Análisis e inteligencia" ? "intelligence" : undefined}
               className={
-                "grid gap-5 py-9 sm:grid-cols-[58px_1fr] sm:gap-7 " +
+                "gs-download-feature-group grid gap-5 py-9 sm:grid-cols-[58px_1fr] sm:gap-7 " +
                 (index === 0 ? "pt-0" : "border-t border-white/[0.045]")
               }
             >
               <span
-                className="grid h-12 w-12 place-items-center rounded-2xl"
+                className="gs-download-feature-icon grid h-12 w-12 place-items-center rounded-2xl"
                 style={{ background: surface, color: accent }}
               >
                 <Icon size={20} />
@@ -119,7 +120,7 @@ export function DownloadFeatureCatalog() {
 
               <div>
                 <p
-                  className="text-[10px] font-bold uppercase tracking-[.15em]"
+                  className="gs-download-feature-kicker text-[10px] font-bold uppercase tracking-[.15em]"
                   style={{ color: accent }}
                 >
                   {kicker}
@@ -139,7 +140,7 @@ export function DownloadFeatureCatalog() {
                       className="inline-flex items-center gap-2 text-xs font-medium text-white/58"
                     >
                       <span
-                        className="h-1.5 w-1.5 rounded-full"
+                        className="gs-download-feature-dot h-1.5 w-1.5 rounded-full"
                         style={{ background: accent }}
                       />
                       {item}
