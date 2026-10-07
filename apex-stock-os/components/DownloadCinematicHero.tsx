@@ -367,7 +367,7 @@ function SceneAmbientSymbols({ scene }: { scene: StoryScene }) {
               {
                 ...positions[index],
                 "--gs-symbol-accent": scene.accent
-              } as CSSProperties
+              } as unknown as CSSProperties
             }
             initial={{
               opacity: 0,
