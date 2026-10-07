@@ -1918,3 +1918,14 @@ textarea:focus-visible {
     animation: none !important;
   }
 }
+
+/* Download anchor clipping fix */
+.gs-storefront [data-download-section] {
+  scroll-margin-top: 92px;
+}
+
+@media (max-width: 767px) {
+  .gs-storefront [data-download-section] {
+    scroll-margin-top: 84px;
+  }
+}
