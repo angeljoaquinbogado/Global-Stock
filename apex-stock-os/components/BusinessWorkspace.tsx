@@ -3682,7 +3682,7 @@ export function BusinessWorkspace({
 
           {sidebarScroll.visible ? (
             <div
-              className="gs-sidebar-scroll-control absolute -right-[31px] top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
+              className="gs-sidebar-scroll-control absolute -right-[35px] top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
               onWheel={(event) => {
                 const nav = sidebarNavRef.current;
                 if (!nav) return;
