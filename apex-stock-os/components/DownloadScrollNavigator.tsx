@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 const sectionIds = [
   "download-hero",
@@ -13,6 +13,9 @@ const sectionIds = [
   "download-faq"
 ];
 
+const FALLBACK_HEADER_HEIGHT = 68;
+const SECTION_GAP = 14;
+
 function getSections() {
   if (typeof document === "undefined") return [];
 
@@ -21,66 +24,123 @@ function getSections() {
     .filter((item): item is HTMLElement => Boolean(item));
 }
 
+function getHeaderOffset() {
+  if (typeof document === "undefined") {
+    return FALLBACK_HEADER_HEIGHT + SECTION_GAP;
+  }
+
+  const header = document.querySelector<HTMLElement>(".gs-public-header");
+  const height = header?.getBoundingClientRect().height ?? FALLBACK_HEADER_HEIGHT;
+
+  return Math.ceil(height) + SECTION_GAP;
+}
+
+function getDocumentTop(element: HTMLElement) {
+  return window.scrollY + element.getBoundingClientRect().top;
+}
+
+function getActiveSectionIndex(sections: HTMLElement[]) {
+  if (!sections.length) return 0;
+
+  const marker = window.scrollY + getHeaderOffset() + 2;
+  let current = 0;
+
+  sections.forEach((section, index) => {
+    if (getDocumentTop(section) <= marker) {
+      current = index;
+    }
+  });
+
+  return current;
+}
+
 export function DownloadScrollNavigator() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [availableCount, setAvailableCount] = useState(sectionIds.length);
 
+  const updatePosition = useCallback(() => {
+    const sections = getSections();
+    setAvailableCount(sections.length || sectionIds.length);
+
+    if (!sections.length) return;
+
+    setActiveIndex(getActiveSectionIndex(sections));
+  }, []);
+
   useEffect(() => {
-    const update = () => {
-      const sections = getSections();
-      setAvailableCount(sections.length || sectionIds.length);
-      if (!sections.length) return;
-
-      const viewportCenter = window.innerHeight * 0.45;
-      let best = 0;
-      let bestDistance = Number.POSITIVE_INFINITY;
-
-      sections.forEach((section, index) => {
-        const rect = section.getBoundingClientRect();
-        const distance = Math.abs(rect.top - viewportCenter);
-
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = index;
-        }
-      });
-
-      setActiveIndex(best);
-    };
-
     document.documentElement.classList.add("gs-download-arrow-scroll");
     document.body.classList.add("gs-download-arrow-scroll");
 
-    const frame = window.requestAnimationFrame(update);
-    window.addEventListener("scroll", update, { passive: true });
-    window.addEventListener("resize", update);
+    let frame = window.requestAnimationFrame(updatePosition);
+
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(updatePosition);
+    };
+
+    window.addEventListener("scroll", scheduleUpdate, { passive: true });
+    window.addEventListener("resize", scheduleUpdate);
 
     return () => {
       document.documentElement.classList.remove("gs-download-arrow-scroll");
       document.body.classList.remove("gs-download-arrow-scroll");
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", update);
-      window.removeEventListener("resize", update);
+      window.removeEventListener("scroll", scheduleUpdate);
+      window.removeEventListener("resize", scheduleUpdate);
     };
-  }, []);
+  }, [updatePosition]);
 
-  const goTo = (index: number) => {
+  const goTo = useCallback((index: number) => {
     const sections = getSections();
-    const target = sections[index];
+    const safeIndex = Math.max(0, Math.min(sections.length - 1, index));
+    const target = sections[safeIndex];
+
     if (!target) return;
 
-    target.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
+    const top = Math.max(0, getDocumentTop(target) - getHeaderOffset());
+
+    window.scrollTo({
+      top,
+      behavior: "smooth"
     });
+
+    window.setTimeout(() => {
+      setActiveIndex(safeIndex);
+    }, 180);
+  }, []);
+
+  const goPrevious = () => {
+    const sections = getSections();
+    if (!sections.length) return;
+
+    const current = getActiveSectionIndex(sections);
+    const offset = getHeaderOffset();
+    const currentTop = Math.max(0, getDocumentTop(sections[current]) - offset);
+
+    // If the user is already inside a long section (especially the cinematic
+    // hero), the first "up" press returns to that section's real beginning.
+    if (window.scrollY - currentTop > 96) {
+      goTo(current);
+      return;
+    }
+
+    goTo(current - 1);
+  };
+
+  const goNext = () => {
+    const sections = getSections();
+    if (!sections.length) return;
+
+    const current = getActiveSectionIndex(sections);
+    goTo(current + 1);
   };
 
   return (
     <div className="gs-download-scroll-nav fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
       <button
         type="button"
-        onClick={() => goTo(Math.max(0, activeIndex - 1))}
-        disabled={activeIndex <= 0}
+        onClick={goPrevious}
+        disabled={activeIndex <= 0 && windowScrollNearTop()}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Subir a la sección anterior"
       >
@@ -99,6 +159,7 @@ export function DownloadScrollNavigator() {
                 ? "h-5 w-1.5 bg-[#8F0000]"
                 : "h-1.5 w-1.5 bg-white/25 hover:bg-white/50")
             }
+            aria-current={index === activeIndex ? "true" : undefined}
             aria-label={"Ir a sección " + (index + 1)}
           />
         ))}
@@ -106,9 +167,7 @@ export function DownloadScrollNavigator() {
 
       <button
         type="button"
-        onClick={() =>
-          goTo(Math.min(availableCount - 1, activeIndex + 1))
-        }
+        onClick={goNext}
         disabled={activeIndex >= availableCount - 1}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Bajar a la sección siguiente"
@@ -117,4 +176,9 @@ export function DownloadScrollNavigator() {
       </button>
     </div>
   );
+}
+
+function windowScrollNearTop() {
+  if (typeof window === "undefined") return true;
+  return window.scrollY < 8;
 }
