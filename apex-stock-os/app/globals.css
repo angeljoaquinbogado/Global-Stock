@@ -2138,16 +2138,20 @@ textarea:focus-visible {
   position: absolute;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .42);
+  border: 1px solid rgba(255, 255, 255, .34);
   border-radius: 999px;
-  background: rgba(20, 24, 30, .075);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.035)),
+    rgba(18, 22, 28, .055);
   box-shadow:
-    0 10px 26px rgba(15, 23, 42, .10),
-    inset 0 1px 0 rgba(255,255,255,.62),
-    inset 0 -1px 0 rgba(255,255,255,.12);
-  backdrop-filter: blur(22px) saturate(170%) contrast(102%);
-  -webkit-backdrop-filter: blur(22px) saturate(170%) contrast(102%);
+    0 9px 24px rgba(15, 23, 42, .09),
+    inset 0 1px 0 rgba(255,255,255,.50),
+    inset 0 -1px 0 rgba(255,255,255,.08);
+  backdrop-filter: blur(20px) saturate(165%) contrast(102%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%) contrast(102%);
   touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .gs-cinematic-scene-dots::before {
@@ -2158,95 +2162,160 @@ textarea:focus-visible {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 30% 0%, rgba(255,255,255,.46), transparent 32%),
-    linear-gradient(115deg, rgba(255,255,255,.10), transparent 38%, rgba(255,255,255,.025) 72%, rgba(255,255,255,.08));
+    radial-gradient(circle at 26% -8%, rgba(255,255,255,.42), transparent 34%),
+    linear-gradient(110deg, rgba(255,255,255,.055), transparent 38%, rgba(255,255,255,.018) 72%, rgba(255,255,255,.06));
   opacity: .72;
 }
 
 .gs-cinematic-scene-dots::after {
   content: "";
   position: absolute;
-  inset: auto 12% 2px;
-  height: 1px;
+  inset: auto 13% 2px;
   z-index: -1;
+  height: 1px;
   border-radius: 999px;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.44), transparent);
-  opacity: .54;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.34), transparent);
+  opacity: .46;
 }
 
 .gs-cinematic-scene-dot-button {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   -webkit-tap-highlight-color: transparent;
   outline: none;
 }
 
-.gs-cinematic-liquid-selector {
-  border: 1px solid rgba(255,255,255,.52);
+.gs-cinematic-liquid-lens {
+  width: 38px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.48);
   background:
-    radial-gradient(circle at 38% 18%, rgba(255,255,255,.24), transparent 42%),
-    rgba(255,255,255,.045);
+    radial-gradient(circle at 32% 14%, rgba(255,255,255,.22), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
   box-shadow:
-    0 5px 14px rgba(15,23,42,.12),
-    inset 0 1px 0 rgba(255,255,255,.70),
-    inset 0 -1px 0 rgba(255,255,255,.12);
-  backdrop-filter: blur(11px) saturate(185%) contrast(104%);
-  -webkit-backdrop-filter: blur(11px) saturate(185%) contrast(104%);
+    0 7px 16px rgba(15,23,42,.13),
+    inset 0 1px 0 rgba(255,255,255,.62),
+    inset 0 -1px 0 rgba(255,255,255,.09);
+  backdrop-filter: blur(10px) saturate(190%) contrast(106%);
+  -webkit-backdrop-filter: blur(10px) saturate(190%) contrast(106%);
+  transform:
+    translate3d(0,-50%,0)
+    scaleX(.86)
+    scaleY(1);
+  transform-origin: 50% 50%;
+  will-change: transform;
 }
 
-.gs-cinematic-liquid-selector::before {
+.gs-cinematic-liquid-lens::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  padding: 1px;
+  background:
+    conic-gradient(
+      from 210deg,
+      rgba(80,210,255,.0),
+      rgba(80,210,255,.58),
+      rgba(255,255,255,.70),
+      rgba(255,214,90,.52),
+      rgba(255,92,156,.50),
+      rgba(109,94,252,.48),
+      rgba(80,210,255,.0)
+    );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: .34;
+}
+
+.gs-cinematic-liquid-lens::after {
   content: "";
   position: absolute;
   inset: 2px;
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 30% 15%, rgba(255,255,255,.40), transparent 42%),
-    radial-gradient(circle at 72% 85%, rgba(255,255,255,.10), transparent 48%);
-  opacity: .84;
+    radial-gradient(circle at 27% 10%, rgba(255,255,255,.42), transparent 36%),
+    radial-gradient(circle at 78% 88%, rgba(255,255,255,.10), transparent 48%);
+  opacity: .68;
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
+  border-color: rgba(255,255,255,.60);
+  background:
+    radial-gradient(circle at 34% 12%, rgba(255,255,255,.28), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.025));
+  box-shadow:
+    0 9px 20px rgba(15,23,42,.16),
+    inset 0 1px 0 rgba(255,255,255,.78),
+    inset 0 -1px 0 rgba(255,255,255,.12);
+  backdrop-filter: blur(8px) saturate(210%) contrast(108%);
+  -webkit-backdrop-filter: blur(8px) saturate(210%) contrast(108%);
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens::before {
+  opacity: .82;
 }
 
 .gs-cinematic-scene-dot {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.30);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26);
   transition:
     width 180ms cubic-bezier(0.23, 1, 0.32, 1),
     background-color 180ms ease,
     opacity 180ms ease,
+    transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
     box-shadow 180ms ease;
-  opacity: .62;
+  opacity: .58;
+  transform: scale(1);
 }
 
 .gs-cinematic-scene-dot[data-active="true"] {
   opacity: 1;
+  transform: scale(1.06);
   box-shadow:
-    0 0 9px color-mix(in srgb, var(--gs-cinematic-accent) 28%, transparent),
+    0 0 10px color-mix(in srgb, var(--gs-cinematic-accent) 30%, transparent),
     inset 0 1px 0 rgba(255,255,255,.34);
 }
 
 .gs-download-theme[data-download-theme="dark"] .gs-cinematic-scene-dots {
-  border-color: rgba(255,255,255,.18);
-  background: rgba(5, 7, 10, .18);
+  border-color: rgba(255,255,255,.16);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018)),
+    rgba(4,6,9,.18);
   box-shadow:
-    0 12px 28px rgba(0,0,0,.25),
-    inset 0 1px 0 rgba(255,255,255,.17),
-    inset 0 -1px 0 rgba(255,255,255,.035);
+    0 11px 26px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.14),
+    inset 0 -1px 0 rgba(255,255,255,.03);
 }
 
-.gs-download-theme[data-download-theme="dark"] .gs-cinematic-liquid-selector {
-  border-color: rgba(255,255,255,.22);
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-liquid-lens {
+  border-color: rgba(255,255,255,.20);
   background:
-    radial-gradient(circle at 38% 18%, rgba(255,255,255,.11), transparent 42%),
+    radial-gradient(circle at 34% 12%, rgba(255,255,255,.11), transparent 38%),
     rgba(0,0,0,.20);
   box-shadow:
-    0 5px 14px rgba(0,0,0,.24),
-    inset 0 1px 0 rgba(255,255,255,.18),
-    inset 0 -1px 0 rgba(255,255,255,.035);
+    0 8px 18px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.16),
+    inset 0 -1px 0 rgba(255,255,255,.025);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
+  border-color: rgba(255,255,255,.28);
+  background:
+    radial-gradient(circle at 34% 12%, rgba(255,255,255,.15), transparent 38%),
+    rgba(0,0,0,.16);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .gs-cinematic-scene-dot-button:hover .gs-cinematic-scene-dot {
     opacity: .94;
+    transform: scale(1.08);
   }
 }
 
@@ -2255,9 +2324,11 @@ textarea:focus-visible {
     bottom: 5px !important;
     gap: 7px;
     padding: 6px 10px;
-    background: rgba(16, 20, 24, .07);
-    backdrop-filter: blur(24px) saturate(175%) contrast(103%);
-    -webkit-backdrop-filter: blur(24px) saturate(175%) contrast(103%);
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.025)),
+      rgba(12,16,22,.05);
+    backdrop-filter: blur(22px) saturate(170%) contrast(103%);
+    -webkit-backdrop-filter: blur(22px) saturate(170%) contrast(103%);
   }
 
   .gs-cinematic-scene-dot-button {
@@ -2265,8 +2336,25 @@ textarea:focus-visible {
     height: 30px;
   }
 
-  .gs-cinematic-liquid-selector {
-    inset: -1px !important;
+  .gs-cinematic-liquid-lens {
+    width: 40px;
+    height: 36px;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .gs-cinematic-scene-dots,
+  .gs-cinematic-liquid-lens {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
+  .gs-cinematic-scene-dots {
+    background: color-mix(in srgb, var(--gs-download-surface) 94%, transparent);
+  }
+
+  .gs-cinematic-liquid-lens {
+    background: color-mix(in srgb, var(--gs-download-surface) 90%, var(--gs-cinematic-accent) 10%);
   }
 }
 
@@ -2457,7 +2545,7 @@ textarea:focus-visible {
   }
 
   .gs-cinematic-scene-dot,
-  .gs-cinematic-liquid-selector {
+  .gs-cinematic-liquid-lens {
     transition: none !important;
   }
 }
