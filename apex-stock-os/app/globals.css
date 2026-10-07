@@ -2191,18 +2191,37 @@ textarea:focus-visible {
   --gs-liquid-center: 24px;
   --gs-liquid-pan-x: 0px;
   --gs-liquid-refraction-scale: 1.12;
+  --gs-liquid-shine-x: 31%;
+  --gs-liquid-shine-y: 14%;
+  --gs-liquid-spectrum: .16;
+  --gs-liquid-edge-glow: .28;
+  --gs-liquid-hue-angle: 205deg;
+  --gs-liquid-radius: 999px;
   width: 46px;
   height: 35px;
   overflow: visible;
-  border-radius: 999px;
+  border-radius: var(--gs-liquid-radius);
   border: 1px solid rgba(255,255,255,.42);
   background:
-    radial-gradient(circle at 31% 10%, rgba(255,255,255,.18), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,.050), rgba(255,255,255,.012));
+    radial-gradient(
+      circle at var(--gs-liquid-shine-x) var(--gs-liquid-shine-y),
+      rgba(255,255,255,.31) 0%,
+      rgba(255,255,255,.11) 16%,
+      transparent 39%
+    ),
+    radial-gradient(
+      circle at 72% 86%,
+      rgba(116,208,255,.065),
+      transparent 48%
+    ),
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.010));
   box-shadow:
     0 6px 14px rgba(15,23,42,.12),
-    inset 0 1px 0 rgba(255,255,255,.52),
-    inset 0 -1px 0 rgba(255,255,255,.065);
+    0 0 calc(8px * var(--gs-liquid-edge-glow)) rgba(255,255,255,.22),
+    inset 0 1px 0 rgba(255,255,255,.58),
+    inset 0 -1px 0 rgba(255,255,255,.055),
+    inset 5px 0 10px rgba(110,220,255,.035),
+    inset -5px 0 10px rgba(255,116,196,.030);
   backdrop-filter: blur(7px) saturate(180%) contrast(106%);
   -webkit-backdrop-filter: blur(7px) saturate(180%) contrast(106%);
   transform:
@@ -2210,6 +2229,10 @@ textarea:focus-visible {
     scaleX(.86)
     scaleY(1);
   transform-origin: 50% 50%;
+  transition:
+    border-radius 220ms cubic-bezier(0.23,1,0.32,1),
+    border-color 140ms cubic-bezier(0.23,1,0.32,1),
+    box-shadow 160ms cubic-bezier(0.23,1,0.32,1);
   will-change: transform;
 }
 
@@ -2223,7 +2246,7 @@ textarea:focus-visible {
   padding: 1px;
   background:
     conic-gradient(
-      from 205deg,
+      from var(--gs-liquid-hue-angle),
       rgba(86,216,255,0) 0deg,
       rgba(86,216,255,.82) 36deg,
       rgba(118,106,255,.78) 72deg,
@@ -2240,7 +2263,8 @@ textarea:focus-visible {
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: .18;
+  opacity: var(--gs-liquid-spectrum);
+  filter: saturate(1.18) brightness(1.06);
   transition: opacity 140ms cubic-bezier(0.23,1,0.32,1);
 }
 
@@ -2252,9 +2276,24 @@ textarea:focus-visible {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 27% 8%, rgba(255,255,255,.46), transparent 34%),
-    radial-gradient(circle at 80% 90%, rgba(255,255,255,.10), transparent 46%);
-  opacity: .55;
+    radial-gradient(
+      ellipse at var(--gs-liquid-shine-x) var(--gs-liquid-shine-y),
+      rgba(255,255,255,.82) 0%,
+      rgba(255,255,255,.34) 7%,
+      rgba(255,255,255,.08) 18%,
+      transparent 34%
+    ),
+    linear-gradient(
+      112deg,
+      transparent 28%,
+      rgba(255,255,255,.10) 44%,
+      rgba(255,255,255,.24) 49%,
+      rgba(255,255,255,.06) 54%,
+      transparent 68%
+    ),
+    radial-gradient(circle at 80% 92%, rgba(255,220,125,.10), transparent 42%);
+  opacity: .62;
+  mix-blend-mode: screen;
   transition: opacity 140ms cubic-bezier(0.23,1,0.32,1);
 }
 
@@ -2338,24 +2377,33 @@ textarea:focus-visible {
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
-  border-color: rgba(255,255,255,.62);
+  border-color: rgba(255,255,255,.64);
   background:
-    radial-gradient(circle at 32% 9%, rgba(255,255,255,.24), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.014));
+    radial-gradient(
+      circle at var(--gs-liquid-shine-x) var(--gs-liquid-shine-y),
+      rgba(255,255,255,.42) 0%,
+      rgba(255,255,255,.16) 15%,
+      transparent 38%
+    ),
+    radial-gradient(circle at 72% 88%, rgba(120,210,255,.09), transparent 44%),
+    linear-gradient(180deg, rgba(255,255,255,.060), rgba(255,255,255,.010));
   box-shadow:
-    0 9px 20px rgba(15,23,42,.16),
-    inset 0 1px 0 rgba(255,255,255,.72),
-    inset 0 -1px 0 rgba(255,255,255,.10);
-  backdrop-filter: blur(5px) saturate(205%) contrast(109%);
-  -webkit-backdrop-filter: blur(5px) saturate(205%) contrast(109%);
+    0 9px 20px rgba(15,23,42,.15),
+    0 0 calc(12px * var(--gs-liquid-edge-glow)) rgba(255,255,255,.25),
+    inset 0 1px 0 rgba(255,255,255,.78),
+    inset 0 -1px 0 rgba(255,255,255,.085),
+    inset 7px 0 13px rgba(93,221,255,.055),
+    inset -7px 0 13px rgba(255,93,190,.050);
+  backdrop-filter: blur(4px) saturate(215%) contrast(110%);
+  -webkit-backdrop-filter: blur(4px) saturate(215%) contrast(110%);
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens::before {
-  opacity: .92;
+  opacity: var(--gs-liquid-spectrum);
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens::after {
-  opacity: .82;
+  opacity: .92;
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-refraction-window {
