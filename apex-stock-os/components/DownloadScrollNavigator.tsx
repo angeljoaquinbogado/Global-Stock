@@ -13,7 +13,7 @@ const sectionIds = [
   "download-faq"
 ];
 
-const HERO_SCENE_COUNT = 4;
+const HERO_SCENE_COUNT = 1;
 const FALLBACK_HEADER_HEIGHT = 68;
 const SECTION_GAP = 14;
 
@@ -234,8 +234,8 @@ export function DownloadScrollNavigator() {
 
     const current = getActiveSectionIndex(sections);
 
-    // From Funcionalidades, go back to the last cinematic scene instead of
-    // jumping all the way to the first frame of the hero.
+    // The cinematic hero is now one normal-scroll section; its scenes autoplay
+    // independently, so navigation returns to the hero itself.
     if (current === 1 && hero) {
       scrollToTop(getHeroSceneTop(hero, HERO_SCENE_COUNT - 1));
       return;
