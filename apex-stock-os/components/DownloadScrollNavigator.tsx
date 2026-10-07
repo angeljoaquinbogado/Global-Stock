@@ -13,6 +13,7 @@ const sectionIds = [
   "download-faq"
 ];
 
+const HERO_SCENE_COUNT = 4;
 const FALLBACK_HEADER_HEIGHT = 68;
 const SECTION_GAP = 14;
 
@@ -30,7 +31,8 @@ function getHeaderOffset() {
   }
 
   const header = document.querySelector<HTMLElement>(".gs-public-header");
-  const height = header?.getBoundingClientRect().height ?? FALLBACK_HEADER_HEIGHT;
+  const height =
+    header?.getBoundingClientRect().height ?? FALLBACK_HEADER_HEIGHT;
 
   return Math.ceil(height) + SECTION_GAP;
 }
@@ -52,6 +54,61 @@ function getActiveSectionIndex(sections: HTMLElement[]) {
   });
 
   return current;
+}
+
+function getHeroMetrics(hero: HTMLElement) {
+  const top = Math.max(0, getDocumentTop(hero) - getHeaderOffset());
+  const travel = Math.max(
+    window.innerHeight,
+    hero.offsetHeight - window.innerHeight
+  );
+
+  return {
+    top,
+    travel,
+    end: top + travel
+  };
+}
+
+function isInsideHero(hero: HTMLElement) {
+  const { top, end } = getHeroMetrics(hero);
+  const y = window.scrollY;
+
+  return y >= top - 8 && y <= end + 8;
+}
+
+function getHeroSceneIndex(hero: HTMLElement) {
+  const { top, travel } = getHeroMetrics(hero);
+  const progress = Math.min(
+    0.999,
+    Math.max(0, (window.scrollY - top) / travel)
+  );
+
+  return Math.min(
+    HERO_SCENE_COUNT - 1,
+    Math.floor(progress * HERO_SCENE_COUNT)
+  );
+}
+
+function getHeroSceneTop(hero: HTMLElement, sceneIndex: number) {
+  const { top, travel } = getHeroMetrics(hero);
+  const safeScene = Math.max(
+    0,
+    Math.min(HERO_SCENE_COUNT - 1, sceneIndex)
+  );
+
+  // Land just inside each scene so Framer Motion resolves the intended state
+  // immediately instead of sitting exactly on a scene boundary.
+  const progress = safeScene / HERO_SCENE_COUNT + 0.025;
+
+  return Math.round(top + travel * progress);
+}
+
+function prefersReducedMotion() {
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 export function DownloadScrollNavigator() {
@@ -98,50 +155,126 @@ export function DownloadScrollNavigator() {
     };
   }, [updatePosition]);
 
-  const goTo = useCallback((index: number) => {
-    const sections = getSections();
-    const safeIndex = Math.max(0, Math.min(sections.length - 1, index));
-    const target = sections[safeIndex];
+  const scrollToTop = useCallback(
+    (top: number) => {
+      const maxTop = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight
+      );
+      const targetTop = Math.max(0, Math.min(maxTop, Math.round(top)));
+      const startTop = window.scrollY;
+      const behavior: ScrollBehavior = prefersReducedMotion()
+        ? "auto"
+        : "smooth";
 
-    if (!target) return;
+      window.scrollTo({
+        top: targetTop,
+        behavior
+      });
 
-    const top = Math.max(0, getDocumentTop(target) - getHeaderOffset());
+      // Chrome occasionally ignores a long smooth jump while the cinematic
+      // sticky hero is changing state. If no movement started, force the same
+      // destination so the control never appears broken.
+      if (behavior === "smooth") {
+        window.setTimeout(() => {
+          const didNotStart =
+            Math.abs(window.scrollY - startTop) < 3 &&
+            Math.abs(targetTop - startTop) > 24;
 
-    window.scrollTo({
-      top,
-      behavior: "smooth"
-    });
+          if (didNotStart) {
+            window.scrollTo({
+              top: targetTop,
+              behavior: "auto"
+            });
+          }
 
-    window.setTimeout(() => {
-      setActiveIndex(safeIndex);
-    }, 180);
-  }, []);
+          updatePosition();
+        }, 180);
+      } else {
+        window.requestAnimationFrame(updatePosition);
+      }
+    },
+    [updatePosition]
+  );
 
-  const goPrevious = () => {
+  const goToSection = useCallback(
+    (index: number) => {
+      const sections = getSections();
+      const safeIndex = Math.max(0, Math.min(sections.length - 1, index));
+      const target = sections[safeIndex];
+
+      if (!target) return;
+
+      const top = Math.max(
+        0,
+        getDocumentTop(target) - getHeaderOffset()
+      );
+
+      scrollToTop(top);
+    },
+    [scrollToTop]
+  );
+
+  const goPrevious = useCallback(() => {
     const sections = getSections();
     if (!sections.length) return;
 
-    const current = getActiveSectionIndex(sections);
-    const offset = getHeaderOffset();
-    const currentTop = Math.max(0, getDocumentTop(sections[current]) - offset);
+    const hero = document.getElementById("download-hero");
 
-    // If the user is already inside a long section (especially the cinematic
-    // hero), the first "up" press returns to that section's real beginning.
-    if (window.scrollY - currentTop > 96) {
-      goTo(current);
+    if (hero && isInsideHero(hero)) {
+      const currentScene = getHeroSceneIndex(hero);
+
+      if (currentScene > 0) {
+        scrollToTop(getHeroSceneTop(hero, currentScene - 1));
+      } else {
+        scrollToTop(getHeroMetrics(hero).top);
+      }
       return;
     }
 
-    goTo(current - 1);
-  };
+    const current = getActiveSectionIndex(sections);
 
-  const goNext = () => {
+    // From Funcionalidades, go back to the last cinematic scene instead of
+    // jumping all the way to the first frame of the hero.
+    if (current === 1 && hero) {
+      scrollToTop(getHeroSceneTop(hero, HERO_SCENE_COUNT - 1));
+      return;
+    }
+
+    const offset = getHeaderOffset();
+    const currentTop = Math.max(
+      0,
+      getDocumentTop(sections[current]) - offset
+    );
+
+    if (window.scrollY - currentTop > 96) {
+      goToSection(current);
+      return;
+    }
+
+    goToSection(current - 1);
+  }, [goToSection, scrollToTop]);
+
+  const goNext = useCallback(() => {
     const sections = getSections();
     if (!sections.length) return;
 
+    const hero = document.getElementById("download-hero");
+
+    if (hero && isInsideHero(hero)) {
+      const currentScene = getHeroSceneIndex(hero);
+
+      if (currentScene < HERO_SCENE_COUNT - 1) {
+        scrollToTop(getHeroSceneTop(hero, currentScene + 1));
+      } else {
+        goToSection(1);
+      }
+      return;
+    }
+
     const current = getActiveSectionIndex(sections);
-    goTo(current + 1);
-  };
+    goToSection(current + 1);
+  }, [goToSection, scrollToTop]);
 
   return (
     <div className="gs-download-scroll-nav fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
@@ -150,7 +283,7 @@ export function DownloadScrollNavigator() {
         onClick={goPrevious}
         disabled={!canGoUp}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
-        aria-label="Subir a la sección anterior"
+        aria-label="Subir"
       >
         <ChevronUp size={16} />
       </button>
@@ -160,7 +293,7 @@ export function DownloadScrollNavigator() {
           <button
             key={id}
             type="button"
-            onClick={() => goTo(index)}
+            onClick={() => goToSection(index)}
             className={
               "rounded-full transition-all duration-200 " +
               (index === activeIndex
@@ -178,7 +311,7 @@ export function DownloadScrollNavigator() {
         onClick={goNext}
         disabled={activeIndex >= availableCount - 1}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
-        aria-label="Bajar a la sección siguiente"
+        aria-label="Bajar"
       >
         <ChevronDown size={16} />
       </button>
