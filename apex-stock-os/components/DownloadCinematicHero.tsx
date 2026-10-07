@@ -291,6 +291,23 @@ export function DownloadCinematicHero() {
     setActiveIndex((current) => (current === next ? current : next));
   });
 
+  const goToScene = (index: number) => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const safeIndex = Math.max(0, Math.min(scenes.length - 1, index));
+    const stickyHeight = Math.max(1, window.innerHeight - 68);
+    const travel = Math.max(1, section.offsetHeight - stickyHeight);
+    const sectionTop =
+      window.scrollY + section.getBoundingClientRect().top - 68;
+    const progress = (safeIndex + 0.5) / scenes.length;
+
+    window.scrollTo({
+      top: sectionTop + travel * progress,
+      behavior: reduceMotion ? "auto" : "smooth"
+    });
+  };
+
   const scene = scenes[activeIndex];
   const pose = reduceMotion
     ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
@@ -305,7 +322,7 @@ export function DownloadCinematicHero() {
       ref={sectionRef}
       id="download-hero"
       data-download-section
-      className="gs-cinematic-hero relative h-[225svh] scroll-mt-20 lg:h-[245vh] xl:h-[255vh]"
+      className="gs-cinematic-hero relative h-[285svh] scroll-mt-20 lg:h-[330vh] xl:h-[340vh]"
       style={accentStyle}
     >
       <div className="sticky top-[68px] h-[calc(100svh-68px)] min-h-[560px] overflow-hidden">
@@ -316,7 +333,7 @@ export function DownloadCinematicHero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: .82, ease: easeOut }}
+            transition={{ duration: .52, ease: easeOut }}
           >
             <div
               className="gs-cinematic-bg-light absolute inset-0"
@@ -379,7 +396,7 @@ export function DownloadCinematicHero() {
                   className="gs-cinematic-phone-motion absolute inset-0"
                   animate={pose}
                   transition={{
-                    duration: reduceMotion ? .01 : .58,
+                    duration: reduceMotion ? .01 : .48,
                     ease: easeOut
                   }}
                   style={{ transformStyle: "preserve-3d" }}
@@ -395,6 +412,31 @@ export function DownloadCinematicHero() {
                 </motion.div>
               </motion.div>
             </div>
+          </div>
+
+          <div className="gs-cinematic-scene-dots absolute bottom-[3%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/92 px-3 py-2 shadow-[0_10px_28px_rgba(15,23,42,.10)]">
+            {scenes.map((item, index) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => goToScene(index)}
+                className="grid h-5 w-5 place-items-center rounded-full"
+                aria-label={`Ir a ${item.kicker}`}
+                aria-current={index === activeIndex ? "true" : undefined}
+              >
+                <span
+                  className="block rounded-full transition-[width,height,background-color] duration-200"
+                  style={{
+                    width: index === activeIndex ? 18 : 6,
+                    height: 6,
+                    backgroundColor:
+                      index === activeIndex
+                        ? item.accent
+                        : "color-mix(in srgb, var(--gs-download-muted) 30%, transparent)"
+                  }}
+                />
+              </button>
+            ))}
           </div>
 
           <div className="gs-cinematic-scroll-note absolute bottom-[3.1%] left-[4%] hidden items-center gap-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
