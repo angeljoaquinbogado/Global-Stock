@@ -561,9 +561,16 @@ export function DownloadCinematicHero() {
       "--gs-liquid-caustic",
       Math.min(1, .18 + speed * .64 + pressure * .22).toFixed(3)
     );
+    const opticalShift =
+      normalizedDirection * Math.min(4.5, 1 + speed * 3.2);
+    lens.style.setProperty("--gs-liquid-shift", `${opticalShift}px`);
     lens.style.setProperty(
-      "--gs-liquid-shift",
-      `${normalizedDirection * Math.min(4.5, 1 + speed * 3.2)}px`
+      "--gs-liquid-shift-reverse",
+      `${-opticalShift}px`
+    );
+    lens.style.setProperty(
+      "--gs-liquid-sheen-shift",
+      `${opticalShift * .42}px`
     );
   };
 
@@ -579,6 +586,8 @@ export function DownloadCinematicHero() {
     lens.style.setProperty("--gs-liquid-radius", "999px");
     lens.style.setProperty("--gs-liquid-caustic", ".12");
     lens.style.setProperty("--gs-liquid-shift", "0px");
+    lens.style.setProperty("--gs-liquid-shift-reverse", "0px");
+    lens.style.setProperty("--gs-liquid-sheen-shift", "0px");
   };
 
   const snapLensToScene = (
