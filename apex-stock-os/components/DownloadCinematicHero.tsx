@@ -57,7 +57,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 72% 36%, rgba(143,0,0,.34), transparent 30%), radial-gradient(circle at 78% 76%, rgba(227,38,54,.12), transparent 31%), linear-gradient(180deg,#070708 0%,#0b0b0d 100%)",
     side: "left",
-    pose: { x: 16, y: 0, rotateX: 2, rotateY: -7, rotateZ: 1.1, scale: .96 },
+    pose: { x: 14, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
     stats: [
       { label: "Ventas hoy", value: "$ 248.900" },
       { label: "Inventario", value: "1.248 uds" }
@@ -77,7 +77,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 28% 38%, rgba(245,158,11,.19), transparent 30%), radial-gradient(circle at 70% 76%, rgba(143,0,0,.20), transparent 34%), linear-gradient(180deg,#090806 0%,#0d0b09 100%)",
     side: "right",
-    pose: { x: -20, y: 8, rotateX: -3, rotateY: 11, rotateZ: -2.2, scale: .99 },
+    pose: { x: -14, y: 6, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
     stats: [
       { label: "Venta", value: "$ 48.900" },
       { label: "Caja", value: "Registrada" }
@@ -97,7 +97,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 76% 34%, rgba(16,185,129,.18), transparent 29%), radial-gradient(circle at 22% 80%, rgba(37,99,235,.10), transparent 30%), linear-gradient(180deg,#06100c 0%,#090b0a 100%)",
     side: "left",
-    pose: { x: 18, y: -8, rotateX: 4, rotateY: -12, rotateZ: 1.8, scale: .97 },
+    pose: { x: 14, y: -6, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
     stats: [
       { label: "Alertas", value: "12" },
       { label: "Disponibles", value: "1.248" }
@@ -117,7 +117,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 30% 34%, rgba(124,58,237,.24), transparent 29%), radial-gradient(circle at 78% 72%, rgba(37,99,235,.14), transparent 31%), linear-gradient(180deg,#09070d 0%,#08090c 100%)",
     side: "right",
-    pose: { x: -10, y: -2, rotateX: -4, rotateY: 8, rotateZ: -.8, scale: 1.01 },
+    pose: { x: -12, y: -2, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
     stats: [
       { label: "Margen", value: "31,0%" },
       { label: "Alertas", value: "12 críticas" }
@@ -163,23 +163,24 @@ function PhoneBack() {
 }
 
 function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
-  const enterX = scene.side === "left" ? -72 : 72;
+  const enterX = scene.side === "left" ? -54 : 54;
 
   return (
-    <motion.div
-      key={scene.id}
+    <div
       className={
-        "gs-cinematic-copy absolute bottom-[5%] left-1/2 z-30 w-[min(90vw,520px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[390px] lg:-translate-y-1/2 " +
+        "gs-cinematic-copy absolute bottom-[5%] left-1/2 z-30 w-[min(90vw,520px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[420px] lg:-translate-y-1/2 " +
         (scene.side === "left"
           ? "lg:left-[5%] lg:translate-x-0"
           : "lg:left-auto lg:right-[5%] lg:translate-x-0")
       }
-      initial={{ opacity: 0, x: enterX, y: 18 }}
-      animate={{ opacity: 1, x: 0, y: 0 }}
-      exit={{ opacity: 0, x: -enterX * .7, y: -8 }}
-      transition={{ duration: .58, ease: easeOut }}
     >
-      <div className="gs-cinematic-copy-surface rounded-[26px] border p-5 sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
+      <motion.div
+        initial={{ opacity: 0, x: enterX, y: 14 }}
+        animate={{ opacity: 1, x: 0, y: 0 }}
+        exit={{ opacity: 0, x: -enterX * .55, y: -10 }}
+        transition={{ duration: .44, ease: easeOut }}
+      >
+        <div className="gs-cinematic-copy-surface rounded-[26px] border p-5 sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
         <div className="flex items-center gap-3">
           {index === 0 ? <DownloadLogo className="h-10 w-10 shrink-0" /> : null}
           <p className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.17em] text-[#8F0000]">
@@ -224,8 +225,9 @@ function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
             <InstallAppButton language="es" />
           </div>
         ) : null}
-      </div>
-    </motion.div>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -245,9 +247,13 @@ function SceneStats({ scene }: { scene: StoryScene }) {
             key={stat.label}
             className={
               "gs-cinematic-stat absolute rounded-2xl border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,.12)] " +
-              (index === 0
-                ? "left-[17%] top-[21%]"
-                : "bottom-[18%] right-[16%]")
+              (scene.side === "left"
+                ? index === 0
+                  ? "right-[12%] top-[18%]"
+                  : "bottom-[16%] right-[12%]"
+                : index === 0
+                  ? "left-[12%] top-[18%]"
+                  : "bottom-[16%] left-[12%]")
             }
             initial={{ opacity: 0, y: index === 0 ? -14 : 14, scale: .96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -301,7 +307,7 @@ export function DownloadCinematicHero() {
 
   const scene = scenes[activeIndex];
   const pose = reduceMotion
-    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .96 }
+    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 }
     : scene.pose;
 
   const accentStyle = {
@@ -341,14 +347,14 @@ export function DownloadCinematicHero() {
 
         <div className="relative mx-auto h-full w-full max-w-[1440px]">
           <AnimatePresence mode="wait" initial={false}>
-            <StoryCopy scene={scene} index={activeIndex} />
+            <StoryCopy key={scene.id} scene={scene} index={activeIndex} />
           </AnimatePresence>
 
           <SceneStats scene={scene} />
 
           <div className="pointer-events-none absolute left-1/2 top-[40%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-1/2">
             <motion.div
-              className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[580px] w-[580px] -translate-x-1/2 -translate-y-1/2 rounded-full"
               animate={{
                 scale: reduceMotion ? 1 : [1, 1.035, 1],
                 opacity: reduceMotion ? .8 : [.72, .9, .72]
