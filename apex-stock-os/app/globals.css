@@ -2138,17 +2138,17 @@ textarea:focus-visible {
   position: absolute;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, .34);
+  border: 1px solid rgba(255,255,255,.30);
   border-radius: 999px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,.105), rgba(255,255,255,.035)),
-    rgba(18, 22, 28, .055);
+    linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.018)),
+    rgba(18,22,28,.040);
   box-shadow:
-    0 9px 24px rgba(15, 23, 42, .09),
-    inset 0 1px 0 rgba(255,255,255,.50),
-    inset 0 -1px 0 rgba(255,255,255,.08);
-  backdrop-filter: blur(20px) saturate(165%) contrast(102%);
-  -webkit-backdrop-filter: blur(20px) saturate(165%) contrast(102%);
+    0 8px 22px rgba(15,23,42,.085),
+    inset 0 1px 0 rgba(255,255,255,.42),
+    inset 0 -1px 0 rgba(255,255,255,.055);
+  backdrop-filter: blur(18px) saturate(155%) contrast(102%);
+  -webkit-backdrop-filter: blur(18px) saturate(155%) contrast(102%);
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
@@ -2162,44 +2162,49 @@ textarea:focus-visible {
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 26% -8%, rgba(255,255,255,.42), transparent 34%),
-    linear-gradient(110deg, rgba(255,255,255,.055), transparent 38%, rgba(255,255,255,.018) 72%, rgba(255,255,255,.06));
-  opacity: .72;
+    radial-gradient(circle at 24% -12%, rgba(255,255,255,.40), transparent 33%),
+    linear-gradient(108deg, rgba(255,255,255,.040), transparent 38%, rgba(255,255,255,.014) 72%, rgba(255,255,255,.050));
+  opacity: .62;
 }
 
 .gs-cinematic-scene-dots::after {
   content: "";
   position: absolute;
-  inset: auto 13% 2px;
+  inset: auto 14% 2px;
   z-index: -1;
   height: 1px;
   border-radius: 999px;
   pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.34), transparent);
-  opacity: .46;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.28), transparent);
+  opacity: .40;
 }
 
 .gs-cinematic-scene-dot-button {
   position: relative;
-  z-index: 2;
+  z-index: 3;
   -webkit-tap-highlight-color: transparent;
   outline: none;
 }
 
 .gs-cinematic-liquid-lens {
-  width: 38px;
-  height: 34px;
+  --gs-liquid-rail-width: 150px;
+  --gs-liquid-center: 24px;
+  --gs-liquid-pan-x: 0px;
+  --gs-liquid-refraction-scale: 1.12;
+  width: 46px;
+  height: 35px;
+  overflow: visible;
   border-radius: 999px;
-  border: 1px solid rgba(255,255,255,.48);
+  border: 1px solid rgba(255,255,255,.42);
   background:
-    radial-gradient(circle at 32% 14%, rgba(255,255,255,.22), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.025));
+    radial-gradient(circle at 31% 10%, rgba(255,255,255,.18), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.050), rgba(255,255,255,.012));
   box-shadow:
-    0 7px 16px rgba(15,23,42,.13),
-    inset 0 1px 0 rgba(255,255,255,.62),
-    inset 0 -1px 0 rgba(255,255,255,.09);
-  backdrop-filter: blur(10px) saturate(190%) contrast(106%);
-  -webkit-backdrop-filter: blur(10px) saturate(190%) contrast(106%);
+    0 6px 14px rgba(15,23,42,.12),
+    inset 0 1px 0 rgba(255,255,255,.52),
+    inset 0 -1px 0 rgba(255,255,255,.065);
+  backdrop-filter: blur(7px) saturate(180%) contrast(106%);
+  -webkit-backdrop-filter: blur(7px) saturate(180%) contrast(106%);
   transform:
     translate3d(0,-50%,0)
     scaleX(.86)
@@ -2212,104 +2217,210 @@ textarea:focus-visible {
   content: "";
   position: absolute;
   inset: -1px;
+  z-index: 4;
   border-radius: inherit;
   pointer-events: none;
   padding: 1px;
   background:
     conic-gradient(
-      from 210deg,
-      rgba(80,210,255,.0),
-      rgba(80,210,255,.58),
-      rgba(255,255,255,.70),
-      rgba(255,214,90,.52),
-      rgba(255,92,156,.50),
-      rgba(109,94,252,.48),
-      rgba(80,210,255,.0)
+      from 205deg,
+      rgba(86,216,255,0) 0deg,
+      rgba(86,216,255,.82) 36deg,
+      rgba(118,106,255,.78) 72deg,
+      rgba(255,88,176,.74) 114deg,
+      rgba(255,213,92,.70) 154deg,
+      rgba(255,255,255,.78) 190deg,
+      rgba(82,224,255,.70) 226deg,
+      rgba(86,216,255,0) 272deg,
+      rgba(255,255,255,.60) 320deg,
+      rgba(86,216,255,0) 360deg
     );
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  opacity: .34;
+  opacity: .18;
+  transition: opacity 140ms cubic-bezier(0.23,1,0.32,1);
 }
 
 .gs-cinematic-liquid-lens::after {
   content: "";
   position: absolute;
   inset: 2px;
+  z-index: 4;
   border-radius: inherit;
   pointer-events: none;
   background:
-    radial-gradient(circle at 27% 10%, rgba(255,255,255,.42), transparent 36%),
-    radial-gradient(circle at 78% 88%, rgba(255,255,255,.10), transparent 48%);
-  opacity: .68;
+    radial-gradient(circle at 27% 8%, rgba(255,255,255,.46), transparent 34%),
+    radial-gradient(circle at 80% 90%, rgba(255,255,255,.10), transparent 46%);
+  opacity: .55;
+  transition: opacity 140ms cubic-bezier(0.23,1,0.32,1);
+}
+
+.gs-cinematic-refraction-window {
+  z-index: 2;
+  opacity: .08;
+  transition: opacity 120ms cubic-bezier(0.23,1,0.32,1);
+}
+
+.gs-cinematic-refraction-channel {
+  border-radius: inherit;
+  overflow: hidden;
+}
+
+.gs-cinematic-refraction-pan {
+  width: var(--gs-liquid-rail-width);
+  transform: translate3d(var(--gs-liquid-pan-x),0,0);
+  will-change: transform;
+}
+
+.gs-cinematic-refraction-track {
+  width: var(--gs-liquid-rail-width);
+  transform:
+    scaleX(var(--gs-liquid-refraction-scale))
+    scaleY(1.16);
+  transform-origin: var(--gs-liquid-center) 50%;
+  will-change: transform;
+}
+
+.gs-cinematic-refraction-item {
+  opacity: .98;
+}
+
+.gs-cinematic-refraction-dot {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.26);
+}
+
+.gs-cinematic-refraction-channel[data-channel="base"] {
+  opacity: .94;
+}
+
+.gs-cinematic-refraction-channel[data-channel="cyan"],
+.gs-cinematic-refraction-channel[data-channel="magenta"],
+.gs-cinematic-refraction-channel[data-channel="amber"] {
+  opacity: 0;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 13%,
+    transparent 31%,
+    transparent 69%,
+    #000 87%,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    90deg,
+    #000 0%,
+    #000 13%,
+    transparent 31%,
+    transparent 69%,
+    #000 87%,
+    #000 100%
+  );
+  transition: opacity 120ms cubic-bezier(0.23,1,0.32,1);
+}
+
+.gs-cinematic-refraction-channel[data-channel="cyan"] {
+  transform: translate3d(1.5px,0,0);
+  filter: brightness(1.28) saturate(2.1) hue-rotate(148deg);
+}
+
+.gs-cinematic-refraction-channel[data-channel="magenta"] {
+  transform: translate3d(-1.45px,0,0);
+  filter: brightness(1.22) saturate(2.25) hue-rotate(292deg);
+}
+
+.gs-cinematic-refraction-channel[data-channel="amber"] {
+  transform: translate3d(.7px,1px,0);
+  filter: brightness(1.26) saturate(2.2) hue-rotate(18deg);
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
-  border-color: rgba(255,255,255,.60);
+  border-color: rgba(255,255,255,.62);
   background:
-    radial-gradient(circle at 34% 12%, rgba(255,255,255,.28), transparent 38%),
-    linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.025));
+    radial-gradient(circle at 32% 9%, rgba(255,255,255,.24), transparent 38%),
+    linear-gradient(180deg, rgba(255,255,255,.070), rgba(255,255,255,.014));
   box-shadow:
     0 9px 20px rgba(15,23,42,.16),
-    inset 0 1px 0 rgba(255,255,255,.78),
-    inset 0 -1px 0 rgba(255,255,255,.12);
-  backdrop-filter: blur(8px) saturate(210%) contrast(108%);
-  -webkit-backdrop-filter: blur(8px) saturate(210%) contrast(108%);
+    inset 0 1px 0 rgba(255,255,255,.72),
+    inset 0 -1px 0 rgba(255,255,255,.10);
+  backdrop-filter: blur(5px) saturate(205%) contrast(109%);
+  -webkit-backdrop-filter: blur(5px) saturate(205%) contrast(109%);
 }
 
 .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens::before {
+  opacity: .92;
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens::after {
   opacity: .82;
 }
 
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-refraction-window {
+  opacity: 1;
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-refraction-channel[data-channel="cyan"] {
+  opacity: .62;
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-refraction-channel[data-channel="magenta"] {
+  opacity: .58;
+}
+
+.gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-refraction-channel[data-channel="amber"] {
+  opacity: .44;
+}
+
 .gs-cinematic-scene-dot {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.26);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24);
   transition:
-    width 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    width 180ms cubic-bezier(0.23,1,0.32,1),
     background-color 180ms ease,
     opacity 180ms ease,
-    transform 180ms cubic-bezier(0.23, 1, 0.32, 1),
+    transform 180ms cubic-bezier(0.23,1,0.32,1),
     box-shadow 180ms ease;
-  opacity: .58;
+  opacity: .56;
   transform: scale(1);
 }
 
 .gs-cinematic-scene-dot[data-active="true"] {
   opacity: 1;
-  transform: scale(1.06);
+  transform: scale(1.05);
   box-shadow:
-    0 0 10px color-mix(in srgb, var(--gs-cinematic-accent) 30%, transparent),
-    inset 0 1px 0 rgba(255,255,255,.34);
+    0 0 10px color-mix(in srgb, var(--gs-cinematic-accent) 28%, transparent),
+    inset 0 1px 0 rgba(255,255,255,.32);
 }
 
 .gs-download-theme[data-download-theme="dark"] .gs-cinematic-scene-dots {
-  border-color: rgba(255,255,255,.16);
+  border-color: rgba(255,255,255,.14);
   background:
-    linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.018)),
-    rgba(4,6,9,.18);
+    linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,.012)),
+    rgba(3,5,8,.16);
   box-shadow:
-    0 11px 26px rgba(0,0,0,.22),
-    inset 0 1px 0 rgba(255,255,255,.14),
-    inset 0 -1px 0 rgba(255,255,255,.03);
-}
-
-.gs-download-theme[data-download-theme="dark"] .gs-cinematic-liquid-lens {
-  border-color: rgba(255,255,255,.20);
-  background:
-    radial-gradient(circle at 34% 12%, rgba(255,255,255,.11), transparent 38%),
-    rgba(0,0,0,.20);
-  box-shadow:
-    0 8px 18px rgba(0,0,0,.24),
-    inset 0 1px 0 rgba(255,255,255,.16),
+    0 10px 24px rgba(0,0,0,.22),
+    inset 0 1px 0 rgba(255,255,255,.12),
     inset 0 -1px 0 rgba(255,255,255,.025);
 }
 
-.gs-download-theme[data-download-theme="dark"] .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
-  border-color: rgba(255,255,255,.28);
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-liquid-lens {
+  border-color: rgba(255,255,255,.18);
   background:
-    radial-gradient(circle at 34% 12%, rgba(255,255,255,.15), transparent 38%),
-    rgba(0,0,0,.16);
+    radial-gradient(circle at 32% 10%, rgba(255,255,255,.09), transparent 38%),
+    rgba(0,0,0,.18);
+  box-shadow:
+    0 7px 16px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.13),
+    inset 0 -1px 0 rgba(255,255,255,.022);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-scene-dots[data-dragging="true"] .gs-cinematic-liquid-lens {
+  border-color: rgba(255,255,255,.30);
+  background:
+    radial-gradient(circle at 32% 10%, rgba(255,255,255,.13), transparent 38%),
+    rgba(0,0,0,.12);
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -2325,10 +2436,10 @@ textarea:focus-visible {
     gap: 7px;
     padding: 6px 10px;
     background:
-      linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.025)),
-      rgba(12,16,22,.05);
-    backdrop-filter: blur(22px) saturate(170%) contrast(103%);
-    -webkit-backdrop-filter: blur(22px) saturate(170%) contrast(103%);
+      linear-gradient(180deg, rgba(255,255,255,.065), rgba(255,255,255,.016)),
+      rgba(10,14,20,.038);
+    backdrop-filter: blur(20px) saturate(160%) contrast(103%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%) contrast(103%);
   }
 
   .gs-cinematic-scene-dot-button {
@@ -2337,8 +2448,19 @@ textarea:focus-visible {
   }
 
   .gs-cinematic-liquid-lens {
-    width: 40px;
+    width: 48px;
     height: 36px;
+  }
+
+  .gs-cinematic-refraction-track {
+    gap: 7px;
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .gs-cinematic-refraction-item {
+    width: 30px;
+    height: 30px;
   }
 }
 
@@ -2355,6 +2477,10 @@ textarea:focus-visible {
 
   .gs-cinematic-liquid-lens {
     background: color-mix(in srgb, var(--gs-download-surface) 90%, var(--gs-cinematic-accent) 10%);
+  }
+
+  .gs-cinematic-refraction-channel:not([data-channel="base"]) {
+    display: none;
   }
 }
 
