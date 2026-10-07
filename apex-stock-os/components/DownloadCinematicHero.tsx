@@ -239,37 +239,92 @@ function SceneStats({ scene }: { scene: StoryScene }) {
       <motion.div
         key={scene.id}
         className="pointer-events-none absolute inset-0 z-20 hidden lg:block"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: .3 }}
+        initial="hidden"
+        animate="visible"
+        exit="exit"
       >
-        {scene.stats.map((stat, index) => (
-          <motion.div
-            key={stat.label}
-            className={
-              "gs-cinematic-stat absolute rounded-2xl border px-4 py-3 shadow-[0_14px_40px_rgba(15,23,42,.12)] " +
-              (scene.side === "left"
-                ? index === 0
-                  ? "right-[12%] top-[18%]"
-                  : "bottom-[16%] right-[12%]"
-                : index === 0
-                  ? "left-[12%] top-[18%]"
-                  : "bottom-[16%] left-[12%]")
-            }
-            initial={{ opacity: 0, y: index === 0 ? -14 : 14, scale: .96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: index === 0 ? 8 : -8, scale: .98 }}
-            transition={{ duration: .46, delay: .08 + index * .06, ease: easeOut }}
-          >
-            <p className="text-[10px] font-semibold uppercase tracking-[.12em] text-[var(--gs-download-subtle)]">
-              {stat.label}
-            </p>
-            <p className="mt-1 text-sm font-semibold tracking-[-.02em]">
-              {stat.value}
-            </p>
-          </motion.div>
-        ))}
+        {scene.stats.map((stat, index) => {
+          const enterTransform =
+            index === 0
+              ? "translate3d(0,-14px,0) scale(.96) rotate(-.6deg)"
+              : "translate3d(0,14px,0) scale(.96) rotate(.6deg)";
+
+          return (
+            <motion.div
+              key={stat.label}
+              className={
+                "gs-cinematic-stat-card absolute " +
+                (scene.side === "left"
+                  ? index === 0
+                    ? "right-[11%] top-[16%]"
+                    : "bottom-[15%] right-[10%]"
+                  : index === 0
+                    ? "left-[11%] top-[16%]"
+                    : "bottom-[15%] left-[10%]")
+              }
+              style={
+                {
+                  "--gs-stat-accent": scene.accent
+                } as CSSProperties
+              }
+              variants={{
+                hidden: {
+                  opacity: 0,
+                  transform: enterTransform
+                },
+                visible: {
+                  opacity: 1,
+                  transform: "translate3d(0,0,0) scale(1) rotate(0deg)",
+                  transition: {
+                    type: "spring",
+                    duration: .5,
+                    bounce: .2,
+                    delay: .06 + index * .06
+                  }
+                },
+                exit: {
+                  opacity: 0,
+                  transform: enterTransform,
+                  transition: {
+                    duration: .18,
+                    ease: easeOut
+                  }
+                }
+              }}
+            >
+              <div className="gs-cinematic-stat-card__surface">
+                <span className="gs-cinematic-stat-card__edge" />
+
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="gs-cinematic-stat-card__label">
+                      {stat.label}
+                    </p>
+                    <p className="gs-cinematic-stat-card__value">
+                      {stat.value}
+                    </p>
+                  </div>
+
+                  <span
+                    className="gs-cinematic-stat-card__signal"
+                    aria-hidden="true"
+                  >
+                    <span />
+                  </span>
+                </div>
+
+                <div className="gs-cinematic-stat-card__footer" aria-hidden="true">
+                  <span className="gs-cinematic-stat-card__trace">
+                    <span />
+                  </span>
+                  <span className="gs-cinematic-stat-card__icon">
+                    <SceneGlyph screen={scene.screen} />
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          );
+        })}
       </motion.div>
     </AnimatePresence>
   );
