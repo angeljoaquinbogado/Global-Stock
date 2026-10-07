@@ -129,41 +129,6 @@ const scenes: StoryScene[] = [
 
 const easeOut = [0.23, 1, 0.32, 1] as const;
 
-function PhoneBack() {
-  return (
-    <div className="gs-cinematic-phone-back absolute inset-0 overflow-hidden rounded-[48px]">
-      <div className="absolute inset-[2px] rounded-[46px] border border-white/20 bg-[linear-gradient(145deg,#46494b_0%,#232527_38%,#111214_72%,#373a3c_100%)] shadow-[inset_0_0_0_1px_rgba(255,255,255,.08),inset_24px_0_44px_rgba(255,255,255,.035),0_36px_90px_rgba(0,0,0,.30)]" />
-      <div className="absolute left-[8%] top-[6.5%] h-[29%] w-[48%] rounded-[28px] border border-white/10 bg-[#1a1b1d]/92 shadow-[0_18px_35px_rgba(0,0,0,.24),inset_0_0_0_1px_rgba(255,255,255,.04)]">
-        {[
-          ["15%", "14%"],
-          ["53%", "14%"],
-          ["15%", "54%"]
-        ].map(([left, top], index) => (
-          <span
-            key={index}
-            className="absolute block h-[31%] aspect-square rounded-full border border-white/10 bg-[radial-gradient(circle_at_40%_36%,#293849_0%,#071019_26%,#020304_52%,#111315_70%,#020304_100%)] shadow-[inset_0_0_0_4px_rgba(255,255,255,.035),0_5px_12px_rgba(0,0,0,.35)]"
-            style={{ left, top }}
-          >
-            <span className="absolute left-[28%] top-[24%] h-[16%] w-[16%] rounded-full bg-sky-300/15 blur-[1px]" />
-          </span>
-        ))}
-        <span className="absolute bottom-[12%] right-[14%] h-[13%] aspect-square rounded-full bg-[#8F0000] shadow-[0_0_18px_rgba(143,0,0,.30)]" />
-      </div>
-
-      <div className="absolute left-1/2 top-[48%] -translate-x-1/2 -translate-y-1/2">
-        <img
-          src="/brand/global-stock-mark.png"
-          alt=""
-          className="h-16 w-16 object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,.32)]"
-          draggable={false}
-        />
-      </div>
-
-      <div className="absolute bottom-[6%] left-1/2 h-[1px] w-[34%] -translate-x-1/2 bg-gradient-to-r from-transparent via-white/18 to-transparent" />
-    </div>
-  );
-}
-
 function SceneGlyph({ screen }: { screen: DemoScreen }) {
   if (screen === "pos") return <CircleDollarSign size={16} />;
   if (screen === "inventory") return <Boxes size={16} />;
@@ -427,8 +392,6 @@ export function DownloadCinematicHero() {
                       initialFrameColor="graphite"
                     />
                   </div>
-
-                  <PhoneBack />
                 </motion.div>
               </motion.div>
             </div>
