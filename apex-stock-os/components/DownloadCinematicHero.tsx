@@ -5,10 +5,14 @@ import { ArrowRight, Boxes, BrainCircuit, Check, CircleDollarSign, TrendingUp } 
 import {
   AnimatePresence,
   motion,
-  useReducedMotion
+  useMotionValueEvent,
+  useReducedMotion,
+  useScroll,
+  useSpring,
+  useTransform
 } from "framer-motion";
 import type { CSSProperties } from "react";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 import {
   GlobalStockPhonePreview,
@@ -53,11 +57,11 @@ const scenes: StoryScene[] = [
     tags: ["Ventas", "Caja", "Inventario"],
     accent: "#8F0000",
     lightBackground:
-      "radial-gradient(circle at 72% 36%, rgba(143,0,0,.18), transparent 28%), radial-gradient(circle at 78% 76%, rgba(227,38,54,.08), transparent 31%), linear-gradient(180deg,#ffffff 0%,#f7f8fa 100%)",
+      "radial-gradient(circle at 72% 28%, rgba(143,0,0,.24), transparent 27%), radial-gradient(circle at 20% 88%, rgba(59,130,246,.10), transparent 30%), radial-gradient(circle at 52% 56%, rgba(255,255,255,.96), transparent 43%), linear-gradient(135deg,#fffefe 0%,#f2f5fa 100%)",
     darkBackground:
-      "radial-gradient(circle at 72% 36%, rgba(143,0,0,.34), transparent 30%), radial-gradient(circle at 78% 76%, rgba(227,38,54,.12), transparent 31%), linear-gradient(180deg,#070708 0%,#0b0b0d 100%)",
+      "radial-gradient(circle at 72% 28%, rgba(143,0,0,.42), transparent 29%), radial-gradient(circle at 18% 86%, rgba(37,99,235,.16), transparent 31%), radial-gradient(circle at 52% 56%, rgba(255,255,255,.025), transparent 43%), linear-gradient(135deg,#050506 0%,#0b0c10 100%)",
     side: "left",
-    pose: { x: 14, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
+    pose: { x: 7, y: -2, rotateX: 2.4, rotateY: -10, rotateZ: 1.2, scale: .88 },
     stats: [
       { label: "Ventas hoy", value: "$ 248.900" },
       { label: "Inventario", value: "1.248 uds" }
@@ -73,11 +77,11 @@ const scenes: StoryScene[] = [
     tags: ["Punto de venta", "Cobros", "Historial"],
     accent: "#D97706",
     lightBackground:
-      "radial-gradient(circle at 28% 38%, rgba(245,158,11,.24), transparent 30%), radial-gradient(circle at 70% 76%, rgba(143,0,0,.08), transparent 32%), linear-gradient(180deg,#fffdf8 0%,#f8fafc 100%)",
+      "radial-gradient(circle at 25% 30%, rgba(245,158,11,.30), transparent 29%), radial-gradient(circle at 77% 80%, rgba(143,0,0,.14), transparent 31%), radial-gradient(circle at 56% 48%, rgba(255,255,255,.96), transparent 43%), linear-gradient(135deg,#fffdf8 0%,#f7f5f2 100%)",
     darkBackground:
-      "radial-gradient(circle at 28% 38%, rgba(245,158,11,.19), transparent 30%), radial-gradient(circle at 70% 76%, rgba(143,0,0,.20), transparent 34%), linear-gradient(180deg,#090806 0%,#0d0b09 100%)",
+      "radial-gradient(circle at 25% 30%, rgba(245,158,11,.26), transparent 30%), radial-gradient(circle at 76% 80%, rgba(143,0,0,.30), transparent 33%), radial-gradient(circle at 56% 48%, rgba(255,255,255,.02), transparent 43%), linear-gradient(135deg,#080705 0%,#0d0908 100%)",
     side: "right",
-    pose: { x: -14, y: 6, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
+    pose: { x: -7, y: 5, rotateX: -3.2, rotateY: 14, rotateZ: -2.1, scale: .9 },
     stats: [
       { label: "Venta", value: "$ 48.900" },
       { label: "Caja", value: "Registrada" }
@@ -93,11 +97,11 @@ const scenes: StoryScene[] = [
     tags: ["Alertas", "Ubicaciones", "Reposición"],
     accent: "#079455",
     lightBackground:
-      "radial-gradient(circle at 76% 34%, rgba(16,185,129,.20), transparent 29%), radial-gradient(circle at 22% 80%, rgba(37,99,235,.07), transparent 28%), linear-gradient(180deg,#fbfffd 0%,#f6f8fa 100%)",
+      "radial-gradient(circle at 78% 28%, rgba(16,185,129,.27), transparent 28%), radial-gradient(circle at 18% 84%, rgba(14,165,233,.13), transparent 30%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.96), transparent 43%), linear-gradient(135deg,#fafffd 0%,#f2f7f7 100%)",
     darkBackground:
-      "radial-gradient(circle at 76% 34%, rgba(16,185,129,.18), transparent 29%), radial-gradient(circle at 22% 80%, rgba(37,99,235,.10), transparent 30%), linear-gradient(180deg,#06100c 0%,#090b0a 100%)",
+      "radial-gradient(circle at 78% 28%, rgba(16,185,129,.25), transparent 29%), radial-gradient(circle at 18% 84%, rgba(14,165,233,.16), transparent 31%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.018), transparent 43%), linear-gradient(135deg,#04100b 0%,#07100f 100%)",
     side: "left",
-    pose: { x: 14, y: -6, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
+    pose: { x: 8, y: -5, rotateX: 4.2, rotateY: -16, rotateZ: 2.2, scale: .88 },
     stats: [
       { label: "Alertas", value: "12" },
       { label: "Disponibles", value: "1.248" }
@@ -113,11 +117,11 @@ const scenes: StoryScene[] = [
     tags: ["IA contextual", "Márgenes", "Escenarios"],
     accent: "#7C3AED",
     lightBackground:
-      "radial-gradient(circle at 30% 34%, rgba(124,58,237,.20), transparent 29%), radial-gradient(circle at 78% 72%, rgba(37,99,235,.10), transparent 31%), linear-gradient(180deg,#fdfbff 0%,#f7f8fb 100%)",
+      "radial-gradient(circle at 28% 28%, rgba(124,58,237,.30), transparent 29%), radial-gradient(circle at 80% 78%, rgba(37,99,235,.16), transparent 31%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.96), transparent 43%), linear-gradient(135deg,#fdfaff 0%,#f3f5fb 100%)",
     darkBackground:
-      "radial-gradient(circle at 30% 34%, rgba(124,58,237,.24), transparent 29%), radial-gradient(circle at 78% 72%, rgba(37,99,235,.14), transparent 31%), linear-gradient(180deg,#09070d 0%,#08090c 100%)",
+      "radial-gradient(circle at 28% 28%, rgba(124,58,237,.34), transparent 29%), radial-gradient(circle at 80% 78%, rgba(37,99,235,.20), transparent 31%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.02), transparent 43%), linear-gradient(135deg,#08050e 0%,#070a11 100%)",
     side: "right",
-    pose: { x: -12, y: -2, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 },
+    pose: { x: -6, y: -4, rotateX: -4, rotateY: 12, rotateZ: -1.4, scale: .9 },
     stats: [
       { label: "Margen", value: "31,0%" },
       { label: "Alertas", value: "12 críticas" }
@@ -162,69 +166,104 @@ function PhoneBack() {
   );
 }
 
+function SceneGlyph({ screen }: { screen: DemoScreen }) {
+  if (screen === "pos") return <CircleDollarSign size={16} />;
+  if (screen === "inventory") return <Boxes size={16} />;
+  if (screen === "ai") return <BrainCircuit size={16} />;
+  return <TrendingUp size={16} />;
+}
+
 function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
-  const enterX = scene.side === "left" ? -54 : 54;
+  const enterX = scene.side === "left" ? -44 : 44;
 
   return (
     <div
       className={
-        "gs-cinematic-copy absolute bottom-[5%] left-1/2 z-30 w-[min(90vw,520px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[420px] lg:-translate-y-1/2 " +
+        "gs-cinematic-copy absolute bottom-[9%] left-1/2 z-30 w-[min(90vw,540px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[440px] lg:-translate-y-1/2 " +
         (scene.side === "left"
-          ? "lg:left-[5%] lg:translate-x-0"
-          : "lg:left-auto lg:right-[5%] lg:translate-x-0")
+          ? "lg:left-[5.2%] lg:translate-x-0"
+          : "lg:left-auto lg:right-[5.2%] lg:translate-x-0")
       }
     >
       <motion.div
-        initial={{ opacity: 0, x: enterX, y: 14 }}
-        animate={{ opacity: 1, x: 0, y: 0 }}
-        exit={{ opacity: 0, x: -enterX * .55, y: -10 }}
-        transition={{ duration: .44, ease: easeOut }}
+        initial={{ opacity: 0, x: enterX, y: 18, scale: .985 }}
+        animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
+        exit={{ opacity: 0, x: -enterX * .55, y: -10, scale: .99 }}
+        transition={{ duration: .52, ease: easeOut }}
       >
-        <div className="gs-cinematic-copy-surface rounded-[26px] border p-5 sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
-        <div className="flex items-center gap-3">
-          {index === 0 ? <DownloadLogo className="h-10 w-10 shrink-0" /> : null}
-          <p className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.17em] text-[#8F0000]">
-            {scene.kicker}
-          </p>
-        </div>
-
-        {index === 0 ? (
-          <h1 className="mt-4 text-[clamp(2.55rem,5vw,4.8rem)] font-semibold leading-[.92] tracking-[-0.065em]">
-            {scene.title}
-          </h1>
-        ) : (
-          <h2 className="mt-4 text-[clamp(2.2rem,4vw,4rem)] font-semibold leading-[.94] tracking-[-0.058em]">
-            {scene.title}
-          </h2>
-        )}
-
-        <p className="mt-5 max-w-[38rem] text-[14px] leading-6 text-[var(--gs-download-muted)] sm:text-[16px] sm:leading-7">
-          {scene.body}
-        </p>
-
-        <div className="mt-5 hidden flex-wrap gap-2 sm:flex">
-          {scene.tags.map((tag) => (
+        <div className="gs-cinematic-copy-surface rounded-[28px] border p-5 sm:p-6 lg:border-transparent lg:bg-transparent lg:p-0 lg:shadow-none">
+          <div className="gs-cinematic-kicker-row flex items-center gap-3.5">
             <span
-              key={tag}
-              className="gs-cinematic-tag inline-flex min-h-8 items-center rounded-full border px-3 text-[11px] font-semibold"
+              className="gs-cinematic-glyph grid h-10 w-10 shrink-0 place-items-center rounded-2xl border"
+              style={{ color: scene.accent }}
             >
-              {tag}
+              <SceneGlyph screen={scene.screen} />
             </span>
-          ))}
-        </div>
-
-        {index === 0 ? (
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <Link
-              href="/"
-              className="gs-download-primary-action inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_12px_30px_rgba(143,0,0,.22)] transition-[transform,box-shadow] duration-150 active:scale-[.97]"
-            >
-              Abrir Global Stock
-              <ArrowRight size={14} />
-            </Link>
-            <InstallAppButton language="es" />
+            <div className="min-w-0">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="h-px w-7 shrink-0"
+                  style={{ backgroundColor: scene.accent }}
+                />
+                <p className="gs-download-kicker truncate text-[10px] font-extrabold uppercase tracking-[.19em] text-[#8F0000]">
+                  {scene.kicker}
+                </p>
+              </div>
+              <p className="gs-cinematic-eyebrow mt-1.5 text-[9px] font-semibold uppercase tracking-[.16em] text-[var(--gs-download-subtle)]">
+                Escena 0{index + 1} · experiencia conectada
+              </p>
+            </div>
           </div>
-        ) : null}
+
+          {index === 0 ? (
+            <h1 className="gs-cinematic-title mt-5 text-[clamp(2.45rem,4.15vw,4rem)] font-semibold leading-[.94] tracking-[-0.06em]">
+              {scene.title}
+            </h1>
+          ) : (
+            <h2 className="gs-cinematic-title mt-5 text-[clamp(2.2rem,3.9vw,3.75rem)] font-semibold leading-[.96] tracking-[-0.058em]">
+              {scene.title}
+            </h2>
+          )}
+
+          <div className="gs-cinematic-title-rail mt-5 h-px w-full max-w-[340px] overflow-hidden">
+            <motion.span
+              key={scene.id + "-rail"}
+              className="block h-full origin-left"
+              style={{ backgroundColor: scene.accent }}
+              initial={{ scaleX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: .68, delay: .12, ease: easeOut }}
+            />
+          </div>
+
+          <p className="gs-cinematic-body mt-5 max-w-[38rem] text-[14px] font-medium leading-6 text-[var(--gs-download-muted)] sm:text-[16px] sm:leading-7">
+            {scene.body}
+          </p>
+
+          <div className="mt-5 hidden flex-wrap gap-2 sm:flex">
+            {scene.tags.map((tag) => (
+              <span
+                key={tag}
+                className="gs-cinematic-tag inline-flex min-h-8 items-center gap-1.5 rounded-full border px-3 text-[11px] font-semibold"
+              >
+                <Check size={10} style={{ color: scene.accent }} />
+                {tag}
+              </span>
+            ))}
+          </div>
+
+          {index === 0 ? (
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/"
+                className="gs-download-primary-action inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_12px_30px_rgba(143,0,0,.22)] transition-[transform,box-shadow] duration-150 active:scale-[.97]"
+              >
+                Abrir Global Stock
+                <ArrowRight size={14} />
+              </Link>
+              <InstallAppButton language="es" />
+            </div>
+          ) : null}
         </div>
       </motion.div>
     </div>
@@ -277,60 +316,70 @@ export function DownloadCinematicHero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
-  const [isVisible, setIsVisible] = useState(false);
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start start", "end end"]
+  });
+  const smoothProgress = useSpring(scrollYProgress, {
+    stiffness: 120,
+    damping: 28,
+    mass: .24
+  });
+  const phoneLift = useTransform(smoothProgress, [0, 1], [10, -10]);
+  const ambientShift = useTransform(smoothProgress, [0, 1], [30, -30]);
 
-  useEffect(() => {
-    const section = sectionRef.current;
-    if (!section) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(Boolean(entry?.isIntersecting)),
-      {
-        threshold: 0.18,
-        rootMargin: "-8% 0px -8% 0px"
-      }
+  useMotionValueEvent(scrollYProgress, "change", (value) => {
+    const next = Math.min(
+      scenes.length - 1,
+      Math.max(0, Math.floor(value * scenes.length))
     );
-
-    observer.observe(section);
-    return () => observer.disconnect();
-  }, []);
-
-  useEffect(() => {
-    if (!isVisible || reduceMotion) return;
-
-    const timer = window.setInterval(() => {
-      setActiveIndex((current) => (current + 1) % scenes.length);
-    }, 4200);
-
-    return () => window.clearInterval(timer);
-  }, [isVisible, reduceMotion]);
+    setActiveIndex((current) => (current === next ? current : next));
+  });
 
   const scene = scenes[activeIndex];
   const pose = reduceMotion
-    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 }
+    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
     : scene.pose;
 
   const accentStyle = {
     "--gs-cinematic-accent": scene.accent
   } as CSSProperties;
 
+  function goToScene(index: number) {
+    const section = sectionRef.current;
+    if (!section) {
+      setActiveIndex(index);
+      return;
+    }
+
+    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+    const stickyHeight = Math.max(1, window.innerHeight - 68);
+    const scrollable = Math.max(1, section.offsetHeight - stickyHeight);
+    const ratio = scenes.length <= 1 ? 0 : index / (scenes.length - 1);
+
+    window.scrollTo({
+      top: sectionTop + scrollable * ratio,
+      behavior: reduceMotion ? "auto" : "smooth"
+    });
+  }
+
   return (
     <section
       ref={sectionRef}
       id="download-hero"
       data-download-section
-      className="gs-cinematic-hero relative min-h-[calc(100svh-68px)] scroll-mt-20"
+      className="gs-cinematic-hero relative h-[250svh] scroll-mt-20 lg:h-[285vh] xl:h-[300vh]"
       style={accentStyle}
     >
-      <div className="relative h-[calc(100svh-68px)] min-h-[640px] overflow-hidden">
+      <div className="sticky top-[68px] h-[calc(100svh-68px)] min-h-[560px] overflow-hidden">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={scene.id}
             className="absolute inset-0"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, scale: 1.015 }}
+            animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: .72, ease: easeOut }}
+            transition={{ duration: .82, ease: easeOut }}
           >
             <div
               className="gs-cinematic-bg-light absolute inset-0"
@@ -343,7 +392,13 @@ export function DownloadCinematicHero() {
           </motion.div>
         </AnimatePresence>
 
-        <div className="pointer-events-none absolute inset-0 opacity-[.14] [background-image:linear-gradient(rgba(127,127,127,.08)_1px,transparent_1px),linear-gradient(90deg,rgba(127,127,127,.08)_1px,transparent_1px)] [background-size:80px_80px] [mask-image:radial-gradient(circle_at_center,black,transparent_76%)]" />
+        <motion.div
+          className="gs-cinematic-ambient pointer-events-none absolute left-[48%] top-[-18%] h-[72%] w-[64%] rounded-full"
+          style={{ y: reduceMotion ? 0 : ambientShift }}
+        />
+        <div className="gs-cinematic-grid pointer-events-none absolute inset-0" />
+        <div className="gs-cinematic-grain pointer-events-none absolute inset-0" />
+        <div className="gs-cinematic-vignette pointer-events-none absolute inset-0" />
 
         <div className="relative mx-auto h-full w-full max-w-[1440px]">
           <AnimatePresence mode="wait" initial={false}>
@@ -352,15 +407,18 @@ export function DownloadCinematicHero() {
 
           <SceneStats scene={scene} />
 
-          <div className="pointer-events-none absolute left-1/2 top-[40%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-1/2">
+          <motion.div
+            className="pointer-events-none absolute left-1/2 top-[38%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-1/2"
+            style={{ y: reduceMotion ? 0 : phoneLift }}
+          >
             <motion.div
-              className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[580px] w-[580px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+              className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:h-[620px] lg:w-[620px]"
               animate={{
                 scale: reduceMotion ? 1 : [1, 1.035, 1],
-                opacity: reduceMotion ? .8 : [.72, .9, .72]
+                opacity: reduceMotion ? .76 : [.64, .88, .64]
               }}
               transition={{
-                duration: 5.8,
+                duration: 6.2,
                 repeat: Infinity,
                 ease: "easeInOut"
               }}
@@ -372,10 +430,28 @@ export function DownloadCinematicHero() {
                 initial={
                   reduceMotion
                     ? false
-                    : { rotateY: 180, rotateX: -5, scale: .86, opacity: 0 }
+                    : {
+                        rotateY: -24,
+                        rotateX: 7,
+                        rotateZ: -1.5,
+                        scale: .76,
+                        opacity: 0,
+                        y: 26
+                      }
                 }
-                animate={{ rotateY: 0, rotateX: 0, scale: 1, opacity: 1 }}
-                transition={{ duration: reduceMotion ? .01 : 1.15, delay: .12, ease: easeOut }}
+                animate={{
+                  rotateY: 0,
+                  rotateX: 0,
+                  rotateZ: 0,
+                  scale: 1,
+                  opacity: 1,
+                  y: 0
+                }}
+                transition={{
+                  duration: reduceMotion ? .01 : 1.08,
+                  delay: .08,
+                  ease: easeOut
+                }}
                 style={{ transformStyle: "preserve-3d" }}
               >
                 <motion.div
@@ -383,8 +459,9 @@ export function DownloadCinematicHero() {
                   animate={pose}
                   transition={{
                     type: "spring",
-                    duration: reduceMotion ? .01 : .88,
-                    bounce: .08
+                    stiffness: 115,
+                    damping: 20,
+                    mass: .72
                   }}
                   style={{ transformStyle: "preserve-3d" }}
                 >
@@ -401,35 +478,58 @@ export function DownloadCinematicHero() {
                 </motion.div>
               </motion.div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="absolute bottom-[2.2%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/80 px-2.5 py-2 shadow-[0_12px_36px_rgba(15,23,42,.10)] backdrop-blur-xl">
+          <div className="gs-cinematic-progress absolute bottom-[2.2%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/82 px-3 py-2.5 shadow-[0_16px_44px_rgba(15,23,42,.12)] backdrop-blur-xl lg:bottom-auto lg:left-auto lg:right-[2.2%] lg:top-1/2 lg:-translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:rounded-[22px] lg:px-2.5 lg:py-3">
+            <span className="hidden text-[9px] font-bold tabular-nums tracking-[.16em] text-[var(--gs-download-subtle)] lg:block">
+              0{activeIndex + 1}
+            </span>
+            <div className="hidden h-12 w-px overflow-hidden rounded-full bg-[var(--gs-download-border)] lg:block">
+              <motion.span
+                className="block h-full w-full origin-top bg-[var(--gs-cinematic-accent)]"
+                style={{ scaleY: smoothProgress }}
+              />
+            </div>
             {scenes.map((item, index) => (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setActiveIndex(index)}
-                className="grid h-5 place-items-center rounded-full px-1"
+                onClick={() => goToScene(index)}
+                className="group grid h-5 place-items-center rounded-full px-1 lg:h-7 lg:w-7 lg:px-0"
                 aria-label={`Mostrar ${item.kicker}`}
                 aria-current={index === activeIndex ? "true" : undefined}
               >
                 <span
-                  className="block h-1.5 rounded-full transition-[width,background-color] duration-300"
+                  className="block rounded-full transition-[width,height,background-color,box-shadow] duration-300"
                   style={{
-                    width: index === activeIndex ? 26 : 6,
+                    width: index === activeIndex ? 24 : 6,
+                    height: index === activeIndex ? 6 : 6,
                     backgroundColor:
                       index === activeIndex
                         ? item.accent
-                        : "color-mix(in srgb, var(--gs-download-muted) 28%, transparent)"
+                        : "color-mix(in srgb, var(--gs-download-muted) 28%, transparent)",
+                    boxShadow:
+                      index === activeIndex
+                        ? `0 0 18px color-mix(in srgb, ${item.accent} 52%, transparent)`
+                        : "none"
                   }}
                 />
               </button>
             ))}
+            <span className="hidden text-[9px] font-bold tabular-nums tracking-[.16em] text-[var(--gs-download-subtle)] lg:block">
+              0{scenes.length}
+            </span>
           </div>
 
-          <div className="absolute bottom-[2.6%] left-[4%] hidden items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-[var(--gs-cinematic-accent)] shadow-[0_0_14px_var(--gs-cinematic-accent)]" />
-            Explorá Global Stock · podés seguir desplazándote
+          <div className="gs-cinematic-scroll-note absolute bottom-[3.1%] left-[4%] hidden items-center gap-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
+            <span className="relative grid h-6 w-4 place-items-start rounded-full border border-[var(--gs-download-border)] p-[3px]">
+              <motion.span
+                className="mx-auto block h-1.5 w-1 rounded-full bg-[var(--gs-cinematic-accent)]"
+                animate={reduceMotion ? undefined : { y: [0, 9, 0], opacity: [1, .35, 1] }}
+                transition={{ duration: 1.7, repeat: Infinity, ease: "easeInOut" }}
+              />
+            </span>
+            Deslizá para recorrer la experiencia
           </div>
         </div>
       </div>
