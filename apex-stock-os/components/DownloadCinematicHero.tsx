@@ -5,12 +5,10 @@ import { ArrowRight, Boxes, BrainCircuit, Check, CircleDollarSign, TrendingUp } 
 import {
   AnimatePresence,
   motion,
-  useMotionValueEvent,
-  useReducedMotion,
-  useScroll
+  useReducedMotion
 } from "framer-motion";
 import type { CSSProperties } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   GlobalStockPhonePreview,
@@ -273,18 +271,33 @@ export function DownloadCinematicHero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ["start start", "end end"]
-  });
+  const [isVisible, setIsVisible] = useState(false);
 
-  useMotionValueEvent(scrollYProgress, "change", (value) => {
-    const next = Math.min(
-      scenes.length - 1,
-      Math.max(0, Math.floor(value * scenes.length))
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsVisible(Boolean(entry?.isIntersecting)),
+      {
+        threshold: 0.18,
+        rootMargin: "-8% 0px -8% 0px"
+      }
     );
-    setActiveIndex((current) => (current === next ? current : next));
-  });
+
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!isVisible || reduceMotion) return;
+
+    const timer = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % scenes.length);
+    }, 4200);
+
+    return () => window.clearInterval(timer);
+  }, [isVisible, reduceMotion]);
 
   const scene = scenes[activeIndex];
   const pose = reduceMotion
@@ -300,10 +313,10 @@ export function DownloadCinematicHero() {
       ref={sectionRef}
       id="download-hero"
       data-download-section
-      className="gs-cinematic-hero relative h-[355svh] scroll-mt-20 lg:h-[410vh]"
+      className="gs-cinematic-hero relative min-h-[calc(100svh-68px)] scroll-mt-20"
       style={accentStyle}
     >
-      <div className="sticky top-[68px] h-[calc(100svh-68px)] overflow-hidden">
+      <div className="relative h-[calc(100svh-68px)] min-h-[640px] overflow-hidden">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={scene.id}
@@ -386,23 +399,31 @@ export function DownloadCinematicHero() {
 
           <div className="absolute bottom-[2.2%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/80 px-2.5 py-2 shadow-[0_12px_36px_rgba(15,23,42,.10)] backdrop-blur-xl">
             {scenes.map((item, index) => (
-              <span
+              <button
                 key={item.id}
-                className="h-1.5 rounded-full transition-[width,background-color] duration-300"
-                style={{
-                  width: index === activeIndex ? 26 : 6,
-                  backgroundColor:
-                    index === activeIndex
-                      ? item.accent
-                      : "color-mix(in srgb, var(--gs-download-muted) 28%, transparent)"
-                }}
-              />
+                type="button"
+                onClick={() => setActiveIndex(index)}
+                className="grid h-5 place-items-center rounded-full px-1"
+                aria-label={`Mostrar ${item.kicker}`}
+                aria-current={index === activeIndex ? "true" : undefined}
+              >
+                <span
+                  className="block h-1.5 rounded-full transition-[width,background-color] duration-300"
+                  style={{
+                    width: index === activeIndex ? 26 : 6,
+                    backgroundColor:
+                      index === activeIndex
+                        ? item.accent
+                        : "color-mix(in srgb, var(--gs-download-muted) 28%, transparent)"
+                  }}
+                />
+              </button>
             ))}
           </div>
 
           <div className="absolute bottom-[2.6%] left-[4%] hidden items-center gap-2 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--gs-cinematic-accent)] shadow-[0_0_14px_var(--gs-cinematic-accent)]" />
-            Deslizá para recorrer Global Stock
+            Explorá Global Stock · podés seguir desplazándote
           </div>
         </div>
       </div>
