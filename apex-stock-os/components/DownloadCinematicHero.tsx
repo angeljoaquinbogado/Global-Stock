@@ -7,9 +7,7 @@ import {
   motion,
   useMotionValueEvent,
   useReducedMotion,
-  useScroll,
-  useSpring,
-  useTransform
+  useScroll
 } from "framer-motion";
 import type { CSSProperties } from "react";
 import { useRef, useState } from "react";
@@ -61,7 +59,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 72% 28%, rgba(143,0,0,.42), transparent 29%), radial-gradient(circle at 18% 86%, rgba(37,99,235,.16), transparent 31%), radial-gradient(circle at 52% 56%, rgba(255,255,255,.025), transparent 43%), linear-gradient(135deg,#050506 0%,#0b0c10 100%)",
     side: "left",
-    pose: { x: 7, y: -2, rotateX: 2.4, rotateY: -10, rotateZ: 1.2, scale: .88 },
+    pose: { x: 6, y: -2, rotateX: 2.2, rotateY: -10, rotateZ: 1.1, scale: .94 },
     stats: [
       { label: "Ventas hoy", value: "$ 248.900" },
       { label: "Inventario", value: "1.248 uds" }
@@ -81,7 +79,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 25% 30%, rgba(245,158,11,.26), transparent 30%), radial-gradient(circle at 76% 80%, rgba(143,0,0,.30), transparent 33%), radial-gradient(circle at 56% 48%, rgba(255,255,255,.02), transparent 43%), linear-gradient(135deg,#080705 0%,#0d0908 100%)",
     side: "right",
-    pose: { x: -7, y: 5, rotateX: -3.2, rotateY: 14, rotateZ: -2.1, scale: .9 },
+    pose: { x: -6, y: 4, rotateX: -2.8, rotateY: 13, rotateZ: -1.8, scale: .95 },
     stats: [
       { label: "Venta", value: "$ 48.900" },
       { label: "Caja", value: "Registrada" }
@@ -101,7 +99,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 78% 28%, rgba(16,185,129,.25), transparent 29%), radial-gradient(circle at 18% 84%, rgba(14,165,233,.16), transparent 31%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.018), transparent 43%), linear-gradient(135deg,#04100b 0%,#07100f 100%)",
     side: "left",
-    pose: { x: 8, y: -5, rotateX: 4.2, rotateY: -16, rotateZ: 2.2, scale: .88 },
+    pose: { x: 6, y: -4, rotateX: 3.5, rotateY: -14, rotateZ: 1.8, scale: .94 },
     stats: [
       { label: "Alertas", value: "12" },
       { label: "Disponibles", value: "1.248" }
@@ -121,7 +119,7 @@ const scenes: StoryScene[] = [
     darkBackground:
       "radial-gradient(circle at 28% 28%, rgba(124,58,237,.34), transparent 29%), radial-gradient(circle at 80% 78%, rgba(37,99,235,.20), transparent 31%), radial-gradient(circle at 54% 52%, rgba(255,255,255,.02), transparent 43%), linear-gradient(135deg,#08050e 0%,#070a11 100%)",
     side: "right",
-    pose: { x: -6, y: -4, rotateX: -4, rotateY: 12, rotateZ: -1.4, scale: .9 },
+    pose: { x: -5, y: -3, rotateX: -3.3, rotateY: 11, rotateZ: -1.2, scale: .95 },
     stats: [
       { label: "Margen", value: "31,0%" },
       { label: "Alertas", value: "12 críticas" }
@@ -320,14 +318,6 @@ export function DownloadCinematicHero() {
     target: sectionRef,
     offset: ["start start", "end end"]
   });
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 120,
-    damping: 28,
-    mass: .24
-  });
-  const phoneLift = useTransform(smoothProgress, [0, 1], [10, -10]);
-  const ambientShift = useTransform(smoothProgress, [0, 1], [30, -30]);
-
   useMotionValueEvent(scrollYProgress, "change", (value) => {
     const next = Math.min(
       scenes.length - 1,
@@ -345,30 +335,12 @@ export function DownloadCinematicHero() {
     "--gs-cinematic-accent": scene.accent
   } as CSSProperties;
 
-  function goToScene(index: number) {
-    const section = sectionRef.current;
-    if (!section) {
-      setActiveIndex(index);
-      return;
-    }
-
-    const sectionTop = section.getBoundingClientRect().top + window.scrollY;
-    const stickyHeight = Math.max(1, window.innerHeight - 68);
-    const scrollable = Math.max(1, section.offsetHeight - stickyHeight);
-    const ratio = scenes.length <= 1 ? 0 : index / (scenes.length - 1);
-
-    window.scrollTo({
-      top: sectionTop + scrollable * ratio,
-      behavior: reduceMotion ? "auto" : "smooth"
-    });
-  }
-
   return (
     <section
       ref={sectionRef}
       id="download-hero"
       data-download-section
-      className="gs-cinematic-hero relative h-[250svh] scroll-mt-20 lg:h-[285vh] xl:h-[300vh]"
+      className="gs-cinematic-hero relative h-[225svh] scroll-mt-20 lg:h-[245vh] xl:h-[255vh]"
       style={accentStyle}
     >
       <div className="sticky top-[68px] h-[calc(100svh-68px)] min-h-[560px] overflow-hidden">
@@ -376,8 +348,8 @@ export function DownloadCinematicHero() {
           <motion.div
             key={scene.id}
             className="absolute inset-0"
-            initial={{ opacity: 0, scale: 1.015 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: .82, ease: easeOut }}
           >
@@ -392,12 +364,8 @@ export function DownloadCinematicHero() {
           </motion.div>
         </AnimatePresence>
 
-        <motion.div
-          className="gs-cinematic-ambient pointer-events-none absolute left-[48%] top-[-18%] h-[72%] w-[64%] rounded-full"
-          style={{ y: reduceMotion ? 0 : ambientShift }}
-        />
+        <div className="gs-cinematic-ambient pointer-events-none absolute left-[48%] top-[-18%] h-[72%] w-[64%] rounded-full" />
         <div className="gs-cinematic-grid pointer-events-none absolute inset-0" />
-        <div className="gs-cinematic-grain pointer-events-none absolute inset-0" />
         <div className="gs-cinematic-vignette pointer-events-none absolute inset-0" />
 
         <div className="relative mx-auto h-full w-full max-w-[1440px]">
@@ -407,22 +375,10 @@ export function DownloadCinematicHero() {
 
           <SceneStats scene={scene} />
 
-          <motion.div
-            className="pointer-events-none absolute left-1/2 top-[38%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-1/2"
-            style={{ y: reduceMotion ? 0 : phoneLift }}
+          <div
+            className="pointer-events-none absolute left-1/2 top-[37%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-[48%]"
           >
-            <motion.div
-              className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:h-[620px] lg:w-[620px]"
-              animate={{
-                scale: reduceMotion ? 1 : [1, 1.035, 1],
-                opacity: reduceMotion ? .76 : [.64, .88, .64]
-              }}
-              transition={{
-                duration: 6.2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-            />
+            <div className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:h-[580px] lg:w-[580px]" />
 
             <div className="gs-cinematic-perspective">
               <motion.div
@@ -431,12 +387,12 @@ export function DownloadCinematicHero() {
                   reduceMotion
                     ? false
                     : {
-                        rotateY: -24,
-                        rotateX: 7,
-                        rotateZ: -1.5,
-                        scale: .76,
+                        rotateY: -14,
+                        rotateX: 5,
+                        rotateZ: -1,
+                        scale: .88,
                         opacity: 0,
-                        y: 26
+                        y: 18
                       }
                 }
                 animate={{
@@ -448,20 +404,18 @@ export function DownloadCinematicHero() {
                   y: 0
                 }}
                 transition={{
-                  duration: reduceMotion ? .01 : 1.08,
-                  delay: .08,
+                  duration: reduceMotion ? .01 : .72,
+                  delay: .04,
                   ease: easeOut
                 }}
                 style={{ transformStyle: "preserve-3d" }}
               >
                 <motion.div
-                  className="absolute inset-0"
+                  className="gs-cinematic-phone-motion absolute inset-0"
                   animate={pose}
                   transition={{
-                    type: "spring",
-                    stiffness: 115,
-                    damping: 20,
-                    mass: .72
+                    duration: reduceMotion ? .01 : .58,
+                    ease: easeOut
                   }}
                   style={{ transformStyle: "preserve-3d" }}
                 >
@@ -478,47 +432,6 @@ export function DownloadCinematicHero() {
                 </motion.div>
               </motion.div>
             </div>
-          </motion.div>
-
-          <div className="gs-cinematic-progress absolute bottom-[2.2%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2.5 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/82 px-3 py-2.5 shadow-[0_16px_44px_rgba(15,23,42,.12)] backdrop-blur-xl lg:bottom-auto lg:left-auto lg:right-[2.2%] lg:top-1/2 lg:-translate-x-0 lg:-translate-y-1/2 lg:flex-col lg:rounded-[22px] lg:px-2.5 lg:py-3">
-            <span className="hidden text-[9px] font-bold tabular-nums tracking-[.16em] text-[var(--gs-download-subtle)] lg:block">
-              0{activeIndex + 1}
-            </span>
-            <div className="hidden h-12 w-px overflow-hidden rounded-full bg-[var(--gs-download-border)] lg:block">
-              <motion.span
-                className="block h-full w-full origin-top bg-[var(--gs-cinematic-accent)]"
-                style={{ scaleY: smoothProgress }}
-              />
-            </div>
-            {scenes.map((item, index) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => goToScene(index)}
-                className="group grid h-5 place-items-center rounded-full px-1 lg:h-7 lg:w-7 lg:px-0"
-                aria-label={`Mostrar ${item.kicker}`}
-                aria-current={index === activeIndex ? "true" : undefined}
-              >
-                <span
-                  className="block rounded-full transition-[width,height,background-color,box-shadow] duration-300"
-                  style={{
-                    width: index === activeIndex ? 24 : 6,
-                    height: index === activeIndex ? 6 : 6,
-                    backgroundColor:
-                      index === activeIndex
-                        ? item.accent
-                        : "color-mix(in srgb, var(--gs-download-muted) 28%, transparent)",
-                    boxShadow:
-                      index === activeIndex
-                        ? `0 0 18px color-mix(in srgb, ${item.accent} 52%, transparent)`
-                        : "none"
-                  }}
-                />
-              </button>
-            ))}
-            <span className="hidden text-[9px] font-bold tabular-nums tracking-[.16em] text-[var(--gs-download-subtle)] lg:block">
-              0{scenes.length}
-            </span>
           </div>
 
           <div className="gs-cinematic-scroll-note absolute bottom-[3.1%] left-[4%] hidden items-center gap-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
