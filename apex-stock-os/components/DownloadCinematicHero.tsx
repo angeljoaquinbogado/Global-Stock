@@ -142,7 +142,7 @@ function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
   return (
     <div
       className={
-        "gs-cinematic-copy absolute bottom-[9%] left-1/2 z-30 w-[min(90vw,540px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[440px] lg:-translate-y-1/2 " +
+        "gs-cinematic-copy absolute bottom-[9%] left-1/2 z-30 w-[min(90vw,540px)] -translate-x-1/2 lg:bottom-auto lg:top-1/2 lg:w-[400px] lg:-translate-y-1/2 xl:w-[430px] " +
         (scene.side === "left"
           ? "lg:left-[5.2%] lg:translate-x-0"
           : "lg:left-auto lg:right-[5.2%] lg:translate-x-0")
@@ -216,7 +216,7 @@ function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
           </div>
 
           {index === 0 ? (
-            <div className="mt-6 flex flex-wrap items-center gap-3">
+            <div className="mt-6 flex flex-col items-start">
               <Link
                 href="/"
                 className="gs-download-primary-action inline-flex h-11 items-center gap-2 rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_12px_30px_rgba(143,0,0,.22)] transition-[transform,box-shadow] duration-150 active:scale-[.97]"
@@ -224,7 +224,9 @@ function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
                 Abrir Global Stock
                 <ArrowRight size={14} />
               </Link>
-              <InstallAppButton language="es" />
+              <div className="mt-3.5">
+                <InstallAppButton language="es" />
+              </div>
             </div>
           ) : null}
         </div>
