@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const sectionIds = [
   "download-hero",
@@ -13,7 +13,7 @@ const sectionIds = [
   "download-faq"
 ];
 
-const HERO_SCENE_COUNT = 1;
+const HERO_SCENE_COUNT = 4;
 const FALLBACK_HEADER_HEIGHT = 68;
 const SECTION_GAP = 14;
 
@@ -41,26 +41,13 @@ function getDocumentTop(element: HTMLElement) {
   return window.scrollY + element.getBoundingClientRect().top;
 }
 
-function getActiveSectionIndex(sections: HTMLElement[]) {
-  if (!sections.length) return 0;
-
-  const marker = window.scrollY + getHeaderOffset() + 2;
-  let current = 0;
-
-  sections.forEach((section, index) => {
-    if (getDocumentTop(section) <= marker) {
-      current = index;
-    }
-  });
-
-  return current;
-}
-
 function getHeroMetrics(hero: HTMLElement) {
-  const top = Math.max(0, getDocumentTop(hero) - getHeaderOffset());
+  const headerOffset = getHeaderOffset();
+  const stickyHeight = Math.max(1, window.innerHeight - FALLBACK_HEADER_HEIGHT);
+  const top = Math.max(0, getDocumentTop(hero) - headerOffset);
   const travel = Math.max(
-    window.innerHeight,
-    hero.offsetHeight - window.innerHeight
+    window.innerHeight * 0.75,
+    hero.offsetHeight - stickyHeight
   );
 
   return {
@@ -97,10 +84,7 @@ function getHeroSceneTop(hero: HTMLElement, sceneIndex: number) {
     Math.min(HERO_SCENE_COUNT - 1, sceneIndex)
   );
 
-  // Land just inside each scene so Framer Motion resolves the intended state
-  // immediately instead of sitting exactly on a scene boundary.
-  const progress = safeScene / HERO_SCENE_COUNT + 0.025;
-
+  const progress = safeScene / HERO_SCENE_COUNT + 0.02;
   return Math.round(top + travel * progress);
 }
 
@@ -111,49 +95,96 @@ function prefersReducedMotion() {
   );
 }
 
+type CachedLayout = {
+  sections: HTMLElement[];
+  tops: number[];
+};
+
 export function DownloadScrollNavigator() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [availableCount, setAvailableCount] = useState(sectionIds.length);
   const [canGoUp, setCanGoUp] = useState(false);
+  const layoutRef = useRef<CachedLayout>({ sections: [], tops: [] });
 
   const updatePosition = useCallback(() => {
-    const sections = getSections();
-    setAvailableCount(sections.length || sectionIds.length);
+    const { tops } = layoutRef.current;
+    if (!tops.length) return;
 
-    if (!sections.length) return;
+    const marker = window.scrollY + 2;
+    let current = 0;
 
-    const current = getActiveSectionIndex(sections);
-    const currentTop = Math.max(
-      0,
-      getDocumentTop(sections[current]) - getHeaderOffset()
-    );
+    for (let index = 0; index < tops.length; index += 1) {
+      if (tops[index] <= marker) current = index;
+      else break;
+    }
 
-    setActiveIndex(current);
-    setCanGoUp(current > 0 || window.scrollY - currentTop > 8);
+    const currentTop = tops[current] ?? 0;
+
+    setActiveIndex((value) => (value === current ? value : current));
+    setCanGoUp((value) => {
+      const next = current > 0 || window.scrollY - currentTop > 8;
+      return value === next ? value : next;
+    });
   }, []);
+
+  const measureLayout = useCallback(() => {
+    const sections = getSections();
+    const offset = getHeaderOffset();
+
+    layoutRef.current = {
+      sections,
+      tops: sections.map((section) =>
+        Math.max(0, getDocumentTop(section) - offset)
+      )
+    };
+
+    setAvailableCount((value) => {
+      const next = sections.length || sectionIds.length;
+      return value === next ? value : next;
+    });
+
+    updatePosition();
+  }, [updatePosition]);
 
   useEffect(() => {
     document.documentElement.classList.add("gs-download-arrow-scroll");
     document.body.classList.add("gs-download-arrow-scroll");
 
-    let frame = window.requestAnimationFrame(updatePosition);
+    let frame = window.requestAnimationFrame(measureLayout);
 
-    const scheduleUpdate = () => {
+    const schedulePositionUpdate = () => {
       window.cancelAnimationFrame(frame);
       frame = window.requestAnimationFrame(updatePosition);
     };
 
-    window.addEventListener("scroll", scheduleUpdate, { passive: true });
-    window.addEventListener("resize", scheduleUpdate);
+    const scheduleMeasure = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(measureLayout);
+    };
+
+    window.addEventListener("scroll", schedulePositionUpdate, { passive: true });
+    window.addEventListener("resize", scheduleMeasure, { passive: true });
+
+    const resizeObserver =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(scheduleMeasure)
+        : null;
+
+    const storefront = document.querySelector<HTMLElement>(".gs-storefront");
+    const header = document.querySelector<HTMLElement>(".gs-public-header");
+
+    if (storefront) resizeObserver?.observe(storefront);
+    if (header) resizeObserver?.observe(header);
 
     return () => {
       document.documentElement.classList.remove("gs-download-arrow-scroll");
       document.body.classList.remove("gs-download-arrow-scroll");
       window.cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", scheduleUpdate);
-      window.removeEventListener("resize", scheduleUpdate);
+      resizeObserver?.disconnect();
+      window.removeEventListener("scroll", schedulePositionUpdate);
+      window.removeEventListener("resize", scheduleMeasure);
     };
-  }, [updatePosition]);
+  }, [measureLayout, updatePosition]);
 
   const scrollToTop = useCallback(
     (top: number) => {
@@ -172,9 +203,6 @@ export function DownloadScrollNavigator() {
         behavior
       });
 
-      // Chrome occasionally ignores a long smooth jump while the cinematic
-      // sticky hero is changing state. If no movement started, force the same
-      // destination so the control never appears broken.
       if (behavior === "smooth") {
         window.setTimeout(() => {
           const didNotStart =
@@ -199,24 +227,22 @@ export function DownloadScrollNavigator() {
 
   const goToSection = useCallback(
     (index: number) => {
-      const sections = getSections();
+      const { sections, tops } = layoutRef.current;
       const safeIndex = Math.max(0, Math.min(sections.length - 1, index));
-      const target = sections[safeIndex];
+      const targetTop = tops[safeIndex];
 
-      if (!target) return;
+      if (targetTop === undefined) {
+        measureLayout();
+        return;
+      }
 
-      const top = Math.max(
-        0,
-        getDocumentTop(target) - getHeaderOffset()
-      );
-
-      scrollToTop(top);
+      scrollToTop(targetTop);
     },
-    [scrollToTop]
+    [measureLayout, scrollToTop]
   );
 
   const goPrevious = useCallback(() => {
-    const sections = getSections();
+    const { sections, tops } = layoutRef.current;
     if (!sections.length) return;
 
     const hero = document.getElementById("download-hero");
@@ -232,20 +258,15 @@ export function DownloadScrollNavigator() {
       return;
     }
 
-    const current = getActiveSectionIndex(sections);
+    const marker = window.scrollY + 2;
+    let current = 0;
 
-    // The cinematic hero is now one normal-scroll section; its scenes autoplay
-    // independently, so navigation returns to the hero itself.
-    if (current === 1 && hero) {
-      scrollToTop(getHeroSceneTop(hero, HERO_SCENE_COUNT - 1));
-      return;
+    for (let index = 0; index < tops.length; index += 1) {
+      if (tops[index] <= marker) current = index;
+      else break;
     }
 
-    const offset = getHeaderOffset();
-    const currentTop = Math.max(
-      0,
-      getDocumentTop(sections[current]) - offset
-    );
+    const currentTop = tops[current] ?? 0;
 
     if (window.scrollY - currentTop > 96) {
       goToSection(current);
@@ -256,7 +277,7 @@ export function DownloadScrollNavigator() {
   }, [goToSection, scrollToTop]);
 
   const goNext = useCallback(() => {
-    const sections = getSections();
+    const { sections, tops } = layoutRef.current;
     if (!sections.length) return;
 
     const hero = document.getElementById("download-hero");
@@ -272,7 +293,14 @@ export function DownloadScrollNavigator() {
       return;
     }
 
-    const current = getActiveSectionIndex(sections);
+    const marker = window.scrollY + 2;
+    let current = 0;
+
+    for (let index = 0; index < tops.length; index += 1) {
+      if (tops[index] <= marker) current = index;
+      else break;
+    }
+
     goToSection(current + 1);
   }, [goToSection, scrollToTop]);
 
