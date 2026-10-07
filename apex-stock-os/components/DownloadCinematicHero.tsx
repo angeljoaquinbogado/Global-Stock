@@ -10,7 +10,7 @@ import {
   useScroll
 } from "framer-motion";
 import type { CSSProperties } from "react";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import {
   GlobalStockPhonePreview,
@@ -338,6 +338,14 @@ export function DownloadCinematicHero() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [dragSceneIndex, setDragSceneIndex] = useState<number | null>(null);
   const sceneDotsRef = useRef<HTMLDivElement | null>(null);
+  const liquidLensRef = useRef<HTMLSpanElement | null>(null);
+  const pointerRef = useRef({
+    id: -1,
+    lastX: 0,
+    lastTime: 0,
+    currentX: 0,
+    dragging: false
+  });
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"]
@@ -370,24 +378,133 @@ export function DownloadCinematicHero() {
   const scene = scenes[activeIndex];
   const visualSceneIndex = dragSceneIndex ?? activeIndex;
 
-  const getSceneIndexFromPointer = (clientX: number) => {
+  const getSceneButtons = () => {
     const rail = sceneDotsRef.current;
-    if (!rail) return activeIndex;
+    if (!rail) return [] as HTMLButtonElement[];
 
-    const rect = rail.getBoundingClientRect();
-    const innerLeft = rect.left + 12;
-    const innerRight = rect.right - 12;
-    const width = Math.max(1, innerRight - innerLeft);
-    const progress = Math.max(
-      0,
-      Math.min(.999, (clientX - innerLeft) / width)
-    );
-
-    return Math.min(
-      scenes.length - 1,
-      Math.max(0, Math.floor(progress * scenes.length))
+    return Array.from(
+      rail.querySelectorAll<HTMLButtonElement>("[data-scene-dot-button]")
     );
   };
+
+  const getSceneCenter = (index: number) => {
+    const rail = sceneDotsRef.current;
+    const buttons = getSceneButtons();
+    const button = buttons[index];
+
+    if (!rail || !button) return 0;
+
+    return button.offsetLeft + button.offsetWidth / 2;
+  };
+
+  const getSceneIndexFromPointer = (clientX: number) => {
+    const rail = sceneDotsRef.current;
+    const buttons = getSceneButtons();
+    if (!rail || !buttons.length) return activeIndex;
+
+    const rect = rail.getBoundingClientRect();
+    const localX = clientX - rect.left;
+
+    let nearestIndex = 0;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    buttons.forEach((button, index) => {
+      const center = button.offsetLeft + button.offsetWidth / 2;
+      const distance = Math.abs(localX - center);
+
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestIndex = index;
+      }
+    });
+
+    return nearestIndex;
+  };
+
+  const setLensTransform = (
+    centerX: number,
+    stretch = 1,
+    compressY = 1
+  ) => {
+    const lens = liquidLensRef.current;
+    if (!lens) return;
+
+    const halfWidth = lens.offsetWidth / 2;
+    lens.style.transform =
+      `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(${stretch}) scaleY(${compressY})`;
+  };
+
+  const snapLensToScene = (
+    index: number,
+    direction = 0,
+    immediate = false
+  ) => {
+    const lens = liquidLensRef.current;
+    const rail = sceneDotsRef.current;
+    if (!lens || !rail) return;
+
+    const targetCenter = getSceneCenter(index);
+    const halfWidth = lens.offsetWidth / 2;
+    const targetX = targetCenter - halfWidth;
+    const current = getComputedStyle(lens).transform;
+
+    lens.getAnimations().forEach((animation) => animation.cancel());
+
+    if (immediate || reduceMotion) {
+      lens.style.transform =
+        `translate3d(${targetX}px,-50%,0) scaleX(.86) scaleY(1)`;
+      return;
+    }
+
+    const overshoot = direction === 0 ? 0 : direction * 2.5;
+    const animation = lens.animate(
+      [
+        { transform: current === "none"
+            ? `translate3d(${targetX}px,-50%,0) scaleX(.98) scaleY(.96)`
+            : current },
+        {
+          transform:
+            `translate3d(${targetX + overshoot}px,-50%,0) scaleX(.82) scaleY(1.035)`,
+          offset: .72
+        },
+        {
+          transform:
+            `translate3d(${targetX}px,-50%,0) scaleX(.86) scaleY(1)`
+        }
+      ],
+      {
+        duration: 420,
+        easing: "cubic-bezier(0.23, 1, 0.32, 1)",
+        fill: "forwards"
+      }
+    );
+
+    animation.onfinish = () => {
+      lens.style.transform =
+        `translate3d(${targetX}px,-50%,0) scaleX(.86) scaleY(1)`;
+      animation.cancel();
+    };
+  };
+
+  useEffect(() => {
+    if (pointerRef.current.dragging) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      snapLensToScene(activeIndex, 0, true);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeIndex]);
+
+  useEffect(() => {
+    const onResize = () => {
+      if (pointerRef.current.dragging) return;
+      snapLensToScene(activeIndex, 0, true);
+    };
+
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, [activeIndex]);
 
   const pose = reduceMotion
     ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
@@ -497,27 +614,124 @@ export function DownloadCinematicHero() {
           <div
             ref={sceneDotsRef}
             className="gs-cinematic-scene-dots absolute bottom-[6px] left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 px-3 py-2"
+            data-dragging={dragSceneIndex !== null ? "true" : "false"}
             onPointerDown={(event) => {
               if (event.pointerType === "mouse" && event.button !== 0) return;
-              event.currentTarget.setPointerCapture(event.pointerId);
-              setDragSceneIndex(getSceneIndexFromPointer(event.clientX));
+
+              const rail = event.currentTarget;
+              const lens = liquidLensRef.current;
+              if (!lens) return;
+
+              lens.getAnimations().forEach((animation) => animation.cancel());
+              rail.setPointerCapture(event.pointerId);
+
+              const rect = rail.getBoundingClientRect();
+              const halfWidth = lens.offsetWidth / 2;
+              const minCenter = getSceneCenter(0);
+              const maxCenter = getSceneCenter(scenes.length - 1);
+              const centerX = Math.max(
+                minCenter,
+                Math.min(maxCenter, event.clientX - rect.left)
+              );
+
+              pointerRef.current = {
+                id: event.pointerId,
+                lastX: event.clientX,
+                lastTime: performance.now(),
+                currentX: centerX,
+                dragging: true
+              };
+
+              const nextIndex = getSceneIndexFromPointer(event.clientX);
+              setDragSceneIndex(nextIndex);
+
+              lens.style.transformOrigin = "50% 50%";
+              lens.style.transform =
+                `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(1.18) scaleY(.94)`;
             }}
             onPointerMove={(event) => {
-              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+              const rail = event.currentTarget;
+              const lens = liquidLensRef.current;
+              const pointer = pointerRef.current;
+
+              if (
+                !lens ||
+                !pointer.dragging ||
+                pointer.id !== event.pointerId ||
+                !rail.hasPointerCapture(event.pointerId)
+              ) {
+                return;
+              }
+
+              const rect = rail.getBoundingClientRect();
+              const minCenter = getSceneCenter(0);
+              const maxCenter = getSceneCenter(scenes.length - 1);
+              const centerX = Math.max(
+                minCenter,
+                Math.min(maxCenter, event.clientX - rect.left)
+              );
+
+              const now = performance.now();
+              const elapsed = Math.max(8, now - pointer.lastTime);
+              const velocity = (event.clientX - pointer.lastX) / elapsed;
+              const stretch = Math.min(
+                1.34,
+                1.16 + Math.abs(velocity) * .22
+              );
+              const direction = Math.sign(velocity);
+              const skew = direction * Math.min(1.8, Math.abs(velocity) * 2.2);
+              const halfWidth = lens.offsetWidth / 2;
+
+              lens.style.transform =
+                `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(${stretch}) scaleY(.94) skewX(${skew}deg)`;
+
+              pointer.lastX = event.clientX;
+              pointer.lastTime = now;
+              pointer.currentX = centerX;
+
               const nextIndex = getSceneIndexFromPointer(event.clientX);
               setDragSceneIndex((current) =>
                 current === nextIndex ? current : nextIndex
               );
             }}
             onPointerUp={(event) => {
-              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+              const rail = event.currentTarget;
+              const pointer = pointerRef.current;
+
+              if (
+                !pointer.dragging ||
+                pointer.id !== event.pointerId ||
+                !rail.hasPointerCapture(event.pointerId)
+              ) {
+                return;
+              }
+
               const nextIndex = getSceneIndexFromPointer(event.clientX);
-              event.currentTarget.releasePointerCapture(event.pointerId);
+              const direction = Math.sign(event.clientX - pointer.lastX);
+
+              rail.releasePointerCapture(event.pointerId);
+              pointerRef.current.dragging = false;
               setDragSceneIndex(null);
+              snapLensToScene(nextIndex, direction);
               goToScene(nextIndex);
             }}
-            onPointerCancel={() => setDragSceneIndex(null)}
+            onPointerCancel={(event) => {
+              const rail = event.currentTarget;
+              if (rail.hasPointerCapture(event.pointerId)) {
+                rail.releasePointerCapture(event.pointerId);
+              }
+
+              pointerRef.current.dragging = false;
+              setDragSceneIndex(null);
+              snapLensToScene(activeIndex, 0);
+            }}
           >
+            <span
+              ref={liquidLensRef}
+              className="gs-cinematic-liquid-lens pointer-events-none absolute left-0 top-1/2 z-0"
+              aria-hidden="true"
+            />
+
             {scenes.map((item, index) => {
               const selected = index === visualSceneIndex;
 
@@ -525,28 +739,12 @@ export function DownloadCinematicHero() {
                 <button
                   key={item.id}
                   type="button"
+                  data-scene-dot-button
                   onClick={() => goToScene(index)}
-                  className="gs-cinematic-scene-dot-button relative grid h-7 w-7 place-items-center rounded-full"
+                  className="gs-cinematic-scene-dot-button relative z-10 grid h-7 w-7 place-items-center rounded-full"
                   aria-label={`Ir a ${item.kicker}`}
                   aria-current={index === activeIndex ? "true" : undefined}
                 >
-                  {selected ? (
-                    <motion.span
-                      layoutId="gs-cinematic-liquid-selector"
-                      className="gs-cinematic-liquid-selector absolute inset-0 rounded-full"
-                      transition={
-                        dragSceneIndex !== null
-                          ? { duration: .12, ease: easeOut }
-                          : {
-                              type: "spring",
-                              duration: .5,
-                              bounce: .2
-                            }
-                      }
-                      aria-hidden="true"
-                    />
-                  ) : null}
-
                   <span
                     className="gs-cinematic-scene-dot relative z-10 block rounded-full"
                     data-active={selected ? "true" : "false"}
