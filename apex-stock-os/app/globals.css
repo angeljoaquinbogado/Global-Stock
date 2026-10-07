@@ -1769,3 +1769,152 @@ textarea:focus-visible {
   height: 0;
   display: none;
 }
+
+/* Cinematic download story */
+.gs-download-theme .gs-cinematic-bg-light,
+.gs-download-theme .gs-cinematic-bg-dark {
+  display: none;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-cinematic-bg-light,
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-bg-dark {
+  display: block;
+}
+
+.gs-cinematic-perspective {
+  perspective: 1600px;
+  perspective-origin: 50% 44%;
+}
+
+.gs-cinematic-phone-shell {
+  width: 300px;
+  height: 633px;
+  transform-style: preserve-3d;
+}
+
+.gs-cinematic-phone-front,
+.gs-cinematic-phone-back {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform-style: preserve-3d;
+}
+
+.gs-cinematic-phone-back {
+  transform: rotateY(180deg);
+}
+
+.gs-phone-preview-stage-cinematic {
+  width: 300px !important;
+  height: 633px !important;
+}
+
+.gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+  width: 330px;
+  transform: scale(.9091) !important;
+  transform-origin: top left;
+}
+
+.gs-cinematic-aura {
+  background:
+    radial-gradient(
+      circle at center,
+      color-mix(in srgb, var(--gs-cinematic-accent) 26%, transparent) 0%,
+      color-mix(in srgb, var(--gs-cinematic-accent) 12%, transparent) 35%,
+      transparent 70%
+    );
+  filter: blur(18px);
+  will-change: transform, opacity;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-cinematic-copy-surface {
+  border-color: rgba(15, 23, 42, .08);
+  background: rgba(255, 255, 255, .84);
+  color: #101828;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, .09);
+  backdrop-filter: blur(18px) saturate(130%);
+  -webkit-backdrop-filter: blur(18px) saturate(130%);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-copy-surface {
+  border-color: rgba(255, 255, 255, .08);
+  background: rgba(10, 10, 12, .76);
+  color: #f5f5f7;
+  box-shadow: 0 18px 60px rgba(0, 0, 0, .25);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+}
+
+.gs-cinematic-tag {
+  border-color: var(--gs-download-border);
+  background: color-mix(in srgb, var(--gs-download-surface) 78%, transparent);
+  color: var(--gs-download-muted);
+}
+
+.gs-cinematic-stat {
+  border-color: var(--gs-download-border);
+  background: color-mix(in srgb, var(--gs-download-surface) 88%, transparent);
+  color: var(--gs-download-text);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-cinematic-stat {
+  box-shadow: 0 16px 44px rgba(15, 23, 42, .10);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-stat {
+  box-shadow: 0 16px 44px rgba(0, 0, 0, .28);
+}
+
+@media (min-width: 1024px) {
+  .gs-cinematic-copy-surface {
+    border-color: transparent !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+}
+
+@media (max-width: 1023px) {
+  .gs-cinematic-copy {
+    z-index: 40;
+  }
+}
+
+@media (max-width: 640px) {
+  .gs-cinematic-phone-shell {
+    width: 210px;
+    height: 443px;
+  }
+
+  .gs-phone-preview-stage-cinematic {
+    width: 210px !important;
+    height: 443px !important;
+  }
+
+  .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 330px;
+    transform: scale(.6364) !important;
+  }
+
+  .gs-cinematic-phone-back {
+    border-radius: 36px;
+  }
+
+  .gs-cinematic-aura {
+    width: 360px !important;
+    height: 360px !important;
+    filter: blur(14px);
+  }
+
+  .gs-cinematic-copy-surface {
+    padding: 18px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-cinematic-aura {
+    animation: none !important;
+  }
+}

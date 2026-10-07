@@ -20,6 +20,7 @@ import {
   Store,
   TrendingUp
 } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 import { Logo } from "@/components/Logo";
@@ -44,7 +45,7 @@ const frameColors: IPhone17ProMaxFrameColor[] = [
   "blue"
 ];
 
-type DemoScreen = "dashboard" | "pos" | "inventory" | "ai";
+export type DemoScreen = "dashboard" | "pos" | "inventory" | "ai";
 type PhoneNavAction = "overview" | "pos" | "scan" | "charts" | "more";
 type PhoneOverlay = "scan" | "charts" | "more" | null;
 
@@ -55,11 +56,23 @@ const screens: Array<{ id: DemoScreen; label: string }> = [
   { id: "ai", label: "Intelligence" }
 ];
 
-export function GlobalStockPhonePreview() {
+type GlobalStockPhonePreviewProps = {
+  cinematic?: boolean;
+  controlledScreen?: DemoScreen;
+  autoPlay?: boolean;
+  initialFrameColor?: IPhone17ProMaxFrameColor;
+};
+
+export function GlobalStockPhonePreview({
+  cinematic = false,
+  controlledScreen,
+  autoPlay = true,
+  initialFrameColor = "graphite"
+}: GlobalStockPhonePreviewProps = {}) {
   const [dynamicIslandSize, setDynamicIslandSize] =
     useState<DynamicIslandSize>("default");
   const [frameColor, setFrameColor] =
-    useState<IPhone17ProMaxFrameColor>("graphite");
+    useState<IPhone17ProMaxFrameColor>(initialFrameColor);
   const [screenIndex, setScreenIndex] = useState(0);
   const [overlay, setOverlay] = useState<PhoneOverlay>(null);
   const [paused, setPaused] = useState(false);
@@ -67,17 +80,17 @@ export function GlobalStockPhonePreview() {
   const manualPauseTimerRef = useRef<number | null>(null);
   const navLockRef = useRef(false);
 
-  const screen = screens[screenIndex]?.id ?? "dashboard";
+  const screen = controlledScreen ?? screens[screenIndex]?.id ?? "dashboard";
 
   useEffect(() => {
-    if (paused) return;
+    if (!autoPlay || controlledScreen || paused) return;
 
     const timer = window.setInterval(() => {
       setScreenIndex((current) => (current + 1) % screens.length);
     }, 5200);
 
     return () => window.clearInterval(timer);
-  }, [paused]);
+  }, [autoPlay, controlledScreen, paused]);
 
   useEffect(
     () => () => {
@@ -168,16 +181,23 @@ export function GlobalStockPhonePreview() {
 
   return (
     <div
-      className="relative mx-auto flex w-full max-w-[520px] flex-col items-center"
-      onMouseEnter={() => setPaused(true)}
+      className={
+        "relative mx-auto flex w-full flex-col items-center " +
+        (cinematic ? "max-w-[370px]" : "max-w-[520px]")
+      }
+      onMouseEnter={() => {
+        if (!cinematic) setPaused(true);
+      }}
       onMouseLeave={() => {
-        if (manualPauseTimerRef.current === null) setPaused(false);
+        if (!cinematic && manualPauseTimerRef.current === null) setPaused(false);
       }}
     >
-      <div className="pointer-events-none absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
+      {!cinematic ? (
+        <div className="pointer-events-none absolute inset-x-[8%] top-[5%] h-[80%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(143,0,0,.18),rgba(143,0,0,.07)_42%,transparent_72%)]" />
+      ) : null}
 
       <div
-        className="gs-phone-preview-stage"
+        className={"gs-phone-preview-stage " + (cinematic ? "gs-phone-preview-stage-cinematic" : "")}
         onPointerDown={(event) => event.stopPropagation()}
       >
         <div className="gs-theme-fixed-dark gs-phone-preview-device pointer-events-auto">
@@ -191,62 +211,71 @@ export function GlobalStockPhonePreview() {
             className="relative"
           >
             <div className="h-full min-h-0 overflow-hidden bg-[#050506] text-white">
-              {overlay === "charts" ? (
-                <ChartsDemo onNavigate={handlePhoneNav} />
-              ) : overlay === "more" ? (
-                <MoreDemo
-                  onNavigate={handlePhoneNav}
-                  onOpenScreen={chooseScreen}
-                />
-              ) : overlay === "scan" ? (
-                <ScannerPreview onNavigate={handlePhoneNav} />
-              ) : (
-                <>
-                  {screen === "dashboard" && (
+              <AnimatePresence mode="wait" initial={false}>
+                <motion.div
+                  key={overlay ?? screen}
+                  className="h-full min-h-0"
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.22, ease: [0.23, 1, 0.32, 1] }}
+                >
+                  {overlay === "charts" ? (
+                    <ChartsDemo onNavigate={handlePhoneNav} />
+                  ) : overlay === "more" ? (
+                    <MoreDemo
+                      onNavigate={handlePhoneNav}
+                      onOpenScreen={chooseScreen}
+                    />
+                  ) : overlay === "scan" ? (
+                    <ScannerPreview onNavigate={handlePhoneNav} />
+                  ) : screen === "dashboard" ? (
                     <DashboardDemo onNavigate={handlePhoneNav} />
-                  )}
-                  {screen === "pos" && (
+                  ) : screen === "pos" ? (
                     <PosDemo onNavigate={handlePhoneNav} />
-                  )}
-                  {screen === "inventory" && (
+                  ) : screen === "inventory" ? (
                     <InventoryDemo onNavigate={handlePhoneNav} />
-                  )}
-                  {screen === "ai" && (
+                  ) : (
                     <IntelligenceDemo onNavigate={handlePhoneNav} />
                   )}
-                </>
-              )}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </IPhone17ProMax>
         </div>
 
-        <button
-          type="button"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            moveScreen(-1);
-          }}
-          className="gs-phone-preview-arrow gs-phone-preview-arrow-left pointer-events-auto select-none touch-manipulation"
-          aria-label="Vista anterior"
-        >
-          <ChevronLeft size={18} />
-        </button>
+        {!cinematic ? (
+          <>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                moveScreen(-1);
+              }}
+              className="gs-phone-preview-arrow gs-phone-preview-arrow-left pointer-events-auto select-none touch-manipulation"
+              aria-label="Vista anterior"
+            >
+              <ChevronLeft size={18} />
+            </button>
 
-        <button
-          type="button"
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            moveScreen(1);
-          }}
-          className="gs-phone-preview-arrow gs-phone-preview-arrow-right pointer-events-auto select-none touch-manipulation"
-          aria-label="Vista siguiente"
-        >
-          <ChevronRight size={18} />
-        </button>
+            <button
+              type="button"
+              onClick={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                moveScreen(1);
+              }}
+              className="gs-phone-preview-arrow gs-phone-preview-arrow-right pointer-events-auto select-none touch-manipulation"
+              aria-label="Vista siguiente"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </>
+        ) : null}
       </div>
 
+      {!cinematic ? (
       <div className="relative mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
         <div className="flex items-center gap-2">
           {screens.map((item) => (
@@ -288,6 +317,7 @@ export function GlobalStockPhonePreview() {
           ))}
         </div>
       </div>
+      ) : null}
     </div>
   );
 }
