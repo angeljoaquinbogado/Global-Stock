@@ -57,6 +57,7 @@ function getActiveSectionIndex(sections: HTMLElement[]) {
 export function DownloadScrollNavigator() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [availableCount, setAvailableCount] = useState(sectionIds.length);
+  const [canGoUp, setCanGoUp] = useState(false);
 
   const updatePosition = useCallback(() => {
     const sections = getSections();
@@ -64,7 +65,14 @@ export function DownloadScrollNavigator() {
 
     if (!sections.length) return;
 
-    setActiveIndex(getActiveSectionIndex(sections));
+    const current = getActiveSectionIndex(sections);
+    const currentTop = Math.max(
+      0,
+      getDocumentTop(sections[current]) - getHeaderOffset()
+    );
+
+    setActiveIndex(current);
+    setCanGoUp(current > 0 || window.scrollY - currentTop > 8);
   }, []);
 
   useEffect(() => {
@@ -140,7 +148,7 @@ export function DownloadScrollNavigator() {
       <button
         type="button"
         onClick={goPrevious}
-        disabled={activeIndex <= 0 && windowScrollNearTop()}
+        disabled={!canGoUp}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Subir a la sección anterior"
       >
@@ -176,9 +184,4 @@ export function DownloadScrollNavigator() {
       </button>
     </div>
   );
-}
-
-function windowScrollNearTop() {
-  if (typeof window === "undefined") return true;
-  return window.scrollY < 8;
 }
