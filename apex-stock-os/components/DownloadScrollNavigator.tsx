@@ -84,7 +84,7 @@ function getHeroSceneTop(hero: HTMLElement, sceneIndex: number) {
     Math.min(HERO_SCENE_COUNT - 1, sceneIndex)
   );
 
-  const progress = safeScene / HERO_SCENE_COUNT + 0.02;
+  const progress = (safeScene + 0.5) / HERO_SCENE_COUNT;
   return Math.round(top + travel * progress);
 }
 
@@ -303,6 +303,40 @@ export function DownloadScrollNavigator() {
 
     goToSection(current + 1);
   }, [goToSection, scrollToTop]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+
+      const target = event.target as HTMLElement | null;
+      const isEditing =
+        target?.isContentEditable ||
+        target?.tagName === "INPUT" ||
+        target?.tagName === "TEXTAREA" ||
+        target?.tagName === "SELECT";
+
+      if (isEditing || event.repeat) return;
+
+      if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+        event.preventDefault();
+        goNext();
+        return;
+      }
+
+      if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+        event.preventDefault();
+        goPrevious();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [goNext, goPrevious]);
 
   return (
     <div className="gs-download-scroll-nav fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
