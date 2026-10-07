@@ -332,6 +332,69 @@ function SceneStats({ scene }: { scene: StoryScene }) {
   );
 }
 
+function SceneAmbientSymbols({ scene }: { scene: StoryScene }) {
+  const icons =
+    scene.screen === "pos"
+      ? [<CircleDollarSign key="sale" />, <Check key="check" />, <TrendingUp key="trend" />]
+      : scene.screen === "inventory"
+        ? [<Boxes key="boxes" />, <Check key="check" />, <TrendingUp key="trend" />]
+        : scene.screen === "ai"
+          ? [<BrainCircuit key="brain" />, <TrendingUp key="trend" />, <Boxes key="boxes" />]
+          : [<TrendingUp key="trend" />, <Boxes key="boxes" />, <CircleDollarSign key="cash" />];
+
+  const positions = [
+    { left: "calc(50% - 205px)", top: "17%" },
+    { left: "calc(50% + 162px)", top: "28%" },
+    { left: "calc(50% + 118px)", bottom: "15%" }
+  ];
+
+  return (
+    <AnimatePresence mode="wait" initial={false}>
+      <motion.div
+        key={scene.id + "-symbols"}
+        className="gs-cinematic-scene-symbols pointer-events-none absolute inset-0 z-[8]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: .22, ease: easeOut }}
+        aria-hidden="true"
+      >
+        {icons.map((icon, index) => (
+          <motion.span
+            key={index}
+            className={`gs-cinematic-scene-symbol gs-cinematic-scene-symbol--${index + 1} absolute grid place-items-center rounded-full`}
+            style={
+              {
+                ...positions[index],
+                "--gs-symbol-accent": scene.accent
+              } as CSSProperties
+            }
+            initial={{
+              opacity: 0,
+              transform: "translate3d(0,10px,0) scale(.92)"
+            }}
+            animate={{
+              opacity: 1,
+              transform: "translate3d(0,0,0) scale(1)"
+            }}
+            exit={{
+              opacity: 0,
+              transform: "translate3d(0,-6px,0) scale(.96)"
+            }}
+            transition={{
+              duration: .30,
+              delay: index * .055,
+              ease: easeOut
+            }}
+          >
+            {icon}
+          </motion.span>
+        ))}
+      </motion.div>
+    </AnimatePresence>
+  );
+}
+
 export function DownloadCinematicHero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
@@ -344,10 +407,8 @@ export function DownloadCinematicHero() {
     lastX: 0,
     lastTime: 0,
     currentX: 0,
-    targetX: 0,
-    renderedX: 0,
     velocity: 0,
-    raf: 0,
+    grabOffset: 0,
     dragging: false
   });
   const { scrollYProgress } = useScroll({
@@ -451,19 +512,36 @@ export function DownloadCinematicHero() {
       `translate3d(${lensLeft}px,-50%,0) scaleX(${stretch}) scaleY(${compressY}) skewX(${skew}deg)`;
   };
 
-  const setLiquidOptics = (direction: number, speed: number, lag: number) => {
+  const setLiquidOptics = (
+    direction: number,
+    speed: number,
+    pressure: number
+  ) => {
     const lens = liquidLensRef.current;
     if (!lens) return;
 
     const normalizedDirection = direction === 0 ? 1 : direction;
-    const pressure = Math.min(1, speed * .82 + Math.abs(lag) * .035);
+    const intensity = Math.min(
+      1,
+      speed * .72 + pressure * .36
+    );
     const highlightX =
       normalizedDirection > 0
-        ? 30 + pressure * 8
-        : 70 - pressure * 8;
-    const highlightY = 16 + pressure * 5;
-    const spectrum = .16 + pressure * .74;
-    const edgeGlow = .28 + pressure * .54;
+        ? 29 + intensity * 9
+        : 71 - intensity * 9;
+    const highlightY = 12 + intensity * 8;
+    const spectrum = Math.min(
+      .96,
+      .24 + speed * .52 + pressure * .22
+    );
+    const edgeGlow = Math.min(
+      .98,
+      .30 + speed * .46 + pressure * .18
+    );
+    const lead = 50 + normalizedDirection * intensity * 5.5;
+    const trail = 100 - lead;
+    const topLead = 47 - intensity * 4;
+    const bottomLead = 53 + intensity * 4;
 
     lens.style.setProperty("--gs-liquid-shine-x", `${highlightX}%`);
     lens.style.setProperty("--gs-liquid-shine-y", `${highlightY}%`);
@@ -471,13 +549,21 @@ export function DownloadCinematicHero() {
     lens.style.setProperty("--gs-liquid-edge-glow", edgeGlow.toFixed(3));
     lens.style.setProperty(
       "--gs-liquid-hue-angle",
-      `${205 + normalizedDirection * 26 + pressure * 18}deg`
+      `${205 + normalizedDirection * 30 + intensity * 20}deg`
     );
     lens.style.setProperty(
       "--gs-liquid-radius",
       normalizedDirection > 0
-        ? "54% 46% 48% 52% / 46% 42% 58% 54%"
-        : "46% 54% 52% 48% / 42% 46% 54% 58%"
+        ? `${lead}% ${trail}% ${trail - 1}% ${lead + 1}% / ${topLead}% ${topLead - 3}% ${bottomLead}% ${bottomLead + 2}%`
+        : `${trail}% ${lead}% ${lead + 1}% ${trail - 1}% / ${topLead - 3}% ${topLead}% ${bottomLead + 2}% ${bottomLead}%`
+    );
+    lens.style.setProperty(
+      "--gs-liquid-caustic",
+      Math.min(1, .18 + speed * .64 + pressure * .22).toFixed(3)
+    );
+    lens.style.setProperty(
+      "--gs-liquid-shift",
+      `${normalizedDirection * Math.min(4.5, 1 + speed * 3.2)}px`
     );
   };
 
@@ -491,56 +577,15 @@ export function DownloadCinematicHero() {
     lens.style.setProperty("--gs-liquid-edge-glow", ".28");
     lens.style.setProperty("--gs-liquid-hue-angle", "205deg");
     lens.style.setProperty("--gs-liquid-radius", "999px");
-  };
-
-  const runLiquidFrame = () => {
-    const pointer = pointerRef.current;
-    if (!pointer.dragging) {
-      pointer.raf = 0;
-      return;
-    }
-
-    const lag = pointer.targetX - pointer.renderedX;
-    pointer.renderedX += lag * .24;
-
-    const direction =
-      Math.abs(pointer.velocity) > .01
-        ? Math.sign(pointer.velocity)
-        : Math.sign(lag);
-    const speed = Math.min(
-      1.25,
-      Math.abs(pointer.velocity) * .88 + Math.abs(lag) * .026
-    );
-    const stretch = Math.min(1.52, 1.15 + speed * .29);
-    const compressY = Math.max(.88, 1.015 - speed * .085);
-    const skew = direction * Math.min(3.6, speed * 2.85);
-    const refractionScale = 1.18 + speed * .15;
-
-    setLiquidOptics(direction, speed, lag);
-    setLensTransform(
-      pointer.renderedX,
-      stretch,
-      compressY,
-      skew,
-      refractionScale
-    );
-
-    pointer.velocity *= .90;
-
-    if (
-      Math.abs(lag) < .08 &&
-      Math.abs(pointer.velocity) < .008
-    ) {
-      pointer.renderedX = pointer.targetX;
-    }
-
-    pointer.raf = window.requestAnimationFrame(runLiquidFrame);
+    lens.style.setProperty("--gs-liquid-caustic", ".12");
+    lens.style.setProperty("--gs-liquid-shift", "0px");
   };
 
   const snapLensToScene = (
     index: number,
     direction = 0,
-    immediate = false
+    immediate = false,
+    releaseVelocity = 0
   ) => {
     const lens = liquidLensRef.current;
     const rail = sceneDotsRef.current;
@@ -559,7 +604,11 @@ export function DownloadCinematicHero() {
       return;
     }
 
-    const overshoot = direction === 0 ? 0 : direction * 2.5;
+    const releaseSpeed = Math.min(1.4, Math.abs(releaseVelocity));
+    const overshoot =
+      direction === 0
+        ? 0
+        : direction * Math.min(9, 2.5 + releaseSpeed * 5.5);
     lens.style.setProperty("--gs-liquid-rail-width", `${rail.clientWidth}px`);
     lens.style.setProperty("--gs-liquid-center", `${targetCenter}px`);
     lens.style.setProperty("--gs-liquid-pan-x", `${-targetX}px`);
@@ -575,8 +624,8 @@ export function DownloadCinematicHero() {
         },
         {
           transform:
-            `translate3d(${targetX + overshoot}px,-50%,0) scaleX(.79) scaleY(1.045)`,
-          offset: .68
+            `translate3d(${targetX + overshoot}px,-50%,0) scaleX(${.78 + releaseSpeed * .035}) scaleY(${1.045 + releaseSpeed * .018})`,
+          offset: .64
         },
         {
           transform:
@@ -584,7 +633,7 @@ export function DownloadCinematicHero() {
         }
       ],
       {
-        duration: 460,
+        duration: 390 + Math.round(releaseSpeed * 55),
         easing: "cubic-bezier(0.23, 1, 0.32, 1)",
         fill: "forwards"
       }
@@ -616,14 +665,6 @@ export function DownloadCinematicHero() {
     window.addEventListener("resize", onResize, { passive: true });
     return () => window.removeEventListener("resize", onResize);
   }, [activeIndex]);
-
-  useEffect(() => {
-    return () => {
-      if (pointerRef.current.raf) {
-        window.cancelAnimationFrame(pointerRef.current.raf);
-      }
-    };
-  }, []);
 
   const pose = reduceMotion
     ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
@@ -672,6 +713,7 @@ export function DownloadCinematicHero() {
           </AnimatePresence>
 
           <SceneStats scene={scene} />
+          <SceneAmbientSymbols scene={scene} />
 
           <div
             className="pointer-events-none absolute left-1/2 top-[37%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-[48%]"
@@ -745,34 +787,51 @@ export function DownloadCinematicHero() {
               rail.setPointerCapture(event.pointerId);
 
               const rect = rail.getBoundingClientRect();
-              const halfWidth = lens.offsetWidth / 2;
+              const localX = event.clientX - rect.left;
+              const activeCenter = getSceneCenter(activeIndex);
+              const halfLens = lens.offsetWidth / 2;
+              const touchedCurrentLens =
+                Math.abs(localX - activeCenter) <= halfLens * 1.25;
+              const grabOffset = touchedCurrentLens
+                ? activeCenter - localX
+                : 0;
               const minCenter = getSceneCenter(0);
               const maxCenter = getSceneCenter(scenes.length - 1);
               const centerX = Math.max(
                 minCenter,
-                Math.min(maxCenter, event.clientX - rect.left)
+                Math.min(maxCenter, localX + grabOffset)
               );
+              const pressure =
+                event.pressure > 0
+                  ? event.pressure
+                  : event.pointerType === "touch"
+                    ? .5
+                    : .18;
 
               pointerRef.current = {
                 id: event.pointerId,
                 lastX: event.clientX,
                 lastTime: performance.now(),
                 currentX: centerX,
-                targetX: centerX,
-                renderedX: centerX,
                 velocity: 0,
-                raf: 0,
+                grabOffset,
                 dragging: true
               };
 
-              const nextIndex = getSceneIndexFromPointer(event.clientX);
+              const nextIndex = getSceneIndexFromPointer(
+                rect.left + centerX
+              );
               setDragSceneIndex(nextIndex);
 
               lens.style.transformOrigin = "50% 50%";
-              setLiquidOptics(1, .18, 0);
-              setLensTransform(centerX, 1.12, .985, 0, 1.20);
-              pointerRef.current.raf =
-                window.requestAnimationFrame(runLiquidFrame);
+              setLiquidOptics(1, .08, pressure);
+              setLensTransform(
+                centerX,
+                1.04 + pressure * .16,
+                1.04 + pressure * .10,
+                0,
+                1.18 + pressure * .08
+              );
             }}
             onPointerMove={(event) => {
               const rail = event.currentTarget;
@@ -793,22 +852,58 @@ export function DownloadCinematicHero() {
               const maxCenter = getSceneCenter(scenes.length - 1);
               const centerX = Math.max(
                 minCenter,
-                Math.min(maxCenter, event.clientX - rect.left)
+                Math.min(
+                  maxCenter,
+                  event.clientX - rect.left + pointer.grabOffset
+                )
               );
 
               const now = performance.now();
               const elapsed = Math.max(8, now - pointer.lastTime);
               const rawVelocity =
                 (event.clientX - pointer.lastX) / elapsed;
-
               pointer.velocity =
-                pointer.velocity * .52 + rawVelocity * .48;
-              pointer.targetX = centerX;
+                pointer.velocity * .58 + rawVelocity * .42;
+
+              const speed = Math.min(
+                1.35,
+                Math.abs(pointer.velocity) * .92
+              );
+              const direction =
+                Math.abs(pointer.velocity) > .01
+                  ? Math.sign(pointer.velocity)
+                  : 1;
+              const pressure =
+                event.pressure > 0
+                  ? event.pressure
+                  : event.pointerType === "touch"
+                    ? .5
+                    : .18;
+              const stretch =
+                1.02 + pressure * .12 + speed * .24;
+              const swellY =
+                1.06 + pressure * .09 - speed * .055;
+              const skew =
+                direction * Math.min(3.4, speed * 2.5);
+              const refractionScale =
+                1.18 + pressure * .06 + speed * .16;
+
+              setLiquidOptics(direction, speed, pressure);
+              setLensTransform(
+                centerX,
+                stretch,
+                Math.max(.96, swellY),
+                skew,
+                refractionScale
+              );
+
               pointer.currentX = centerX;
               pointer.lastX = event.clientX;
               pointer.lastTime = now;
 
-              const nextIndex = getSceneIndexFromPointer(event.clientX);
+              const nextIndex = getSceneIndexFromPointer(
+                rect.left + centerX
+              );
               setDragSceneIndex((current) =>
                 current === nextIndex ? current : nextIndex
               );
@@ -825,17 +920,31 @@ export function DownloadCinematicHero() {
                 return;
               }
 
-              const nextIndex = getSceneIndexFromPointer(event.clientX);
-              const direction = Math.sign(event.clientX - pointer.lastX);
+              const rect = rail.getBoundingClientRect();
+              const projectedCenter = Math.max(
+                getSceneCenter(0),
+                Math.min(
+                  getSceneCenter(scenes.length - 1),
+                  pointer.currentX + pointer.velocity * 105
+                )
+              );
+              const nextIndex = getSceneIndexFromPointer(
+                rect.left + projectedCenter
+              );
+              const direction =
+                Math.abs(pointer.velocity) > .01
+                  ? Math.sign(pointer.velocity)
+                  : 0;
 
               rail.releasePointerCapture(event.pointerId);
               pointerRef.current.dragging = false;
-              if (pointerRef.current.raf) {
-                window.cancelAnimationFrame(pointerRef.current.raf);
-                pointerRef.current.raf = 0;
-              }
               setDragSceneIndex(null);
-              snapLensToScene(nextIndex, direction);
+              snapLensToScene(
+                nextIndex,
+                direction,
+                false,
+                pointer.velocity
+              );
               goToScene(nextIndex);
             }}
             onPointerCancel={(event) => {
@@ -845,10 +954,6 @@ export function DownloadCinematicHero() {
               }
 
               pointerRef.current.dragging = false;
-              if (pointerRef.current.raf) {
-                window.cancelAnimationFrame(pointerRef.current.raf);
-                pointerRef.current.raf = 0;
-              }
               setDragSceneIndex(null);
               snapLensToScene(activeIndex, 0);
             }}
@@ -894,6 +999,9 @@ export function DownloadCinematicHero() {
                   </span>
                 ))}
               </span>
+              <span className="gs-cinematic-liquid-caustic gs-cinematic-liquid-caustic--left absolute" />
+              <span className="gs-cinematic-liquid-caustic gs-cinematic-liquid-caustic--right absolute" />
+              <span className="gs-cinematic-liquid-sheen absolute" />
             </span>
 
             {scenes.map((item, index) => {
