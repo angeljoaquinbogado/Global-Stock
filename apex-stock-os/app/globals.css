@@ -1781,15 +1781,69 @@ textarea:focus-visible {
   display: block;
 }
 
+.gs-cinematic-hero {
+  isolation: isolate;
+}
+
+.gs-cinematic-grid {
+  opacity: .14;
+  background-image:
+    linear-gradient(rgba(127,127,127,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,127,127,.08) 1px, transparent 1px);
+  background-size: 88px 88px;
+  mask-image: radial-gradient(circle at center, black 0%, rgba(0,0,0,.72) 46%, transparent 82%);
+  -webkit-mask-image: radial-gradient(circle at center, black 0%, rgba(0,0,0,.72) 46%, transparent 82%);
+}
+
+.gs-cinematic-grain {
+  opacity: .12;
+  background-image:
+    repeating-linear-gradient(115deg, rgba(255,255,255,.035) 0 1px, transparent 1px 5px),
+    repeating-linear-gradient(24deg, rgba(0,0,0,.035) 0 1px, transparent 1px 7px);
+  mix-blend-mode: soft-light;
+}
+
+.gs-cinematic-vignette {
+  box-shadow:
+    inset 0 0 120px rgba(0,0,0,.08),
+    inset 0 -90px 130px rgba(0,0,0,.08);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-vignette {
+  box-shadow:
+    inset 0 0 140px rgba(0,0,0,.32),
+    inset 0 -110px 150px rgba(0,0,0,.28);
+}
+
+.gs-cinematic-ambient {
+  opacity: .7;
+  background:
+    radial-gradient(circle at 52% 48%,
+      color-mix(in srgb, var(--gs-cinematic-accent) 24%, transparent) 0%,
+      color-mix(in srgb, var(--gs-cinematic-accent) 9%, transparent) 34%,
+      transparent 68%);
+  transform: translate3d(0,0,0);
+  will-change: transform;
+}
+
 .gs-cinematic-perspective {
-  perspective: 1600px;
-  perspective-origin: 50% 44%;
+  perspective: 1500px;
+  perspective-origin: 50% 45%;
+  transform-style: preserve-3d;
 }
 
 .gs-cinematic-phone-shell {
   width: 300px;
   height: 633px;
   transform-style: preserve-3d;
+  will-change: transform;
+  filter: drop-shadow(0 34px 48px rgba(0,0,0,.24));
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-phone-shell {
+  filter:
+    drop-shadow(0 34px 54px rgba(0,0,0,.52))
+    drop-shadow(0 0 44px color-mix(in srgb, var(--gs-cinematic-accent) 12%, transparent));
 }
 
 .gs-cinematic-phone-front,
@@ -1799,8 +1853,12 @@ textarea:focus-visible {
   transform-style: preserve-3d;
 }
 
+.gs-cinematic-phone-front {
+  transform: translateZ(1px);
+}
+
 .gs-cinematic-phone-back {
-  transform: rotateY(180deg);
+  transform: rotateY(180deg) translateZ(1px);
 }
 
 .gs-phone-preview-stage-cinematic {
@@ -1812,58 +1870,164 @@ textarea:focus-visible {
   width: 330px;
   transform: scale(.9091) !important;
   transform-origin: top left;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
 
 .gs-cinematic-aura {
   background:
     radial-gradient(
       circle at center,
-      color-mix(in srgb, var(--gs-cinematic-accent) 26%, transparent) 0%,
-      color-mix(in srgb, var(--gs-cinematic-accent) 12%, transparent) 35%,
+      color-mix(in srgb, var(--gs-cinematic-accent) 30%, transparent) 0%,
+      color-mix(in srgb, var(--gs-cinematic-accent) 13%, transparent) 34%,
       transparent 70%
     );
-  filter: blur(18px);
+  filter: blur(14px);
   will-change: transform, opacity;
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-cinematic-copy-surface {
   border-color: rgba(15, 23, 42, .08);
-  background: rgba(255, 255, 255, .84);
+  background: rgba(255, 255, 255, .83);
   color: #101828;
-  box-shadow: 0 18px 60px rgba(15, 23, 42, .09);
-  backdrop-filter: blur(18px) saturate(130%);
-  -webkit-backdrop-filter: blur(18px) saturate(130%);
+  box-shadow:
+    0 22px 70px rgba(15, 23, 42, .10),
+    inset 0 1px 0 rgba(255,255,255,.84);
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
 }
 
 .gs-download-theme[data-download-theme="dark"] .gs-cinematic-copy-surface {
-  border-color: rgba(255, 255, 255, .08);
-  background: rgba(10, 10, 12, .76);
+  border-color: rgba(255, 255, 255, .09);
+  background: rgba(9, 9, 12, .74);
   color: #f5f5f7;
-  box-shadow: 0 18px 60px rgba(0, 0, 0, .25);
-  backdrop-filter: blur(18px) saturate(120%);
-  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  box-shadow:
+    0 24px 76px rgba(0, 0, 0, .34),
+    inset 0 1px 0 rgba(255,255,255,.045);
+  backdrop-filter: blur(20px) saturate(125%);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
+}
+
+.gs-cinematic-glyph {
+  border-color: color-mix(in srgb, var(--gs-cinematic-accent) 24%, var(--gs-download-border));
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb, var(--gs-cinematic-accent) 13%, var(--gs-download-surface)),
+      color-mix(in srgb, var(--gs-download-surface) 92%, transparent));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 10px 28px color-mix(in srgb, var(--gs-cinematic-accent) 10%, transparent);
+}
+
+.gs-cinematic-eyebrow,
+.gs-cinematic-body,
+.gs-cinematic-title {
+  text-wrap: balance;
+}
+
+.gs-cinematic-body {
+  text-wrap: pretty;
+}
+
+.gs-cinematic-title {
+  max-width: 11ch;
+  font-feature-settings: "ss01" 1, "cv02" 1;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-cinematic-title {
+  color: #111827;
+  text-shadow: 0 1px 0 rgba(255,255,255,.74);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-cinematic-title {
+  color: #f7f7f8;
+  text-shadow: 0 10px 34px rgba(0,0,0,.28);
+}
+
+.gs-cinematic-title-rail {
+  background: color-mix(in srgb, var(--gs-download-border) 82%, transparent);
+  mask-image: linear-gradient(90deg, black, transparent 96%);
+  -webkit-mask-image: linear-gradient(90deg, black, transparent 96%);
 }
 
 .gs-cinematic-tag {
-  border-color: var(--gs-download-border);
-  background: color-mix(in srgb, var(--gs-download-surface) 78%, transparent);
+  border-color: color-mix(in srgb, var(--gs-download-border) 92%, transparent);
+  background: color-mix(in srgb, var(--gs-download-surface) 82%, transparent);
   color: var(--gs-download-muted);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
 }
 
 .gs-cinematic-stat {
+  overflow: hidden;
+  min-width: 108px;
   border-color: var(--gs-download-border);
   background: color-mix(in srgb, var(--gs-download-surface) 88%, transparent);
   color: var(--gs-download-text);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(16px) saturate(120%);
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+}
+
+.gs-cinematic-stat::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 2px;
+  background: var(--gs-cinematic-accent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--gs-cinematic-accent) 55%, transparent);
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-cinematic-stat {
-  box-shadow: 0 16px 44px rgba(15, 23, 42, .10);
+  box-shadow: 0 18px 46px rgba(15, 23, 42, .11);
 }
 
 .gs-download-theme[data-download-theme="dark"] .gs-cinematic-stat {
-  box-shadow: 0 16px 44px rgba(0, 0, 0, .28);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .34);
+}
+
+.gs-cinematic-progress {
+  transition:
+    border-color 320ms var(--ease-out),
+    background-color 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out);
+}
+
+.gs-cinematic-scroll-note {
+  text-shadow: 0 1px 18px color-mix(in srgb, var(--gs-download-surface) 70%, transparent);
+}
+
+/* Refine large section typography across the public download page without
+   touching the miniature app UI inside the cinematic phone. */
+.gs-storefront > [data-download-section]:not(#download-hero) h2 {
+  text-wrap: balance;
+  letter-spacing: -.045em;
+}
+
+.gs-storefront > [data-download-section]:not(#download-hero) > div > p {
+  text-wrap: pretty;
+}
+
+/* Progressive scroll reveal: native CSS only, so unsupported browsers keep the
+   fully visible layout rather than paying for a JS scroll listener. */
+@keyframes gs-download-section-reveal {
+  from {
+    opacity: .74;
+    transform: translate3d(0, 28px, 0) scale(.992);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  .gs-storefront > [data-download-section]:not(#download-hero) {
+    animation-name: gs-download-section-reveal;
+    animation-duration: 1ms;
+    animation-timing-function: linear;
+    animation-fill-mode: both;
+    animation-timeline: view();
+    animation-range: entry 4% entry 30%;
+  }
 }
 
 @media (min-width: 1024px) {
@@ -1875,8 +2039,8 @@ textarea:focus-visible {
     -webkit-backdrop-filter: none !important;
   }
 
-  /* Render the cinematic phone at its native 330px width. The previous
-     downscale blurred the tiny app typography on desktop. */
+  /* Keep the actual phone UI at its native width for clean type. The 3D scene
+     scales the whole device instead of rasterizing the app preview itself. */
   .gs-cinematic-phone-shell {
     width: 330px;
     height: 696px;
@@ -1892,8 +2056,6 @@ textarea:focus-visible {
     transform: none !important;
   }
 
-  /* Slightly enlarge only the public cinematic demo typography. The content
-     stays the same; this is purely a legibility pass. */
   .gs-phone-preview-stage-cinematic [class~="text-[5px]"] { font-size: 5.8px !important; }
   .gs-phone-preview-stage-cinematic [class~="text-[5.5px]"] { font-size: 6.3px !important; }
   .gs-phone-preview-stage-cinematic [class~="text-[5.8px]"] { font-size: 6.5px !important; }
@@ -1907,8 +2069,6 @@ textarea:focus-visible {
   .gs-phone-preview-stage-cinematic [class~="text-[10.5px]"] { font-size: 11.2px !important; }
   .gs-phone-preview-stage-cinematic [class~="text-[11px]"] { font-size: 11.8px !important; }
 
-  /* Increase contrast of microcopy that was technically present but too faint
-     at cinematic scale. */
   .gs-phone-preview-stage-cinematic [class~="text-white/28"],
   .gs-phone-preview-stage-cinematic [class~="text-white/30"],
   .gs-phone-preview-stage-cinematic [class~="text-white/32"],
@@ -1916,7 +2076,7 @@ textarea:focus-visible {
   .gs-phone-preview-stage-cinematic [class~="text-white/35"],
   .gs-phone-preview-stage-cinematic [class~="text-white/36"],
   .gs-phone-preview-stage-cinematic [class~="text-white/38"] {
-    color: rgba(255, 255, 255, .56) !important;
+    color: rgba(255, 255, 255, .58) !important;
   }
 
   .gs-phone-preview-stage-cinematic [class~="text-white/40"],
@@ -1926,17 +2086,42 @@ textarea:focus-visible {
   .gs-phone-preview-stage-cinematic [class~="text-white/55"],
   .gs-phone-preview-stage-cinematic [class~="text-white/58"],
   .gs-phone-preview-stage-cinematic [class~="text-white/62"] {
-    color: rgba(255, 255, 255, .72) !important;
+    color: rgba(255, 255, 255, .74) !important;
   }
 
   .gs-phone-preview-stage-cinematic [class~="text-white/72"] {
-    color: rgba(255, 255, 255, .86) !important;
+    color: rgba(255, 255, 255, .88) !important;
+  }
+}
+
+@media (min-width: 1024px) and (max-height: 740px) {
+  .gs-cinematic-title {
+    font-size: clamp(2.15rem, 3.55vw, 3.25rem) !important;
+  }
+
+  .gs-cinematic-body {
+    margin-top: 14px !important;
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+
+  .gs-cinematic-kicker-row {
+    transform: scale(.94);
+    transform-origin: left center;
   }
 }
 
 @media (max-width: 1023px) {
   .gs-cinematic-copy {
     z-index: 40;
+  }
+
+  .gs-cinematic-title {
+    max-width: 13ch;
+  }
+
+  .gs-cinematic-stat {
+    display: none;
   }
 }
 
@@ -1961,19 +2146,39 @@ textarea:focus-visible {
   }
 
   .gs-cinematic-aura {
-    width: 360px !important;
-    height: 360px !important;
-    filter: blur(14px);
+    width: 390px !important;
+    height: 390px !important;
+    filter: blur(12px);
   }
 
   .gs-cinematic-copy-surface {
-    padding: 18px;
+    padding: 17px;
+  }
+
+  .gs-cinematic-title {
+    margin-top: 14px !important;
+    font-size: clamp(2rem, 10vw, 2.65rem) !important;
+    line-height: .98 !important;
+  }
+
+  .gs-cinematic-title-rail,
+  .gs-cinematic-body {
+    margin-top: 13px !important;
+  }
+
+  .gs-cinematic-body {
+    font-size: 13px !important;
+    line-height: 1.5 !important;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gs-cinematic-aura {
+  .gs-cinematic-aura,
+  .gs-cinematic-ambient,
+  .gs-cinematic-scroll-note *,
+  .gs-storefront > [data-download-section]:not(#download-hero) {
     animation: none !important;
+    transform: none !important;
   }
 }
 
