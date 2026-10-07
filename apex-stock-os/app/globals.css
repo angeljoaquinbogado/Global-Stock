@@ -2199,6 +2199,8 @@ textarea:focus-visible {
   --gs-liquid-radius: 999px;
   --gs-liquid-caustic: .12;
   --gs-liquid-shift: 0px;
+  --gs-liquid-shift-reverse: 0px;
+  --gs-liquid-sheen-shift: 0px;
   width: 52px;
   height: 44px;
   overflow: visible;
@@ -2475,7 +2477,7 @@ textarea:focus-visible {
 
 .gs-cinematic-liquid-caustic--right {
   right: -1px;
-  transform: translate3d(calc(var(--gs-liquid-shift) * -1),0,0) rotate(9deg);
+  transform: translate3d(var(--gs-liquid-shift-reverse),0,0) rotate(9deg);
   background:
     radial-gradient(circle at 82% 58%, rgba(73,222,255,.94), transparent 34%),
     radial-gradient(circle at 54% 76%, rgba(109,98,255,.92), transparent 37%),
@@ -2492,7 +2494,7 @@ textarea:focus-visible {
   border-radius: 999px;
   pointer-events: none;
   opacity: .74;
-  transform: translate3d(calc(var(--gs-liquid-shift) * .42),0,0) rotate(-8deg);
+  transform: translate3d(var(--gs-liquid-sheen-shift),0,0) rotate(-8deg);
   background:
     linear-gradient(
       105deg,
