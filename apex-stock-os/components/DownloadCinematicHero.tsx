@@ -336,6 +336,8 @@ export function DownloadCinematicHero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [dragSceneIndex, setDragSceneIndex] = useState<number | null>(null);
+  const sceneDotsRef = useRef<HTMLDivElement | null>(null);
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start start", "end end"]
@@ -366,6 +368,27 @@ export function DownloadCinematicHero() {
   };
 
   const scene = scenes[activeIndex];
+  const visualSceneIndex = dragSceneIndex ?? activeIndex;
+
+  const getSceneIndexFromPointer = (clientX: number) => {
+    const rail = sceneDotsRef.current;
+    if (!rail) return activeIndex;
+
+    const rect = rail.getBoundingClientRect();
+    const innerLeft = rect.left + 12;
+    const innerRight = rect.right - 12;
+    const width = Math.max(1, innerRight - innerLeft);
+    const progress = Math.max(
+      0,
+      Math.min(.999, (clientX - innerLeft) / width)
+    );
+
+    return Math.min(
+      scenes.length - 1,
+      Math.max(0, Math.floor(progress * scenes.length))
+    );
+  };
+
   const pose = reduceMotion
     ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
     : scene.pose;
@@ -471,30 +494,73 @@ export function DownloadCinematicHero() {
             </div>
           </div>
 
-          <div className="gs-cinematic-scene-dots absolute bottom-[6px] left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 px-3 py-2">
-            {scenes.map((item, index) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => goToScene(index)}
-                className="gs-cinematic-scene-dot-button grid h-5 w-5 place-items-center rounded-full"
-                aria-label={`Ir a ${item.kicker}`}
-                aria-current={index === activeIndex ? "true" : undefined}
-              >
-                <span
-                  className="gs-cinematic-scene-dot block rounded-full"
-                  data-active={index === activeIndex ? "true" : "false"}
-                  style={{
-                    width: index === activeIndex ? 18 : 6,
-                    height: 6,
-                    backgroundColor:
-                      index === activeIndex
+          <div
+            ref={sceneDotsRef}
+            className="gs-cinematic-scene-dots absolute bottom-[6px] left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 px-3 py-2"
+            onPointerDown={(event) => {
+              if (event.pointerType === "mouse" && event.button !== 0) return;
+              event.currentTarget.setPointerCapture(event.pointerId);
+              setDragSceneIndex(getSceneIndexFromPointer(event.clientX));
+            }}
+            onPointerMove={(event) => {
+              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+              const nextIndex = getSceneIndexFromPointer(event.clientX);
+              setDragSceneIndex((current) =>
+                current === nextIndex ? current : nextIndex
+              );
+            }}
+            onPointerUp={(event) => {
+              if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+              const nextIndex = getSceneIndexFromPointer(event.clientX);
+              event.currentTarget.releasePointerCapture(event.pointerId);
+              setDragSceneIndex(null);
+              goToScene(nextIndex);
+            }}
+            onPointerCancel={() => setDragSceneIndex(null)}
+          >
+            {scenes.map((item, index) => {
+              const selected = index === visualSceneIndex;
+
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => goToScene(index)}
+                  className="gs-cinematic-scene-dot-button relative grid h-7 w-7 place-items-center rounded-full"
+                  aria-label={`Ir a ${item.kicker}`}
+                  aria-current={index === activeIndex ? "true" : undefined}
+                >
+                  {selected ? (
+                    <motion.span
+                      layoutId="gs-cinematic-liquid-selector"
+                      className="gs-cinematic-liquid-selector absolute inset-0 rounded-full"
+                      transition={
+                        dragSceneIndex !== null
+                          ? { duration: .12, ease: easeOut }
+                          : {
+                              type: "spring",
+                              duration: .5,
+                              bounce: .2
+                            }
+                      }
+                      aria-hidden="true"
+                    />
+                  ) : null}
+
+                  <span
+                    className="gs-cinematic-scene-dot relative z-10 block rounded-full"
+                    data-active={selected ? "true" : "false"}
+                    style={{
+                      width: selected ? 14 : 5,
+                      height: 5,
+                      backgroundColor: selected
                         ? item.accent
-                        : "color-mix(in srgb, var(--gs-download-muted) 34%, transparent)"
-                  }}
-                />
-              </button>
-            ))}
+                        : "color-mix(in srgb, var(--gs-download-muted) 46%, transparent)"
+                    }}
+                  />
+                </button>
+              );
+            })}
           </div>
 
           <div className="gs-cinematic-scroll-note absolute bottom-[3.1%] left-[4%] hidden items-center gap-3 text-[10px] font-semibold uppercase tracking-[.14em] text-[var(--gs-download-subtle)] lg:flex">
