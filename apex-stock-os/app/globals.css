@@ -1874,6 +1874,64 @@ textarea:focus-visible {
     backdrop-filter: none !important;
     -webkit-backdrop-filter: none !important;
   }
+
+  /* Render the cinematic phone at its native 330px width. The previous
+     downscale blurred the tiny app typography on desktop. */
+  .gs-cinematic-phone-shell {
+    width: 330px;
+    height: 696px;
+  }
+
+  .gs-phone-preview-stage-cinematic {
+    width: 330px !important;
+    height: 696px !important;
+  }
+
+  .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 330px;
+    transform: none !important;
+  }
+
+  /* Slightly enlarge only the public cinematic demo typography. The content
+     stays the same; this is purely a legibility pass. */
+  .gs-phone-preview-stage-cinematic [class~="text-[5px]"] { font-size: 5.8px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[5.5px]"] { font-size: 6.3px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[5.8px]"] { font-size: 6.5px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[6px]"] { font-size: 6.8px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[6.5px]"] { font-size: 7.3px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[7px]"] { font-size: 7.8px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[7.5px]"] { font-size: 8.3px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[8px]"] { font-size: 8.8px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[8.5px]"] { font-size: 9.3px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[9px]"] { font-size: 9.8px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[10.5px]"] { font-size: 11.2px !important; }
+  .gs-phone-preview-stage-cinematic [class~="text-[11px]"] { font-size: 11.8px !important; }
+
+  /* Increase contrast of microcopy that was technically present but too faint
+     at cinematic scale. */
+  .gs-phone-preview-stage-cinematic [class~="text-white/28"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/30"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/32"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/34"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/35"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/36"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/38"] {
+    color: rgba(255, 255, 255, .56) !important;
+  }
+
+  .gs-phone-preview-stage-cinematic [class~="text-white/40"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/42"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/45"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/52"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/55"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/58"],
+  .gs-phone-preview-stage-cinematic [class~="text-white/62"] {
+    color: rgba(255, 255, 255, .72) !important;
+  }
+
+  .gs-phone-preview-stage-cinematic [class~="text-white/72"] {
+    color: rgba(255, 255, 255, .86) !important;
+  }
 }
 
 @media (max-width: 1023px) {
