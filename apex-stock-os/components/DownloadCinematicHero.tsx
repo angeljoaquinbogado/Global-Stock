@@ -471,25 +471,26 @@ export function DownloadCinematicHero() {
             </div>
           </div>
 
-          <div className="gs-cinematic-scene-dots absolute bottom-[3%] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--gs-download-border)] bg-[var(--gs-download-surface)]/92 px-3 py-2 shadow-[0_10px_28px_rgba(15,23,42,.10)]">
+          <div className="gs-cinematic-scene-dots absolute bottom-[6px] left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 px-3 py-2">
             {scenes.map((item, index) => (
               <button
                 key={item.id}
                 type="button"
                 onClick={() => goToScene(index)}
-                className="grid h-5 w-5 place-items-center rounded-full"
+                className="gs-cinematic-scene-dot-button grid h-5 w-5 place-items-center rounded-full"
                 aria-label={`Ir a ${item.kicker}`}
                 aria-current={index === activeIndex ? "true" : undefined}
               >
                 <span
-                  className="block rounded-full transition-[width,height,background-color] duration-200"
+                  className="gs-cinematic-scene-dot block rounded-full"
+                  data-active={index === activeIndex ? "true" : "false"}
                   style={{
                     width: index === activeIndex ? 18 : 6,
                     height: 6,
                     backgroundColor:
                       index === activeIndex
                         ? item.accent
-                        : "color-mix(in srgb, var(--gs-download-muted) 30%, transparent)"
+                        : "color-mix(in srgb, var(--gs-download-muted) 34%, transparent)"
                   }}
                 />
               </button>
