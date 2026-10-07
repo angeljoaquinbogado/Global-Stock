@@ -424,14 +424,27 @@ export function DownloadCinematicHero() {
   const setLensTransform = (
     centerX: number,
     stretch = 1,
-    compressY = 1
+    compressY = 1,
+    skew = 0,
+    refractionScale = 1.22
   ) => {
     const lens = liquidLensRef.current;
-    if (!lens) return;
+    const rail = sceneDotsRef.current;
+    if (!lens || !rail) return;
 
     const halfWidth = lens.offsetWidth / 2;
+    const lensLeft = centerX - halfWidth;
+
+    lens.style.setProperty("--gs-liquid-rail-width", `${rail.clientWidth}px`);
+    lens.style.setProperty("--gs-liquid-center", `${centerX}px`);
+    lens.style.setProperty("--gs-liquid-pan-x", `${-lensLeft}px`);
+    lens.style.setProperty(
+      "--gs-liquid-refraction-scale",
+      String(refractionScale)
+    );
+
     lens.style.transform =
-      `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(${stretch}) scaleY(${compressY})`;
+      `translate3d(${lensLeft}px,-50%,0) scaleX(${stretch}) scaleY(${compressY}) skewX(${skew}deg)`;
   };
 
   const snapLensToScene = (
@@ -451,21 +464,28 @@ export function DownloadCinematicHero() {
     lens.getAnimations().forEach((animation) => animation.cancel());
 
     if (immediate || reduceMotion) {
-      lens.style.transform =
-        `translate3d(${targetX}px,-50%,0) scaleX(.86) scaleY(1)`;
+      setLensTransform(targetCenter, .86, 1, 0, 1.12);
       return;
     }
 
     const overshoot = direction === 0 ? 0 : direction * 2.5;
+    lens.style.setProperty("--gs-liquid-rail-width", `${rail.clientWidth}px`);
+    lens.style.setProperty("--gs-liquid-center", `${targetCenter}px`);
+    lens.style.setProperty("--gs-liquid-pan-x", `${-targetX}px`);
+    lens.style.setProperty("--gs-liquid-refraction-scale", "1.12");
+
     const animation = lens.animate(
       [
-        { transform: current === "none"
-            ? `translate3d(${targetX}px,-50%,0) scaleX(.98) scaleY(.96)`
-            : current },
         {
           transform:
-            `translate3d(${targetX + overshoot}px,-50%,0) scaleX(.82) scaleY(1.035)`,
-          offset: .72
+            current === "none"
+              ? `translate3d(${targetX}px,-50%,0) scaleX(1.10) scaleY(.95)`
+              : current
+        },
+        {
+          transform:
+            `translate3d(${targetX + overshoot}px,-50%,0) scaleX(.79) scaleY(1.045)`,
+          offset: .68
         },
         {
           transform:
@@ -473,15 +493,14 @@ export function DownloadCinematicHero() {
         }
       ],
       {
-        duration: 420,
+        duration: 460,
         easing: "cubic-bezier(0.23, 1, 0.32, 1)",
         fill: "forwards"
       }
     );
 
     animation.onfinish = () => {
-      lens.style.transform =
-        `translate3d(${targetX}px,-50%,0) scaleX(.86) scaleY(1)`;
+      setLensTransform(targetCenter, .86, 1, 0, 1.12);
       animation.cancel();
     };
   };
@@ -646,8 +665,7 @@ export function DownloadCinematicHero() {
               setDragSceneIndex(nextIndex);
 
               lens.style.transformOrigin = "50% 50%";
-              lens.style.transform =
-                `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(1.18) scaleY(.94)`;
+              setLensTransform(centerX, 1.20, .93, 0, 1.26);
             }}
             onPointerMove={(event) => {
               const rail = event.currentTarget;
@@ -674,16 +692,23 @@ export function DownloadCinematicHero() {
               const now = performance.now();
               const elapsed = Math.max(8, now - pointer.lastTime);
               const velocity = (event.clientX - pointer.lastX) / elapsed;
+              const speed = Math.min(1, Math.abs(velocity) * .9);
               const stretch = Math.min(
-                1.34,
-                1.16 + Math.abs(velocity) * .22
+                1.46,
+                1.20 + speed * .26
               );
               const direction = Math.sign(velocity);
-              const skew = direction * Math.min(1.8, Math.abs(velocity) * 2.2);
-              const halfWidth = lens.offsetWidth / 2;
+              const skew = direction * Math.min(2.6, speed * 2.6);
+              const compressY = .94 - speed * .035;
+              const refractionScale = 1.26 + speed * .08;
 
-              lens.style.transform =
-                `translate3d(${centerX - halfWidth}px,-50%,0) scaleX(${stretch}) scaleY(.94) skewX(${skew}deg)`;
+              setLensTransform(
+                centerX,
+                stretch,
+                compressY,
+                skew,
+                refractionScale
+              );
 
               pointer.lastX = event.clientX;
               pointer.lastTime = now;
@@ -730,7 +755,44 @@ export function DownloadCinematicHero() {
               ref={liquidLensRef}
               className="gs-cinematic-liquid-lens pointer-events-none absolute left-0 top-1/2 z-0"
               aria-hidden="true"
-            />
+            >
+              <span className="gs-cinematic-refraction-window absolute inset-0 overflow-hidden rounded-[inherit]">
+                {["base", "cyan", "magenta", "amber"].map((channel) => (
+                  <span
+                    key={channel}
+                    className="gs-cinematic-refraction-channel absolute inset-0"
+                    data-channel={channel}
+                  >
+                    <span className="gs-cinematic-refraction-pan absolute left-0 top-0 h-full">
+                      <span className="gs-cinematic-refraction-track flex h-full items-center gap-1.5 px-3">
+                        {scenes.map((item, index) => {
+                          const selected = index === visualSceneIndex;
+
+                          return (
+                            <span
+                              key={item.id}
+                              className="gs-cinematic-refraction-item grid h-7 w-7 shrink-0 place-items-center rounded-full"
+                            >
+                              <span
+                                className="gs-cinematic-refraction-dot block rounded-full"
+                                data-active={selected ? "true" : "false"}
+                                style={{
+                                  width: selected ? 14 : 5,
+                                  height: 5,
+                                  backgroundColor: selected
+                                    ? item.accent
+                                    : "color-mix(in srgb, var(--gs-download-muted) 46%, transparent)"
+                                }}
+                              />
+                            </span>
+                          );
+                        })}
+                      </span>
+                    </span>
+                  </span>
+                ))}
+              </span>
+            </span>
 
             {scenes.map((item, index) => {
               const selected = index === visualSceneIndex;
