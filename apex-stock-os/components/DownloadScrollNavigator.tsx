@@ -105,6 +105,8 @@ export function DownloadScrollNavigator() {
   const [availableCount, setAvailableCount] = useState(sectionIds.length);
   const [canGoUp, setCanGoUp] = useState(false);
   const layoutRef = useRef<CachedLayout>({ sections: [], tops: [] });
+  const wheelAccumulatorRef = useRef(0);
+  const wheelLockUntilRef = useRef(0);
 
   const updatePosition = useCallback(() => {
     const { tops } = layoutRef.current;
@@ -335,6 +337,42 @@ export function DownloadScrollNavigator() {
 
     return () => {
       window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [goNext, goPrevious]);
+
+  useEffect(() => {
+    if (!window.matchMedia("(pointer: fine)").matches) return;
+
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || Math.abs(event.deltaY) < 1) return;
+
+      const hero = document.getElementById("download-hero");
+      if (!hero || !isInsideHero(hero)) {
+        wheelAccumulatorRef.current = 0;
+        return;
+      }
+
+      event.preventDefault();
+
+      const now = performance.now();
+      if (now < wheelLockUntilRef.current) return;
+
+      wheelAccumulatorRef.current += event.deltaY;
+
+      if (Math.abs(wheelAccumulatorRef.current) < 46) return;
+
+      const direction = wheelAccumulatorRef.current > 0 ? 1 : -1;
+      wheelAccumulatorRef.current = 0;
+      wheelLockUntilRef.current = now + 620;
+
+      if (direction > 0) goNext();
+      else goPrevious();
+    };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+
+    return () => {
+      window.removeEventListener("wheel", onWheel);
     };
   }, [goNext, goPrevious]);
 
