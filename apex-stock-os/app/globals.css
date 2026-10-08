@@ -2855,6 +2855,112 @@ textarea:focus-visible {
   }
 }
 
+/* Download AI automation + interactive map */
+.gs-ai-automation,
+.gs-global-map-section {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(143,0,0,.07), transparent 28%),
+    var(--gs-download-bg-alt);
+  color: var(--gs-download-text);
+}
+
+.gs-download-theme[data-download-theme="dark"] .gs-ai-automation,
+.gs-download-theme[data-download-theme="dark"] .gs-global-map-section {
+  background:
+    radial-gradient(circle at 78% 12%, rgba(143,0,0,.13), transparent 30%),
+    #08090b;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-ai-automation-card {
+  border-color: rgba(15,23,42,.08) !important;
+  background: rgba(255,255,255,.92) !important;
+  box-shadow: 0 20px 58px rgba(15,23,42,.08) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-ai-automation-icon {
+  border-color: rgba(15,23,42,.08) !important;
+  background: rgba(15,23,42,.035) !important;
+}
+
+.gs-global-map-shell {
+  background:
+    radial-gradient(circle at 50% 46%, rgba(255,255,255,.035), transparent 54%),
+    linear-gradient(180deg, #111217 0%, #0c0d10 100%);
+}
+
+.gs-global-map-info {
+  border-color: rgba(255,255,255,.08);
+  background: rgba(8,9,12,.72);
+  color: #f5f5f7;
+}
+
+.gs-global-map-pin-selected {
+  background: rgba(17,18,23,.92);
+}
+
+.gs-global-map-pin-idle {
+  background: rgba(3,4,7,.58);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-shell {
+  border-color: rgba(15,23,42,.08) !important;
+  background:
+    radial-gradient(circle at 50% 44%, rgba(255,255,255,.96), transparent 54%),
+    linear-gradient(180deg, #eef4fb 0%, #e3edf8 100%) !important;
+  box-shadow: 0 26px 70px rgba(15,23,42,.10) !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-shell [class~="text-[#c9cdd4]"] {
+  color: #90a0b2 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-info {
+  border-color: rgba(15,23,42,.08);
+  background: rgba(255,255,255,.78);
+  color: #111318;
+  box-shadow:
+    0 18px 48px rgba(15,23,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-info :where(
+  [class~="text-white"],
+  [class~="text-white/46"],
+  [class~="text-white/34"]
+) {
+  color: inherit !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-info [class~="text-white/46"] {
+  color: #667085 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-info [class~="text-white/34"] {
+  color: #98a2b3 !important;
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-pin-selected {
+  background: rgba(255,255,255,.92);
+  box-shadow:
+    0 8px 24px rgba(15,23,42,.12),
+    inset 0 1px 0 rgba(255,255,255,.88);
+}
+
+.gs-download-theme[data-download-theme="light"] .gs-global-map-pin-idle {
+  border-color: rgba(15,23,42,.09) !important;
+  background: rgba(255,255,255,.72);
+  color: #667085 !important;
+  box-shadow:
+    0 8px 24px rgba(15,23,42,.10),
+    inset 0 1px 0 rgba(255,255,255,.82);
+}
+
+@media (max-width: 767px) {
+  .gs-global-map-shell {
+    border-radius: 26px;
+  }
+}
+
 /* Download anchor clipping fix */
 .gs-storefront [data-download-section] {
   scroll-margin-top: 92px;
