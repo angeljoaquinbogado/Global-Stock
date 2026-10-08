@@ -265,8 +265,8 @@ export function DownloadGlobalMap() {
                       (location.primary
                         ? "border-[#8F0000]/45 bg-[#8F0000] text-white"
                         : selected
-                          ? "border-[#8F0000]/40 bg-[#16171c] text-[#ff6672]"
-                          : "border-white/[0.09] bg-black/55 text-white/62")
+                          ? "gs-global-map-pin-selected border-[#8F0000]/40 text-[#ff6672]"
+                          : "gs-global-map-pin-idle border-white/[0.09] text-white/62")
                     }
                   >
                     <MapPin size={15} strokeWidth={2.2} />
@@ -278,7 +278,7 @@ export function DownloadGlobalMap() {
             <AnimatePresence mode="wait">
               <motion.div
                 key={active.id}
-                className="absolute bottom-5 left-5 z-20 w-[min(330px,calc(100%-40px))] rounded-[22px] border border-white/[0.07] bg-black/60 p-4 shadow-[0_18px_50px_rgba(0,0,0,.24)] backdrop-blur-xl sm:bottom-6 sm:left-6"
+                className="gs-global-map-info absolute bottom-5 left-5 z-20 w-[min(330px,calc(100%-40px))] rounded-[22px] border p-4 shadow-[0_18px_50px_rgba(0,0,0,.18)] backdrop-blur-xl sm:bottom-6 sm:left-6"
                 initial={reduceMotion ? false : { opacity: 0, transform: "translate3d(0,8px,0) scale(.98)" }}
                 animate={{ opacity: 1, transform: "translate3d(0,0,0) scale(1)" }}
                 exit={{ opacity: 0, transform: "translate3d(0,-4px,0) scale(.99)" }}
