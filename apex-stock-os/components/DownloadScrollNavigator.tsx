@@ -7,6 +7,7 @@ const sectionIds = [
   "download-hero",
   "download-features",
   "download-feature-catalog",
+  "download-network",
   "download-sectors",
   "download-install",
   "download-security",
