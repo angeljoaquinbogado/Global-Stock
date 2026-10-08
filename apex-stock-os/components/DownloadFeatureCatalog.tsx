@@ -47,11 +47,11 @@ const groups = [
     title: "Análisis e inteligencia",
     kicker: "Decisiones",
     body:
-      "Leé márgenes, tendencias y salud del stock con una IA que entiende el contexto disponible del negocio.",
+      "Analizá márgenes, tendencias, documentos y salud del stock con una IA que entiende el contexto disponible y transforma trabajo repetitivo en sugerencias revisables.",
     icon: BrainCircuit,
     accent: "#b989ff",
     surface: "rgba(185,137,255,.10)",
-    items: ["Gráficos", "Global Intelligence", "Roles y control"]
+    items: ["Global Intelligence", "Document Intelligence", "Predicciones y alertas"]
   }
 ];
 
