@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  BadgeCheck,
   FileUp,
   Loader2,
   ScanLine,
@@ -48,6 +49,7 @@ type SmartDocument = {
   confidence: number | null;
   items: SmartItem[];
   createdAt: string;
+  approvedAt?: string | null;
 };
 
 type ScanResponse = {
@@ -258,7 +260,8 @@ export function SmartDocumentInbox({
         category: result.category ?? "",
         confidence: result.confidence ?? null,
         items: Array.isArray(result.items) ? result.items : [],
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        approvedAt: null
       };
 
       setDocuments((current) => [next, ...current]);
@@ -431,12 +434,24 @@ export function SmartDocumentInbox({
                       />
                     </div>
 
-                    <p className="mt-2 truncate text-[11px] text-[var(--apex-muted)]">
-                      {document.filename}
-                      {document.confidence !== null
-                        ? ` · ${Math.round(document.confidence * 100)}%`
-                        : ""}
-                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-[var(--apex-muted)]">
+                      <span className="truncate">
+                        {document.filename}
+                        {document.confidence !== null
+                          ? ` · ${Math.round(document.confidence * 100)}%`
+                          : ""}
+                      </span>
+                      {document.approvedAt ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 font-semibold text-emerald-500">
+                          <BadgeCheck size={12} />
+                          {label(language, "Aprobado", "Approved")}
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-amber-500/10 px-2 py-1 font-semibold text-amber-500">
+                          {label(language, "Pendiente de revisión", "Pending review")}
+                        </span>
+                      )}
+                    </div>
 
                     <div className="mt-3 grid gap-2 sm:grid-cols-4">
                       <Metric label="Subtotal" value={money(document.subtotal, document.currency)} />
@@ -471,18 +486,42 @@ export function SmartDocumentInbox({
                     ) : null}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setDocuments((current) =>
-                        current.filter((item) => item.id !== document.id)
-                      )
-                    }
-                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] text-[var(--apex-muted)] hover:text-red-500"
-                    aria-label={label(language, "Eliminar", "Delete")}
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  <div className="flex shrink-0 gap-2">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        updateDocument(document.id, {
+                          approvedAt: document.approvedAt
+                            ? null
+                            : new Date().toISOString()
+                        })
+                      }
+                      className={
+                        "inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition-colors " +
+                        (document.approvedAt
+                          ? "border-emerald-500/20 bg-emerald-500/10 text-emerald-500"
+                          : "border-[var(--apex-border)] bg-[var(--apex-bg)]/35 text-[var(--apex-muted)] hover:text-[var(--apex-text)]")
+                      }
+                    >
+                      <BadgeCheck size={15} />
+                      {document.approvedAt
+                        ? label(language, "Aprobado", "Approved")
+                        : label(language, "Aprobar", "Approve")}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setDocuments((current) =>
+                          current.filter((item) => item.id !== document.id)
+                        )
+                      }
+                      className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--apex-border)] text-[var(--apex-muted)] hover:text-red-500"
+                      aria-label={label(language, "Eliminar", "Delete")}
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
               </article>
             ))
