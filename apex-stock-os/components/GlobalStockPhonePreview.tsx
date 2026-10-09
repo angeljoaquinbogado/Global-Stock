@@ -4,7 +4,7 @@ import {
   ArrowUp,
   BarChart3,
   BellRing,
-  Boxes,
+  Package,
   BrainCircuit,
   ChartNoAxesCombined,
   ChevronLeft,
@@ -460,7 +460,7 @@ function DashboardDemo({
             value="$ 2,4 M"
           />
           <KpiCard
-            icon={<Boxes size={11} />}
+            icon={<Package size={11} />}
             label="Costo de inventario"
             value="$ 1,18 M"
           />
@@ -977,7 +977,7 @@ function MoreDemo({
             onClick={() => onOpenScreen("inventory")}
             className="rounded-[12px] border border-white/10 bg-white/[0.03] p-3 text-left transition hover:border-red-500/35 hover:bg-red-500/[0.05]"
           >
-            <Boxes size={14} className="text-red-400" />
+            <Package size={14} className="text-red-400" />
             <p className="mt-2 text-[8px] font-semibold">Almacén</p>
             <p className="mt-1 text-[6px] leading-3 text-white/36">Stock, mínimos, precios y códigos.</p>
           </button>
