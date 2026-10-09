@@ -1,0 +1,76 @@
+name: Global Stock Local Browser Regression
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/global-stock-local-browser-regression.yml"
+      - "apex-stock-os/components/DownloadCinematicHero.tsx"
+      - "apex-stock-os/components/GlobalStockPhonePreview.tsx"
+      - "apex-stock-os/app/download/visual-polish.css"
+      - "apex-stock-os/tests/e2e/landing-visual-polish.spec.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-stock-local-browser-regression-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live-code-regression:
+    name: Latest commit / Chromium Firefox WebKit
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apex-stock-os
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+      E2E_BASE_URL: http://127.0.0.1:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apex-stock-os/package-lock.json
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Install test runner
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @playwright/test@1.56.1
+      - name: Build exact checked-out commit
+        run: npm run build
+      - name: Install browser engines
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Start production web server locally
+        shell: bash
+        run: |
+          npm run start -- --hostname 127.0.0.1 --port 3000 > /tmp/global-stock-local-next.log 2>&1 &
+          echo $! > /tmp/global-stock-next.pid
+          for attempt in $(seq 1 50); do
+            if curl -fsS http://127.0.0.1:3000/download -o /dev/null; then
+              echo "Local Global Stock production build is ready"
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/global-stock-local-next.log
+          exit 1
+      - name: Test mobile cinematic screens in three browsers
+        run: >
+          npx playwright test --config playwright.config.ts
+          tests/e2e/landing-visual-polish.spec.ts
+          --grep "all three secondary mobile intro screens have readable typography|cinematic mobile screen is readable while desktop keeps its original live preview|mobile intro advances by itself without scrolling"
+      - name: Upload traces and reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-stock-local-browser-regression
+          path: |
+            apex-stock-os/playwright-report/
+            apex-stock-os/test-results/
+          retention-days: 10
+          if-no-files-found: warn
