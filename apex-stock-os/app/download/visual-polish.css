@@ -738,3 +738,53 @@
     transition: none;
   }
 }
+
+
+/* Layout guard: the real angled handset must never overlap the copy card.
+   Unlike a fixed absolute composition, this stacks both measured elements
+   in normal flow; the story still auto-advances without scroll-scrubbing. */
+@media (max-width: 640px) {
+  #download-hero {
+    height: auto !important;
+    min-height: calc(100svh - 68px);
+  }
+  #download-hero > .sticky {
+    position: relative !important;
+    top: 0 !important;
+    height: auto !important;
+    min-height: calc(100svh - 68px);
+    overflow: hidden;
+  }
+  #download-hero > .sticky > .relative {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    height: auto !important;
+    min-height: calc(100svh - 68px);
+    padding: 12px 0 44px;
+  }
+  #download-hero .gs-cinematic-device-stage {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+    order: 1;
+    flex: none;
+    width: var(--gs-mobile-phone-width);
+    height: auto;
+    margin: 0 auto clamp(23px, 3svh, 35px);
+  }
+  #download-hero .gs-cinematic-copy {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    order: 2;
+    flex: none;
+    width: min(calc(100% - 24px), 560px) !important;
+    margin: 0 auto;
+  }
+}
