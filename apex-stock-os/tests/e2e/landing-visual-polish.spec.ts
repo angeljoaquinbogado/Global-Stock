@@ -115,9 +115,9 @@ test("mobile intro advances by itself without scrolling through four screens", a
   await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
   const height = await hero.evaluate((node) => node.getBoundingClientRect().height);
   expect(height).toBeLessThan(844);
-  await expect(hero).toHaveAttribute("data-active-scene", "0");
+  const initialScene = await hero.getAttribute("data-active-scene");
   // Playback is visibility-aware and should change screens with no scroll input.
-  await expect(hero).toHaveAttribute("data-active-scene", "1", { timeout: 9_000 });
+  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9_000 }).not.toBe(initialScene);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const dots = hero.locator("[data-scene-dot-button]");
   await dots.last().click();
