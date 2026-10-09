@@ -35,7 +35,8 @@ for (const size of sizes) {
     await visit(page);
 
     const ecosystem = page.locator("#download-network");
-    await ecosystem.scrollIntoViewIfNeeded();
+    // Scrolling a container with moving decorations can be permanently "unstable" in WebKit.
+    await ecosystem.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
     await expect(ecosystem).toBeVisible();
 
     const selector = size.width >= 1024
@@ -78,7 +79,8 @@ test("theme switches and persists after reload", async ({ page }) => {
   const wrapper = page.locator(".gs-download-theme");
   await page.getByRole("button", { name: "Usar tema oscuro" }).first().click();
   await expect(wrapper).toHaveAttribute("data-download-theme", "dark");
-  await page.reload();
+  // The background animation can keep the load event pending on Firefox.
+  await page.reload({ waitUntil: "domcontentloaded" });
   await expect(wrapper).toHaveAttribute("data-download-theme", "dark");
   await page.getByRole("button", { name: "Usar tema claro" }).first().click();
   await expect(wrapper).toHaveAttribute("data-download-theme", "light");
@@ -134,10 +136,19 @@ test("mobile navigation opens, follows link, and closes", async ({ page }) => {
 test("mouse wheel scroll works outside the cinematic hero", async ({ page }) => {
   await page.setViewportSize({ width: 1366, height: 768 });
   await visit(page);
-  await page.locator("#download-sectors").scrollIntoViewIfNeeded();
-  const before = await page.evaluate(() => window.scrollY);
-  await page.mouse.move(200, 300);
-  await page.mouse.wheel(0, 550);
+  // Start at a known middle-page position, away from the hero and page end.
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, Math.min(
+      Math.round(document.documentElement.scrollHeight * 0.5),
+      document.documentElement.scrollHeight - innerHeight - 900
+    ));
+  });
   await expect.poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(500);
+  const before = await page.evaluate(() => window.scrollY);
+  await page.mouse.move(1200, 400);
+  await page.mouse.wheel(0, 550);
+  await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 12000 })
     .toBeGreaterThan(before + 20);
 });
