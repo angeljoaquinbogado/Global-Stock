@@ -9,7 +9,7 @@ import {
   Smartphone,
   X
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   getRememberedInstallPrompt,
@@ -147,6 +147,9 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
     useState<BeforeInstallPromptEvent | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const isIos = useMemo(() => {
     if (typeof navigator === "undefined") return false;
@@ -192,19 +195,40 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
 
   useEffect(() => {
     if (!showHelp) return;
-
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setShowHelp(false);
+    const frame = window.requestAnimationFrame(() => closeRef.current?.focus());
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowHelp(false);
+      }
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )
+      );
+      if (!focusable.length) {
+        event.preventDefault();
+        return;
+      }
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
-
-    window.addEventListener("keydown", onEscape);
-
+    window.addEventListener("keydown", onKeyDown);
     return () => {
       document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onEscape);
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("keydown", onKeyDown);
+      triggerRef.current?.focus();
     };
   }, [showHelp]);
 
@@ -253,6 +277,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
   return (
     <>
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => void install()}
         className="gs-download-primary-action inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#8F0000] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#8F0000] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
@@ -292,6 +317,10 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
+              ref={dialogRef}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="gs-install-dialog-title"
               className="gs-theme-fixed-dark my-auto max-h-[calc(100dvh-32px)] w-full max-w-md overflow-y-auto rounded-[28px] border border-white/10 bg-[#0B0B0D]/98 p-5 text-white shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
@@ -299,6 +328,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                   <Smartphone size={20} />
                 </div>
                 <button
+                  ref={closeRef}
                   type="button"
                   onClick={() => setShowHelp(false)}
                   className="grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-white/[0.04] text-white/75 transition-colors duration-150 hover:bg-white/[0.08] hover:text-white"
@@ -308,7 +338,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
                 </button>
               </div>
 
-              <h3 className="mt-5 text-xl font-semibold tracking-[-0.035em]">
+              <h3 id="gs-install-dialog-title" className="mt-5 text-xl font-semibold tracking-[-0.035em]">
                 {labels.title}
               </h3>
 
