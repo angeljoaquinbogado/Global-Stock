@@ -102,6 +102,10 @@ export function SmartDocumentInbox({
   const [loaded, setLoaded] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [message, setMessage] = useState("");
+  const [saveState, setSaveState] = useState<"idle" | "local" | "saving" | "saved" | "error">("idle");
+  const [retryToken, setRetryToken] = useState(0);
+  const syncQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const revisionRef = useRef(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -114,7 +118,15 @@ export function SmartDocumentInbox({
         demoMode
       );
 
+      let pendingLocal: SmartDocument[] | null = null;
       try {
+        const pendingRaw = storageKey && !demoMode
+          ? window.localStorage.getItem(storageKey + ":pending")
+          : null;
+        if (pendingRaw) {
+          const parsed: unknown = JSON.parse(pendingRaw);
+          if (Array.isArray(parsed)) pendingLocal = parsed as SmartDocument[];
+        }
         const raw = storageKey
           ? window.localStorage.getItem(storageKey)
           : null;
@@ -135,8 +147,11 @@ export function SmartDocumentInbox({
         }
       }
 
+      // Unsent local edits win over an older cloud snapshot.
+      if (pendingLocal) next = pendingLocal;
       if (!cancelled) {
         setDocuments(next);
+        setSaveState(pendingLocal ? "error" : demoMode ? "local" : "idle");
         setLoaded(true);
       }
     }
@@ -151,28 +166,64 @@ export function SmartDocumentInbox({
 
   useEffect(() => {
     if (!loaded) return;
+    const storageKey = businessStorageKey(STORAGE_KEY, businessId, demoMode);
+    const snapshot = documents.slice(0, 250);
+    const revision = ++revisionRef.current;
 
-    const storageKey = businessStorageKey(
-      STORAGE_KEY,
-      businessId,
-      demoMode
-    );
-    const value = documents.slice(0, 250);
-
-    if (storageKey) {
-      window.localStorage.setItem(storageKey, JSON.stringify(value));
+    try {
+      if (storageKey) {
+        window.localStorage.setItem(storageKey, JSON.stringify(snapshot));
+        if (!demoMode && businessId) {
+          window.localStorage.setItem(storageKey + ":pending", JSON.stringify(snapshot));
+        }
+      }
+    } catch {
+      setSaveState("error");
+      return;
     }
 
-    if (demoMode || !businessId) return;
+    if (demoMode || !businessId) {
+      setSaveState("local");
+      return;
+    }
 
+    setSaveState("saving");
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      void saveCloudWorkspace(businessId, {
-        smartDocuments: value
-      });
-    }, 350);
+      // Serialize requests so stale responses cannot overwrite newer edits.
+      syncQueueRef.current = syncQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (cancelled || revision !== revisionRef.current) return;
+          let success = false;
+          for (let attempt = 0; attempt < 3; attempt += 1) {
+            try {
+              success = await saveCloudWorkspace(businessId, { smartDocuments: snapshot });
+            } catch {
+              success = false;
+            }
+            if (success || cancelled || revision !== revisionRef.current) break;
+            await new Promise<void>((resolve) =>
+              window.setTimeout(resolve, (attempt + 1) * 650)
+            );
+          }
+          if (cancelled || revision !== revisionRef.current) return;
+          if (success) {
+            try {
+              if (storageKey) window.localStorage.removeItem(storageKey + ":pending");
+            } catch { /* Local copy remains as backup. */ }
+            setSaveState("saved");
+          } else {
+            setSaveState("error");
+          }
+        });
+    }, 450);
 
-    return () => window.clearTimeout(timer);
-  }, [businessId, demoMode, documents, loaded]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [businessId, demoMode, documents, loaded, retryToken]);
 
   async function scan(file: File) {
     setMessage("");
@@ -382,9 +433,32 @@ export function SmartDocumentInbox({
               {label(language, "Bandeja inteligente", "Smart inbox")}
             </h3>
           </div>
-          <span className="text-xs font-semibold text-[var(--apex-muted)]">
-            {documents.length}
-          </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-semibold text-[var(--apex-muted)]">{documents.length}</span>
+            <span role="status" aria-live="polite" className={
+              "text-[11px] font-semibold " +
+              (saveState === "error" ? "text-amber-500" : "text-[var(--apex-muted)]")
+            }>
+              {saveState === "error"
+                ? label(language, "Cambios pendientes · nube sin sincronizar", "Pending changes · cloud not synced")
+                : saveState === "saving"
+                  ? label(language, "Guardando…", "Saving…")
+                  : saveState === "saved"
+                    ? label(language, "Sincronizado", "Synced")
+                    : saveState === "local"
+                      ? label(language, "Solo en este dispositivo", "Only on this device")
+                      : null}
+            </span>
+            {saveState === "error" && !demoMode && businessId ? (
+              <button
+                type="button"
+                className="rounded-lg border border-amber-500/20 px-2 py-1 text-xs font-semibold text-amber-500"
+                onClick={() => setRetryToken((value) => value + 1)}
+              >
+                {label(language, "Reintentar", "Retry")}
+              </button>
+            ) : null}
+          </div>
         </div>
 
         <div className="divide-y divide-[var(--apex-border)]">
