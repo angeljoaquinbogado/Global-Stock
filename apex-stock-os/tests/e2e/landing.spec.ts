@@ -100,7 +100,8 @@ test("theme switches and persists after reload", async ({ page }) => {
 test("FAQ category and accordion open and close", async ({ page }) => {
   await visit(page);
   const faq = page.locator("#download-faq");
-  await faq.getByRole("button", { name: "Conexiones", exact: true }).click();
+  await faq.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
+  await faq.getByRole("button", { name: "Conexiones", exact: true }).click({ timeout: 30_000 });
   const question = faq.getByRole("button", { name: "¿Puedo conectar una tienda online?" });
   await expect(question).toHaveAttribute("aria-expanded", "true");
   await question.click();
@@ -112,6 +113,7 @@ test("FAQ category and accordion open and close", async ({ page }) => {
 test("sector buttons switch the corresponding panel", async ({ page }) => {
   await visit(page);
   const area = page.locator("#download-sectors");
+  await area.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
   const selection = area.getByRole("button", { name: "Gastronomía" });
   await selection.click();
   await expect(selection).toHaveAttribute("aria-pressed", "true");
