@@ -76,7 +76,7 @@ test("fiscal issuance stays separate from approved document expense posting", as
   const inbox = await source("components/SmartDocumentInbox.tsx");
   const fiscal = await source("components/FiscalDocumentsCenter.tsx");
   assert.match(inbox, /global_stock_expenses/);
-  assert.match(inbox, /no modifica caja ni stock automáticamente/);
+  assert.match(inbox, /No modifica caja ni stock automáticamente/);
   assert.match(fiscal, /providerReady/);
   assert.match(fiscal, /FISCAL_PROVIDER_NOT_CONFIGURED/);
 });
