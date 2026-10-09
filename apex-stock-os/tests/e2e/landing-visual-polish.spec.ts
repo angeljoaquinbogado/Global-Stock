@@ -142,6 +142,9 @@ test("desktop scroll hint does not cover the CTA", async ({ page }) => {
 
 test("mobile intro advances by itself without scrolling through four screens", async ({ page }) => {
   test.setTimeout(45_000);
+  // Autoplay must run for people who allow motion, while honoring users who
+  // explicitly request reduced motion (Playwright defaults to reduce in CI).
+  await page.emulateMedia({ reducedMotion: "no-preference" });
   await openLanding(page, 390, 844);
   const hero = page.locator("#download-hero");
   await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
