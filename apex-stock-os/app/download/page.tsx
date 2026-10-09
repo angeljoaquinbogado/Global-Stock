@@ -15,9 +15,7 @@ import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
 import { DownloadCinematicHero } from "@/components/DownloadCinematicHero";
 import { DownloadAIAutomationFlow } from "@/components/DownloadAIAutomationFlow";
 import { DownloadFeatureCatalog } from "@/components/DownloadFeatureCatalog";
-import { DownloadEcosystemHub } from "@/components/DownloadEcosystemHub";
-import { DownloadFAQ } from "@/components/DownloadFAQ";
-import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
+import { DeferredEcosystemHub, DeferredFAQ, DeferredSectorShowcase } from "@/components/DeferredLandingPanels";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { DeferredSalesShowcase } from "@/components/DeferredSalesShowcase";
 import { PublicPage } from "@/components/PublicSiteChrome";
@@ -69,10 +67,10 @@ export default function DownloadPage() {
           <DownloadFeatureCatalog />
         </div>
 
-        <DownloadEcosystemHub />
+        <DeferredEcosystemHub />
 
         <div id="download-sectors" data-download-section className="scroll-mt-20">
-          <DownloadSectorShowcase />
+          <DeferredSectorShowcase />
         </div>
 
         <section
@@ -189,7 +187,7 @@ export default function DownloadPage() {
         </section>
 
         <div id="download-faq" data-download-section className="scroll-mt-20">
-          <DownloadFAQ />
+          <DeferredFAQ />
         </div>
 
         <section className="border-t border-white/[0.045] bg-[#070708] px-5 py-16 sm:px-8 sm:py-20">
