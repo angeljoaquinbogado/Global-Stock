@@ -1,0 +1,410 @@
+/* Global Stock /download — responsive finish pass, 2026-10-09.
+   Visual motion principles: transforms/opacity, short interruptible transitions,
+   unclipped controls, and reduced-motion support (emilkowalski/skills).
+   Scoped to the public download page; the authenticated app is unchanged. */
+
+/* 1 · Keep the CTA and the desktop scroll hint in separate corners. */
+@media (min-width: 1024px) {
+  .gs-cinematic-hero .gs-cinematic-scroll-note {
+    left: auto !important;
+    right: clamp(18px, 3.5vw, 56px);
+    bottom: 18px;
+    z-index: 45;
+    max-width: 255px;
+    text-align: right;
+    font-size: 9px;
+    pointer-events: none;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy {
+    padding-bottom: 22px;
+  }
+}
+
+/* 2,3,5 · Decorations that resembled tiny circular UI buttons are removed in
+   the component itself. Actual package icons have clear square silhouettes. */
+.gs-cinematic-glyph,
+.gs-ecosystem-node-icon {
+  border-radius: 11px !important;
+}
+.gs-cinematic-glyph svg,
+.gs-ecosystem-node-icon svg {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* 4 · Metrics are allowed to grow/shrink, but never translate outside a card.
+   The filled bolt is a deliberate shape, not a circular badge at a distance. */
+.gs-download-metric-strip .gs-download-metric-item {
+  min-width: 0;
+}
+.gs-download-metric-strip .gs-download-metric-card {
+  width: 100%;
+  min-width: 0;
+  gap: 10px;
+}
+.gs-download-metric-strip .gs-download-metric-card > span:first-child {
+  position: relative !important;
+  inset: auto !important;
+  opacity: 1 !important;
+  flex: 0 0 32px;
+  transform: none !important;
+  border-radius: 11px !important;
+}
+.gs-download-metric-strip .gs-download-metric-content {
+  min-width: 0;
+  max-width: 100%;
+  transform: none !important;
+  transition: none;
+}
+.gs-download-metric-strip .gs-download-metric-value {
+  flex: 0 0 auto;
+  min-width: 0;
+}
+.gs-download-metric-strip .gs-download-metric-label {
+  overflow-wrap: normal;
+  white-space: normal;
+  line-height: 1.22;
+}
+@media (min-width: 768px) {
+  .gs-download-metric-strip .gs-download-metric-item {
+    flex: 0 1 325px;
+    width: min(33.333%, 325px);
+  }
+  .gs-download-metric-strip .gs-download-metric-item > div {
+    width: 100%;
+  }
+  .gs-download-metric-strip .gs-storefront-scroll > div {
+    width: 100%;
+    min-width: 0;
+    justify-content: center;
+  }
+}
+@media (max-width: 767px) {
+  .gs-download-metric-strip .gs-storefront-scroll {
+    overflow-x: clip !important;
+    padding: 14px 8px !important;
+  }
+  .gs-download-metric-strip .gs-storefront-scroll > div {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0 !important;
+    gap: 5px;
+  }
+  .gs-download-metric-strip .gs-download-metric-item {
+    width: 100%;
+    min-width: 0;
+    padding: 0 !important;
+  }
+  .gs-download-metric-strip .gs-download-metric-card {
+    height: 88px;
+    padding: 8px !important;
+    gap: 4px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--gs-download-surface) 74%, transparent);
+    border: 1px solid var(--gs-download-border);
+  }
+  .gs-download-metric-strip .gs-download-metric-card > span:first-child {
+    width: 22px;
+    height: 22px;
+    flex-basis: 22px;
+    border-radius: 6px !important;
+  }
+  .gs-download-metric-strip .gs-download-metric-card > span:first-child svg {
+    width: 15px;
+    height: 15px;
+  }
+  .gs-download-metric-strip .gs-download-metric-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 2px 4px;
+    width: 100%;
+  }
+  .gs-download-metric-strip .gs-download-metric-value {
+    font-size: clamp(18px, 5.3vw, 23px) !important;
+    line-height: 1.05;
+  }
+  .gs-download-metric-strip .gs-download-metric-label {
+    font-size: clamp(8px, 2.45vw, 10px) !important;
+    line-height: 1.15;
+    text-align: center;
+  }
+}
+
+/* 6 · Mobile cinematic is a vertical composition rather than two absolute
+   elements occupying the same space. The mockup stays animated but small
+   enough to leave a dedicated, opaque reading area beneath it. */
+@media (max-width: 1023px) {
+  .gs-cinematic-hero .gs-cinematic-device-stage {
+    top: 14px !important;
+    left: 50%;
+    transform: translateX(-50%) !important;
+    z-index: 10;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy {
+    width: min(calc(100% - 24px), 560px) !important;
+    max-width: 560px;
+    bottom: 32px !important;
+    left: 50%;
+    top: auto !important;
+    transform: translateX(-50%) !important;
+    z-index: 35;
+    padding: 0;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy-surface {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: color-mix(in srgb, var(--gs-download-surface) 98%, transparent) !important;
+    box-shadow: 0 12px 36px rgba(15,23,42,.12) !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-aura {
+    opacity: .45;
+    filter: blur(16px);
+  }
+  .gs-cinematic-hero .gs-cinematic-scene-dots {
+    bottom: 0 !important;
+  }
+}
+@media (min-width: 641px) and (max-width: 1023px) {
+  .gs-cinematic-phone-shell,
+  .gs-phone-preview-stage-cinematic {
+    width: 210px !important;
+    height: 443px !important;
+  }
+  .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 330px !important;
+    transform: scale(.63636) !important;
+    transform-origin: top left !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy {
+    bottom: 32px !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-title {
+    font-size: clamp(2rem, 5vw, 2.65rem) !important;
+  }
+}
+@media (max-width: 640px) {
+  .gs-cinematic-phone-shell,
+  .gs-phone-preview-stage-cinematic {
+    width: 156px !important;
+    height: 329px !important;
+  }
+  .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 330px !important;
+    transform: scale(.472727) !important;
+    transform-origin: top left !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-device-stage {
+    top: 8px !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy {
+    bottom: 27px !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy-surface {
+    padding: 15px !important;
+    border-radius: 22px;
+  }
+  .gs-cinematic-hero .gs-cinematic-title {
+    margin-top: 10px !important;
+    max-width: none;
+    font-size: clamp(1.85rem, 8.4vw, 2.42rem) !important;
+    line-height: 1 !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-body {
+    margin-top: 10px !important;
+    font-size: 12px !important;
+    line-height: 1.36 !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-title-rail {
+    margin-top: 10px !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-kicker-row {
+    gap: 8px;
+  }
+  .gs-cinematic-hero .gs-cinematic-glyph {
+    width: 33px;
+    height: 33px;
+  }
+  .gs-cinematic-hero .gs-cinematic-eyebrow {
+    margin-top: 3px;
+    font-size: 8px;
+    letter-spacing: .08em;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy-surface .mt-6 {
+    margin-top: 12px;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy-surface .mt-3\\.5 {
+    margin-top: 8px;
+  }
+  .gs-cinematic-hero .gs-cinematic-copy-surface .gs-download-primary-action {
+    min-height: 38px;
+    height: 38px;
+  }
+}
+@media (max-width: 1023px) and (max-height: 720px) {
+  .gs-cinematic-phone-shell,
+  .gs-phone-preview-stage-cinematic {
+    width: 125px !important;
+    height: 264px !important;
+  }
+  .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 330px !important;
+    transform: scale(.37878) !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-device-stage { top: 4px !important; }
+  .gs-cinematic-hero .gs-cinematic-copy { bottom: 20px !important; }
+  .gs-cinematic-hero .gs-cinematic-copy-surface { padding: 11px !important; }
+  .gs-cinematic-hero .gs-cinematic-title { font-size: clamp(1.5rem, 7vw, 2rem) !important; margin-top: 7px !important; }
+  .gs-cinematic-hero .gs-cinematic-title-rail,
+  .gs-cinematic-hero .gs-cinematic-body { margin-top: 7px !important; }
+  .gs-cinematic-hero .gs-cinematic-body { font-size: 11px !important; line-height: 1.3 !important; }
+}
+
+/* 7 · Equal-width interactive platform tabs; no overflow at 320px. */
+@media (max-width: 640px) {
+  .gs-download-platform-tabs { width: 100%; max-width: 100%; min-width: 0; }
+  .gs-download-platform-tabs-inner {
+    min-width: 0;
+    overflow: clip !important;
+    gap: 4px;
+    padding: 4px;
+  }
+  .gs-download-platform-tab {
+    width: 100%;
+    min-width: 0;
+    padding: 5px !important;
+    gap: 4px !important;
+    overflow: hidden;
+  }
+  .gs-download-platform-icon {
+    width: 22px;
+    height: 24px;
+    flex-basis: 22px;
+  }
+  .gs-download-platform-icon img {
+    width: 24px !important;
+    height: 24px !important;
+    max-width: 100% !important;
+    object-fit: contain;
+  }
+  .gs-download-platform-label {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: clamp(9px, 2.6vw, 11px) !important;
+  }
+}
+
+/* 8 · Receipts and their controls must remain readable on small screens.
+   Floating info cards are desktop decoration, never overlays on the receipt. */
+.gs-download-sales-tabs > button {
+  min-width: 0;
+  white-space: nowrap;
+}
+@media (max-width: 639px) {
+  .gs-sales-float-top,
+  .gs-sales-float-bottom { display: none !important; }
+  .gs-sales-receipt-float {
+    width: min(95%, 360px) !important;
+    margin-top: 14px !important;
+    transform: none !important;
+    animation: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    isolation: isolate;
+    z-index: 15;
+  }
+  .gs-sales-receipt-float > div:not(:first-child) {
+    filter: none !important;
+    opacity: 1;
+  }
+  .gs-download-sales-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+  .gs-download-sales-tabs > button {
+    width: 100%;
+    min-height: 43px;
+    padding: 9px !important;
+    border-radius: 12px;
+    font-size: 11px;
+  }
+}
+
+/* 9 · On small screens reproduce the PC diagram concept instead of a list:
+   the center brand anchors the orbit and all eight modules are clickable. */
+.gs-ecosystem-mobile-orbit {
+  width: 100%;
+  max-width: 390px;
+  height: 440px;
+  isolation: isolate;
+}
+.gs-ecosystem-mobile-center {
+  width: clamp(108px, 38%, 147px);
+  min-height: 120px;
+  z-index: 10;
+  box-shadow: 0 16px 40px rgba(0,0,0,.13);
+}
+.gs-ecosystem-mobile-slot {
+  width: clamp(90px, 35%, 133px);
+  transform: translate(-50%, -50%);
+}
+.gs-ecosystem-mobile-slot--0 { left: 26%; top: 9.5%; }
+.gs-ecosystem-mobile-slot--1 { left: 74%; top: 9.5%; }
+.gs-ecosystem-mobile-slot--2 { left: 18%; top: 30%; }
+.gs-ecosystem-mobile-slot--3 { left: 82%; top: 30%; }
+.gs-ecosystem-mobile-slot--4 { left: 18%; top: 70%; }
+.gs-ecosystem-mobile-slot--5 { left: 82%; top: 70%; }
+.gs-ecosystem-mobile-slot--6 { left: 26%; top: 90%; }
+.gs-ecosystem-mobile-slot--7 { left: 74%; top: 90%; }
+.gs-ecosystem-mobile-slot .gs-ecosystem-node--compact {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  display: flex;
+  gap: 6px;
+  padding: 7px;
+  border-radius: 13px;
+  overflow: hidden;
+  transform: none !important;
+}
+.gs-ecosystem-mobile-slot .gs-ecosystem-node-icon {
+  width: 27px;
+  height: 27px;
+  flex-basis: 27px;
+  border-radius: 8px !important;
+}
+.gs-ecosystem-mobile-slot .gs-ecosystem-node-icon svg { width: 15px; height: 15px; }
+.gs-ecosystem-mobile-slot .gs-ecosystem-node-title {
+  font-size: clamp(9px, 2.5vw, 11px);
+  line-height: 1.1;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+.gs-ecosystem-mobile-slot .gs-ecosystem-node-indicator { display: none; }
+@media (max-width: 355px) {
+  .gs-ecosystem-mobile-orbit { height: 414px; }
+  .gs-ecosystem-mobile-slot .gs-ecosystem-node-icon {
+    width: 23px;
+    height: 23px;
+    flex-basis: 23px;
+  }
+  .gs-ecosystem-mobile-slot .gs-ecosystem-node-title { font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-ecosystem-mobile-slot .gs-ecosystem-node,
+  .gs-download-metric-strip .gs-download-metric-card,
+  .gs-download-platform-tab {
+    transition: none !important;
+  }
+}
