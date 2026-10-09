@@ -1547,3 +1547,33 @@
     animation: none !important;
   }
 }
+
+
+/* QA / a11y: never dim meaningful metric text while entrance motion plays.
+   Preserve the staggered slide and counting animation without temporary
+   low-contrast numerals or captions on slower mobile devices. */
+@media (max-width: 767px) {
+  .gs-download-metric-strip[data-metrics-armed="true"] .gs-download-metric-card,
+  .gs-download-metric-strip[data-metrics-armed="true"] .gs-download-metric-content {
+    opacity: 1 !important;
+  }
+  .gs-download-metric-strip[data-metrics-visible="true"] .gs-download-metric-card,
+  .gs-download-metric-strip[data-metrics-visible="true"] .gs-download-metric-content {
+    opacity: 1 !important;
+  }
+}
+
+/* The landing switches whole sections between light and dark. Keep text
+   contrasts readable without changing the chosen palette. */
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-label {
+  color: #344054 !important;
+}
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(1) .gs-download-metric-value {
+  color: #067647 !important;
+}
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(2) .gs-download-metric-value {
+  color: #854800 !important;
+}
+.gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(3) .gs-download-metric-value {
+  color: #1d4ed8 !important;
+}
