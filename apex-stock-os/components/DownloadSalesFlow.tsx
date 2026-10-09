@@ -148,7 +148,7 @@ function FloatingCard({
         <p className="truncate text-[12px] font-semibold sm:text-[13px]">
           {isTop ? "Venta #1048" : state.title}
         </p>
-        <p className="mt-0.5 truncate text-[10px] text-slate-400 sm:text-[11px]">
+        <p className="mt-0.5 truncate text-[10px] text-slate-600 sm:text-[11px]">
           {isTop ? "Caja principal" : state.secondaryLabel}
         </p>
       </div>
@@ -211,7 +211,7 @@ function ReceiptMockup({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -5 }}
                 transition={{ duration: 0.28 }}
-                className="text-[10px] font-bold uppercase tracking-[.16em] text-slate-400"
+                className="text-[10px] font-bold uppercase tracking-[.16em] text-slate-600"
               >
                 {state.invoiceLabel}
               </motion.p>
@@ -222,7 +222,7 @@ function ReceiptMockup({
           </div>
 
           <div className="text-right">
-            <p className="text-[9px] font-bold uppercase tracking-[.14em] text-slate-400">
+            <p className="text-[9px] font-bold uppercase tracking-[.14em] text-slate-600">
               Número
             </p>
             <AnimatePresence mode="wait">
@@ -237,7 +237,7 @@ function ReceiptMockup({
                 {state.invoiceNumber}
               </motion.p>
             </AnimatePresence>
-            <p className="mt-2 text-[9px] font-bold uppercase tracking-[.14em] text-slate-400">
+            <p className="mt-2 text-[9px] font-bold uppercase tracking-[.14em] text-slate-600">
               Fecha
             </p>
             <p className="mt-1 text-[11px] font-semibold text-slate-700">
@@ -246,7 +246,7 @@ function ReceiptMockup({
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-[1.6fr_.5fr_.65fr_.75fr] gap-2 border-b border-slate-200 pb-2 text-[8px] font-bold uppercase tracking-[.13em] text-slate-400 sm:text-[9px]">
+        <div className="mt-6 grid grid-cols-[1.6fr_.5fr_.65fr_.75fr] gap-2 border-b border-slate-200 pb-2 text-[8px] font-bold uppercase tracking-[.13em] text-slate-600 sm:text-[9px]">
           <span>Descripción</span>
           <span>Cant.</span>
           <span>Precio</span>
@@ -268,7 +268,7 @@ function ReceiptMockup({
                 <p className="truncate text-[10px] font-semibold text-slate-800 sm:text-[11px]">
                   {item.label}
                 </p>
-                <p className="mt-0.5 truncate text-[8px] text-slate-400 sm:text-[9px]">
+                <p className="mt-0.5 truncate text-[8px] text-slate-600 sm:text-[9px]">
                   {item.sub}
                 </p>
               </div>
@@ -288,7 +288,7 @@ function ReceiptMockup({
         <div className="mt-3 border-t border-slate-200 pt-4">
           <div className="flex items-end justify-between gap-5">
             <div>
-              <p className="text-[8px] font-bold uppercase tracking-[.14em] text-slate-400">
+              <p className="text-[8px] font-bold uppercase tracking-[.14em] text-slate-600">
                 Estado
               </p>
               <AnimatePresence mode="wait">
@@ -307,7 +307,7 @@ function ReceiptMockup({
             </div>
 
             <div className="text-right">
-              <p className="text-[8px] font-bold uppercase tracking-[.14em] text-slate-400">
+              <p className="text-[8px] font-bold uppercase tracking-[.14em] text-slate-600">
                 Total
               </p>
               <AnimatePresence mode="wait">
