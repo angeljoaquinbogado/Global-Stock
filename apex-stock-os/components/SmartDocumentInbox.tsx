@@ -2,6 +2,7 @@
 
 import {
   BadgeCheck,
+  CircleCheck,
   FileUp,
   Loader2,
   ScanLine,
@@ -50,6 +51,7 @@ type SmartDocument = {
   items: SmartItem[];
   createdAt: string;
   approvedAt?: string | null;
+  expenseId?: string | null;
 };
 
 type ScanResponse = {
@@ -104,6 +106,7 @@ export function SmartDocumentInbox({
   const [message, setMessage] = useState("");
   const [saveState, setSaveState] = useState<"idle" | "local" | "saving" | "saved" | "error">("idle");
   const [retryToken, setRetryToken] = useState(0);
+  const [postingId, setPostingId] = useState<string | null>(null);
   const syncQueueRef = useRef<Promise<void>>(Promise.resolve());
   const revisionRef = useRef(0);
 
@@ -254,13 +257,10 @@ export function SmartDocumentInbox({
     }
 
     if (demoMode) {
-      setMessage(
-        label(
-          language,
-          "El escaneo con IA está desactivado en la cuenta demo para no consumir servicios externos. Iniciá sesión con una cuenta real para analizar comprobantes.",
-          "AI scanning is disabled in demo mode. Sign in with a real account to analyze documents."
-        )
-      );
+      setMessage(label(language,
+        "El escaneo real requiere una cuenta. Probá el comprobante ficticio de ejemplo.",
+        "Real AI scanning requires an account. Try the fictional sample document."
+      ));
       return;
     }
 
@@ -336,6 +336,75 @@ export function SmartDocumentInbox({
     }
   }
 
+  function loadDemoSample() {
+    const now = new Date().toISOString();
+    setDocuments((current) => [{
+      id: crypto.randomUUID(),
+      filename: "EJEMPLO · comprobante ficticio",
+      supplier: "Proveedor de prueba",
+      documentNumber: "DEMO-0001",
+      date: now.slice(0, 10),
+      subtotal: 15000,
+      tax: 3150,
+      total: 18150,
+      currency,
+      category: "Mercadería",
+      confidence: null,
+      items: [{ description: "Producto de ejemplo", quantity: 3, unitPrice: 5000, total: 15000 }],
+      createdAt: now,
+      approvedAt: null,
+      expenseId: null
+    }, ...current]);
+    setMessage(label(language,
+      "Ejemplo cargado con datos simulados; no fueron extraídos por IA.",
+      "Sample loaded with simulated data, not extracted by AI."
+    ));
+  }
+
+  async function registerApprovedExpense(document: SmartDocument) {
+    if (demoMode || !businessId || !document.approvedAt || document.expenseId) return;
+    if (typeof document.total !== "number" || !Number.isFinite(document.total) || document.total <= 0) {
+      setMessage(label(language, "Revisá el importe total antes de registrar el gasto.", "Check the total before recording the expense."));
+      return;
+    }
+    if (!window.confirm(label(language,
+      "¿Registrar este comprobante como gasto real del negocio? No modifica caja ni stock automáticamente.",
+      "Record this document as a real expense? It does not modify cash or stock automatically."
+    ))) return;
+
+    setPostingId(document.id);
+    try {
+      const supabase = getSupabaseBrowserClient();
+      if (!supabase) throw new Error("AUTH");
+      const { data } = await supabase.auth.getSession();
+      if (!data.session?.user.id) throw new Error("AUTH");
+      const { error } = await supabase.from("global_stock_expenses").insert({
+        id: document.id,
+        business_id: businessId,
+        user_id: data.session.user.id,
+        category: document.category.trim() || "Comprobantes",
+        description: [document.supplier, document.documentNumber].filter(Boolean).join(" · ") || document.filename,
+        amount: document.total,
+        currency: document.currency,
+        payment_method: null
+      });
+      // Identical UUID prevents a duplicate if a successful response was lost.
+      if (error && error.code !== "23505") throw error;
+      updateDocument(document.id, { expenseId: document.id });
+      setMessage(label(language,
+        "Gasto registrado; caja, stock y emisión fiscal no se modificaron.",
+        "Expense recorded; cash, stock and fiscal issuance were not changed."
+      ));
+    } catch {
+      setMessage(label(language,
+        "No se pudo registrar el gasto. Verificá conexión y permisos e intentá de nuevo.",
+        "Expense could not be recorded. Check connection and permissions and retry."
+      ));
+    } finally {
+      setPostingId(null);
+    }
+  }
+
   function updateDocument(
     id: string,
     patch: Partial<SmartDocument>
@@ -343,7 +412,13 @@ export function SmartDocumentInbox({
     setDocuments((current) =>
       current.map((document) =>
         document.id === id
-          ? { ...document, ...patch }
+          ? {
+              ...document,
+              ...patch,
+              ...(document.approvedAt && patch.approvedAt === undefined && !document.expenseId
+                ? { approvedAt: null }
+                : {})
+            }
           : document
       )
     );
@@ -415,6 +490,15 @@ export function SmartDocumentInbox({
                 ? label(language, "Leyendo…", "Reading…")
                 : label(language, "Escanear comprobante", "Scan document")}
             </button>
+            {demoMode ? (
+              <button
+                type="button"
+                onClick={loadDemoSample}
+                className="mt-2 w-full rounded-xl border border-[var(--apex-border)] px-4 py-2 text-xs font-semibold text-[var(--apex-text)]"
+              >
+                {label(language, "Probar comprobante de ejemplo", "Try sample document")}
+              </button>
+            ) : null}
           </div>
         </div>
 
@@ -478,6 +562,8 @@ export function SmartDocumentInbox({
                     <div className="grid gap-2 sm:grid-cols-3">
                       <input
                         className="apex-input p-2 text-sm font-semibold"
+                        disabled={Boolean(document.expenseId)}
+                        aria-label={label(language, "Proveedor", "Supplier")}
                         value={document.supplier}
                         placeholder={label(language, "Proveedor", "Supplier")}
                         onChange={(event) =>
@@ -488,6 +574,8 @@ export function SmartDocumentInbox({
                       />
                       <input
                         className="apex-input p-2 text-sm"
+                        disabled={Boolean(document.expenseId)}
+                        aria-label={label(language, "Número de comprobante", "Document number")}
                         value={document.documentNumber}
                         placeholder="N°"
                         onChange={(event) =>
@@ -499,6 +587,8 @@ export function SmartDocumentInbox({
                       <input
                         className="apex-input p-2 text-sm"
                         type="date"
+                        disabled={Boolean(document.expenseId)}
+                        aria-label={label(language, "Fecha", "Date")}
                         value={document.date}
                         onChange={(event) =>
                           updateDocument(document.id, {
@@ -515,7 +605,12 @@ export function SmartDocumentInbox({
                           ? ` · ${Math.round(document.confidence * 100)}%`
                           : ""}
                       </span>
-                      {document.approvedAt ? (
+                      {document.expenseId ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 font-semibold text-emerald-500">
+                          <CircleCheck size={12} />
+                          {label(language, "Gasto registrado", "Expense recorded")}
+                        </span>
+                      ) : document.approvedAt ? (
                         <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-1 font-semibold text-emerald-500">
                           <BadgeCheck size={12} />
                           {label(language, "Aprobado", "Approved")}
@@ -560,9 +655,23 @@ export function SmartDocumentInbox({
                     ) : null}
                   </div>
 
-                  <div className="flex shrink-0 gap-2">
+                  <div className="flex shrink-0 flex-wrap gap-2">
+                    {document.approvedAt && !document.expenseId && !demoMode ? (
+                      <button
+                        type="button"
+                        disabled={postingId === document.id || saveState === "saving"}
+                        onClick={() => void registerApprovedExpense(document)}
+                        className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#8F0000] px-3 text-xs font-semibold text-white disabled:opacity-50"
+                      >
+                        <CircleCheck size={15} />
+                        {postingId === document.id
+                          ? label(language, "Registrando…", "Registering…")
+                          : label(language, "Registrar gasto", "Record expense")}
+                      </button>
+                    ) : null}
                     <button
                       type="button"
+                      disabled={Boolean(document.expenseId)}
                       onClick={() =>
                         updateDocument(document.id, {
                           approvedAt: document.approvedAt
@@ -585,6 +694,7 @@ export function SmartDocumentInbox({
 
                     <button
                       type="button"
+                      disabled={Boolean(document.expenseId)}
                       onClick={() =>
                         setDocuments((current) =>
                           current.filter((item) => item.id !== document.id)
