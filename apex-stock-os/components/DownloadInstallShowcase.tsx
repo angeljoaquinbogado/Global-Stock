@@ -93,6 +93,11 @@ function PlatformTabs({
   active: PlatformId;
   onChange: (platform: PlatformId) => void;
 }) {
+  // Server-rendered tabs must not accept clicks before React has attached its
+  // handlers. Safari/WebKit can otherwise lose an early tap during hydration.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
+
   return (
     <GridBeamBorder
       color="#8F0000"
@@ -116,6 +121,7 @@ function PlatformTabs({
               type="button"
               role="tab"
               aria-selected={selected}
+              disabled={!hydrated}
               onClick={() => onChange(id)}
               className={
                 "gs-download-platform-tab flex h-14 w-full items-center justify-center gap-2.5 rounded-[13px] border border-[#8F0000] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
