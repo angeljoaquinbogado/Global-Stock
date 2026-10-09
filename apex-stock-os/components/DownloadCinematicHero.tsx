@@ -348,7 +348,8 @@ export function DownloadCinematicHero() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [mobileIntro, setMobileIntro] = useState(false);
   // Manual taps must win over autoplay, even on slower Firefox/Android devices.
-  const mobileManualUntilRef = useRef(0);
+  const mobileManualPauseRef = useRef(false);
+  const mobileResumeTimerRef = useRef<number | null>(null);
   const [dragSceneIndex, setDragSceneIndex] = useState<number | null>(null);
   const sceneDotsRef = useRef<HTMLDivElement | null>(null);
   const liquidLensRef = useRef<HTMLSpanElement | null>(null);
@@ -375,6 +376,13 @@ export function DownloadCinematicHero() {
     setActiveIndex((current) => (current === next ? current : next));
   });
 
+  useEffect(() => () => {
+    if (mobileResumeTimerRef.current !== null) {
+      window.clearTimeout(mobileResumeTimerRef.current);
+      mobileResumeTimerRef.current = null;
+    }
+  }, []);
+
   useEffect(() => {
     const query = window.matchMedia("(max-width: 1023px)");
     const update = () => setMobileIntro(query.matches);
@@ -399,7 +407,7 @@ export function DownloadCinematicHero() {
         stop();
       } else if (timer === null) {
         timer = window.setInterval(() => {
-          if (performance.now() < mobileManualUntilRef.current) return;
+          if (mobileManualPauseRef.current) return;
           setActiveIndex((current) => (current + 1) % scenes.length);
         }, 4200);
       }
@@ -425,7 +433,14 @@ export function DownloadCinematicHero() {
     if (window.matchMedia("(max-width: 1023px)").matches) {
       // Let people read the selected screen instead of replacing it on the
       // next 4.2s autoplay tick. The animation resumes after their pause.
-      mobileManualUntilRef.current = performance.now() + 6500;
+      mobileManualPauseRef.current = true;
+      if (mobileResumeTimerRef.current !== null) {
+        window.clearTimeout(mobileResumeTimerRef.current);
+      }
+      mobileResumeTimerRef.current = window.setTimeout(() => {
+        mobileManualPauseRef.current = false;
+        mobileResumeTimerRef.current = null;
+      }, 6500);
       setDragSceneIndex(null);
       setActiveIndex(safeIndex);
       return;
