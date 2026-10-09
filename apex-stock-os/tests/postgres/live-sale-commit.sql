@@ -1,5 +1,6 @@
--- Exact read-only snapshot of the existing production POS commit function.
--- Test database ONLY. This contains no customer records or secrets.
+-- Snapshot of existing production POS commit function, with an isolated fix under test.
+-- Test DB ONLY. Adds #variable_conflict use_column to resolve a real 
+-- operation_id SQL conflict found in the unchanged deployed function.
 
 CREATE OR REPLACE FUNCTION public.global_stock_record_pos_sale_legacy_unsafe(target_business_id uuid, operation_id text, sale_currency text, sale_total numeric, sale_cost_total numeric, target_customer_id uuid, sale_lines jsonb, sale_payments jsonb, received_amount numeric DEFAULT NULL::numeric)
  RETURNS uuid
@@ -7,6 +8,7 @@ CREATE OR REPLACE FUNCTION public.global_stock_record_pos_sale_legacy_unsafe(tar
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
+#variable_conflict use_column
 declare
   existing_sale uuid;
   created_sale uuid;
