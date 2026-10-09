@@ -86,6 +86,14 @@ test("mobile ecosystem keeps eight interactive modules around center logo", asyn
   const stock = buttons.filter({ hasText: "Inventario" });
   await stock.click({ force: browserName === "webkit" });
   await expect(ecosystem).toHaveAttribute("data-active-module", "inventario");
+  const flowingLines = orbit.locator(".gs-ecosystem-line-flow");
+  await expect(flowingLines).toHaveCount(8);
+  // The active gradient is an actual SVG path with a CSS dash-flow animation.
+  await expect(orbit.locator(".gs-ecosystem-line-flow.is-active")).toHaveCount(1);
+  const pathAnimation = await orbit.locator(".gs-ecosystem-line-flow.is-active").evaluate(
+    (node) => getComputedStyle(node).animationName
+  );
+  expect(pathAnimation).toContain("gs-ecosystem-stream");
 });
 
 test("desktop scroll hint does not cover the CTA", async ({ page }) => {
@@ -97,4 +105,42 @@ test("desktop scroll hint does not cover the CTA", async ({ page }) => {
   const intersectionWidth = Math.max(0, Math.min(hint!.x + hint!.width, cta!.x + cta!.width) - Math.max(hint!.x, cta!.x));
   const intersectionHeight = Math.max(0, Math.min(hint!.y + hint!.height, cta!.y + cta!.height) - Math.max(hint!.y, cta!.y));
   expect(intersectionWidth * intersectionHeight).toBe(0);
+});
+
+
+test("mobile intro advances by itself without scrolling through four screens", async ({ page }) => {
+  test.setTimeout(45_000);
+  await openLanding(page, 390, 844);
+  const hero = page.locator("#download-hero");
+  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
+  const height = await hero.evaluate((node) => node.getBoundingClientRect().height);
+  expect(height).toBeLessThan(844);
+  await expect(hero).toHaveAttribute("data-active-scene", "0");
+  // Playback is visibility-aware and should change screens with no scroll input.
+  await expect(hero).toHaveAttribute("data-active-scene", "1", { timeout: 9_000 });
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  const dots = hero.locator("[data-scene-dot-button]");
+  await dots.last().click();
+  await expect(hero).toHaveAttribute("data-active-scene", "3");
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+});
+
+test("mobile metrics unfold and count when scrolled into view", async ({ page }) => {
+  test.setTimeout(40_000);
+  await openLanding(page, 390, 844);
+  const strip = page.locator(".gs-download-metric-strip");
+  await strip.evaluate((node) => node.scrollIntoView({ behavior: "instant", block: "center" }));
+  await expect(strip).toHaveAttribute("data-metrics-visible", "true", { timeout: 10_000 });
+  await expect(strip.locator(".gs-download-metric-value > span")).toHaveText(
+    ["40h", "160x", "80%"],
+    { timeout: 10_000 }
+  );
+});
+
+test("desktop cinematic remains driven by scroll, not autoplay", async ({ page }) => {
+  await openLanding(page, 1280, 768);
+  const hero = page.locator("#download-hero");
+  await expect(hero).toHaveAttribute("data-mobile-intro", "scroll");
+  const height = await hero.evaluate((node) => node.getBoundingClientRect().height);
+  expect(height).toBeGreaterThan(768 * 2);
 });
