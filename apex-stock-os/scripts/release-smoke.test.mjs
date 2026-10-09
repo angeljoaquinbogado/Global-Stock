@@ -90,7 +90,9 @@ test("ecosystem keeps its clicked module selected while hover previews links", a
   assert.match(hub, /data-active-module=\{selectedId\}/);
   assert.match(hub, /const \[selectedId, setSelectedId\]/);
   assert.match(hub, /const \[hoveredId, setHoveredId\]/);
-  assert.match(hub, /onMouseEnter=\{\(\) => onHover\(item\.id\)\}/);
+  assert.match(hub, /onMouseEnter=\{\(\) => \{ if \(!compact\) onHover\(item\.id\); \}\}/);
+  assert.match(hub, /mobileConnectorPath\(index\)/);
+  assert.match(hub, /gs-hub-mobile-gradient-/);
   assert.match(hub, /onClick=\{\(\) => onSelect\(item\.id\)\}/);
   assert.match(hub, /id="gs-ecosystem-detail"/);
 });
