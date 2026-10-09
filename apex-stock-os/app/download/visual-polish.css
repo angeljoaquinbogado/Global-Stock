@@ -437,3 +437,84 @@
     transition: none !important;
   }
 }
+
+
+/* 2026-10-09 · Mobile-only motion: keep the desktop scroll narrative intact. */
+@media (max-width: 1023px) {
+  /* Mobile is one viewport-tall autoplay scene, not a 285svh scroll scrub.
+     A non-sticky stage avoids mobile browser chrome resizing/shimmer. */
+  .gs-cinematic-hero {
+    height: calc(100svh - 68px) !important;
+    min-height: 0;
+  }
+  .gs-cinematic-hero > .sticky {
+    position: relative !important;
+    top: 0 !important;
+  }
+  .gs-cinematic-hero .gs-cinematic-scene-dots {
+    touch-action: pan-y;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .gs-ecosystem-mobile-lines .gs-ecosystem-line-flow {
+    stroke-dasharray: 6 14;
+    animation-duration: 4.8s;
+  }
+  .gs-ecosystem-mobile-lines .gs-ecosystem-line-flow.is-active {
+    stroke-dasharray: 8 13;
+    animation-duration: 3.2s;
+  }
+  .gs-ecosystem-mobile-slot .gs-ecosystem-node--compact {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Reveal the same cards automatically at the metrics strip on phones.
+   The number tween is started by the same IntersectionObserver in React. */
+@media (max-width: 767px) {
+  .gs-download-metric-strip[data-metrics-armed="true"] .gs-download-metric-card {
+    opacity: .64;
+    transform: translate3d(0, 12px, 0) scale(.94);
+    transition: transform 600ms cubic-bezier(.22,1,.36,1),
+                opacity 440ms ease, box-shadow 250ms ease !important;
+  }
+  .gs-download-metric-strip[data-metrics-visible="true"] .gs-download-metric-card {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  .gs-download-metric-strip .gs-download-metric-item:nth-child(2) .gs-download-metric-card {
+    transition-delay: 90ms !important;
+  }
+  .gs-download-metric-strip .gs-download-metric-item:nth-child(3) .gs-download-metric-card {
+    transition-delay: 180ms !important;
+  }
+  .gs-download-metric-strip[data-metrics-armed="true"] .gs-download-metric-card > span:first-child {
+    opacity: 0 !important;
+    transform: translate3d(0, -7px, 0) scale(.75) !important;
+    transition: transform 500ms cubic-bezier(.22,1,.36,1), opacity 500ms ease !important;
+  }
+  .gs-download-metric-strip[data-metrics-visible="true"] .gs-download-metric-card > span:first-child {
+    opacity: 1 !important;
+    transform: translate3d(0, 0, 0) scale(1) !important;
+  }
+  .gs-download-metric-strip[data-metrics-armed="true"] .gs-download-metric-content {
+    opacity: .35;
+    transform: translate3d(0, 5px, 0) !important;
+    transition: transform 550ms cubic-bezier(.22,1,.36,1), opacity 450ms ease !important;
+  }
+  .gs-download-metric-strip[data-metrics-visible="true"] .gs-download-metric-content {
+    opacity: 1;
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-ecosystem-mobile-lines .gs-ecosystem-line-flow {
+    animation: none !important;
+    stroke-dasharray: none;
+  }
+  .gs-download-metric-strip .gs-download-metric-card,
+  .gs-download-metric-strip .gs-download-metric-card > span:first-child,
+  .gs-download-metric-strip .gs-download-metric-content {
+    transition: none !important;
+  }
+}
