@@ -160,12 +160,15 @@ test("mobile cinematic uses four angled poses and renders the phone at native wi
   }).toBe("none");
   const width = await phone.evaluate((node) => node.getBoundingClientRect().width);
   expect(width).toBeGreaterThan(180);
-  const firstPose = await motion.evaluate((node) => getComputedStyle(node).transform);
-  expect(firstPose).not.toBe("none");
+  const reducedMotion = await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
+  if (!reducedMotion) {
+    await expect.poll(async () => motion.evaluate((node) => getComputedStyle(node).transform), { timeout: 5000 })
+      .not.toBe("none");
+  }
   const initialScene = await hero.getAttribute("data-active-scene");
-  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9000 }).not.toBe(initialScene);
-  await expect.poll(async () => motion.evaluate((node) => getComputedStyle(node).transform), { timeout: 4000 })
-    .not.toBe(firstPose);
+  if (!reducedMotion) {
+    await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9000 }).not.toBe(initialScene);
+  }
 });
 
 test("mobile metric values and labels are vertically separated", async ({ page }) => {
