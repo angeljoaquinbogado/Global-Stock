@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -23,11 +22,7 @@ import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
 import { DownloadSalesFlow } from "@/components/DownloadSalesFlow";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
-export const metadata: Metadata = {
-  title: "Global Stock — Ventas, stock, caja y gestión gratis",
-  description:
-    "Gestioná ventas, stock, caja, compras, proveedores, ecommerce y más desde una sola plataforma gratuita."
-};
+
 
 const storeLinks = {
   appStore: process.env.NEXT_PUBLIC_APP_STORE_URL?.trim() || "",
