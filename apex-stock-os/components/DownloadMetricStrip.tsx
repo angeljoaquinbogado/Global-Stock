@@ -1,7 +1,7 @@
 "use client";
 
 import { Clock3, TrendingUp, Zap } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
 const COUNT_DURATION_MS = 1100;
 
@@ -36,11 +36,21 @@ function easeOutQuart(t: number) {
   return 1 - Math.pow(1 - t, 4);
 }
 
+function writeMetricValues(nodes: Array<HTMLSpanElement | null>, progress: number) {
+  const easedProgress = easeOutQuart(progress);
+  metrics.forEach(({ target, suffix }, index) => {
+    const node = nodes[index];
+    if (!node) return;
+    const next = String(Math.round(target * easedProgress)) + suffix;
+    if (node.textContent !== next) node.textContent = next;
+  });
+}
+
 export function DownloadMetricStrip() {
   const sectionRef = useRef<HTMLElement>(null);
+  const valueNodesRef = useRef<Array<HTMLSpanElement | null>>([]);
   const frameRef = useRef<number | null>(null);
   const startedRef = useRef(false);
-  const [progress, setProgress] = useState(0);
 
   useEffect(() => {
     const section = sectionRef.current;
@@ -51,7 +61,7 @@ export function DownloadMetricStrip() {
     ).matches;
 
     if (reducedMotion) {
-      setProgress(1);
+      writeMetricValues(valueNodesRef.current, 1);
       startedRef.current = true;
       return;
     }
@@ -68,12 +78,13 @@ export function DownloadMetricStrip() {
           (now - startedAt) / COUNT_DURATION_MS
         );
 
-        setProgress(easeOutQuart(rawProgress));
+        // Animate only three text nodes, not the entire React subtree.
+        writeMetricValues(valueNodesRef.current, rawProgress);
 
         if (rawProgress < 1) {
           frameRef.current = requestAnimationFrame(tick);
         } else {
-          setProgress(1);
+          writeMetricValues(valueNodesRef.current, 1);
           frameRef.current = null;
         }
       };
@@ -109,8 +120,7 @@ export function DownloadMetricStrip() {
       <div className="gs-storefront-scroll mx-auto flex w-full max-w-[1240px] items-center justify-start overflow-x-auto px-5 py-5 sm:justify-center sm:px-8 sm:py-6">
         <div className="flex min-w-max items-center">
           {metrics.map(
-            ({ target, suffix, label, icon: Icon, accent, iconBg }) => {
-              const value = Math.round(target * progress);
+            ({ suffix, label, icon: Icon, accent, iconBg }, index) => {
 
               return (
                 <div key={label} className="gs-download-metric-item flex items-center px-3 sm:px-5">
@@ -132,9 +142,8 @@ export function DownloadMetricStrip() {
                             textShadow: `0 0 18px ${accent}1a`
                           }}
                         >
-                          <span>
-                            {value}
-                            {suffix}
+                          <span ref={(node) => { valueNodesRef.current[index] = node; }}>
+                            0{suffix}
                           </span>
                         </span>
 
