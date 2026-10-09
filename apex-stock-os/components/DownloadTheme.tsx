@@ -31,9 +31,11 @@ export function DownloadThemeRoot({
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "dark" || stored === "light") {
-      setTheme(stored);
+    try {
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored === "dark" || stored === "light") setTheme(stored);
+    } catch {
+      // Storage may be blocked; keep the usable light theme.
     }
     setInitialized(true);
   }, []);
@@ -41,7 +43,8 @@ export function DownloadThemeRoot({
   useEffect(() => {
     if (!initialized) return;
 
-    window.localStorage.setItem(STORAGE_KEY, theme);
+    try { window.localStorage.setItem(STORAGE_KEY, theme); }
+    catch { /* Theme still works in this tab. */ }
 
     document
       .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
@@ -64,7 +67,14 @@ export function DownloadThemeRoot({
       <div
         className="gs-public-shell gs-download-theme min-h-[100dvh] min-w-0 overflow-x-clip"
         data-download-theme={theme}
+        suppressHydrationWarning
       >
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "(function(){try{var t=localStorage.getItem('global-stock-download-theme');if(t==='dark'||t==='light'){document.currentScript.parentElement.setAttribute('data-download-theme',t)}}catch(e){}})();"
+          }}
+        />
         {children}
       </div>
     </DownloadThemeContext.Provider>
