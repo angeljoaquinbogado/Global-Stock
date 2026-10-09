@@ -331,6 +331,112 @@ function ReceiptMockup({
   );
 }
 
+
+/**
+ * Mobile-only invoice illustration. It keeps the moving receipt/status narrative
+ * but recreates the layered, full-document composition used in the desktop
+ * reference instead of shrinking an isolated receipt into the phone viewport.
+ */
+function MobileInvoiceVisual({ state }: { state: ShowcaseState }) {
+  return (
+    <div className="gs-sales-mobile-scene" data-sales-mobile-scene={state.id}>
+      <div className="gs-sales-mobile-document">
+        <div className="gs-sales-mobile-document-content">
+          <div className="gs-sales-mobile-document-top">
+            <div>
+              <span className="gs-sales-mobile-document-brand">GLOBAL STOCK</span>
+              <span className="gs-sales-mobile-document-note">Comprobante de ejemplo</span>
+            </div>
+            <div className="gs-sales-mobile-document-heading">
+              <span>Comprobante</span>
+              <strong>{state.invoiceNumber}</strong>
+            </div>
+          </div>
+          <div className="gs-sales-mobile-document-metadata">
+            <div>
+              <span>CLIENTE</span>
+              <strong>Cliente de ejemplo</strong>
+              <small>Operación registrada</small>
+            </div>
+            <div>
+              <span>FECHA</span>
+              <strong>05/10/2026</strong>
+              <small>Caja principal</small>
+            </div>
+          </div>
+          <div className="gs-sales-mobile-document-grand-total">
+            <span>TOTAL</span>
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.strong
+                key={state.total}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: .25 }}
+              >
+                {state.total}
+              </motion.strong>
+            </AnimatePresence>
+          </div>
+          <div className="gs-sales-mobile-document-columns">
+            <span>DESCRIPCIÓN</span><span>CANT.</span><span>PRECIO</span><span>TOTAL</span>
+          </div>
+          <div className="gs-sales-mobile-document-item">
+            <div className="gs-sales-mobile-document-item-main">
+              <strong>Reel Shimano Sedona</strong>
+              <small>Producto de muestra</small>
+            </div>
+            <span>1</span>
+            <span>$ 48.900</span>
+            <span>$ 48.900</span>
+          </div>
+          <div className="gs-sales-mobile-document-item gs-sales-mobile-document-item-second">
+            <div className="gs-sales-mobile-document-item-main">
+              <strong>{state.secondaryLabel}</strong>
+              <small>{state.secondaryValue}</small>
+            </div>
+            <span>—</span><span>—</span><span>—</span>
+          </div>
+          <div className="gs-sales-mobile-document-summary">
+            <div><span>Subtotal</span><strong>$ 48.900</strong></div>
+            <div><span>Medio de pago</span><strong>Efectivo</strong></div>
+            <div className="gs-sales-mobile-document-total"><span>Estado</span><strong style={{ color: state.accent }}>{state.badge}</strong></div>
+          </div>
+          <span className="gs-sales-mobile-document-stamp">Global Stock · Ejemplo ilustrativo</span>
+        </div>
+      </div>
+      <div className="gs-sales-mobile-chip gs-sales-mobile-chip--back">
+        <span className="gs-sales-mobile-chip-icon gs-sales-mobile-chip-icon--muted"><ReceiptText size={16} /></span>
+        <span className="gs-sales-mobile-chip-copy">
+          <strong>Venta #1048</strong>
+          <small>Caja principal</small>
+        </span>
+        <span className="gs-sales-mobile-chip-price">$ 48.900</span>
+      </div>
+      <div className="gs-sales-mobile-chip gs-sales-mobile-chip--front" style={{ borderColor: state.accent }}>
+        <span className="gs-sales-mobile-chip-icon" style={{ background: state.accent }}><ReceiptText size={18} /></span>
+        <span className="gs-sales-mobile-chip-copy">
+          <strong>{state.invoiceLabel} {state.invoiceNumber}</strong>
+          <small>{state.eyebrow}</small>
+        </span>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.span
+            className="gs-sales-mobile-chip-price"
+            key={state.total}
+            style={{ color: state.accent }}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -5 }}
+            transition={{ duration: .25 }}
+          >
+            {state.total}
+          </motion.span>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
+}
+
 export function DownloadSalesFlow() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isInView, setIsInView] = useState(false);
@@ -471,13 +577,14 @@ export function DownloadSalesFlow() {
         </div>
 
         <div className="min-w-0">
-          <div className="gs-theme-fixed-dark relative min-h-[420px] overflow-hidden rounded-[28px] border border-[#6ea8ff]/15 bg-[radial-gradient(circle_at_78%_88%,rgba(96,165,250,.86),transparent_22%),radial-gradient(circle_at_60%_82%,rgba(37,99,235,.92),transparent_35%),radial-gradient(circle_at_12%_12%,rgba(30,64,175,.30),transparent_34%),linear-gradient(145deg,#11182b_0%,#162a4c_46%,#1d4ea8_74%,#2f72e8_100%)] p-4 shadow-[0_28px_70px_rgba(13,33,76,.36)] sm:min-h-[465px] sm:p-5">
+          <div className="gs-sales-visual gs-theme-fixed-dark relative min-h-[420px] overflow-hidden rounded-[28px] border border-[#6ea8ff]/15 bg-[radial-gradient(circle_at_78%_88%,rgba(96,165,250,.86),transparent_22%),radial-gradient(circle_at_60%_82%,rgba(37,99,235,.92),transparent_35%),radial-gradient(circle_at_12%_12%,rgba(30,64,175,.30),transparent_34%),linear-gradient(145deg,#11182b_0%,#162a4c_46%,#1d4ea8_74%,#2f72e8_100%)] p-4 shadow-[0_28px_70px_rgba(13,33,76,.36)] sm:min-h-[465px] sm:p-5">
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,.035),transparent_34%),radial-gradient(circle_at_50%_110%,rgba(255,255,255,.16),transparent_36%)]" />
 
             <FloatingCard state={state} variant="top" />
             <FloatingCard state={state} variant="bottom" />
 
             <ReceiptMockup state={state} />
+            <MobileInvoiceVisual state={state} />
 
             <div className="absolute bottom-5 right-5 z-30 flex items-center gap-1.5 rounded-full border border-white/[0.08] bg-black/24 px-2 py-1.5 backdrop-blur-md sm:bottom-6 sm:right-6">
               {showcaseStates.map((item, index) => (
