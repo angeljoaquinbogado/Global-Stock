@@ -48,7 +48,7 @@ begin
     raise exception 'TEST 1: expected server sale total 300/cost 120, got %/%',
       value, original_quantity;
   end if;
-  raise notice 'PASS 1/8: sale uses trusted database price/cost (gross 300, cost 120, profit 180)';
+  raise notice 'PASS 1/10: sale uses trusted database price/cost (gross 300, cost 120, profit 180)';
 
   -- 2: Inventory total, location stock, cash and audit should be committed once.
   select stock into value from public.global_stock_products where client_key='demo-sku-01';
@@ -62,7 +62,7 @@ begin
   select count(*) into operation_count from public.global_stock_audit_events
     where action='sale.completed';
   if operation_count <> 1 then raise exception 'TEST 2: expected one audit row'; end if;
-  raise notice 'PASS 2/8: product 10 to 7, location 7, cash +300 and audit recorded';
+  raise notice 'PASS 2/10: product 10 to 7, location 7, cash +300 and audit recorded';
 
   -- 3: Replayed operation_id must not duplicate cash/stock/record.
   same_sale_id := public.global_stock_record_pos_sale(
@@ -80,7 +80,7 @@ begin
   select count(*) into operation_count from public.global_stock_cash_movements
     where kind='sale';
   if operation_count <> 1 then raise exception 'TEST 3: duplicated cash movement'; end if;
-  raise notice 'PASS 3/8: same operation ID does not register second sale';
+  raise notice 'PASS 3/10: same operation ID does not register second sale';
 
   -- 4: Reject overselling without affecting existing ledger/stock.
   begin
@@ -99,7 +99,7 @@ begin
   end;
   select count(*) into operation_count from public.global_stock_sales;
   if operation_count <> 1 then raise exception 'TEST 4: oversell created a sale'; end if;
-  raise notice 'PASS 4/8: oversell prevented atomically';
+  raise notice 'PASS 4/10: oversell prevented atomically';
 
   -- 5: Refund of 2 of 3 items restores 2 units and pays back 200 cash.
   select id into sale_item_id from public.global_stock_sale_items
@@ -114,7 +114,7 @@ begin
   if strict_sale_status <> 'partially_refunded' then
     raise exception 'TEST 5: wrong status %',strict_sale_status;
   end if;
-  raise notice 'PASS 5/8: 2-unit refund restores 2 and marks partial refund';
+  raise notice 'PASS 5/10: 2-unit refund restores 2 and marks partial refund';
 
   -- 6: Reject more than the remaining 1 unit.
   begin
@@ -128,7 +128,7 @@ begin
       raise exception 'TEST 6: unexpected rejection: %',sqlerrm;
     end if;
   end;
-  raise notice 'PASS 6/8: cannot refund more than remaining quantity';
+  raise notice 'PASS 6/10: cannot refund more than remaining quantity';
 
   -- 7: Final refund restores all inventory and offsets cash, status refunded.
   perform public.global_stock_return_sale_item(
@@ -139,7 +139,7 @@ begin
   select coalesce(sum(case when kind='sale' then amount when kind='refund' then -amount else 0 end),0)
     into value from public.global_stock_cash_movements;
   if value <> 0 then raise exception 'TEST 7: cash net expected 0, got %',value; end if;
-  raise notice 'PASS 7/8: final refund restores stock 10 and cash net 0';
+  raise notice 'PASS 7/10: final refund restores stock 10 and cash net 0';
 
   -- 8: Another user's requests must be denied.
   perform set_config('request.jwt.claim.sub','22222222-2222-4222-8222-222222222222',true);
@@ -156,8 +156,50 @@ begin
       raise exception 'TEST 8: unexpected error: %',sqlerrm;
     end if;
   end;
-  raise notice 'PASS 8/8: non-member cannot record a sale';
+  raise notice 'PASS 8/10: non-member cannot record a sale';
+  -- 9: Two identical product+variant lines must NOT undercount inventory.
+  perform set_config('request.jwt.claim.sub','11111111-1111-4111-8111-111111111111',true);
+  begin
+    perform public.global_stock_record_pos_sale(
+      business_id,'e2e-duplicate-lines-004','ARS',1200,480,null,
+      '[{"productKey":"demo-sku-01","quantity":6},{"productKey":"demo-sku-01","quantity":6}]'::jsonb,
+      '[{"method":"cash","amount":1200}]'::jsonb,1200
+    );
+    raise exception 'TEST 9: duplicate item lines were accepted';
+  exception when others then
+    if sqlerrm='TEST 9: duplicate item lines were accepted' then raise; end if;
+    if sqlerrm not like '%duplicate sale line%' then
+      raise exception 'TEST 9: unexpected error: %',sqlerrm;
+    end if;
+  end;
+  select count(*) into operation_count from public.global_stock_sales;
+  if operation_count <> 1 then raise exception 'TEST 9: duplicate lines created an extra sale'; end if;
+  select stock into value from public.global_stock_products where client_key='demo-sku-01';
+  if value <> 10 then raise exception 'TEST 9: duplicate lines changed stock: %',value; end if;
+  raise notice 'PASS 9/10: duplicate product+variant lines rejected atomically';
+
+  -- 10: An entire-stock sale must return its ID when the reply was lost
+  -- and the same operation was retried after stock reached zero.
+  sale_id := public.global_stock_record_pos_sale(
+    business_id,'e2e-last-stock-005','ARS',1000,400,null,
+    '[{"productKey":"demo-sku-01","quantity":10}]'::jsonb,
+    '[{"method":"cash","amount":1000}]'::jsonb,1000
+  );
+  select stock into value from public.global_stock_products where client_key='demo-sku-01';
+  if value <> 0 then raise exception 'TEST 10: last-stock sale should leave zero'; end if;
+  same_sale_id := public.global_stock_record_pos_sale(
+    business_id,'e2e-last-stock-005','ARS',1000,400,null,
+    '[{"productKey":"demo-sku-01","quantity":10}]'::jsonb,
+    '[{"method":"cash","amount":1000}]'::jsonb,1000
+  );
+  if same_sale_id <> sale_id then raise exception 'TEST 10: stale retry did not recover sale ID'; end if;
+  select stock into value from public.global_stock_products where client_key='demo-sku-01';
+  if value <> 0 then raise exception 'TEST 10: retry changed inventory'; end if;
+  select count(*) into operation_count from public.global_stock_sales
+    where external_id='client:e2e-last-stock-005';
+  if operation_count <> 1 then raise exception 'TEST 10: retry created duplicate sale'; end if;
+  raise notice 'PASS 10/10: lost response/retry returns same sale after stock zero';
 end;
 $test$;
 
-select 'Isolated PostgreSQL POS smoke: 8 validations passed' as result;
+select 'Isolated PostgreSQL POS smoke: 10 validations passed' as result;
