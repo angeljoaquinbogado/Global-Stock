@@ -643,3 +643,98 @@
     font-size: 9px !important;
   }
 }
+
+
+/* 2026-10-09 · Product-photography treatment for the mobile intro ONLY.
+   Real DOM screens remain crisp and interactive within the moving phone;
+   desktop's original graphite phone and scroll cinematics are unchanged. */
+@media (max-width: 1023px) {
+  #download-hero .gs-cinematic-perspective {
+    perspective: 1020px;
+    perspective-origin: 50% 45%;
+  }
+  #download-hero .gs-cinematic-phone-shell,
+  #download-hero .gs-cinematic-phone-motion {
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+  }
+  #download-hero .gs-cinematic-phone-motion {
+    isolation: auto;
+  }
+  /* An offset, metallic rear chassis makes the device visibly thick
+     during 3/4 rotations instead of resembling a skewed flat screenshot. */
+  #download-hero .gs-cinematic-phone-motion::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    z-index: 0;
+    pointer-events: none;
+    border-radius: 15% / 7.2%;
+    background:
+      linear-gradient(106deg, #676b78 0%, #e6e9ed 8%, #fff 19%,
+        #a8acb5 36%, #f0f2f5 54%, #777d8a 80%, #e4e7ec 96%);
+    border: 1px solid rgba(248, 250, 255, .85);
+    box-shadow:
+      7px 16px 22px rgba(26, 31, 42, .19),
+      inset -2px 0 2px rgba(17, 24, 39, .28),
+      inset 2px 0 2px rgba(255, 255, 255, .9);
+    transform: translate3d(8px, 1px, -12px);
+    transition: transform 1050ms cubic-bezier(.23,1,.32,1);
+  }
+  #download-hero[data-active-scene="1"] .gs-cinematic-phone-motion::before,
+  #download-hero[data-active-scene="3"] .gs-cinematic-phone-motion::before {
+    transform: translate3d(-8px, 1px, -12px);
+  }
+  #download-hero .gs-cinematic-phone-front {
+    z-index: 1;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  /* High-contrast silver rails, same geometry and functional screen as
+     the reusable phone component; no flattened bitmap or fake UI. */
+  #download-hero .gs-phone-preview-stage-cinematic .gs-phone-preview-device > div > div {
+    background:
+      linear-gradient(112deg, #666b78 0%, #f5f6f9 6%, #b7bcc6 13%,
+        #f9fafb 30%, #838995 53%, #e9ecf2 74%, #737987 91%, #f9fafb 100%) !important;
+    box-shadow:
+      11px 24px 32px rgba(21, 27, 39, .27),
+      2px 5px 10px rgba(25, 30, 43, .18),
+      0 0 0 1px rgba(102, 109, 125, .8),
+      inset 0 0 0 1px rgba(255, 255, 255, .88),
+      inset 0 0 10px rgba(255,255,255,.23) !important;
+  }
+  #download-hero .gs-cinematic-aura {
+    opacity: .53;
+  }
+  .gs-download-theme[data-download-theme="light"] #download-hero .gs-cinematic-aura {
+    background: radial-gradient(ellipse at 50% 51%,
+      rgba(158, 139, 231, .25) 0%,
+      rgba(143, 110, 218, .14) 32%,
+      transparent 73%);
+  }
+  #download-hero .gs-cinematic-device-stage::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: -14px;
+    width: 94%;
+    height: 26px;
+    z-index: -1;
+    pointer-events: none;
+    transform: translateX(-50%);
+    border-radius: 50%;
+    background: rgba(53, 58, 82, .22);
+    filter: blur(14px);
+  }
+}
+@media (max-width: 640px) {
+  /* Preserve separation from the narrative card on short phone screens. */
+  #download-hero {
+    --gs-mobile-phone-width: clamp(180px, calc(43svh - 130px), 224px);
+  }
+}
+@media (prefers-reduced-motion: reduce) and (max-width: 1023px) {
+  #download-hero .gs-cinematic-phone-motion::before {
+    transition: none;
+  }
+}
