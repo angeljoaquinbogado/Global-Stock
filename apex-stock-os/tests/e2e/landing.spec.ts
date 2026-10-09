@@ -23,7 +23,7 @@ async function visit(page: import("@playwright/test").Page) {
   const response = await page.goto("/download", { waitUntil: "domcontentloaded" });
   expect(response?.ok(), "landing should return HTTP 2xx").toBe(true);
   await expect(page).toHaveTitle(/Global Stock/i);
-  await expect(page.locator("main")).toBeVisible();
+  // Exactly one page-level main landmark; decorative phone content must use divs.\n  await expect(page.locator("main")).toHaveCount(1);\n  await expect(page.getByRole("main")).toBeVisible();
 }
 
 for (const size of sizes) {
