@@ -220,6 +220,7 @@ function ModuleNode({
 export function DownloadEcosystemHub() {
   const [activeId, setActiveId] = useState("ia");
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
   const [diagramScale, setDiagramScale] = useState(0.8);
 
   useEffect(() => {
@@ -242,12 +243,23 @@ export function DownloadEcosystemHub() {
       window.removeEventListener("resize", measure);
     };
   }, []);
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(([entry]) => {
+      section.classList.toggle("gs-ecosystem-visible", Boolean(entry?.isIntersecting));
+    }, { threshold: .02 });
+    observer.observe(section);
+    return () => observer.disconnect();
+  }, []);
+
   const reducedMotion = useReducedMotion();
   const active = modules.find((item) => item.id === activeId) ?? modules[7];
   const ActiveIcon = active.icon;
 
   return (
     <section
+      ref={sectionRef}
       id="download-network"
       data-download-section
       className="gs-ecosystem-section relative scroll-mt-20 overflow-hidden border-t"
