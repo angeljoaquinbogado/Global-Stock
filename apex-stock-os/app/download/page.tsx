@@ -15,7 +15,7 @@ import { DownloadMetricStrip } from "@/components/DownloadMetricStrip";
 import { DownloadCinematicHero } from "@/components/DownloadCinematicHero";
 import { DownloadAIAutomationFlow } from "@/components/DownloadAIAutomationFlow";
 import { DownloadFeatureCatalog } from "@/components/DownloadFeatureCatalog";
-import { DownloadGlobalMap } from "@/components/DownloadGlobalMap";
+import { DownloadEcosystemHub } from "@/components/DownloadEcosystemHub";
 import { DownloadFAQ } from "@/components/DownloadFAQ";
 import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
@@ -62,7 +62,7 @@ export default function DownloadPage() {
           <DownloadFeatureCatalog />
         </div>
 
-        <DownloadGlobalMap />
+        <DownloadEcosystemHub />
 
         <div id="download-sectors" data-download-section className="scroll-mt-20">
           <DownloadSectorShowcase />
