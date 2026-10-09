@@ -21,6 +21,7 @@ insert into public.global_stock_cash_sessions
 set request.jwt.claim.sub = '11111111-1111-4111-8111-111111111111';
 
 do $test$
+#variable_conflict use_variable
 declare
   business_id constant uuid := 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
   sale_id uuid;
