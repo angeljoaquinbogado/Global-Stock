@@ -20,7 +20,7 @@ concurrency:
 
 jobs:
   live-landing-qa:
-    name: Real browser smoke / Chromium
+    name: Real browser QA / Chromium Firefox WebKit
     runs-on: ubuntu-latest
     timeout-minutes: 25
     defaults:
@@ -47,11 +47,11 @@ jobs:
       - name: Install pinned Playwright test runner
         run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @playwright/test@1.56.1
 
-      - name: Install Chromium and OS dependencies
-        run: npx playwright install --with-deps chromium
+      - name: Install browser engines and OS dependencies
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Execute production landing browser tests
-        run: npx playwright test --config playwright.config.ts --project=chromium
+        run: npx playwright test --config playwright.config.ts
 
       - name: Upload browser report, traces, screenshots and videos
         if: always()
