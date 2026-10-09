@@ -1536,7 +1536,7 @@ textarea:focus-visible {
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(2) .gs-download-metric-value {
-  color: #d97706 !important;
+  color: #925000 !important;
   text-shadow: 0 0 18px rgba(217, 119, 6, 0.10) !important;
 }
 
@@ -2888,7 +2888,7 @@ textarea:focus-visible {
   --gs-hub-line: rgba(255,255,255,.13);
   --gs-hub-copy: #f5f5f7;
   --gs-hub-muted: #a8a8b0;
-  --gs-hub-subtle: rgba(255,255,255,.40);
+  --gs-hub-subtle: rgba(255,255,255,.74);
   --gs-hub-orbit: rgba(255,255,255,.09);
   border-color: var(--gs-download-border);
   color: var(--gs-download-text);
@@ -2905,7 +2905,7 @@ textarea:focus-visible {
   --gs-hub-line: rgba(49,66,88,.16);
   --gs-hub-copy: #111827;
   --gs-hub-muted: #657184;
-  --gs-hub-subtle: rgba(45,63,89,.47);
+  --gs-hub-subtle: #475569;
   --gs-hub-orbit: rgba(55,79,109,.12);
   background:
     radial-gradient(circle at 50% 42%, rgba(143,0,0,.07), transparent 44%),
