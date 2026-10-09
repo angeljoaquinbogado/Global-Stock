@@ -14,7 +14,7 @@ import {
   motion,
   useReducedMotion
 } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type ShowcaseState = {
   id: string;
@@ -333,21 +333,43 @@ function ReceiptMockup({
 
 export function DownloadSalesFlow() {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isInView, setIsInView] = useState(false);
+  const sectionRef = useRef<HTMLDivElement | null>(null);
   const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const element = sectionRef.current;
+    if (!element || typeof IntersectionObserver === "undefined") {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsInView(Boolean(entry?.isIntersecting)),
+      { threshold: 0.1 }
+    );
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
   const state = showcaseStates[activeIndex];
 
   useEffect(() => {
-    if (reducedMotion) return;
+    if (reducedMotion || !isInView) return;
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % showcaseStates.length);
     }, 4200);
 
     return () => window.clearInterval(timer);
-  }, [reducedMotion]);
+  }, [reducedMotion, isInView]);
 
   return (
-    <div className="mx-auto w-full max-w-[1240px] px-5 py-12 sm:px-8 sm:py-14 lg:py-16">
+    <div
+      ref={sectionRef}
+      className={
+        "mx-auto w-full max-w-[1240px] px-5 py-12 sm:px-8 sm:py-14 lg:py-16 " +
+        (!isInView ? "gs-sales-paused" : "")
+      }
+    >
       <style jsx global>{`
         @keyframes gs-sales-float-top {
           0%, 100% { transform: translate3d(0, 0, 0); }
@@ -378,6 +400,12 @@ export function DownloadSalesFlow() {
 
         .gs-sales-receipt-float {
           animation: gs-sales-receipt-float 8.2s ease-in-out infinite;
+        }
+
+        .gs-sales-paused .gs-sales-float-top,
+        .gs-sales-paused .gs-sales-float-bottom,
+        .gs-sales-paused .gs-sales-receipt-float {
+          animation-play-state: paused;
         }
 
         @media (prefers-reduced-motion: reduce) {
