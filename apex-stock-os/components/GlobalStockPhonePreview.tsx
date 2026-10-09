@@ -362,8 +362,8 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
         <span className="gs-cine-hires-header-icon"><Menu size={11} /></span>
       </header>
       <div className="gs-cine-hires-main">
-        <h3 className="gs-cine-hires-title">{titles[screen][0]}</h3>
-        <p className="gs-cine-hires-subtitle">{titles[screen][1]}</p>
+        <h3 className="gs-cine-hires-title" style={screen === "dashboard" ? undefined : { fontSize: 15, lineHeight: 1.16 }}>{titles[screen][0]}</h3>
+        <p className="gs-cine-hires-subtitle" style={screen === "dashboard" ? undefined : { fontSize: 10.2, lineHeight: 1.35 }}>{titles[screen][1]}</p>
 
         {screen === "dashboard" ? (
           <>
