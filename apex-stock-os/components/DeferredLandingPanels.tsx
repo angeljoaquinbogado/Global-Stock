@@ -42,14 +42,13 @@ function LazyPanel({
         setNear(true);
         observer.disconnect();
       },
-      { rootMargin: "1500px 0px", threshold: 0 }
+      { rootMargin: "2600px 0px", threshold: 0 }
     );
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
 
-  // "contents" on the wrapper avoids changing the measured layout; on
-  // unsupported browsers the observer still sees its actual client rect.
+  // Keep a real wrapper rect so observers work in every browser engine.
   return (
     <div ref={markerRef} className="w-full">
       {near ? children : fallback}
