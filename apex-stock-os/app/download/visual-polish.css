@@ -1208,3 +1208,342 @@
     font-size: 10px;
   }
 }
+
+
+/* Mobile sales hero — restore the reference's overlapping invoice composition.
+   Larger-screen animations, product demonstrations and tabs stay untouched. */
+.gs-sales-mobile-scene { display: none; }
+@media (max-width: 639px) {
+  .gs-sales-visual {
+    aspect-ratio: .82;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+    border: 1px solid rgba(75,110,192,.2) !important;
+    border-radius: 19px !important;
+    isolation: isolate;
+    background:
+      radial-gradient(ellipse at 88% 98%, rgba(67, 122, 252, .95), transparent 38%),
+      radial-gradient(ellipse at 62% 78%, rgba(38, 84, 186, .9), transparent 55%),
+      linear-gradient(150deg, #1b2233 0%, #172341 33%, #163f94 73%, #1a52af 100%) !important;
+    box-shadow: 0 20px 42px rgba(26,47,99,.12) !important;
+  }
+  .gs-sales-visual .gs-sales-receipt-float,
+  .gs-sales-visual .gs-sales-float-top,
+  .gs-sales-visual .gs-sales-float-bottom { display: none !important; }
+  .gs-sales-visual .gs-sales-mobile-scene {
+    position: absolute;
+    inset: 0;
+    display: block;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: none;
+    border-radius: inherit;
+  }
+  .gs-sales-mobile-document {
+    position: absolute;
+    z-index: 11;
+    top: 19%;
+    bottom: -1px;
+    left: 26%;
+    right: -1px;
+    overflow: hidden;
+    border-radius: 10px 0 0 0;
+    background: #fff;
+    box-shadow: -8px 15px 35px rgba(7,22,60,.22), 0 0 0 1px rgba(255,255,255,.25);
+    color: #2b2944;
+  }
+  .gs-sales-mobile-document-content {
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
+    padding: 13px 10px 13px 13px;
+    background:
+      radial-gradient(ellipse at 98% 4%, rgba(232, 228, 255, .48), transparent 42%),
+      #fff;
+  }
+  .gs-sales-mobile-document-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 5px;
+    min-width: 0;
+  }
+  .gs-sales-mobile-document-top > div:first-child {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .gs-sales-mobile-document-brand {
+    font-size: clamp(7px, 2.15vw, 9px);
+    font-weight: 850;
+    line-height: 1.1;
+    letter-spacing: -.045em;
+    color: #22233d;
+  }
+  .gs-sales-mobile-document-note {
+    font-size: clamp(5px, 1.7vw, 7px);
+    line-height: 1.2;
+    color: #777d98;
+  }
+  .gs-sales-mobile-document-heading {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex: none;
+    gap: 2px;
+    color: #7146f1;
+  }
+  .gs-sales-mobile-document-heading > span {
+    font-size: clamp(9px, 3vw, 13px);
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -.055em;
+  }
+  .gs-sales-mobile-document-heading > strong {
+    font-size: 7px;
+    line-height: 1.15;
+    font-weight: 800;
+  }
+  .gs-sales-mobile-document-metadata {
+    display: flex;
+    justify-content: space-between;
+    gap: 7px;
+    margin-top: 12px;
+    color: #333751;
+  }
+  .gs-sales-mobile-document-metadata > div {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .gs-sales-mobile-document-metadata > div:last-child { text-align: right; }
+  .gs-sales-mobile-document-metadata span,
+  .gs-sales-mobile-document-grand-total span {
+    font-size: 6px;
+    line-height: 1.12;
+    font-weight: 850;
+    letter-spacing: .09em;
+    color: #7d8096;
+  }
+  .gs-sales-mobile-document-metadata strong {
+    font-size: clamp(7px, 2vw, 9px);
+    line-height: 1.15;
+    font-weight: 780;
+    color: #313047;
+  }
+  .gs-sales-mobile-document-metadata small {
+    font-size: 6px;
+    line-height: 1.12;
+    color: #85889e;
+  }
+  .gs-sales-mobile-document-grand-total {
+    display: flex;
+    align-items: baseline;
+    justify-content: flex-end;
+    gap: 5px;
+    padding: 11px 0 10px;
+    color: #7049ed;
+  }
+  .gs-sales-mobile-document-grand-total strong {
+    font-size: clamp(13px, 4vw, 18px);
+    line-height: 1;
+    font-weight: 850;
+    letter-spacing: -.055em;
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .gs-sales-mobile-document-columns,
+  .gs-sales-mobile-document-item {
+    display: grid;
+    grid-template-columns: minmax(0, 1.8fr) .4fr .7fr .7fr;
+    align-items: center;
+    gap: 4px;
+    min-width: 0;
+  }
+  .gs-sales-mobile-document-columns {
+    padding: 6px 1px 5px;
+    border-bottom: 1px solid #e3e3f0;
+    color: #85839a;
+    font-size: clamp(5px, 1.5vw, 6.5px);
+    font-weight: 850;
+    line-height: 1.15;
+    letter-spacing: .025em;
+  }
+  .gs-sales-mobile-document-columns span:not(:first-child),
+  .gs-sales-mobile-document-item > span { text-align: right; }
+  .gs-sales-mobile-document-item {
+    position: relative;
+    min-height: 39px;
+    padding: 6px 2px 6px 6px;
+    background: #f3f1ff;
+    color: #34314d;
+    border-left: 3px solid #a78afa;
+    font-size: clamp(5.8px, 1.7vw, 7.3px);
+    line-height: 1.25;
+  }
+  .gs-sales-mobile-document-item-main {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    gap: 3px;
+  }
+  .gs-sales-mobile-document-item-main strong {
+    font-size: clamp(6px, 1.8vw, 8px);
+    font-weight: 800;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .gs-sales-mobile-document-item-main small {
+    font-size: clamp(5.5px, 1.55vw, 6.5px);
+    line-height: 1.15;
+    color: #88869b;
+    overflow-wrap: anywhere;
+  }
+  .gs-sales-mobile-document-item-second {
+    background: #faf9ff;
+    border-top: 1px solid #e5e2f4;
+  }
+  .gs-sales-mobile-document-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 11px;
+    padding-top: 8px;
+    border-top: 1px solid #eceaf5;
+    font-size: 7px;
+    line-height: 1.15;
+  }
+  .gs-sales-mobile-document-summary > div {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    color: #77758c;
+  }
+  .gs-sales-mobile-document-summary strong {
+    min-width: 58px;
+    text-align: right;
+    font-weight: 850;
+    color: #312d4e;
+  }
+  .gs-sales-mobile-document-total {
+    padding-top: 5px;
+    border-top: 1px solid #ebe9f5;
+  }
+  .gs-sales-mobile-document-stamp {
+    display: block;
+    margin-top: auto;
+    padding-top: 8px;
+    text-align: center;
+    font-size: 6px;
+    line-height: 1.15;
+    color: #9391a8;
+  }
+  .gs-sales-mobile-chip {
+    position: absolute;
+    z-index: 22;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    padding: 8px 7px;
+    border: 1px solid #e7eaf2;
+    border-radius: 12px;
+    background: #fff;
+    color: #303146;
+    box-shadow: 0 8px 22px rgba(5,20,67,.18);
+    transform: translateZ(0);
+  }
+  .gs-sales-mobile-chip--back {
+    left: 5%;
+    top: 6%;
+    width: 57%;
+    min-height: 41px;
+    animation: gs-sales-mobile-chip-up 6.8s ease-in-out infinite;
+  }
+  .gs-sales-mobile-chip--front {
+    left: 6%;
+    top: 18%;
+    width: 64%;
+    min-height: 49px;
+    border-width: 2px;
+    animation: gs-sales-mobile-chip-down 7.4s ease-in-out infinite;
+  }
+  .gs-sales-mobile-chip-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 27px;
+    height: 27px;
+    border-radius: 7px;
+    background: #2874ee;
+    color: #fff;
+  }
+  .gs-sales-mobile-chip-icon--muted { background: #edf3ff; color: #4282d8; }
+  .gs-sales-mobile-chip-copy {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 2px;
+  }
+  .gs-sales-mobile-chip-copy strong {
+    overflow: hidden;
+    color: #292b41;
+    font-size: clamp(8px, 2.15vw, 10px);
+    font-weight: 850;
+    letter-spacing: -.02em;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .gs-sales-mobile-chip-copy small {
+    overflow: hidden;
+    color: #82889b;
+    font-size: clamp(6.5px, 1.8vw, 8px);
+    font-weight: 650;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .gs-sales-mobile-chip-price {
+    flex: none;
+    max-width: 44%;
+    font-size: clamp(8px, 2.2vw, 11px);
+    font-weight: 850;
+    letter-spacing: -.025em;
+    white-space: nowrap;
+  }
+  @keyframes gs-sales-mobile-chip-up {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, -4px, 0); }
+  }
+  @keyframes gs-sales-mobile-chip-down {
+    0%, 100% { transform: translate3d(0, 0, 0); }
+    50% { transform: translate3d(0, 5px, 0); }
+  }
+  .gs-sales-paused .gs-sales-mobile-chip { animation-play-state: paused; }
+  .gs-sales-visual .gs-sales-mobile-scene ~ div .gs-sales-status-pill {
+    display: none;
+  }
+  .gs-sales-visual > div:last-child { z-index: 30; }
+  .gs-sales-visual > div:last-child button {
+    touch-action: manipulation;
+  }
+}
+@media (max-width: 355px) {
+  .gs-sales-mobile-chip {
+    gap: 4px;
+    padding: 7px 5px;
+  }
+  .gs-sales-mobile-chip-icon {
+    width: 23px;
+    height: 23px;
+  }
+  .gs-sales-mobile-chip-price { font-size: 7.5px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-sales-mobile-chip--back, .gs-sales-mobile-chip--front {
+    animation: none !important;
+  }
+}
