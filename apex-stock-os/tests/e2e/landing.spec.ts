@@ -27,7 +27,7 @@ async function visit(page: import("@playwright/test").Page) {
 }
 
 for (const size of sizes) {
-  test("ecosystem works at " + size.name, async ({ page }, testInfo) => {
+  test("ecosystem works at " + size.name, async ({ page, browserName }, testInfo) => {
     test.setTimeout(100_000);
     const pageErrors: string[] = [];
     page.on("pageerror", (error) => pageErrors.push(error.message));
@@ -47,7 +47,16 @@ for (const size of sizes) {
 
     for (const [name, id] of modules) {
       const button = buttons.filter({ hasText: name });
-      await button.click();
+      if (browserName === "webkit") {
+        // Safari engine's synthetic click scroll can wait indefinitely on
+        // continuously animated orbit nodes. Bring the real button into
+        // view without waiting for visual stabilization.
+        await button.evaluate((el) => el.scrollIntoView({
+          block: "center",
+          behavior: "instant"
+        }));
+      }
+      await button.click({ force: browserName === "webkit" });
       await expect(ecosystem).toHaveAttribute("data-active-module", id);
       await expect(button).toHaveAttribute("aria-pressed", "true");
 
@@ -133,7 +142,9 @@ test("mobile navigation opens, follows link, and closes", async ({ page }) => {
   await expect(page.getByRole("button", { name: "Abrir menú" })).toBeVisible();
 });
 
-test("mouse wheel scroll works outside the cinematic hero", async ({ page }) => {
+test("mouse wheel scroll works outside the cinematic hero", async ({ page, browserName }) => {
+  test.skip(browserName === "webkit",
+    "Playwright's synthetic wheel does not scroll this page in headless WebKit; physical Safari wheel still needs verification.");
   await page.setViewportSize({ width: 1366, height: 768 });
   await visit(page);
   // Start at a known middle-page position, away from the hero and page end.
@@ -150,5 +161,23 @@ test("mouse wheel scroll works outside the cinematic hero", async ({ page }) => 
   await page.mouse.move(1200, 400);
   await page.mouse.wheel(0, 550);
   await expect.poll(() => page.evaluate(() => window.scrollY), { timeout: 12000 })
+    .toBeGreaterThan(before + 20);
+});
+
+test("WebKit supports ordinary PageDown scrolling outside the hero", async ({ page, browserName }) => {
+  test.skip(browserName !== "webkit", "WebKit-specific fallback coverage");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await visit(page);
+  await page.evaluate(() => {
+    document.documentElement.style.scrollBehavior = "auto";
+    window.scrollTo(0, Math.min(
+      Math.round(document.documentElement.scrollHeight * 0.5),
+      document.documentElement.scrollHeight - innerHeight - 900
+    ));
+  });
+  await page.locator("body").click({ position: { x: 20, y: 500 }, force: true });
+  const before = await page.evaluate(() => window.scrollY);
+  await page.keyboard.press("PageDown");
+  await expect.poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(before + 20);
 });
