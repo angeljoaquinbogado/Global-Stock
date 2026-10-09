@@ -21,7 +21,7 @@ The suite runs real PL/pgSQL functions and triggers taken from the deployed Glob
 
 The deployed `global_stock_record_pos_sale_legacy_unsafe` function has a PL/pgSQL naming collision at `ON CONFLICT (business_id, operation_id)`. The unchanged deployed function failed in the disposable PG 17 database with `column reference "operation_id" is ambiguous`.
 
-For now, only the **test snapshot** `live-sale-commit.sql` includes the line `#variable_conflict use_column`, allowing subsequent regression tests to run. **Production has not been modified**. The migration proposal is stored in `../../docs/proposed-pos-operation-id-production-fix.sql`; do not execute until authorized and backed up.
+For now, only the **test snapshot** `live-sale-commit.sql` includes the line `#variable_conflict use_column`, allowing subsequent regression tests to run. **Production was updated on 2026-10-09** using Supabase migration `20261009023128_global_stock_pos_replay_and_duplicate_safety_20261009`. The prior definitions and grants were saved at `../../docs/backups/20261009-global-stock-pos-rpcs-before-hardening.sql`. The production permission and definition checks passed. No sales, stock movements or cash movements were created. The migration proposal is stored in `../../docs/proposed-pos-operation-id-production-fix.sql`; do not execute until authorized and backed up.
 
 ## Local CLI (optional for maintainers)
 
@@ -40,4 +40,4 @@ Use these commands from this directory; they **only** target the disposable loca
 
 ## Next step
 
-After approving and verifying the production naming-collision fix, extend the suite to concurrent/replayed purchases, duplicate sale lines, aggregated stock consumption by recipe, and recovery after a lost response. Separately exercise real logged-in flows against an authorized staging environment.
+Concurrent purchases, simultaneous replay requests, duplicate sale lines and recovery after a lost response were verified by the 12-check isolated test suite. Next extend coverage to recipe aggregation, variants, mixed payments and authenticated browser E2E before a broader POS launch. Separately exercise real logged-in flows against an authorized staging environment.
