@@ -1,0 +1,122 @@
+"use client";
+
+import dynamic from "next/dynamic";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+
+// These three interactive panels live far below the 3D hero. Their event
+// handlers and animation modules must not compete with initial mobile
+// hydration. SEO-friendly headings remain in the static placeholder HTML.
+const EcosystemHub = dynamic(
+  () => import("./DownloadEcosystemHub").then((mod) => mod.DownloadEcosystemHub),
+  { ssr: false }
+);
+const SectorShowcase = dynamic(
+  () => import("./DownloadSectorShowcase").then((mod) => mod.DownloadSectorShowcase),
+  { ssr: false }
+);
+const FaqPanel = dynamic(
+  () => import("./DownloadFAQ").then((mod) => mod.DownloadFAQ),
+  { ssr: false }
+);
+
+function LazyPanel({
+  children,
+  fallback
+}: {
+  children: ReactNode;
+  fallback: ReactNode;
+}) {
+  const markerRef = useRef<HTMLDivElement | null>(null);
+  const [near, setNear] = useState(false);
+
+  useEffect(() => {
+    const el = markerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      const frame = requestAnimationFrame(() => setNear(true));
+      return () => cancelAnimationFrame(frame);
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        setNear(true);
+        observer.disconnect();
+      },
+      { rootMargin: "1500px 0px", threshold: 0 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  // "contents" on the wrapper avoids changing the measured layout; on
+  // unsupported browsers the observer still sees its actual client rect.
+  return (
+    <div ref={markerRef} className="w-full">
+      {near ? children : fallback}
+    </div>
+  );
+}
+
+export function DeferredEcosystemHub() {
+  return (
+    <LazyPanel
+      fallback={
+        <section id="download-network" data-download-section
+          className="scroll-mt-20 border-t border-white/[0.045] bg-[#0a0a0c] text-white">
+          <div className="mx-auto min-h-[720px] max-w-[1240px] px-5 py-20 sm:px-8">
+            <p className="gs-download-kicker text-xs font-bold uppercase text-[#8F0000]">Ecosistema conectado</p>
+            <h2 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight sm:text-6xl">
+              Todo tu negocio. En un mismo sistema.
+            </h2>
+            <p className="mt-5 max-w-2xl text-base text-white/65">
+              Facturación, contabilidad, clientes, proyectos, inventario, ventas y Global Intelligence conectados.
+            </p>
+            <div aria-hidden="true" className="mt-12 h-[360px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
+          </div>
+        </section>
+      }
+    >
+      <EcosystemHub />
+    </LazyPanel>
+  );
+}
+
+export function DeferredSectorShowcase() {
+  return (
+    <LazyPanel
+      fallback={
+        <section className="border-t border-white/[0.045] bg-[#0a0a0c] text-white">
+          <div className="mx-auto min-h-[500px] max-w-[1240px] px-5 py-20 sm:px-8">
+            <p className="gs-download-kicker text-xs font-bold uppercase text-[#8F0000]">Para quién es</p>
+            <h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Global Stock para tu negocio.</h2>
+            <p className="mt-5 max-w-2xl text-base text-white/65">
+              Comercios, gastronomía, ecommerce, distribución, industria, autónomos y pymes.
+            </p>
+            <div aria-hidden="true" className="mt-10 h-[230px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
+          </div>
+        </section>
+      }
+    >
+      <SectorShowcase />
+    </LazyPanel>
+  );
+}
+
+export function DeferredFAQ() {
+  return (
+    <LazyPanel
+      fallback={
+        <section className="border-t border-white/[0.045] bg-[#08090b] text-white">
+          <div className="mx-auto min-h-[480px] max-w-[980px] px-5 py-20 text-center sm:px-8">
+            <p className="gs-download-kicker text-xs font-bold uppercase text-[#8F0000]">Preguntas frecuentes</p>
+            <h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Todo lo que necesitás saber.</h2>
+            <p className="mt-5 text-base text-white/65">Instalación, ventas, inventario, integraciones y seguridad.</p>
+            <div aria-hidden="true" className="mt-12 h-[200px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
+          </div>
+        </section>
+      }
+    >
+      <FaqPanel />
+    </LazyPanel>
+  );
+}
