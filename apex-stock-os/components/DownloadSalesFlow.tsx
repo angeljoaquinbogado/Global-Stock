@@ -538,7 +538,13 @@ export function DownloadSalesFlow() {
                 key={label}
                 type="button"
                 data-active={activeIndex === index ? "true" : "false"}
-                onClick={() => setActiveIndex(index)}
+                onClick={(event) => {
+                  // Respect a manually selected tab for 12 seconds, just
+                  // like the scene navigation dots. Autoplay must not
+                  // override what someone is currently reading.
+                  manualHoldUntilRef.current = event.timeStamp + 12000;
+                  setActiveIndex(index);
+                }}
                 className={
                   "gs-download-sales-tab flex min-h-9 items-center justify-center gap-2 rounded-xl border px-3 text-[10px] font-semibold transition-[background-color,border-color,color,box-shadow] duration-200 " +
                   (activeIndex === index
