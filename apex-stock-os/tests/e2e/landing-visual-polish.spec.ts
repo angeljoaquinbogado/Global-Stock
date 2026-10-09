@@ -245,3 +245,42 @@ test("cinematic mobile screen is readable while desktop keeps its original live 
   await expect(crisp).toBeHidden();
   await expect(original).toBeVisible();
 });
+
+
+test("all three secondary mobile intro screens have readable typography", async ({ page }) => {
+  test.setTimeout(55_000);
+  // Prevent autoplay from changing the selected screen while assessing legibility.
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await openLanding(page, 390, 844);
+  const hero = page.locator("#download-hero");
+  const screen = hero.locator(".gs-cine-mobile-ui .gs-cine-hires");
+  const states = [
+    { index: 1, name: "pos", title: "Punto de venta", specific: ".gs-cine-hires-sale-summary strong" },
+    { index: 2, name: "inventory", title: "Inventario", specific: ".gs-cine-hires-product strong" },
+    { index: 3, name: "ai", title: "Global Intelligence", specific: ".gs-cine-hires-chat-answer strong" }
+  ];
+  for (const state of states) {
+    await hero.locator("[data-scene-dot-button]").nth(state.index).click();
+    await expect(hero).toHaveAttribute("data-active-scene", String(state.index));
+    await expect(screen).toHaveAttribute("data-cine-screen", state.name);
+    await expect(screen.getByRole("heading", { name: state.title })).toBeVisible();
+    const reading = await screen.evaluate((node, selector) => {
+      const title = node.querySelector(".gs-cine-hires-title") as HTMLElement;
+      const subtitle = node.querySelector(".gs-cine-hires-subtitle") as HTMLElement;
+      const example = node.querySelector(selector as string) as HTMLElement;
+      const main = node.querySelector(".gs-cine-hires-main") as HTMLElement;
+      const contents = main.getBoundingClientRect();
+      const detail = example.getBoundingClientRect();
+      return {
+        title: parseFloat(getComputedStyle(title).fontSize),
+        subtitle: parseFloat(getComputedStyle(subtitle).fontSize),
+        detail: parseFloat(getComputedStyle(example).fontSize),
+        inside: detail.bottom <= contents.bottom + 2
+      };
+    }, state.specific);
+    expect(reading.title).toBeGreaterThanOrEqual(14);
+    expect(reading.subtitle).toBeGreaterThanOrEqual(10);
+    expect(reading.detail).toBeGreaterThanOrEqual(10);
+    expect(reading.inside).toBe(true);
+  }
+});
