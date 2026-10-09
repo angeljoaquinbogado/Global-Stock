@@ -1011,3 +1011,200 @@
   #download-hero .gs-cine-hires-kpi-label { font-size: 7.5px; }
   #download-hero .gs-cine-hires-kpi-value { font-size: 11px; }
 }
+
+
+/* Scenes 2–4: typography parity with the already-readable dashboard.
+   Preserve the first scene, silver case, cinematic transforms and responsive layout. */
+@media (max-width: 1023px) {
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-main {
+    padding: 11px 10px 6px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-title {
+    font-size: 15px;
+    line-height: 1.16;
+    letter-spacing: -.015em;
+    font-weight: 850;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-subtitle {
+    font-size: 10.2px;
+    line-height: 1.35;
+    font-weight: 650;
+    color: #e1e4ed;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-panel {
+    margin-top: 11px;
+    padding: 10px;
+    border-color: #404550;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-kicker {
+    font-size: 9.2px;
+    line-height: 1.2;
+    letter-spacing: .015em;
+    margin-bottom: 7px;
+    color: #ff7c7c;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-kpis {
+    gap: 7px;
+    margin-top: 11px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-kpi {
+    min-height: 53px;
+    border-color: #404550;
+    padding: 8px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-kpi-label {
+    font-size: 9px;
+    line-height: 1.2;
+    font-weight: 800;
+    color: #ff8585;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-kpi-value {
+    font-size: 14px;
+    line-height: 1.12;
+    font-weight: 850;
+    letter-spacing: 0;
+    color: #fff;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 7px;
+    padding: 12px 0;
+    border-color: #414651;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product > span {
+    gap: 4px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product strong {
+    font-size: 10.8px;
+    line-height: 1.25;
+    font-weight: 800;
+    letter-spacing: 0;
+    color: #fff;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product small {
+    font-size: 9.5px;
+    line-height: 1.25;
+    font-weight: 650;
+    color: #d4d9e5;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product b {
+    font-size: 10.5px;
+    line-height: 1.2;
+    font-weight: 850;
+    font-variant-numeric: tabular-nums;
+    color: #fff;
+  }
+  #download-hero .gs-cine-hires-sale-summary {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    padding: 8px 9px;
+    border: 1px solid #343943;
+    border-radius: 8px;
+    background: #1b1e25;
+  }
+  #download-hero .gs-cine-hires-sale-summary span {
+    font-size: 10px;
+    font-weight: 700;
+    color: #e1e4ee;
+  }
+  #download-hero .gs-cine-hires-sale-summary strong {
+    font-size: 19px;
+    font-weight: 850;
+    line-height: 1.1;
+    color: #fff;
+    font-variant-numeric: tabular-nums;
+  }
+  #download-hero .gs-cine-hires-stock-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 5px;
+    padding-top: 12px;
+    color: #e5e7eb;
+  }
+  #download-hero .gs-cine-hires-stock-summary span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9.4px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  #download-hero .gs-cine-hires-stock-summary svg {
+    color: #ed6a6a;
+    flex: none;
+  }
+  #download-hero .gs-cine-hires-stock-summary strong {
+    color: #fff;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-insight strong {
+    font-size: 11.5px;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #fff;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-insight p {
+    font-size: 10px;
+    line-height: 1.35;
+    font-weight: 650;
+    color: #dfe3ed;
+    margin-top: 6px;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="pos"] .gs-cine-hires-red-action {
+    height: 32px;
+    font-size: 10px;
+    font-weight: 800;
+    margin-top: 2px;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-ai-intro {
+    gap: 9px;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-ai-symbol {
+    width: 38px;
+    height: 38px;
+    color: #e6ceff;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-ai-intro strong {
+    font-size: 13px;
+    line-height: 1.22;
+    font-weight: 850;
+    color: #fff;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-ai-intro p,
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-chat-answer p {
+    font-size: 10.5px;
+    line-height: 1.4;
+    font-weight: 650;
+    color: #dfe4f1;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-chat-user {
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.25;
+  }
+  #download-hero .gs-cine-hires[data-cine-screen="ai"] .gs-cine-hires-chat-answer strong {
+    font-size: 12px;
+    line-height: 1.3;
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 350px) {
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-main {
+    padding-inline: 7px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product {
+    gap: 5px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product strong {
+    font-size: 10px;
+  }
+  #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-product b {
+    font-size: 10px;
+  }
+}
