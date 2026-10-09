@@ -1245,7 +1245,9 @@ textarea:focus-visible {
 
 .gs-download-theme[data-download-theme="light"] :where(
   [class~="text-white/90"],
+  [class~="text-white/85"],
   [class~="text-white/84"],
+  [class~="text-white/80"],
   [class~="text-white/75"],
   [class~="text-white/72"],
   [class~="text-white/70"],
