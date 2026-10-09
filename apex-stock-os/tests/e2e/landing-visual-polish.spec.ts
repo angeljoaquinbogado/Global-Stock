@@ -144,3 +144,42 @@ test("desktop cinematic remains driven by scroll, not autoplay", async ({ page }
   const height = await hero.evaluate((node) => node.getBoundingClientRect().height);
   expect(height).toBeGreaterThan(768 * 2);
 });
+
+
+test("mobile cinematic uses four angled poses and renders the phone at native width", async ({ page }) => {
+  test.setTimeout(35_000);
+  await openLanding(page, 390, 844);
+  const hero = page.locator("#download-hero");
+  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
+  const device = hero.locator(".gs-phone-preview-stage-cinematic .gs-phone-preview-device");
+  const phone = hero.locator(".gs-cinematic-phone-shell");
+  const motion = hero.locator(".gs-cinematic-phone-motion");
+  await expect(device).toBeVisible();
+  await expect.poll(async () => {
+    return device.evaluate((node) => getComputedStyle(node).transform);
+  }).toBe("none");
+  const width = await phone.evaluate((node) => node.getBoundingClientRect().width);
+  expect(width).toBeGreaterThan(180);
+  const firstPose = await motion.evaluate((node) => getComputedStyle(node).transform);
+  expect(firstPose).not.toBe("none");
+  const initialScene = await hero.getAttribute("data-active-scene");
+  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9000 }).not.toBe(initialScene);
+  await expect.poll(async () => motion.evaluate((node) => getComputedStyle(node).transform), { timeout: 4000 })
+    .not.toBe(firstPose);
+});
+
+test("mobile metric values and labels are vertically separated", async ({ page }) => {
+  await openLanding(page, 320, 650);
+  const strip = page.locator(".gs-download-metric-strip");
+  await strip.evaluate((node) => node.scrollIntoView({ behavior: "instant", block: "center" }));
+  const metrics = await strip.locator(".gs-download-metric-card").evaluateAll((cards) =>
+    cards.map((card) => {
+      const count = card.querySelector(".gs-download-metric-value")!.getBoundingClientRect();
+      const label = card.querySelector(".gs-download-metric-label")!.getBoundingClientRect();
+      const bounds = card.getBoundingClientRect();
+      return { gap: label.top - count.bottom, inside: label.bottom <= bounds.bottom + 1 };
+    })
+  );
+  expect(metrics).toHaveLength(3);
+  expect(metrics.every(({ gap, inside }) => gap >= 4 && inside)).toBe(true);
+});
