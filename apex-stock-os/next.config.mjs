@@ -1,4 +1,12 @@
 const isProduction = process.env.NODE_ENV === "production";
+// The checked-out production build is also exercised on a loopback HTTP server
+// in GitHub Actions. Only there, do not force HTTP assets to HTTPS. Web-facing
+// deployments continue to send their original CSP upgrade and HSTS policies.
+const localBrowserQaHttp =
+  process.env.GLOBAL_STOCK_LOCAL_BROWSER_QA === "1" &&
+  process.env.E2E_BASE_URL === "http://127.0.0.1:3000" &&
+  process.env.VERCEL !== "1";
+
 
 const contentSecurityPolicy = [
   "default-src 'self'",
@@ -15,7 +23,7 @@ const contentSecurityPolicy = [
   "media-src 'self' blob:",
   "manifest-src 'self'",
   "frame-src 'self' https://www.google.com https://maps.google.com https://accounts.google.com",
-  ...(isProduction ? ["upgrade-insecure-requests"] : [])
+  ...(isProduction && !localBrowserQaHttp ? ["upgrade-insecure-requests"] : [])
 ].join("; ");
 
 const securityHeaders = [
@@ -32,7 +40,7 @@ const securityHeaders = [
     value:
       "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()"
   },
-  ...(isProduction
+  ...(isProduction && !localBrowserQaHttp
     ? [
         {
           key: "Strict-Transport-Security",
