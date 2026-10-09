@@ -1,0 +1,65 @@
+name: Global Stock Browser QA
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 11 * * *"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/global-stock-browser-qa.yml"
+      - "apex-stock-os/tests/e2e/**"
+      - "apex-stock-os/playwright.config.ts"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-stock-browser-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live-landing-qa:
+    name: Real browser smoke / Chromium
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: apex-stock-os
+    env:
+      CI: "true"
+      E2E_BASE_URL: https://globalstocks.vercel.app
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apex-stock-os/package-lock.json
+
+      - name: Install project dependencies
+        run: npm ci --no-audit --no-fund
+
+      # CI-only test tooling. Does not alter app package.json or its lockfile.
+      - name: Install pinned Playwright test runner
+        run: npm install --no-save --package-lock=false --ignore-scripts --no-audit --no-fund @playwright/test@1.56.1
+
+      - name: Install Chromium and OS dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Execute production landing browser tests
+        run: npx playwright test --config playwright.config.ts --project=chromium
+
+      - name: Upload browser report, traces, screenshots and videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-stock-playwright-results
+          path: |
+            apex-stock-os/playwright-report/
+            apex-stock-os/test-results/
+          retention-days: 10
+          if-no-files-found: warn
