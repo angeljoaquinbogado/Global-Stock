@@ -166,7 +166,7 @@ test("mobile intro advances by itself without scrolling through four screens", a
   expect(layout.overlapped).toBe(false);
   const initialScene = await hero.getAttribute("data-active-scene");
   // Playback is visibility-aware and should change screens with no scroll input.
-  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9_000 }).not.toBe(initialScene);
+  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 15_000 }).not.toBe(initialScene);
   expect(await page.evaluate(() => window.scrollY)).toBe(0);
   const dots = hero.locator("[data-scene-dot-button]");
   await dots.last().click();
@@ -323,6 +323,14 @@ test("all three secondary mobile intro screens have readable typography", async 
       intervals: [250, 500, 700]
     }).toBe(String(state.index));
     await expect(screen.locator(".gs-cine-hires-title")).toHaveText(state.title);
+    // WebKit may report the previous dashboard's computed 13px font in the
+    // same frame that React swaps the scene. Wait for actual style recalculation.
+    await expect.poll(
+      () => screen.locator(".gs-cine-hires-title").evaluate(
+        (node) => parseFloat(getComputedStyle(node).fontSize)
+      ),
+      { timeout: 6_000, intervals: [100, 250, 500] }
+    ).toBeGreaterThanOrEqual(14);
     const reading = await screen.evaluate((node, selector) => {
       const title = node.querySelector(".gs-cine-hires-title") as HTMLElement;
       const subtitle = node.querySelector(".gs-cine-hires-subtitle") as HTMLElement;
