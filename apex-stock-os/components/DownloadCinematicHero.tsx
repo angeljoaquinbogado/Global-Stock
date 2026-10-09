@@ -691,7 +691,7 @@ export function DownloadCinematicHero() {
       className="gs-cinematic-hero relative h-[285svh] scroll-mt-20 lg:h-[330vh] xl:h-[340vh]"
       style={accentStyle}
     >
-      <div className="sticky top-[68px] h-[calc(100svh-68px)] min-h-[560px] overflow-hidden">
+      <div className="sticky top-[68px] h-[calc(100svh-68px)] min-h-0 overflow-hidden">
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={scene.id}
