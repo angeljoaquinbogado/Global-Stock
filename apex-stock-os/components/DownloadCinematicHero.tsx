@@ -336,6 +336,7 @@ export function DownloadCinematicHero() {
   const sectionRef = useRef<HTMLElement | null>(null);
   const reduceMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [mobileIntro, setMobileIntro] = useState(false);
   const [dragSceneIndex, setDragSceneIndex] = useState<number | null>(null);
   const sceneDotsRef = useRef<HTMLDivElement | null>(null);
   const liquidLensRef = useRef<HTMLSpanElement | null>(null);
@@ -353,6 +354,8 @@ export function DownloadCinematicHero() {
     offset: ["start start", "end end"]
   });
   useMotionValueEvent(scrollYProgress, "change", (value) => {
+    // Desktop retains its scroll-driven story. Mobile is a timed, stable intro.
+    if (window.matchMedia("(max-width: 1023px)").matches) return;
     const next = Math.min(
       scenes.length - 1,
       Math.max(0, Math.floor(value * scenes.length))
@@ -360,11 +363,56 @@ export function DownloadCinematicHero() {
     setActiveIndex((current) => (current === next ? current : next));
   });
 
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 1023px)");
+    const update = () => setMobileIntro(query.matches);
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileIntro || reduceMotion) return;
+    const section = sectionRef.current;
+    if (!section || typeof IntersectionObserver === "undefined") return;
+
+    let timer: number | null = null;
+    let sectionVisible = false;
+    const stop = () => {
+      if (timer !== null) window.clearInterval(timer);
+      timer = null;
+    };
+    const syncPlayback = () => {
+      if (!sectionVisible || document.visibilityState !== "visible") {
+        stop();
+      } else if (timer === null) {
+        timer = window.setInterval(() => {
+          setActiveIndex((current) => (current + 1) % scenes.length);
+        }, 4200);
+      }
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      sectionVisible = Boolean(entry?.isIntersecting);
+      syncPlayback();
+    }, { threshold: 0.15 });
+    observer.observe(section);
+    document.addEventListener("visibilitychange", syncPlayback);
+    return () => {
+      observer.disconnect();
+      document.removeEventListener("visibilitychange", syncPlayback);
+      stop();
+    };
+  }, [mobileIntro, reduceMotion]);
+
   const goToScene = (index: number) => {
     const section = sectionRef.current;
     if (!section) return;
 
     const safeIndex = Math.max(0, Math.min(scenes.length - 1, index));
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setActiveIndex(safeIndex);
+      return;
+    }
     const stickyHeight = Math.max(1, window.innerHeight - 68);
     const travel = Math.max(1, section.offsetHeight - stickyHeight);
     const sectionTop =
@@ -614,7 +662,9 @@ export function DownloadCinematicHero() {
 
   const pose = reduceMotion
     ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
-    : scene.pose;
+    : mobileIntro
+      ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 }
+      : scene.pose;
 
   const accentStyle = {
     "--gs-cinematic-accent": scene.accent
@@ -624,6 +674,8 @@ export function DownloadCinematicHero() {
     <section
       ref={sectionRef}
       id="download-hero"
+      data-mobile-intro={mobileIntro ? "autoplay" : "scroll"}
+      data-active-scene={activeIndex}
       data-download-section
       className="gs-cinematic-hero relative h-[285svh] scroll-mt-20 lg:h-[330vh] xl:h-[340vh]"
       style={accentStyle}
@@ -722,6 +774,8 @@ export function DownloadCinematicHero() {
             className="gs-cinematic-scene-dots absolute bottom-[6px] left-1/2 z-40 flex -translate-x-1/2 items-center gap-1.5 px-3 py-2"
             data-dragging={dragSceneIndex !== null ? "true" : "false"}
             onPointerDown={(event) => {
+              // Mobile dots are tap targets, never a pointer-captured drag surface.
+              if (window.matchMedia("(max-width: 1023px)").matches) return;
               if (event.pointerType === "mouse" && event.button !== 0) return;
 
               const rail = event.currentTarget;
