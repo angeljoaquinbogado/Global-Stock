@@ -507,7 +507,7 @@
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
+@media (prefers-reduced-motion: reduce) and (max-width: 1023px) {
   .gs-ecosystem-mobile-lines .gs-ecosystem-line-flow {
     animation: none !important;
     stroke-dasharray: none;
