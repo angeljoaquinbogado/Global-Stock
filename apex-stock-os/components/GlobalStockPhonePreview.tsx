@@ -211,6 +211,12 @@ export function GlobalStockPhonePreview({
             className="relative"
           >
             <div className="h-full min-h-0 overflow-hidden bg-[#050506] text-white">
+              {cinematic ? (
+                <div className="gs-cine-mobile-ui hidden h-full min-h-0 flex-col" aria-hidden="true">
+                  <CinematicMobileScreen screen={screen} />
+                </div>
+              ) : null}
+              <div className="gs-cine-original-ui h-full min-h-0">
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
                   key={overlay ?? screen}
@@ -240,6 +246,7 @@ export function GlobalStockPhonePreview({
                   )}
                 </motion.div>
               </AnimatePresence>
+              </div>
             </div>
           </IPhone17ProMax>
         </div>
@@ -318,6 +325,144 @@ export function GlobalStockPhonePreview({
         </div>
       </div>
       ) : null}
+    </div>
+  );
+}
+
+
+/**
+ * Compact, readable DOM artwork for the *mobile cinematic hero only*.
+ * No screenshots or image scaling: actual text/SVG stays sharp even when the
+ * handset is tilted. The original fully featured preview remains on desktop.
+ */
+function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
+  const titles: Record<DemoScreen, [string, string]> = {
+    dashboard: ["Centro de control", "Tu negocio, en tiempo real."],
+    pos: ["Punto de venta", "Cobrá y actualizá tu stock."],
+    inventory: ["Inventario", "Todos tus productos en orden."],
+    ai: ["Global Intelligence", "Análisis conectado a tu negocio."]
+  };
+  const metrics = [
+    ["Ingresos", "$ 2,4 M"],
+    ["Inventario", "$ 1,18 M"],
+    ["Ganancia", "$ 742 mil"],
+    ["Stock crítico", "12 alertas"]
+  ];
+  const products = [
+    ["Reel frontal 5000", "8 unidades", "$ 89.900"],
+    ["Señuelo minnow", "23 unidades", "$ 15.900"],
+    ["Caña telescópica", "14 unidades", "$ 54.500"]
+  ];
+  return (
+    <div className="gs-cine-hires">
+      <header className="gs-cine-hires-header">
+        <Logo className="gs-cine-hires-logo" aria-hidden="true" />
+        <span className="gs-cine-hires-brand">Global Stock<span className="gs-cine-hires-online" /></span>
+        <span className="gs-cine-hires-header-icon"><Search size={11} /></span>
+        <span className="gs-cine-hires-header-icon"><Menu size={11} /></span>
+      </header>
+      <main className="gs-cine-hires-main">
+        <h3 className="gs-cine-hires-title">{titles[screen][0]}</h3>
+        <p className="gs-cine-hires-subtitle">{titles[screen][1]}</p>
+
+        {screen === "dashboard" ? (
+          <>
+            <div className="gs-cine-hires-kpis">
+              {metrics.map(([name, value]) => (
+                <div className="gs-cine-hires-kpi" key={name}>
+                  <span className="gs-cine-hires-kpi-label">{name}</span>
+                  <strong className="gs-cine-hires-kpi-value">{value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="gs-cine-hires-panel gs-cine-hires-chart-panel">
+              <span className="gs-cine-hires-kicker">FLUJO DE VENTAS</span>
+              <strong className="gs-cine-hires-panel-title">Ganancia bruta</strong>
+              <svg viewBox="0 0 180 76" preserveAspectRatio="none" className="gs-cine-hires-chart" aria-hidden="true">
+                <defs>
+                  <linearGradient id="gs-cine-mobile-profit-fill" x1="0" x2="0" y1="0" y2="1">
+                    <stop offset="0" stopColor="#bb0808" stopOpacity=".35" />
+                    <stop offset="1" stopColor="#bb0808" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path d="M2 66 L25 57 L48 60 L71 42 L95 46 L118 25 L141 33 L177 11 L177 76 L2 76 Z" fill="url(#gs-cine-mobile-profit-fill)" />
+                <path d="M2 66 L25 57 L48 60 L71 42 L95 46 L118 25 L141 33 L177 11" fill="none" stroke="#d51a1a" strokeWidth="2.7" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+              <div className="gs-cine-hires-days"><span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span><span>Vie</span></div>
+            </div>
+            <div className="gs-cine-hires-panel gs-cine-hires-activity">
+              <strong>Actividad reciente</strong>
+              <span><i /> Venta registrada · 4 unidades</span>
+              <span><i /> Reposición recibida · 12 unidades</span>
+            </div>
+          </>
+        ) : screen === "pos" ? (
+          <>
+            <div className="gs-cine-hires-panel gs-cine-hires-pos">
+              <span className="gs-cine-hires-kicker">VENTA EN CURSO</span>
+              {products.slice(0, 2).map(([name, units, price]) => (
+                <div className="gs-cine-hires-product" key={name}>
+                  <span><strong>{name}</strong><small>{units}</small></span>
+                  <b>{price}</b>
+                </div>
+              ))}
+              <div className="gs-cine-hires-total"><span>Total</span><strong>$ 105.800</strong></div>
+              <div className="gs-cine-hires-red-action">Registrar venta <ShoppingCart size={12} /></div>
+            </div>
+            <div className="gs-cine-hires-panel gs-cine-hires-insight">
+              <span className="gs-cine-hires-kicker">CAJA SINCRONIZADA</span>
+              <strong>Ventas y stock al día</strong>
+              <p>Cada movimiento queda registrado en tu negocio.</p>
+            </div>
+          </>
+        ) : screen === "inventory" ? (
+          <>
+            <div className="gs-cine-hires-kpis">
+              {[["Productos", "1.248"], ["Stock bajo", "12"]].map(([name, value]) => (
+                <div className="gs-cine-hires-kpi" key={name}>
+                  <span className="gs-cine-hires-kpi-label">{name}</span>
+                  <strong className="gs-cine-hires-kpi-value">{value}</strong>
+                </div>
+              ))}
+            </div>
+            <div className="gs-cine-hires-panel gs-cine-hires-pos">
+              <span className="gs-cine-hires-kicker">MOVIMIENTO DE STOCK</span>
+              {products.map(([name, units, price]) => (
+                <div className="gs-cine-hires-product" key={name}>
+                  <span><strong>{name}</strong><small>{units}</small></span>
+                  <b>{price}</b>
+                </div>
+              ))}
+            </div>
+            <div className="gs-cine-hires-panel gs-cine-hires-insight">
+              <span className="gs-cine-hires-kicker">INVENTARIO INTELIGENTE</span>
+              <strong>Todo bajo control</strong>
+              <p>Alertas de reposición y stock conectado.</p>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="gs-cine-hires-panel gs-cine-hires-ai-intro">
+              <span className="gs-cine-hires-ai-symbol"><BrainCircuit size={20} /></span>
+              <strong>Preguntale a tu negocio</strong>
+              <p>Usá los datos de ventas, stock y ganancias para tomar mejores decisiones.</p>
+            </div>
+            <div className="gs-cine-hires-chat-user">¿Cómo vienen mis ventas?</div>
+            <div className="gs-cine-hires-chat-answer">
+              <span className="gs-cine-hires-kicker">GLOBAL INTELLIGENCE</span>
+              <strong>Las ventas vienen creciendo.</strong>
+              <p>Tu ganancia bruta subió esta semana. Revisá el inventario crítico.</p>
+            </div>
+          </>
+        )}
+      </main>
+      <nav className="gs-cine-hires-bottom" aria-hidden="true">
+        <span className={screen === "dashboard" ? "is-active" : ""}><Store size={13} />Inicio</span>
+        <span className={screen === "pos" ? "is-active" : ""}><ShoppingCart size={13} />Ventas</span>
+        <span className="gs-cine-hires-scan"><ScanLine size={15} /></span>
+        <span className={screen === "inventory" ? "is-active" : ""}><Package size={13} />Stock</span>
+        <span className={screen === "ai" ? "is-active" : ""}><BrainCircuit size={13} />IA</span>
+      </nav>
     </div>
   );
 }
