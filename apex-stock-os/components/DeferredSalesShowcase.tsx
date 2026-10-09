@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from "react";
 
 // The public landing starts with a four-scene 3D hero. Do not hydrate the
 // large Framer Motion sales demo while it is several screenfuls offscreen.
-// Still pre-warm it before entry so scrolling remains continuous and premium.
+// Still pre-warm it 450px before entry to preserve a smooth transition.
+// The previous 1200px radius let the heavy sales scene hydrate during the
+// cinematic hero and increased mobile main-thread blocking.
 const SalesFlow = dynamic(
   () => import("./DownloadSalesFlow").then((module) => module.DownloadSalesFlow),
   {
@@ -42,7 +44,7 @@ export function DeferredSalesShowcase() {
         setNearViewport(true);
         observer.disconnect();
       },
-      { rootMargin: "1200px 0px", threshold: 0 }
+      { rootMargin: "450px 0px", threshold: 0 }
     );
     observer.observe(target);
     return () => observer.disconnect();
