@@ -129,10 +129,12 @@ const scenes: StoryScene[] = [
 
 // Mobile-only cinematic angles. Keep the desktop poses and scroll story untouched.
 const mobilePhonePoses: StoryScene["pose"][] = [
-  { x: -2, y: 0, rotateX: 7, rotateY: -16, rotateZ: -3, scale: 1 },
-  { x: 3, y: -2, rotateX: 6, rotateY: 15, rotateZ: 3, scale: 1 },
-  { x: -3, y: 1, rotateX: 8, rotateY: -13, rotateZ: 2, scale: 1 },
-  { x: 2, y: 0, rotateX: 6, rotateY: 16, rotateZ: -3, scale: 1 }
+  // Product-photo 3/4 angles: enough yaw to reveal the polished metal rail,
+  // with a restrained roll so the real app screens remain readable.
+  { x: -2, y: 1, rotateX: 9, rotateY: -23, rotateZ: -4, scale: 1 },
+  { x: 3, y: -2, rotateX: 7, rotateY: 22, rotateZ: 3, scale: 1 },
+  { x: -3, y: 0, rotateX: 10, rotateY: -21, rotateZ: 3, scale: 1 },
+  { x: 2, y: 1, rotateX: 8, rotateY: 24, rotateZ: -3, scale: 1 }
 ];
 
 const easeOut = [0.23, 1, 0.32, 1] as const;
@@ -766,10 +768,11 @@ export function DownloadCinematicHero() {
                 >
                   <div className="gs-cinematic-phone-front absolute inset-0">
                     <GlobalStockPhonePreview
+                      key={mobileIntro ? "silver-product-shot" : "desktop-graphite"}
                       cinematic
                       autoPlay={false}
                       controlledScreen={scene.screen}
-                      initialFrameColor="graphite"
+                      initialFrameColor={mobileIntro ? "silver" : "graphite"}
                     />
                   </div>
                 </motion.div>
