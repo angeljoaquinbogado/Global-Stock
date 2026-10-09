@@ -105,9 +105,15 @@ export function DownloadFeatureCatalog() {
           {groups.map(({ title, kicker, body, icon: Icon, accent, surface, items }, index) => (
             <article
               key={title}
+              id={
+                index === 0 ? "download-feature-sales" :
+                index === 1 ? "download-feature-purchasing" :
+                index === 2 ? "download-feature-business" :
+                "download-feature-intelligence"
+              }
               data-feature-group={title === "Análisis e inteligencia" ? "intelligence" : undefined}
               className={
-                "gs-download-feature-group grid gap-5 py-9 sm:grid-cols-[58px_1fr] sm:gap-7 " +
+                "gs-download-feature-group scroll-mt-24 grid gap-5 py-9 sm:grid-cols-[58px_1fr] sm:gap-7 " +
                 (index === 0 ? "pt-0" : "border-t border-white/[0.045]")
               }
             >
