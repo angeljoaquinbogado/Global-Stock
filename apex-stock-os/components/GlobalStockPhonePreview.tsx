@@ -361,7 +361,7 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
         <span className="gs-cine-hires-header-icon"><Search size={11} /></span>
         <span className="gs-cine-hires-header-icon"><Menu size={11} /></span>
       </header>
-      <main className="gs-cine-hires-main">
+      <div className="gs-cine-hires-main">
         <h3 className="gs-cine-hires-title">{titles[screen][0]}</h3>
         <p className="gs-cine-hires-subtitle">{titles[screen][1]}</p>
 
@@ -462,7 +462,7 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
             </div>
           </>
         )}
-      </main>
+      </div>
       <nav className="gs-cine-hires-bottom" aria-hidden="true">
         <span className={screen === "dashboard" ? "is-active" : ""}><Store size={13} />Inicio</span>
         <span className={screen === "pos" ? "is-active" : ""}><ShoppingCart size={13} />Ventas</span>
