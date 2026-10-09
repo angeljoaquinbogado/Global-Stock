@@ -20,23 +20,9 @@ concurrency:
 
 jobs:
   isolated-pos-database:
-    name: Ephemeral PostgreSQL 17 / POS + cash + inventory
+    name: Ephemeral PostgreSQL / POS + cash + inventory
     runs-on: ubuntu-latest
-    timeout-minutes: 12
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_PASSWORD: test-only
-          POSTGRES_USER: postgres
-          POSTGRES_DB: global_stock_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U postgres -d global_stock_test"
-          --health-interval 5s
-          --health-timeout 5s
-          --health-retries 15
+    timeout-minutes: 18
     env:
       PGHOST: localhost
       PGPORT: "5432"
@@ -53,6 +39,49 @@ jobs:
             sudo apt-get update -qq
             sudo apt-get install -y -qq postgresql-client
           fi
+
+      - name: Start isolated PostgreSQL with a registry fallback
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Pulling Docker Hub directly in the services block can fail before
+          # ANY test runs. Try two sources, then the runner's local service.
+          for image in public.ecr.aws/docker/library/postgres:17 postgres:17; do
+            echo "Attempting PostgreSQL image: $image"
+            if timeout 45s docker pull "$image"; then
+              docker run -d --name gs-qa-postgres \
+                -e POSTGRES_PASSWORD=test-only \
+                -e POSTGRES_USER=postgres \
+                -e POSTGRES_DB=global_stock_test \
+                -p 127.0.0.1:5432:5432 \
+                "$image"
+              for attempt in $(seq 1 40); do
+                if PGPASSWORD=test-only pg_isready -h localhost -p 5432 -U postgres -d global_stock_test >/dev/null 2>&1; then
+                  echo "PostgreSQL container is ready"
+                  psql -c "select version();"
+                  exit 0
+                fi
+                sleep 1
+              done
+              echo "::error::Container started but never became ready"
+              exit 1
+            fi
+          done
+          # Local hosted-runner PostgreSQL is a version-flexible fallback only.
+          echo "::warning::External registries unavailable; use runner PostgreSQL."
+          sudo systemctl start postgresql
+          sudo -u postgres psql -c "ALTER ROLE postgres PASSWORD 'test-only';"
+          sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname='global_stock_test'" | grep -q 1 \
+            || sudo -u postgres createdb global_stock_test
+          for attempt in $(seq 1 20); do
+            if pg_isready -h localhost -p 5432 -U postgres -d global_stock_test >/dev/null 2>&1; then
+              psql -c "select version();"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::Neither container nor hosted PostgreSQL became ready"
+          exit 1
 
       - name: Load isolated schema
         run: psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/fixture-schema.sql
