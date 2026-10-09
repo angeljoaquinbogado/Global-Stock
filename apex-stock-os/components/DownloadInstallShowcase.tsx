@@ -124,13 +124,13 @@ function PlatformTabs({
               disabled={!hydrated}
               onClick={() => onChange(id)}
               className={
-                "gs-download-platform-tab flex h-14 w-full items-center justify-center gap-2.5 rounded-[13px] border border-[#8F0000] bg-white px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
+                "gs-download-platform-tab flex h-14 min-w-0 w-full items-center justify-center gap-1 rounded-[13px] border border-[#8F0000] bg-white px-1.5 sm:gap-2.5 sm:px-3 text-[12px] font-semibold text-[#17171a] outline-none transition-[background-color,box-shadow,transform] duration-150 [transition-timing-function:var(--ease-out)] " +
                 (selected
                   ? "shadow-[0_7px_20px_rgba(143,0,0,.12),inset_0_0_0_1px_rgba(143,0,0,.04)]"
                   : "hover:bg-[#fafafa]")
               }
             >
-              <span className="grid h-10 w-10 shrink-0 place-items-center overflow-visible">
+              <span className="gs-download-platform-icon grid h-7 w-7 shrink-0 place-items-center sm:h-10 sm:w-10">
                 <img
                   src={logoSrc}
                   alt=""
@@ -145,7 +145,7 @@ function PlatformTabs({
                   draggable={false}
                 />
               </span>
-              <span>{label}</span>
+              <span className="gs-download-platform-label min-w-0 text-[10px] leading-tight sm:text-[12px]">{label}</span>
             </button>
           );
         })}
