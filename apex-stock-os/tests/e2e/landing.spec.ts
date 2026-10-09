@@ -210,4 +210,9 @@ test("animated sales showcase loads on approach and remains interactive", async 
   const cash = showcase.getByRole("button", { name: "Caja", exact: true });
   await cash.click({ force: browserName === "webkit" });
   await expect(cash).toHaveAttribute("data-active", "true");
+
+  // Unlike an autoplay-only showcase, a user-selected tab must remain active
+  // longer than the normal 4.2 second slideshow interval.
+  await page.waitForTimeout(4600);
+  await expect(cash).toHaveAttribute("data-active", "true");
 });
