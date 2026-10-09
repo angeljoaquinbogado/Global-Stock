@@ -166,6 +166,7 @@ export function IPhone17ProMax({
 
                 <span
                   className="relative block h-[10px] w-[22px] rounded-[3px] border border-white/90"
+                  role="img"
                   aria-label={"Batería " + Math.round(safeBattery) + "%"}
                 >
                   <span
