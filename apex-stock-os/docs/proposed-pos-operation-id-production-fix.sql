@@ -1,18 +1,10 @@
--- PROPOSED PRODUCTION MIGRATION. NOT APPLIED BY CI.
--- Apply only after explicit owner authorization, backup and a maintenance window.
--- Tested in free, isolated PostgreSQL 17 against 12 SQL/cash/stock/refund checks.
---
--- Three fixes:
--- 1. Resolve the existing PL/pgSQL operation_id column/argument ambiguity.
--- 2. Reject duplicate sale lines that could register multiple items but only
---    ONE stock movement due to the operation_id uniqueness index.
--- 3. Lock per (business_id,operation_id) and retrieve completed sale BEFORE
---    rechecking stock. A lost response/retry cannot accidentally sell twice.
---
--- This migration affects only the two Global Stock POS RPC functions;
--- no Dorado tables, Supabase secrets, customer records or ecommerce stock.
--- NOTE: The trigger/side effect functions remain unchanged.
--- Rollback requires restoring two prior function definitions from the DB backup.
+-- HISTORICAL MIGRATION COPY: APPLIED TO GLOBAL STOCK PRODUCTION ON 2026-10-09.
+-- Applied Supabase migration version: 20261009023128.
+-- Canonical tracked migration is:
+-- apex-stock-os/supabase/migrations/20261009023128_global_stock_pos_replay_and_duplicate_safety_20261009.sql
+-- Function-only backup / rollback (not auto-run):
+-- apex-stock-os/docs/backups/20261009-global-stock-pos-rpcs-before-hardening.sql
+-- DO NOT REAPPLY THIS SCRIPT TO PRODUCTION. No customer data was changed.
 
 begin;
 
