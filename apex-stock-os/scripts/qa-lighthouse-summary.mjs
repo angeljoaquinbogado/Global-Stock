@@ -37,8 +37,8 @@ for (const id of ["aria-prohibited-attr", "color-contrast"]) {
     for (const row of nodes.slice(0, 12)) {
       const node = row.node || row;
       const selector = String(node.selector || node.target?.[0] || "unknown");
-      const snippet = String(node.snippet || "").replace(/\\s+/g, " ").slice(0, 180);
-      lines.push("- \`" + selector.replace(/\\`/g, "") + "\` — " + snippet.replace(/[|]/g, "/"));
+      const snippet = String(node.snippet || "").replace(/\s+/g, " ").slice(0, 180);
+      lines.push("- \`" + selector.replace(/`/g, "") + "` — " + snippet.replace(/[|]/g, "/"));
     }
   }
 }
