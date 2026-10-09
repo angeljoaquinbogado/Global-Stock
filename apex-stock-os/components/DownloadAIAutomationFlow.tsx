@@ -39,7 +39,7 @@ const steps = [
 
 export function DownloadAIAutomationFlow() {
   return (
-    <section className="gs-ai-automation border-t border-white/[0.045]">
+    <section id="download-ai-workflow" className="gs-ai-automation scroll-mt-24 border-t border-white/[0.045]">
       <div className="mx-auto w-full max-w-[1240px] px-5 py-20 sm:px-8 sm:py-28">
         <div className="mx-auto max-w-3xl text-center">
           <p className="gs-download-kicker text-[10px] font-bold uppercase tracking-[.17em] text-[#8F0000]">
