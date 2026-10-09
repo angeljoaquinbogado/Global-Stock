@@ -20,7 +20,7 @@ function PublicBrand({
 
     return (
       <div className="gs-download-brand flex items-center gap-3 text-white">
-        <DownloadLogo className="h-10 w-10 shrink-0" />
+        <DownloadLogo className="h-10 w-10 shrink-0" alt="" />
         <div className="leading-none">
           <div className="text-[15px] font-semibold tracking-[-0.03em]">
             Global Stock
