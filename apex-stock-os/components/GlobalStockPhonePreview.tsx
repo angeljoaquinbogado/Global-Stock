@@ -356,7 +356,7 @@ function PageHeading({
       <h3 className="text-[15.5px] font-semibold tracking-[-0.035em]">
         {title}
       </h3>
-      <p className="mt-1 text-[8.5px] leading-[1.4] text-white/45">
+      <p className="mt-1 text-[8.5px] leading-[1.4] text-white/75">
         {subtitle}
       </p>
     </div>
@@ -486,7 +486,7 @@ function DashboardDemo({
                 Ganancia bruta
               </p>
             </div>
-            <span className="rounded-full border border-white/10 px-2 py-1 text-[6px] text-white/45">
+            <span className="rounded-full border border-white/10 px-2 py-1 text-[6px] text-white/75">
               Gráficos
             </span>
           </div>
@@ -671,7 +671,7 @@ function PosDemo({
           </div>
 
           <div className="mt-2 flex items-center justify-between border-t border-white/8 pt-2">
-            <span className="text-[7px] text-white/45">Total</span>
+            <span className="text-[7px] text-white/75">Total</span>
             <strong className="text-[10px]">$ 89.900</strong>
           </div>
 
