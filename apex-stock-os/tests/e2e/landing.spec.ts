@@ -183,3 +183,25 @@ test("WebKit supports ordinary PageDown scrolling outside the hero", async ({ pa
   await expect.poll(() => page.evaluate(() => window.scrollY))
     .toBeGreaterThan(before + 20);
 });
+
+test("animated sales showcase loads on approach and remains interactive", async ({ page, browserName }) => {
+  test.setTimeout(80_000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await visit(page);
+  const showcase = page.locator('[data-testid="deferred-sales-flow"]');
+  await expect(showcase).toHaveCount(1);
+
+  // On a real downward scroll, an observer preloads the heavy showcase before
+  // it comes onscreen; its animations and tab interactions must still work.
+  await showcase.evaluate((node) => node.scrollIntoView({
+    block: "center",
+    behavior: "instant"
+  }));
+  const stock = showcase.getByRole("button", { name: "Stock", exact: true });
+  await expect(stock).toBeVisible({ timeout: 30_000 });
+  await stock.click({ force: browserName === "webkit" });
+  await expect(stock).toHaveAttribute("data-active", "true");
+  const cash = showcase.getByRole("button", { name: "Caja", exact: true });
+  await cash.click({ force: browserName === "webkit" });
+  await expect(cash).toHaveAttribute("data-active", "true");
+});
