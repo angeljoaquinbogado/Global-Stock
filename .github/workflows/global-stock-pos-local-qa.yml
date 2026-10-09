@@ -65,6 +65,9 @@ jobs:
       - name: Execute synthetic POS sale, cash, stock and return assertions
         run: psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/assert-pos.sql
 
+      - name: Test simultaneous stock contention and exact-operation retries
+        run: bash apex-stock-os/tests/postgres/concurrent-pos.sh
+
       - name: Isolation reminder
         if: always()
         run: echo "All test products, sales and accounts lived only in the disposable PostgreSQL 17 CI service."
