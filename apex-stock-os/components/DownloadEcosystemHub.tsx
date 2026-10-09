@@ -14,7 +14,7 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 
 import { DownloadLogo } from "./DownloadLogo";
 
@@ -219,6 +219,29 @@ function ModuleNode({
 
 export function DownloadEcosystemHub() {
   const [activeId, setActiveId] = useState("ia");
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [diagramScale, setDiagramScale] = useState(0.8);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    const measure = () => {
+      if (stage.clientWidth > 0) {
+        setDiagramScale((current) => {
+          const next = stage.clientWidth / 1000;
+          return Math.abs(current - next) > 0.001 ? next : current;
+        });
+      }
+    };
+    measure();
+    const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(measure) : null;
+    observer?.observe(stage);
+    window.addEventListener("resize", measure, { passive: true });
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
   const reducedMotion = useReducedMotion();
   const active = modules.find((item) => item.id === activeId) ?? modules[7];
   const ActiveIcon = active.icon;
@@ -249,7 +272,11 @@ export function DownloadEcosystemHub() {
         </div>
 
         <div className="gs-ecosystem-surface mt-10 overflow-hidden rounded-[32px] border sm:mt-14 sm:rounded-[38px]">
-          <div className="gs-ecosystem-diagram relative hidden w-full lg:block">
+          <div ref={stageRef} className="gs-ecosystem-stage relative mx-auto hidden lg:block">
+          <div
+            className="gs-ecosystem-diagram absolute left-0 top-0 h-[640px] w-[1000px]"
+            style={{ transform: `scale(${diagramScale})`, transformOrigin: "top left" }}
+          >
             <div className="gs-ecosystem-ambient absolute inset-0" aria-hidden="true" />
             <div className="gs-ecosystem-grid absolute inset-0" aria-hidden="true" />
 
@@ -328,6 +355,7 @@ export function DownloadEcosystemHub() {
                 onSelect={setActiveId}
               />
             ))}
+          </div>
           </div>
 
           <div className="gs-ecosystem-mobile px-4 pb-4 pt-8 sm:px-6 sm:pb-6 lg:hidden">
