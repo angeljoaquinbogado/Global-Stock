@@ -1020,13 +1020,14 @@
     padding: 11px 10px 6px;
   }
   #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-title {
-    font-size: 15px;
+    /* Safari must not fall back to the 13px dashboard clamp here. */
+    font-size: 15px !important;
     line-height: 1.16;
     letter-spacing: -.015em;
     font-weight: 850;
   }
   #download-hero .gs-cine-hires:not([data-cine-screen="dashboard"]) .gs-cine-hires-subtitle {
-    font-size: 10.2px;
+    font-size: 10.2px !important;
     line-height: 1.35;
     font-weight: 650;
     color: #e1e4ed;
