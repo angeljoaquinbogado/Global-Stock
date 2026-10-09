@@ -725,7 +725,7 @@ export function DownloadCinematicHero() {
           <SceneAmbientSymbols scene={scene} />
 
           <div
-            className="pointer-events-none absolute left-1/2 top-[37%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-[48%]"
+            className="gs-cinematic-device-stage pointer-events-none absolute left-1/2 top-[37%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-[48%]"
           >
             <div className="gs-cinematic-aura absolute left-1/2 top-1/2 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full lg:h-[580px] lg:w-[580px]" />
 
