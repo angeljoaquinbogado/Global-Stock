@@ -820,7 +820,7 @@ export function DownloadCinematicHero() {
               pointerRef.current = {
                 id: event.pointerId,
                 lastX: event.clientX,
-                lastTime: performance.now(),
+                lastTime: event.timeStamp,
                 currentX: centerX,
                 velocity: 0,
                 grabOffset,
@@ -867,7 +867,7 @@ export function DownloadCinematicHero() {
                 )
               );
 
-              const now = performance.now();
+              const now = event.timeStamp;
               const elapsed = Math.max(8, now - pointer.lastTime);
               const rawVelocity =
                 (event.clientX - pointer.lastX) / elapsed;
