@@ -80,3 +80,13 @@ test("fiscal issuance stays separate from approved document expense posting", as
   assert.match(fiscal, /providerReady/);
   assert.match(fiscal, /FISCAL_PROVIDER_NOT_CONFIGURED/);
 });
+
+test("ecosystem keeps its clicked module selected while hover previews links", async () => {
+  const hub = await source("components/DownloadEcosystemHub.tsx");
+  assert.match(hub, /data-active-module=\{selectedId\}/);
+  assert.match(hub, /const \[selectedId, setSelectedId\]/);
+  assert.match(hub, /const \[hoveredId, setHoveredId\]/);
+  assert.match(hub, /onMouseEnter=\{\(\) => onHover\(item\.id\)\}/);
+  assert.match(hub, /onClick=\{\(\) => onSelect\(item\.id\)\}/);
+  assert.match(hub, /id="gs-ecosystem-detail"/);
+});
