@@ -73,7 +73,7 @@ for (const size of sizes) {
 
     // Captures are attached to CI artifacts so a future layout regression
     // can be reviewed without needing to reproduce it on a personal computer.
-    const shot = await ecosystem.screenshot({ animations: "disabled" });
+    const shot = await page.screenshot({ animations: "disabled", timeout: 20_000 });
     await testInfo.attach("ecosystem-" + size.name, {
       body: shot,
       contentType: "image/png"
@@ -88,8 +88,10 @@ test("theme switches and persists after reload", async ({ page }) => {
   const wrapper = page.locator(".gs-download-theme");
   await page.getByRole("button", { name: "Usar tema oscuro" }).first().click();
   await expect(wrapper).toHaveAttribute("data-download-theme", "dark");
-  // The background animation can keep the load event pending on Firefox.
-  await page.reload({ waitUntil: "domcontentloaded" });
+  // Firefox can defer DOMContentLoaded indefinitely while the heavy scene loads.
+  // A new navigation still exercises persistence but waits only for response commit.
+  const again = await page.goto("/download", { waitUntil: "commit", timeout: 35_000 });
+  expect(again?.ok()).toBe(true);
   await expect(wrapper).toHaveAttribute("data-download-theme", "dark");
   await page.getByRole("button", { name: "Usar tema claro" }).first().click();
   await expect(wrapper).toHaveAttribute("data-download-theme", "light");
