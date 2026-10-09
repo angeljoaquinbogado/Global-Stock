@@ -29,6 +29,19 @@ const issues = Object.values(report.audits || {})
   .slice(0, 15)
   .map((audit) => `- ${audit.title} (${audit.id})`);
 lines.push(...(issues.length ? issues : ["No failed table-based accessibility audits in this run."]));
+for (const id of ["aria-prohibited-attr", "color-contrast"]) {
+  const audit = report.audits?.[id];
+  const nodes = audit?.details?.items ?? [];
+  if (nodes.length) {
+    lines.push("", "### " + id + " — example affected elements");
+    for (const row of nodes.slice(0, 12)) {
+      const node = row.node || row;
+      const selector = String(node.selector || node.target?.[0] || "unknown");
+      const snippet = String(node.snippet || "").replace(/\\s+/g, " ").slice(0, 180);
+      lines.push("- \`" + selector.replace(/\\`/g, "") + "\` — " + snippet.replace(/[|]/g, "/"));
+    }
+  }
+}
 lines.push("", "Full report saved to the Actions artifact.");
 const out = lines.join("\n") + "\n";
 console.log(out);
