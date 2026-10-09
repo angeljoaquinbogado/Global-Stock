@@ -228,6 +228,13 @@ export function SmartDocumentInbox({
     };
   }, [businessId, demoMode, documents, loaded, retryToken]);
 
+  useEffect(() => {
+    if (saveState !== "error") return;
+    const onReconnect = () => setRetryToken((value) => value + 1);
+    window.addEventListener("online", onReconnect);
+    return () => window.removeEventListener("online", onReconnect);
+  }, [saveState]);
+
   async function scan(file: File) {
     setMessage("");
 
@@ -659,7 +666,7 @@ export function SmartDocumentInbox({
                     {document.approvedAt && !document.expenseId && !demoMode ? (
                       <button
                         type="button"
-                        disabled={postingId === document.id || saveState === "saving"}
+                        disabled={postingId === document.id || saveState !== "saved"}
                         onClick={() => void registerApprovedExpense(document)}
                         className="inline-flex h-10 items-center gap-2 rounded-xl bg-[#8F0000] px-3 text-xs font-semibold text-white disabled:opacity-50"
                       >
