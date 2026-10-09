@@ -4,7 +4,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
-  Boxes,
+  Package,
   BrainCircuit,
   BriefcaseBusiness,
   Calculator,
@@ -113,7 +113,7 @@ const modules: HubModule[] = [
     href: "#download-feature-sales",
     linkLabel: "Ver inventario y ventas",
     accent: "#50BBEF",
-    icon: Boxes,
+    icon: Package,
     x: 254,
     y: 494
   },
