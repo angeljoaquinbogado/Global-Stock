@@ -248,7 +248,7 @@ export function DownloadScrollNavigator() {
 
     const hero = document.getElementById("download-hero");
 
-    if (hero && isInsideHero(hero)) {
+    if (window.innerWidth >= 1024 && hero && isInsideHero(hero)) {
       const currentScene = getHeroSceneIndex(hero);
 
       if (currentScene > 0) {
@@ -283,7 +283,7 @@ export function DownloadScrollNavigator() {
 
     const hero = document.getElementById("download-hero");
 
-    if (hero && isInsideHero(hero)) {
+    if (window.innerWidth >= 1024 && hero && isInsideHero(hero)) {
       const currentScene = getHeroSceneIndex(hero);
 
       if (currentScene < HERO_SCENE_COUNT - 1) {
@@ -330,6 +330,7 @@ export function DownloadScrollNavigator() {
         isOnControl ||
         document.querySelector('[aria-modal="true"]') ||
         !hero ||
+        window.innerWidth < 1024 ||
         !isInsideHero(hero)
       ) {
         return;
