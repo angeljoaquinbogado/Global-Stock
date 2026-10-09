@@ -6,6 +6,9 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 // These three interactive panels live far below the 3D hero. Their event
 // handlers and animation modules must not compete with initial mobile
 // hydration. SEO-friendly headings remain in the static placeholder HTML.
+// A 2600px prefetch radius caused several below-the-fold animations to
+// hydrate during initial mobile paint; 650px keeps smooth scrolling without
+// competing with the cinematic hero for the main thread.
 const EcosystemHub = dynamic(
   () => import("./DownloadEcosystemHub").then((mod) => mod.DownloadEcosystemHub),
   { ssr: false }
@@ -42,7 +45,7 @@ function LazyPanel({
         setNear(true);
         observer.disconnect();
       },
-      { rootMargin: "2600px 0px", threshold: 0 }
+      { rootMargin: "650px 0px", threshold: 0 }
     );
     observer.observe(el);
     return () => observer.disconnect();
