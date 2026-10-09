@@ -7,6 +7,9 @@ on:
     paths:
       - ".github/workflows/global-stock-pos-local-qa.yml"
       - "apex-stock-os/tests/postgres/**"
+      # Also recheck when the real checkout API or DB migration code changes.
+      - "apex-stock-os/app/api/pos/**"
+      - "apex-stock-os/supabase/migrations/**"
 
 permissions:
   contents: read
