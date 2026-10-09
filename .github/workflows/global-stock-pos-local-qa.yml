@@ -1,0 +1,70 @@
+name: Global Stock Local POS QA
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/global-stock-pos-local-qa.yml"
+      - "apex-stock-os/tests/postgres/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-stock-local-pos-qa-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  isolated-pos-database:
+    name: Ephemeral PostgreSQL 17 / POS + cash + inventory
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: test-only
+          POSTGRES_USER: postgres
+          POSTGRES_DB: global_stock_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d global_stock_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 15
+    env:
+      PGHOST: localhost
+      PGPORT: "5432"
+      PGDATABASE: global_stock_test
+      PGUSER: postgres
+      PGPASSWORD: test-only
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          fi
+
+      - name: Load isolated schema
+        run: psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/fixture-schema.sql
+
+      - name: Install actual deployed POS helper functions and triggers
+        run: psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/live-helpers.sql
+
+      - name: Install actual deployed sale commit and authorized RPC functions
+        run: |
+          psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/live-sale-commit.sql
+          psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/live-sale-rpcs.sql
+
+      - name: Execute synthetic POS sale, cash, stock and return assertions
+        run: psql -v ON_ERROR_STOP=1 -f apex-stock-os/tests/postgres/assert-pos.sql
+
+      - name: Isolation reminder
+        if: always()
+        run: echo "All test products, sales and accounts lived only in the disposable PostgreSQL 17 CI service."
