@@ -322,6 +322,21 @@ export function DownloadScrollNavigator() {
 
       if (isEditing || event.repeat) return;
 
+      // The arrow-key slideshow belongs to the cinematic hero only.
+      // Elsewhere users must retain normal browser scrolling and controls.
+      const isOnControl = Boolean(
+        target?.closest('button, a, [role="slider"], [role="tab"], [role="menu"], [role="dialog"]')
+      );
+      const hero = document.getElementById("download-hero");
+      if (
+        isOnControl ||
+        document.querySelector('[aria-modal="true"]') ||
+        !hero ||
+        !isInsideHero(hero)
+      ) {
+        return;
+      }
+
       if (event.key === "ArrowDown" || event.key === "ArrowRight") {
         event.preventDefault();
         goNext();
@@ -345,7 +360,11 @@ export function DownloadScrollNavigator() {
     if (!window.matchMedia("(pointer: fine)").matches) return;
 
     const onWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || Math.abs(event.deltaY) < 1) return;
+      if (
+        event.ctrlKey ||
+        Math.abs(event.deltaY) < 1 ||
+        document.querySelector('[aria-modal="true"]')
+      ) return;
 
       const hero = document.getElementById("download-hero");
       if (!hero || !isInsideHero(hero)) {
