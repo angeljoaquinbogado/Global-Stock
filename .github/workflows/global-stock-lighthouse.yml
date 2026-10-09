@@ -9,6 +9,9 @@ on:
     paths:
       - ".github/workflows/global-stock-lighthouse.yml"
       - "apex-stock-os/scripts/qa-lighthouse-summary.mjs"
+      - "apex-stock-os/components/**"
+      - "apex-stock-os/app/download/**"
+      - "apex-stock-os/app/globals.css"
 
 permissions:
   contents: read
