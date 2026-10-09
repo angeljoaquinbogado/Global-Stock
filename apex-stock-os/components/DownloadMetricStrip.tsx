@@ -131,9 +131,8 @@ export function DownloadMetricStrip() {
                             color: accent,
                             textShadow: `0 0 18px ${accent}1a`
                           }}
-                          aria-label={`${target}${suffix}`}
                         >
-                          <span aria-hidden="true">
+                          <span>
                             {value}
                             {suffix}
                           </span>
