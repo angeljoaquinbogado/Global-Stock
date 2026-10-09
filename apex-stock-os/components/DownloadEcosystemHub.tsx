@@ -149,6 +149,30 @@ const modules: HubModule[] = [
 
 const center = { x: 500, y: 320 };
 
+// The mobile connectors use the exact 360x440 coordinates of the eight slots.
+// Trim endpoints so the animation flows out of the logo, not through buttons.
+const mobilePoints = [
+  [94, 42], [266, 42], [65, 132], [295, 132],
+  [65, 309], [295, 309], [94, 397], [266, 397]
+] as const;
+
+function mobileConnectorPath(index: number) {
+  const [x, y] = mobilePoints[index];
+  const dx = x - 180;
+  const dy = y - 220;
+  const distance = Math.hypot(dx, dy);
+  const ux = dx / distance;
+  const uy = dy / distance;
+  const sx = 180 + ux * 79;
+  const sy = 220 + uy * 79;
+  const ex = x - ux * 43;
+  const ey = y - uy * 43;
+  const bend = (index % 2 === 0 ? -1 : 1) * 8;
+  const cx = (sx + ex) / 2 - uy * bend;
+  const cy = (sy + ey) / 2 + ux * bend;
+  return `M ${sx.toFixed(1)} ${sy.toFixed(1)} Q ${cx.toFixed(1)} ${cy.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`;
+}
+
 function connectorPath(item: HubModule) {
   const dx = item.x - center.x;
   const dy = item.y - center.y;
@@ -189,8 +213,8 @@ function ModuleNode({
     <button
       type="button"
       onClick={() => onSelect(item.id)}
-      onMouseEnter={() => onHover(item.id)}
-      onMouseLeave={() => onHover(null)}
+      onMouseEnter={() => { if (!compact) onHover(item.id); }}
+      onMouseLeave={() => { if (!compact) onHover(null); }}
       onFocus={() => onSelect(item.id)}
       aria-pressed={active}
       aria-controls="gs-ecosystem-detail"
@@ -389,20 +413,42 @@ export function DownloadEcosystemHub() {
                 preserveAspectRatio="none"
                 aria-hidden="true"
               >
+                <defs>
+                  {modules.map((item) => (
+                    <linearGradient key={item.id} id={"gs-hub-mobile-gradient-" + item.id} x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#8F0000" stopOpacity=".3" />
+                      <stop offset="58%" stopColor={item.accent} stopOpacity=".95" />
+                      <stop offset="100%" stopColor={item.accent} stopOpacity=".5" />
+                    </linearGradient>
+                  ))}
+                </defs>
                 <circle cx="180" cy="220" r="103" fill="none" stroke="var(--gs-hub-orbit)" strokeDasharray="3 8" />
                 <circle cx="180" cy="220" r="156" fill="none" stroke="var(--gs-hub-orbit)" strokeDasharray="2 10" />
-                {[
-                  [94, 42], [266, 42], [65, 132], [295, 132],
-                  [65, 309], [295, 309], [94, 397], [266, 397]
-                ].map(([x, y], index) => (
-                  <line
-                    key={modules[index].id}
-                    x1="180" y1="220" x2={x} y2={y}
-                    stroke={modules[index].id === highlightedId ? modules[index].accent : "var(--gs-hub-line)"}
-                    strokeWidth={modules[index].id === highlightedId ? "2" : "1"}
-                    strokeDasharray={modules[index].id === highlightedId ? undefined : "3 6"}
-                  />
+                {modules.map((item, index) => (
+                  <g key={item.id}>
+                    <path d={mobileConnectorPath(index)} className="gs-ecosystem-line-base" />
+                    <path
+                      d={mobileConnectorPath(index)}
+                      className={"gs-ecosystem-line-flow " + (item.id === highlightedId ? "is-active" : "")}
+                      stroke={"url(#gs-hub-mobile-gradient-" + item.id + ")"}
+                      style={{ animationDelay: -(index * .57) + "s" }}
+                    />
+                  </g>
                 ))}
+                <AnimatePresence initial={false} mode="wait">
+                  <motion.path
+                    key={highlighted.id}
+                    d={mobileConnectorPath(modules.findIndex((item) => item.id === highlighted.id))}
+                    fill="none"
+                    stroke={highlighted.accent}
+                    strokeWidth="2.8"
+                    strokeLinecap="round"
+                    initial={reducedMotion ? false : { opacity: 0, pathLength: 0 }}
+                    animate={{ opacity: .96, pathLength: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: reducedMotion ? 0 : .54, ease: [0.22, 1, .36, 1] }}
+                  />
+                </AnimatePresence>
               </svg>
               <div className="gs-ecosystem-mobile-center absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-[24px] px-3 py-3 text-center">
                 <DownloadLogo className="h-[48px] w-[48px] sm:h-[60px] sm:w-[60px]" alt="Global Stock" />
