@@ -1,0 +1,62 @@
+name: Global Stock Public Lighthouse Audit
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "43 12 * * 1"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/global-stock-lighthouse.yml"
+      - "apex-stock-os/scripts/qa-lighthouse-summary.mjs"
+
+permissions:
+  contents: read
+
+jobs:
+  public-quality-audit:
+    name: Lighthouse performance, accessibility and SEO
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Find browser
+        run: |
+          if command -v google-chrome >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v google-chrome)" >> "$GITHUB_ENV"
+          elif command -v google-chrome-stable >/dev/null 2>&1; then
+            echo "CHROME_PATH=$(command -v google-chrome-stable)" >> "$GITHUB_ENV"
+          else
+            echo "Chrome not on hosted runner"; exit 1
+          fi
+
+      - name: Audit real deployed public landing
+        run: |
+          mkdir -p artifacts
+          npx --yes lighthouse@12.8.2 https://globalstocks.vercel.app/download \
+            --only-categories=performance,accessibility,best-practices,seo \
+            --form-factor=mobile \
+            --screenEmulation.mobile=true \
+            --chrome-flags="--headless --no-sandbox --disable-gpu" \
+            --output=json \
+            --output-path=artifacts/lighthouse-mobile.json \
+            --quiet
+
+      - name: Summarize evidence and prominent issues
+        run: node apex-stock-os/scripts/qa-lighthouse-summary.mjs artifacts/lighthouse-mobile.json
+
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-stock-lighthouse
+          path: artifacts/
+          retention-days: 14
+          if-no-files-found: warn
