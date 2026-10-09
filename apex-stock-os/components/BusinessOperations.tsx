@@ -1076,6 +1076,13 @@ export function DocumentsHub({
   demoMode: boolean;
 }) {
   const t = copy[language];
+  const docStatus = {
+    es: { error: "Cambios pendientes · no sincronizados con la nube", saving: "Guardando comprobantes…", saved: "Comprobantes sincronizados", local: "Guardado en este dispositivo", retry: "Reintentar" },
+    en: { error: "Pending changes · not synced to cloud", saving: "Saving documents…", saved: "Documents synced", local: "Saved on this device", retry: "Retry" },
+    pt: { error: "Alterações pendentes · não sincronizadas", saving: "Salvando documentos…", saved: "Documentos sincronizados", local: "Salvo neste dispositivo", retry: "Tentar novamente" },
+    fr: { error: "Modifications en attente · non synchronisées", saving: "Enregistrement…", saved: "Documents synchronisés", local: "Enregistré sur cet appareil", retry: "Réessayer" },
+    de: { error: "Ausstehende Änderungen · nicht synchronisiert", saving: "Dokumente werden gespeichert…", saved: "Dokumente synchronisiert", local: "Auf diesem Gerät gespeichert", retry: "Erneut versuchen" }
+  }[language];
   const [documents, setDocuments] = useState<BusinessDocument[]>([]);
   const [documentsReady, setDocumentsReady] = useState(false);
   const [docSyncState, setDocSyncState] = useState<"idle" | "saved" | "saving" | "error" | "local">("idle");
@@ -1326,13 +1333,13 @@ export function DocumentsHub({
       <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-2 text-xs text-[var(--apex-muted)]">
         <span>
           {docSyncState === "error"
-            ? "Cambios pendientes · no sincronizados con la nube"
+            ? docStatus.error
             : docSyncState === "saving"
-              ? "Guardando comprobantes…"
+              ? docStatus.saving
               : docSyncState === "saved"
-                ? "Comprobantes sincronizados"
+                ? docStatus.saved
                 : docSyncState === "local"
-                  ? "Comprobantes guardados en este dispositivo"
+                  ? docStatus.local
                   : ""}
         </span>
         {docSyncState === "error" && !demoMode && businessId ? (
@@ -1342,7 +1349,7 @@ export function DocumentsHub({
             onClick={() => setDocRetry((current) => current + 1)}
           >
             <RefreshCw size={13} />
-            Reintentar
+            {docStatus.retry}
           </button>
         ) : null}
       </div>
