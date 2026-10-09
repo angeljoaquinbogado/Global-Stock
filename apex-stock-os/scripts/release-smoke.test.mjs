@@ -26,8 +26,12 @@ test("ecosystem has all eight modules and a responsive stage", async () => {
     assert.ok(hub.includes('id: "' + id + '"'), "Missing hub module: " + id);
   }
   assert.match(hub, /ResizeObserver/);
-  assert.match(hub, /gs-ecosystem-mobile-grid/);
+  assert.match(hub, /gs-ecosystem-mobile-orbit/);
+  assert.match(hub, /gs-ecosystem-mobile-slot/);
   assert.match(css, /\.gs-ecosystem-stage/);
+  const polish = await source("app/download/visual-polish.css");
+  assert.match(polish, /\.gs-ecosystem-mobile-slot--7/);
+  assert.match(polish, /\.gs-cinematic-device-stage/);
 });
 
 test("native wheel scrolling and scoped keyboard navigation", async () => {
