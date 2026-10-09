@@ -20,7 +20,7 @@ import {
   Truck,
   Unplug
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   loadCloudWorkspace,
@@ -1078,6 +1078,10 @@ export function DocumentsHub({
   const t = copy[language];
   const [documents, setDocuments] = useState<BusinessDocument[]>([]);
   const [documentsReady, setDocumentsReady] = useState(false);
+  const [docSyncState, setDocSyncState] = useState<"idle" | "saved" | "saving" | "error" | "local">("idle");
+  const [docRetry, setDocRetry] = useState(0);
+  const docQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const docRevisionRef = useRef(0);
   const [type, setType] = useState<DocumentType>("invoice");
   const [customer, setCustomer] = useState("");
   const [description, setDescription] = useState("");
@@ -1094,7 +1098,15 @@ export function DocumentsHub({
         demoMode
       );
 
+      let pendingLocal: BusinessDocument[] | null = null;
       try {
+        const pending = storageKey && !demoMode
+          ? localStorage.getItem(storageKey + ":pending")
+          : null;
+        if (pending) {
+          const parsed: unknown = JSON.parse(pending);
+          if (Array.isArray(parsed)) pendingLocal = parsed as BusinessDocument[];
+        }
         const raw = storageKey
           ? localStorage.getItem(storageKey)
           : null;
@@ -1123,8 +1135,10 @@ export function DocumentsHub({
         }
       }
 
+      if (pendingLocal) next = pendingLocal;
       if (!cancelled) {
         setDocuments(next);
+        setDocSyncState(pendingLocal ? "error" : demoMode ? "local" : "idle");
         setDocumentsReady(true);
       }
     }
@@ -1139,26 +1153,60 @@ export function DocumentsHub({
 
   useEffect(() => {
     if (!documentsReady) return;
-
     const storageKey = businessStorageKey(
-      "global-stock-documents-v1",
-      businessId,
-      demoMode
+      "global-stock-documents-v1", businessId, demoMode
     );
-    if (storageKey) {
-      localStorage.setItem(storageKey, JSON.stringify(documents));
+    const snapshot = documents.slice(0, 250);
+    const revision = ++docRevisionRef.current;
+    try {
+      if (storageKey) {
+        window.localStorage.setItem(storageKey, JSON.stringify(snapshot));
+        if (!demoMode && businessId) {
+          window.localStorage.setItem(storageKey + ":pending", JSON.stringify(snapshot));
+        }
+      }
+    } catch {
+      setDocSyncState("error");
+      return;
     }
-
-    if (demoMode || !businessId) return;
-
+    if (demoMode || !businessId) {
+      setDocSyncState("local");
+      return;
+    }
+    setDocSyncState("saving");
+    let cancelled = false;
     const timer = window.setTimeout(() => {
-      void saveCloudWorkspace(businessId, {
-        internalDocuments: documents
+      docQueueRef.current = docQueueRef.current.catch(() => undefined).then(async () => {
+        if (cancelled || revision !== docRevisionRef.current) return;
+        let saved = false;
+        for (let i = 0; i < 3; i += 1) {
+          try {
+            saved = await saveCloudWorkspace(businessId, { internalDocuments: snapshot });
+          } catch {
+            saved = false;
+          }
+          if (saved || cancelled || revision !== docRevisionRef.current) break;
+          await new Promise<void>((resolve) => window.setTimeout(resolve, 650 * (i + 1)));
+        }
+        if (cancelled || revision !== docRevisionRef.current) return;
+        if (saved) {
+          try { if (storageKey) window.localStorage.removeItem(storageKey + ":pending"); }
+          catch { /* Backup remains until storage can be accessed. */ }
+          setDocSyncState("saved");
+        } else {
+          setDocSyncState("error");
+        }
       });
-    }, 350);
+    }, 450);
+    return () => { cancelled = true; window.clearTimeout(timer); };
+  }, [businessId, demoMode, documents, documentsReady, docRetry]);
 
-    return () => window.clearTimeout(timer);
-  }, [businessId, demoMode, documents, documentsReady]);
+  useEffect(() => {
+    if (docSyncState !== "error") return;
+    const onReconnect = () => setDocRetry((value) => value + 1);
+    window.addEventListener("online", onReconnect);
+    return () => window.removeEventListener("online", onReconnect);
+  }, [docSyncState]);
 
   const totals = useMemo(
     () =>
@@ -1275,6 +1323,29 @@ export function DocumentsHub({
         title={t.documentsTitle}
         subtitle={t.documentsSubtitle}
       />
+      <div role="status" aria-live="polite" className="flex flex-wrap items-center gap-2 text-xs text-[var(--apex-muted)]">
+        <span>
+          {docSyncState === "error"
+            ? "Cambios pendientes · no sincronizados con la nube"
+            : docSyncState === "saving"
+              ? "Guardando comprobantes…"
+              : docSyncState === "saved"
+                ? "Comprobantes sincronizados"
+                : docSyncState === "local"
+                  ? "Comprobantes guardados en este dispositivo"
+                  : ""}
+        </span>
+        {docSyncState === "error" && !demoMode && businessId ? (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 rounded-lg border border-amber-500/20 px-2 py-1 font-semibold text-amber-500"
+            onClick={() => setDocRetry((current) => current + 1)}
+          >
+            <RefreshCw size={13} />
+            Reintentar
+          </button>
+        ) : null}
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(360px,.68fr)_1.32fr]">
         <section className="apex-card h-fit p-5 xl:sticky xl:top-24">
