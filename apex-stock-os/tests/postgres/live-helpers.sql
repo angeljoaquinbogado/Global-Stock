@@ -14,7 +14,7 @@ AS $function$
     and m.user_id = (select auth.uid())
     and m.active = true
   limit 1;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_is_member(target_business_id uuid)
@@ -30,7 +30,7 @@ AS $function$
       and m.user_id = auth.uid()
       and m.active = true
   );
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_can_write(target_business_id uuid, domain text)
@@ -65,7 +65,7 @@ begin
     else false
   end;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_seed_inventory_levels(target_business_id uuid)
@@ -125,7 +125,7 @@ begin
   get diagnostics inserted_count = row_count;
   return inserted_count;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_apply_stock_movement()
@@ -241,7 +241,7 @@ begin
 
   return new;
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_recalculate_sale_totals()
@@ -278,7 +278,7 @@ begin
 
   return coalesce(new, old);
 end;
-$function$
+$function$;
 
 
 create trigger gs_apply_stock_movement after insert on public.global_stock_stock_movements
