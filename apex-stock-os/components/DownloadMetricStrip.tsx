@@ -66,11 +66,14 @@ export function DownloadMetricStrip() {
     const section = sectionRef.current;
     if (!section) return;
 
+    // Arm entrance animation only after JS is ready; without JS all cards remain visible.
+    section.dataset.metricsArmed = "true";
     const reducedMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
     if (reducedMotion) {
+      section.dataset.metricsVisible = "true";
       writeMetricValues(valueNodesRef.current, 1);
       startedRef.current = true;
       return;
@@ -79,6 +82,7 @@ export function DownloadMetricStrip() {
     const startCount = () => {
       if (startedRef.current) return;
       startedRef.current = true;
+      section.dataset.metricsVisible = "true";
 
       const startedAt = performance.now();
 
