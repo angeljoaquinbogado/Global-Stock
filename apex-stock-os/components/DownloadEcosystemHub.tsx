@@ -174,11 +174,13 @@ function ModuleNode({
   item,
   active,
   onSelect,
+  onHover,
   compact = false
 }: {
   item: HubModule;
   active: boolean;
   onSelect: (id: string) => void;
+  onHover: (id: string | null) => void;
   compact?: boolean;
 }) {
   const Icon = item.icon;
@@ -187,7 +189,8 @@ function ModuleNode({
     <button
       type="button"
       onClick={() => onSelect(item.id)}
-      onMouseEnter={() => onSelect(item.id)}
+      onMouseEnter={() => onHover(item.id)}
+      onMouseLeave={() => onHover(null)}
       onFocus={() => onSelect(item.id)}
       aria-pressed={active}
       aria-controls="gs-ecosystem-detail"
@@ -218,7 +221,9 @@ function ModuleNode({
 }
 
 export function DownloadEcosystemHub() {
-  const [activeId, setActiveId] = useState("ia");
+  const [selectedId, setSelectedId] = useState("ia");
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const highlightedId = hoveredId ?? selectedId;
   const stageRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
   const [diagramScale, setDiagramScale] = useState(0.8);
@@ -254,13 +259,15 @@ export function DownloadEcosystemHub() {
   }, []);
 
   const reducedMotion = useReducedMotion();
-  const active = modules.find((item) => item.id === activeId) ?? modules[7];
+  const active = modules.find((item) => item.id === selectedId) ?? modules[7];
+  const highlighted = modules.find((item) => item.id === highlightedId) ?? active;
   const ActiveIcon = active.icon;
 
   return (
     <section
       ref={sectionRef}
       id="download-network"
+      data-active-module={selectedId}
       data-download-section
       className="gs-ecosystem-section relative scroll-mt-20 overflow-hidden border-t"
       aria-labelledby="gs-ecosystem-heading"
@@ -325,7 +332,7 @@ export function DownloadEcosystemHub() {
                     d={connectorPath(item)}
                     className={
                       "gs-ecosystem-line-flow " +
-                      (item.id === activeId ? "is-active" : "")
+                      (item.id === highlightedId ? "is-active" : "")
                     }
                     stroke={"url(#gs-hub-gradient-" + item.id + ")"}
                     style={{ animationDelay: -(index * .57) + "s" }}
@@ -335,10 +342,10 @@ export function DownloadEcosystemHub() {
 
               <AnimatePresence mode="wait" initial={false}>
                 <motion.path
-                  key={active.id}
-                  d={connectorPath(active)}
+                  key={highlighted.id}
+                  d={connectorPath(highlighted)}
                   fill="none"
-                  stroke={active.accent}
+                  stroke={highlighted.accent}
                   strokeWidth="2.5"
                   strokeLinecap="round"
                   initial={reducedMotion ? false : { opacity: 0, pathLength: 0 }}
@@ -363,8 +370,9 @@ export function DownloadEcosystemHub() {
               <ModuleNode
                 key={item.id}
                 item={item}
-                active={activeId === item.id}
-                onSelect={setActiveId}
+                active={selectedId === item.id}
+                onSelect={setSelectedId}
+                onHover={setHoveredId}
               />
             ))}
           </div>
@@ -384,18 +392,18 @@ export function DownloadEcosystemHub() {
                 <ModuleNode
                   key={item.id}
                   item={item}
-                  active={activeId === item.id}
-                  onSelect={setActiveId}
+                  active={selectedId === item.id}
+                  onSelect={setSelectedId}
+                  onHover={setHoveredId}
                   compact
                 />
               ))}
             </div>
           </div>
 
-          <div className="gs-ecosystem-detail-wrap relative border-t px-5 py-6 sm:px-8 sm:py-8">
+          <div id="gs-ecosystem-detail" className="gs-ecosystem-detail-wrap relative border-t px-5 py-6 sm:px-8 sm:py-8">
             <AnimatePresence mode="wait" initial={false}>
               <motion.div
-                id="gs-ecosystem-detail"
                 key={active.id}
                 className="gs-ecosystem-detail mx-auto flex max-w-[1030px] flex-col gap-5 sm:flex-row sm:items-center sm:gap-6"
                 initial={reducedMotion ? false : { opacity: 0, y: 8 }}
