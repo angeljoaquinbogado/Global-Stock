@@ -6,9 +6,11 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 5
     ignore:
-      # ESLint 10 breaks eslint-plugin-react shipped by eslint-config-next 16.3.8.
-      # Keep supported ESLint 9.x fixes until the framework plugin supports 10.x.
-      - dependency-name: "eslint"
+      # Major version bumps of ESLint, Tailwind, TypeScript, React UI libs, etc.
+      # require coordinated migrations; automatically generated major PRs have
+      # broken CI (e.g. ESLint 10 and Tailwind 4 vs our Next/Tailwind 3 config).
+      # Allow minor/patch/security updates and review majors manually.
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
     labels:
       - "dependencies"
