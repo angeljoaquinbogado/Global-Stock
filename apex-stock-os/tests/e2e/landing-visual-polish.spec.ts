@@ -308,9 +308,17 @@ test("all three secondary mobile intro screens have readable typography", async 
     { index: 3, name: "ai", title: "Global Intelligence", specific: ".gs-cine-hires-chat-answer strong" }
   ];
   for (const state of states) {
-    await hero.locator("[data-scene-dot-button]").nth(state.index).click();
+    const dot = hero.locator("[data-scene-dot-button]").nth(state.index);
+    await dot.scrollIntoViewIfNeeded();
+    await dot.click();
     await expect(hero).toHaveAttribute("data-active-scene", String(state.index));
     await expect(screen).toHaveAttribute("data-cine-screen", state.name);
+    // Regression for Firefox: the old draggable-dot logic could override a
+    // tap with an earlier scene while the previous transition was finishing.
+    await expect.poll(() => hero.getAttribute("data-active-scene"), {
+      timeout: 2500,
+      intervals: [250, 500, 700]
+    }).toBe(String(state.index));
     await expect(screen.locator(".gs-cine-hires-title")).toHaveText(state.title);
     const reading = await screen.evaluate((node, selector) => {
       const title = node.querySelector(".gs-cine-hires-title") as HTMLElement;
