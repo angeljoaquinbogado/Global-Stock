@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Boxes, BrainCircuit, Check, CircleDollarSign, TrendingUp } from "lucide-react";
+import { ArrowRight, Package, BrainCircuit, Check, CircleDollarSign, TrendingUp } from "lucide-react";
 import {
   AnimatePresence,
   motion,
@@ -131,7 +131,7 @@ const easeOut = [0.23, 1, 0.32, 1] as const;
 
 function SceneGlyph({ screen }: { screen: DemoScreen }) {
   if (screen === "pos") return <CircleDollarSign size={16} />;
-  if (screen === "inventory") return <Boxes size={16} />;
+  if (screen === "inventory") return <Package size={16} strokeWidth={2.3} />;
   if (screen === "ai") return <BrainCircuit size={16} />;
   return <TrendingUp size={16} />;
 }
@@ -327,69 +327,6 @@ function SceneStats({ scene }: { scene: StoryScene }) {
             </motion.div>
           );
         })}
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-function SceneAmbientSymbols({ scene }: { scene: StoryScene }) {
-  const icons =
-    scene.screen === "pos"
-      ? [<CircleDollarSign key="sale" />, <Check key="check" />, <TrendingUp key="trend" />]
-      : scene.screen === "inventory"
-        ? [<Boxes key="boxes" />, <Check key="check" />, <TrendingUp key="trend" />]
-        : scene.screen === "ai"
-          ? [<BrainCircuit key="brain" />, <TrendingUp key="trend" />, <Boxes key="boxes" />]
-          : [<TrendingUp key="trend" />, <Boxes key="boxes" />, <CircleDollarSign key="cash" />];
-
-  const positions = [
-    { left: "calc(50% - 205px)", top: "17%" },
-    { left: "calc(50% + 162px)", top: "28%" },
-    { left: "calc(50% + 118px)", bottom: "15%" }
-  ];
-
-  return (
-    <AnimatePresence mode="wait" initial={false}>
-      <motion.div
-        key={scene.id + "-symbols"}
-        className="gs-cinematic-scene-symbols pointer-events-none absolute inset-0 z-[8]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: .22, ease: easeOut }}
-        aria-hidden="true"
-      >
-        {icons.map((icon, index) => (
-          <motion.span
-            key={index}
-            className={`gs-cinematic-scene-symbol gs-cinematic-scene-symbol--${index + 1} absolute grid place-items-center rounded-full`}
-            style={
-              {
-                ...positions[index],
-                "--gs-symbol-accent": scene.accent
-              } as unknown as CSSProperties
-            }
-            initial={{
-              opacity: 0,
-              transform: "translate3d(0,10px,0) scale(.92)"
-            }}
-            animate={{
-              opacity: 1,
-              transform: "translate3d(0,0,0) scale(1)"
-            }}
-            exit={{
-              opacity: 0,
-              transform: "translate3d(0,-6px,0) scale(.96)"
-            }}
-            transition={{
-              duration: .30,
-              delay: index * .055,
-              ease: easeOut
-            }}
-          >
-            {icon}
-          </motion.span>
-        ))}
       </motion.div>
     </AnimatePresence>
   );
@@ -722,7 +659,6 @@ export function DownloadCinematicHero() {
           </AnimatePresence>
 
           <SceneStats scene={scene} />
-          <SceneAmbientSymbols scene={scene} />
 
           <div
             className="gs-cinematic-device-stage pointer-events-none absolute left-1/2 top-[37%] z-10 -translate-x-1/2 -translate-y-1/2 lg:top-[48%]"
