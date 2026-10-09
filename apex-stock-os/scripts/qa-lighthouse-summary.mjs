@@ -10,7 +10,7 @@ const scores = Object.entries(report.categories || {}).map(([key, cat]) => ({
 }));
 if (!scores.length) throw new Error("No Lighthouse categories found");
 const lines = [
-  "## Global Stock public landing — Lighthouse lab (mobile)",
+  `## Global Stock public landing — Lighthouse lab (${process.argv[3] === "desktop" ? "desktop" : "mobile"})`,
   "",
   "| Category | Score / 100 |",
   "| --- | ---: |",
