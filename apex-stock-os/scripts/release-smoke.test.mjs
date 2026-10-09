@@ -62,3 +62,21 @@ test("download theme restores saved preference before painting", async () => {
   assert.match(theme, /document\.currentScript\.parentElement/);
   assert.match(theme, /suppressHydrationWarning/);
 });
+
+test("internal documents recover failed cloud writes and expose retry", async () => {
+  const operations = await source("components/BusinessOperations.tsx");
+  assert.match(operations, /docQueueRef/);
+  assert.match(operations, /docSyncState/);
+  assert.match(operations, /internalDocuments: snapshot/);
+  assert.match(operations, /:pending/);
+  assert.match(operations, /setDocRetry/);
+});
+
+test("fiscal issuance stays separate from approved document expense posting", async () => {
+  const inbox = await source("components/SmartDocumentInbox.tsx");
+  const fiscal = await source("components/FiscalDocumentsCenter.tsx");
+  assert.match(inbox, /global_stock_expenses/);
+  assert.match(inbox, /no modifica caja ni stock automáticamente/);
+  assert.match(fiscal, /providerReady/);
+  assert.match(fiscal, /FISCAL_PROVIDER_NOT_CONFIGURED/);
+});
