@@ -23,12 +23,14 @@ for (const size of [
       const phone = document.querySelector(".gs-cinematic-phone-shell")!.getBoundingClientRect();
       const copy = document.querySelector(".gs-cinematic-copy-surface")!.getBoundingClientRect();
       return {
-        phoneBottom: phone.bottom,
-        copyTop: copy.top,
+        overlapWidth: Math.max(0, Math.min(phone.right, copy.right) - Math.max(phone.left, copy.left)),
+        overlapHeight: Math.max(0, Math.min(phone.bottom, copy.bottom) - Math.max(phone.top, copy.top)),
         horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth
       };
     });
-    expect(geometry.copyTop, "text card must start beneath phone").toBeGreaterThanOrEqual(geometry.phoneBottom - 2);
+    // Phones stack vertically. Tablets use side-by-side layout like desktop.
+    // In either case the actual rectangles must never intersect.
+    expect(geometry.overlapWidth * geometry.overlapHeight, "text must not cover animated phone").toBe(0);
     expect(geometry.horizontalOverflow, "viewport should not overflow horizontally").toBeLessThanOrEqual(2);
 
     const quickTabs = page.locator(".gs-download-platform-tabs").first();
@@ -89,7 +91,7 @@ test("mobile ecosystem keeps eight interactive modules around center logo", asyn
 test("desktop scroll hint does not cover the CTA", async ({ page }) => {
   await openLanding(page, 1280, 768);
   const hint = await page.locator(".gs-cinematic-scroll-note").boundingBox();
-  const cta = await page.locator(".gs-cinematic-copy .gs-download-primary-action").boundingBox();
+  const cta = await page.locator(".gs-cinematic-copy .gs-download-primary-action").first().boundingBox();
   expect(hint).not.toBeNull();
   expect(cta).not.toBeNull();
   const intersectionWidth = Math.max(0, Math.min(hint!.x + hint!.width, cta!.x + cta!.width) - Math.max(hint!.x, cta!.x));
