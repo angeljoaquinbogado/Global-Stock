@@ -183,3 +183,31 @@ test("mobile metric values and labels are vertically separated", async ({ page }
   expect(metrics).toHaveLength(3);
   expect(metrics.every(({ gap, inside }) => gap >= 4 && inside)).toBe(true);
 });
+
+
+test("mobile hero uses polished silver chassis while desktop keeps graphite", async ({ page }) => {
+  await openLanding(page, 390, 844);
+  const hero = page.locator("#download-hero");
+  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
+  const frame = hero.locator(".gs-phone-preview-stage-cinematic .gs-phone-preview-device > div");
+  await expect(frame).toBeVisible();
+  const mobileFrame = await frame.evaluate((element) =>
+    getComputedStyle(element).getPropertyValue("--iphone-frame").trim()
+  );
+  expect(mobileFrame.toLowerCase()).toBe("#d8d8d3");
+  const chassis = hero.locator(".gs-cinematic-phone-motion");
+  const detail = await chassis.evaluate((element) => {
+    const style = getComputedStyle(element, "::before");
+    return { content: style.content, background: style.backgroundImage, transform: style.transform };
+  });
+  expect(detail.content).not.toBe("none");
+  expect(detail.background).toContain("linear-gradient");
+  expect(detail.transform).not.toBe("none");
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(hero).toHaveAttribute("data-mobile-intro", "scroll");
+  const desktopFrame = await frame.evaluate((element) =>
+    getComputedStyle(element).getPropertyValue("--iphone-frame").trim()
+  );
+  expect(desktopFrame.toLowerCase()).toBe("#343637");
+});
