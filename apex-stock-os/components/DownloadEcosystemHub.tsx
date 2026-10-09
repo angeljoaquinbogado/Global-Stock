@@ -378,25 +378,52 @@ export function DownloadEcosystemHub() {
           </div>
           </div>
 
-          <div className="gs-ecosystem-mobile px-4 pb-4 pt-8 sm:px-6 sm:pb-6 lg:hidden">
-            <div className="gs-ecosystem-mobile-center mx-auto flex max-w-[240px] flex-col items-center rounded-[30px] px-5 py-5 text-center">
-              <DownloadLogo className="h-[68px] w-[68px]" alt="Global Stock" />
-              <strong className="mt-2 text-lg tracking-[-.04em]">Global Stock</strong>
-              <span className="gs-ecosystem-center-caption mt-1 text-[9px] font-bold uppercase tracking-[.16em]">
-                Ecosistema integrado
-              </span>
-            </div>
-            <div className="gs-ecosystem-mobile-connector mx-auto h-8 w-px" aria-hidden="true" />
-            <div className="gs-ecosystem-mobile-grid grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
-              {modules.map((item) => (
-                <ModuleNode
+          <div className="gs-ecosystem-mobile px-2 py-6 sm:px-6 sm:py-8 lg:hidden">
+            {/* Same interactive orbit concept as desktop, scaled for narrow screens:
+                Global Stock in the center, eight real module buttons around it.
+                Connectors remain decorative, buttons remain focusable/tappable. */}
+            <div className="gs-ecosystem-mobile-orbit relative mx-auto">
+              <svg
+                className="gs-ecosystem-mobile-lines pointer-events-none absolute inset-0 h-full w-full"
+                viewBox="0 0 360 440"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
+                <circle cx="180" cy="220" r="103" fill="none" stroke="var(--gs-hub-orbit)" strokeDasharray="3 8" />
+                <circle cx="180" cy="220" r="156" fill="none" stroke="var(--gs-hub-orbit)" strokeDasharray="2 10" />
+                {[
+                  [94, 42], [266, 42], [65, 132], [295, 132],
+                  [65, 309], [295, 309], [94, 397], [266, 397]
+                ].map(([x, y], index) => (
+                  <line
+                    key={modules[index].id}
+                    x1="180" y1="220" x2={x} y2={y}
+                    stroke={modules[index].id === highlightedId ? modules[index].accent : "var(--gs-hub-line)"}
+                    strokeWidth={modules[index].id === highlightedId ? "2" : "1"}
+                    strokeDasharray={modules[index].id === highlightedId ? undefined : "3 6"}
+                  />
+                ))}
+              </svg>
+              <div className="gs-ecosystem-mobile-center absolute left-1/2 top-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-[24px] px-3 py-3 text-center">
+                <DownloadLogo className="h-[48px] w-[48px] sm:h-[60px] sm:w-[60px]" alt="Global Stock" />
+                <strong className="mt-1 text-[13px] font-semibold tracking-[-.04em] sm:text-base">Global Stock</strong>
+                <span className="gs-ecosystem-center-caption mt-1 text-[7px] font-bold uppercase tracking-[.12em]">
+                  Todo conectado
+                </span>
+              </div>
+              {modules.map((item, index) => (
+                <div
                   key={item.id}
-                  item={item}
-                  active={selectedId === item.id}
-                  onSelect={setSelectedId}
-                  onHover={setHoveredId}
-                  compact
-                />
+                  className={`gs-ecosystem-mobile-slot gs-ecosystem-mobile-slot--${index} absolute z-20`}
+                >
+                  <ModuleNode
+                    item={item}
+                    active={selectedId === item.id}
+                    onSelect={setSelectedId}
+                    onHover={setHoveredId}
+                    compact
+                  />
+                </div>
               ))}
             </div>
           </div>
