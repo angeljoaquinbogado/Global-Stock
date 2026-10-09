@@ -3199,6 +3199,23 @@ textarea:focus-visible {
   outline-offset: 3px;
 }
 
+@media (min-width: 1024px) and (max-height: 740px) {
+  /* The complete orbit scales to the available screen height. Restore label
+     sizes inside the fixed canvas so short-window text stays readable. */
+  .gs-ecosystem-node-title {
+    font-size: 15px;
+  }
+
+  .gs-ecosystem-node--orbit {
+    min-width: 155px;
+    min-height: 54px;
+  }
+
+  .gs-ecosystem-center > strong {
+    font-size: 21px;
+  }
+}
+
 @media (max-width: 420px) {
   .gs-ecosystem-node--compact {
     gap: 7px;
