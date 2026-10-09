@@ -214,3 +214,34 @@ test("mobile hero uses polished silver chassis while desktop keeps graphite", as
   );
   expect(desktopFrame.toLowerCase()).toBe("#343637");
 });
+
+
+test("cinematic mobile screen is readable while desktop keeps its original live preview", async ({ page }) => {
+  test.setTimeout(50_000);
+  await openLanding(page, 390, 844);
+  const hero = page.locator("#download-hero");
+  const crisp = hero.locator(".gs-cine-mobile-ui");
+  const original = hero.locator(".gs-cine-original-ui");
+  await expect(crisp).toBeVisible();
+  await expect(original).toBeHidden();
+  await expect(crisp.getByText("Centro de control")).toBeVisible();
+  await expect(crisp.locator(".gs-cine-hires-kpi-value")).toHaveCount(4);
+  const sizes = await crisp.evaluate((node) => {
+    const root = node.querySelector(".gs-cine-hires")!;
+    const title = node.querySelector(".gs-cine-hires-title")!;
+    const value = node.querySelector(".gs-cine-hires-kpi-value")!;
+    return {
+      title: parseFloat(getComputedStyle(title).fontSize),
+      value: parseFloat(getComputedStyle(value).fontSize),
+      fits: root.scrollWidth <= root.clientWidth + 1
+    };
+  });
+  expect(sizes.title).toBeGreaterThanOrEqual(13);
+  expect(sizes.value).toBeGreaterThanOrEqual(11);
+  expect(sizes.fits).toBe(true);
+  await hero.locator("[data-scene-dot-button]").nth(2).click();
+  await expect(crisp.getByText("Inventario", { exact: true }).first()).toBeVisible();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(crisp).toBeHidden();
+  await expect(original).toBeVisible();
+});
