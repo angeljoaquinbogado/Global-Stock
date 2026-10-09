@@ -1,5 +1,6 @@
 -- Exact deployed RPC wrapper and sale-return function; local PostgreSQL only.
--- Source captured through read-only pg_get_functiondef on 2026-10-09.
+-- Starting point captured via read-only pg_get_functiondef on 2026-10-09.
+-- TEST-ONLY hardening: idempotent replay lock/early lookup and duplicate line rejection.
 
 CREATE OR REPLACE FUNCTION public.global_stock_record_pos_sale(target_business_id uuid, operation_id text, sale_currency text, sale_total numeric, sale_cost_total numeric, target_customer_id uuid, sale_lines jsonb, sale_payments jsonb, received_amount numeric)
  RETURNS uuid
@@ -34,6 +35,9 @@ declare
   location_text text;
   location_value uuid;
   normalized_currency text;
+  already_committed_sale uuid;
+  seen_line_keys text[] := ARRAY[]::text[];
+  current_line_key text;
 begin
   if (select auth.uid()) is null
      or not public.global_stock_can_write(target_business_id, 'sales') then
@@ -44,6 +48,25 @@ begin
      or length(trim(operation_id)) < 8
      or length(operation_id) > 160 then
     raise exception 'invalid operation id';
+  end if;
+
+  -- Serialize retries for this business + client operation ID.
+  -- Check the original sale BEFORE stock checks, since the first call may
+  -- legitimately have sold the final available unit.
+  perform pg_advisory_xact_lock(
+    hashtext(target_business_id::text),
+    hashtext(operation_id)
+  );
+
+  select s.id into already_committed_sale
+  from public.global_stock_sales s
+  where s.business_id=target_business_id
+    and s.channel='pos'
+    and s.external_id='client:'||operation_id
+  limit 1;
+
+  if already_committed_sale is not null then
+    return already_committed_sale;
   end if;
 
   normalized_currency := upper(trim(coalesce(sale_currency, '')));
@@ -107,6 +130,17 @@ begin
     if product_key_value is null or length(product_key_value) > 256 then
       raise exception 'invalid sale line';
     end if;
+
+    -- Otherwise identical keys produce two sale_items, but an ON CONFLICT
+    -- stock movement with the same operation_id only deducts one line.
+    current_line_key := jsonb_build_array(
+      product_key_value,
+      nullif(trim(coalesce(line->>'variantId', '')), '')
+    )::text;
+    if current_line_key = any(seen_line_keys) then
+      raise exception 'duplicate sale line';
+    end if;
+    seen_line_keys := array_append(seen_line_keys, current_line_key);
 
     if coalesce(line->>'quantity', '') !~ '^[0-9]+([.][0-9]+)?$' then
       raise exception 'invalid sale quantity';
