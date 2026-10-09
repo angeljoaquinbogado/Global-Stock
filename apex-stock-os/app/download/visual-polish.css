@@ -1577,3 +1577,14 @@
 .gs-download-theme[data-download-theme="light"] .gs-download-metric-item:nth-child(3) .gs-download-metric-value {
   color: #1d4ed8 !important;
 }
+
+
+/* Lighthouse contrast follow-up: invoice microcopy stays readable on the
+   illustrated white receipt, including small mobile screens. */
+@media (max-width: 639px) {
+  .gs-sales-mobile-document-item-main small,
+  .gs-sales-mobile-document-metadata small,
+  .gs-sales-mobile-document-stamp { color: #52586b !important; }
+  .gs-sales-mobile-chip-copy small { color: #4e586b !important; }
+  .gs-sales-mobile-document-columns { color: #535a71 !important; }
+}
