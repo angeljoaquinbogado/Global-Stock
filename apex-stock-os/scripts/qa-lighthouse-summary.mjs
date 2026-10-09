@@ -42,6 +42,33 @@ for (const id of ["aria-prohibited-attr", "color-contrast"]) {
     }
   }
 }
+const perfIds = [
+  "first-contentful-paint",
+  "largest-contentful-paint",
+  "speed-index",
+  "total-blocking-time",
+  "cumulative-layout-shift",
+  "interaction-to-next-paint"
+];
+lines.push("", "### Performance metrics (lab)");
+for (const id of perfIds) {
+  const audit = report.audits?.[id];
+  if (audit?.displayValue) {
+    lines.push("- " + (audit.title || id) + ": " + audit.displayValue);
+  }
+}
+const possibleWins = Object.entries(report.audits || {})
+  .filter(([id, a]) =>
+    typeof a?.numericValue === "number" && a.numericValue > 0 &&
+    (a.details?.type === "opportunity" ||
+      /render-blocking-resources|unused-javascript|unused-css-rules|modern-image-formats|uses-optimized-images|offscreen-images|third-party-summary/.test(id)))
+  .sort(([, a], [, b]) => (b.numericValue || 0) - (a.numericValue || 0))
+  .slice(0, 10);
+lines.push("", "### Potential optimizations (lab estimates)");
+lines.push(...(possibleWins.length
+  ? possibleWins.map(([id, a]) => "- " + (a.title || id) + ": " +
+      (a.displayValue || Math.round(a.numericValue) + " estimated units"))
+  : ["No scored opportunities exposed by this Lighthouse version."]));
 lines.push("", "Full report saved to the Actions artifact.");
 const out = lines.join("\n") + "\n";
 console.log(out);
