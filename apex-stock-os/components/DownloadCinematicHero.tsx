@@ -127,6 +127,14 @@ const scenes: StoryScene[] = [
   }
 ];
 
+// Mobile-only cinematic angles. Keep the desktop poses and scroll story untouched.
+const mobilePhonePoses: StoryScene["pose"][] = [
+  { x: -2, y: 0, rotateX: 7, rotateY: -16, rotateZ: -3, scale: 1 },
+  { x: 3, y: -2, rotateX: 6, rotateY: 15, rotateZ: 3, scale: 1 },
+  { x: -3, y: 1, rotateX: 8, rotateY: -13, rotateZ: 2, scale: 1 },
+  { x: 2, y: 0, rotateX: 6, rotateY: 16, rotateZ: -3, scale: 1 }
+];
+
 const easeOut = [0.23, 1, 0.32, 1] as const;
 
 function SceneGlyph({ screen }: { screen: DemoScreen }) {
@@ -661,9 +669,9 @@ export function DownloadCinematicHero() {
   }, [activeIndex]);
 
   const pose = reduceMotion
-    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: .9 }
+    ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 }
     : mobileIntro
-      ? { x: 0, y: 0, rotateX: 0, rotateY: 0, rotateZ: 0, scale: 1 }
+      ? mobilePhonePoses[activeIndex] ?? mobilePhonePoses[0]
       : scene.pose;
 
   const accentStyle = {
@@ -751,7 +759,7 @@ export function DownloadCinematicHero() {
                   className="gs-cinematic-phone-motion absolute inset-0"
                   animate={pose}
                   transition={{
-                    duration: reduceMotion ? .01 : .48,
+                    duration: reduceMotion ? .01 : mobileIntro ? 1.08 : .48,
                     ease: easeOut
                   }}
                   style={{ transformStyle: "preserve-3d" }}
