@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -35,6 +36,17 @@ const storeLinks = {
     process.env.NEXT_PUBLIC_MICROSOFT_STORE_URL?.trim() || ""
 };
 
+
+export const metadata: Metadata = {
+  title: "Gestión de stock, ventas y caja",
+  description: "Conocé Global Stock: inventario, punto de venta, caja, documentos, estadísticas e inteligencia para gestionar tu negocio desde el celular o la PC.",
+  alternates: { canonical: "/download" },
+  openGraph: {
+    title: "Global Stock — Stock, ventas e inteligencia conectados",
+    description: "Controlá stock, registrá ventas y analizá tu negocio en una aplicación que crece con vos.",
+    url: "/download"
+  }
+};
 
 export default function DownloadPage() {
   return (
