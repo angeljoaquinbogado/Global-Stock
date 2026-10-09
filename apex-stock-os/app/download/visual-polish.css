@@ -518,3 +518,128 @@
     transition: none !important;
   }
 }
+
+
+/* High-fidelity mobile showcase: native-size phone DOM, not a 330px raster
+   miniaturized with fractional CSS scale. Desktop layout is deliberately unchanged. */
+@media (max-width: 1023px) {
+  #download-hero {
+    --gs-mobile-phone-width: clamp(195px, 29vw, 265px);
+  }
+  #download-hero .gs-cinematic-phone-shell,
+  #download-hero .gs-phone-preview-stage-cinematic {
+    width: var(--gs-mobile-phone-width) !important;
+    height: auto !important;
+    aspect-ratio: 0.474 / 1;
+  }
+  #download-hero .gs-phone-preview-stage-cinematic .gs-phone-preview-device {
+    width: 100% !important;
+    transform: none !important;
+    transform-origin: top left;
+    will-change: auto;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  #download-hero .gs-cinematic-phone-front {
+    transform: none;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+  #download-hero .gs-cinematic-phone-motion {
+    transform-style: preserve-3d;
+  }
+  #download-hero .gs-phone-preview-stage-cinematic {
+    --phone-title: 16px;
+    --phone-label: 9px;
+    --phone-copy: 8px;
+    --phone-micro: 7px;
+    --phone-value: 12px;
+    --phone-value-lg: 13px;
+  }
+  /* Keep status and smaller captions legible without enlarging desktop. */
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[5px]"] { font-size: 6px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[5.5px]"] { font-size: 6.5px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[6px]"] { font-size: 7px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[6.5px]"] { font-size: 7.3px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[7px]"] { font-size: 7.7px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[7.5px]"] { font-size: 8.2px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[8px]"] { font-size: 8.7px !important; }
+  #download-hero .gs-phone-preview-stage-cinematic [class~="text-[8.5px]"] { font-size: 9.2px !important; }
+}
+
+@media (max-width: 640px) {
+  #download-hero {
+    --gs-mobile-phone-width: clamp(160px, calc(41svh - 124px), 224px);
+    height: max(calc(100svh - 68px), 690px) !important;
+  }
+  #download-hero > .sticky {
+    height: 100% !important;
+  }
+  #download-hero .gs-cinematic-device-stage {
+    top: 10px !important;
+  }
+  #download-hero .gs-cinematic-copy {
+    bottom: 21px !important;
+  }
+  /* Match the refined studio render: full-size, crisp UI and cinematic frame. */
+  #download-hero .gs-cinematic-aura {
+    opacity: .5;
+  }
+}
+
+/* Mobile metrics: actual vertical hierarchy (icon / count / explanation).
+   The old flex-wrap rule placed the label beside the number at narrow widths. */
+@media (max-width: 767px) {
+  .gs-download-metric-strip .gs-download-metric-card {
+    min-height: 116px;
+    height: auto !important;
+    padding: 11px 6px 12px !important;
+    gap: 9px !important;
+    justify-content: center;
+    align-items: center;
+  }
+  .gs-download-metric-strip .gs-download-metric-card > span:first-child {
+    flex: 0 0 25px !important;
+    width: 25px !important;
+    height: 25px !important;
+  }
+  .gs-download-metric-strip .gs-download-metric-content {
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    gap: 7px !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .gs-download-metric-strip .gs-download-metric-value {
+    display: block !important;
+    font-size: clamp(21px, 5.9vw, 26px) !important;
+    line-height: 1.05 !important;
+    flex: none !important;
+    white-space: nowrap;
+  }
+  .gs-download-metric-strip .gs-download-metric-label {
+    display: block;
+    width: 100%;
+    min-height: 27px;
+    max-width: 100%;
+    font-size: clamp(9px, 2.48vw, 11px) !important;
+    line-height: 1.25 !important;
+    text-align: center;
+    overflow-wrap: normal;
+    word-break: normal;
+  }
+}
+
+@media (max-width: 350px) {
+  .gs-download-metric-strip .gs-download-metric-card {
+    min-height: 125px;
+    padding-inline: 4px !important;
+  }
+  .gs-download-metric-strip .gs-download-metric-label {
+    font-size: 9px !important;
+  }
+}
