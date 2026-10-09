@@ -19,7 +19,7 @@ import { DownloadEcosystemHub } from "@/components/DownloadEcosystemHub";
 import { DownloadFAQ } from "@/components/DownloadFAQ";
 import { DownloadSectorShowcase } from "@/components/DownloadSectorShowcase";
 import { DownloadScrollNavigator } from "@/components/DownloadScrollNavigator";
-import { DownloadSalesFlow } from "@/components/DownloadSalesFlow";
+import { DeferredSalesShowcase } from "@/components/DeferredSalesShowcase";
 import { PublicPage } from "@/components/PublicSiteChrome";
 
 
@@ -61,7 +61,7 @@ export default function DownloadPage() {
           className="scroll-mt-20 border-t border-white/[0.045] bg-[#09090b] text-white"
         >
           <DownloadMetricStrip />
-          <DownloadSalesFlow />
+          <DeferredSalesShowcase />
           <DownloadAIAutomationFlow />
         </section>
 
