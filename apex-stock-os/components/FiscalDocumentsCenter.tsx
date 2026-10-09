@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
+import { analyzeArcaDraft } from "@/lib/arca-draft-guidance.mjs";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -146,6 +147,7 @@ export function FiscalDocumentsCenter({
   const [savingDraft, setSavingDraft] = useState(false);
   const [issuingId, setIssuingId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
+  const [showArcaPreflight, setShowArcaPreflight] = useState(false);
 
   const [saleId, setSaleId] = useState("");
   const [relatedDocumentId, setRelatedDocumentId] = useState("");
@@ -188,6 +190,40 @@ export function FiscalDocumentsCenter({
       total: Math.round((net + vat + exempt + other) * 100) / 100
     };
   }, [exemptAmount, netAmount, otherTaxes, vatAmount]);
+
+  // Deterministic guidance adapted from the safety patterns in the reviewed
+  // ARCA skill. It NEVER issues documents or contacts a fiscal authority.
+  const arcaPreflight = useMemo(() => analyzeArcaDraft({
+    issuer: {
+      legalName: profile.legal_name,
+      taxId: profile.tax_id,
+      taxCondition: profile.tax_condition,
+      fiscalAddress: profile.fiscal_address,
+      pointOfSale: profile.point_of_sale
+    },
+    document: {
+      kind,
+      letter,
+      relatedDocumentId,
+      originalAuthorized: kind === "invoice" ||
+        documents.some((item) => item.id === relatedDocumentId && item.status === "authorized"),
+      currency,
+      concept
+    },
+    customer: {
+      name: customerName,
+      documentType: customerDocumentType,
+      documentNumber: customerDocumentNumber
+    },
+    amounts,
+    providerReady
+  }), [
+    profile.legal_name, profile.tax_id, profile.tax_condition,
+    profile.fiscal_address, profile.point_of_sale,
+    kind, letter, relatedDocumentId, documents,
+    currency, concept, customerName, customerDocumentType,
+    customerDocumentNumber, amounts, providerReady
+  ]);
 
   const canIssue =
     Boolean(businessId) &&
@@ -357,6 +393,18 @@ export function FiscalDocumentsCenter({
           language,
           "Completá cliente, letra, total y, para notas de crédito/débito, el comprobante fiscal original.",
           "Complete customer, invoice letter, total and, for credit/debit notes, the original fiscal document."
+        )
+      );
+      return;
+    }
+
+    if (!arcaPreflight.readyToReview) {
+      setShowArcaPreflight(true);
+      setMessage(
+        l(
+          language,
+          "Revisá los campos pendientes que señala la guía ARCA antes de guardar.",
+          "Review the missing fields shown by the ARCA guide before saving."
         )
       );
       return;
@@ -987,6 +1035,56 @@ export function FiscalDocumentsCenter({
               "Invoice letter and taxes must match the real fiscal status of issuer and customer. Global Stock never invents authorization codes, official numbering or QR data."
             )}
           </p>
+
+          <div className="mt-4 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)]/35 px-4 py-3">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold">
+                  {l(language, "Global Intelligence · Guía ARCA", "Global Intelligence · ARCA guide")}
+                </p>
+                <p className="mt-1 text-xs text-[var(--apex-muted)]">
+                  {arcaPreflight.blockers.length
+                    ? l(language, `${arcaPreflight.blockers.length} datos pendientes para el borrador`, `${arcaPreflight.blockers.length} draft fields to review`)
+                    : l(language, "Borrador listo para revisión humana", "Draft ready for human review")}
+                  {" · "}
+                  {l(language, `${arcaPreflight.warnings.length} avisos`, `${arcaPreflight.warnings.length} notices`)}
+                </p>
+              </div>
+              <button
+                type="button"
+                aria-expanded={showArcaPreflight}
+                aria-controls="gs-arca-preflight-details"
+                onClick={() => setShowArcaPreflight((current) => !current)}
+                className="min-h-10 rounded-xl border border-[var(--apex-border)] px-3 text-xs font-semibold hover:bg-[var(--apex-surface-strong)]"
+              >
+                {showArcaPreflight
+                  ? l(language, "Ocultar revisión", "Hide review")
+                  : l(language, "Revisar datos", "Review data")}
+              </button>
+            </div>
+            {showArcaPreflight ? (
+              <div id="gs-arca-preflight-details" className="mt-3 space-y-2 border-t border-[var(--apex-border)] pt-3" role="status">
+                {arcaPreflight.blockers.map((finding) => (
+                  <p key={finding.code} className="text-xs leading-5 text-red-500">
+                    <AlertTriangle size={12} className="mr-1 inline" aria-hidden="true" />
+                    {l(language, finding.es, finding.en)}
+                  </p>
+                ))}
+                {arcaPreflight.warnings.map((finding) => (
+                  <p key={finding.code} className="text-xs leading-5 text-[var(--apex-muted)]">
+                    {l(language, finding.es, finding.en)}
+                  </p>
+                ))}
+                <p className="text-[11px] leading-5 text-[var(--apex-muted)]">
+                  {l(
+                    language,
+                    "Esta guía verifica datos del formulario. No es asesoramiento fiscal, no usa la clave fiscal y no emite facturas. ARCA o un proveedor autorizado deberá validar el comprobante.",
+                    "This guide validates form fields only. It is not tax advice, does not use fiscal credentials or issue invoices. ARCA or an authorized provider must validate the document."
+                  )}
+                </p>
+              </div>
+            ) : null}
+          </div>
 
           <button
             type="button"
