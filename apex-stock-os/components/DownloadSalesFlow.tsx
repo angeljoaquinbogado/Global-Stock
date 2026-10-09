@@ -192,7 +192,7 @@ function ReceiptMockup({
 
   return (
     <div
-      className="gs-sales-receipt-float relative z-10 mx-auto mt-10 w-[72%] max-w-[370px] transform-gpu overflow-hidden rounded-[12px] bg-white text-[#111318] shadow-[0_24px_48px_rgba(2,6,23,.24)] will-change-transform sm:mt-11"
+      className="gs-sales-receipt-float relative z-10 mx-auto mt-8 w-[min(88%,370px)] sm:mt-10 sm:w-[72%] max-w-[370px] transform-gpu overflow-hidden rounded-[12px] bg-white text-[#111318] shadow-[0_24px_48px_rgba(2,6,23,.24)] will-change-transform sm:mt-11"
       style={{ backfaceVisibility: "hidden" }}
     >
       <motion.div
@@ -527,7 +527,7 @@ export function DownloadSalesFlow() {
             </div>
           </div>
 
-          <div className="gs-download-sales-tabs mt-3 grid gap-2.5 sm:grid-cols-4">
+          <div className="gs-download-sales-tabs mt-3 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
             {[
               { icon: ReceiptText, label: "Venta" },
               { icon: CircleDollarSign, label: "Caja" },
