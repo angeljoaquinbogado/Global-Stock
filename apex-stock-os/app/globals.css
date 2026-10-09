@@ -2999,6 +2999,10 @@ textarea:focus-visible {
   animation: gs-ecosystem-stream 6s linear infinite;
 }
 
+.gs-ecosystem-section:not(.gs-ecosystem-visible) .gs-ecosystem-line-flow {
+  animation-play-state: paused;
+}
+
 .gs-ecosystem-line-flow.is-active {
   opacity: .88;
   stroke-width: 2.6;
