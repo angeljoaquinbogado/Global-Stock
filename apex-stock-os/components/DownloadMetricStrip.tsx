@@ -4,7 +4,7 @@ import { Clock3, TrendingUp } from "lucide-react";
 import { useEffect, useRef } from "react";
 
 // Filled geometric bolt stays recognizable at small sizes and at a glance.
-function SolidLightning({ size = 17 }: { size?: number }) {
+function SolidLightning({ size = 17 }: { size?: number; strokeWidth?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M13.6 1.8 4.4 13h6.8l-1.1 9.2L20 10.3h-6.9l.5-8.5Z"
