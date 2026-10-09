@@ -56,17 +56,49 @@ for (const size of [
   });
 }
 
-test("mobile sales tabs use two columns and receipt has no decorative overlays", async ({ page }) => {
+test("mobile sales invoice has floating cards, full-page document, and working states", async ({ page }) => {
+  test.setTimeout(55_000);
   await openLanding(page, 360, 740);
   const sales = page.locator('[data-testid="deferred-sales-flow"]');
   await sales.evaluate((node) => node.scrollIntoView({ behavior: "instant", block: "center" }));
-  await expect(sales.getByRole("button", { name: "Caja", exact: true })).toBeVisible({ timeout: 25_000 });
-  const columns = await sales.locator(".gs-download-sales-tabs").evaluate((node) => getComputedStyle(node).gridTemplateColumns.split(" ").length);
+  const cash = sales.getByRole("button", { name: "Caja", exact: true });
+  await expect(cash).toBeVisible({ timeout: 25_000 });
+  const columns = await sales.locator(".gs-download-sales-tabs").evaluate((node) =>
+    getComputedStyle(node).gridTemplateColumns.split(" ").length
+  );
   expect(columns).toBe(2);
-  const cardHidden = await sales.locator(".gs-sales-float-top").evaluate((node) => getComputedStyle(node).display === "none");
-  expect(cardHidden).toBe(true);
-  await sales.getByRole("button", { name: "Caja", exact: true }).click();
-  await expect(sales.getByRole("button", { name: "Caja", exact: true })).toHaveAttribute("data-active", "true");
+  const mobileScene = sales.locator(".gs-sales-mobile-scene");
+  await expect(mobileScene).toBeVisible();
+  await expect(sales.locator(".gs-sales-receipt-float")).toBeHidden();
+  await expect(mobileScene.locator(".gs-sales-mobile-chip")).toHaveCount(2);
+  await expect(mobileScene.locator(".gs-sales-mobile-document")).toBeVisible();
+  const layout = await mobileScene.evaluate((node) => {
+    const stage = node.getBoundingClientRect();
+    const paper = node.querySelector(".gs-sales-mobile-document")!.getBoundingClientRect();
+    const floating = node.querySelector(".gs-sales-mobile-chip--front")!.getBoundingClientRect();
+    return {
+      paperOnRight: paper.left > stage.left + stage.width * .2,
+      cardsOverlapPaper: floating.right > paper.left && floating.bottom > paper.top,
+      paperContained: paper.right <= stage.right + 2
+    };
+  });
+  expect(layout.paperOnRight).toBe(true);
+  expect(layout.cardsOverlapPaper).toBe(true);
+  expect(layout.paperContained).toBe(true);
+  await cash.click();
+  await expect(cash).toHaveAttribute("data-active", "true");
+  await expect(mobileScene).toHaveAttribute("data-sales-mobile-scene", "caja");
+  await sales.getByRole("button", { name: "Stock", exact: true }).click();
+  await expect(mobileScene).toHaveAttribute("data-sales-mobile-scene", "stock");
+});
+
+test("desktop sales invoice retains the existing receipt and floating cards", async ({ page }) => {
+  await openLanding(page, 1280, 800);
+  const sales = page.locator('[data-testid="deferred-sales-flow"]');
+  await sales.evaluate((node) => node.scrollIntoView({ behavior: "instant", block: "center" }));
+  await expect(sales.locator(".gs-sales-receipt-float")).toBeVisible({ timeout: 25_000 });
+  await expect(sales.locator(".gs-sales-float-top")).toBeVisible();
+  await expect(sales.locator(".gs-sales-mobile-scene")).toBeHidden();
 });
 
 test("mobile ecosystem keeps eight interactive modules around center logo", async ({ page, browserName }) => {
