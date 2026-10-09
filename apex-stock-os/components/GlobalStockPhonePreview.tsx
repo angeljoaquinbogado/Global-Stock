@@ -338,9 +338,9 @@ export function GlobalStockPhonePreview({
 function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
   const titles: Record<DemoScreen, [string, string]> = {
     dashboard: ["Centro de control", "Tu negocio, en tiempo real."],
-    pos: ["Punto de venta", "Cobrá y actualizá tu stock."],
-    inventory: ["Inventario", "Todos tus productos en orden."],
-    ai: ["Global Intelligence", "Análisis conectado a tu negocio."]
+    pos: ["Punto de venta", "Ventas y caja en tiempo real."],
+    inventory: ["Inventario", "Tu stock, bajo control."],
+    ai: ["Global Intelligence", "Tu negocio, con inteligencia."]
   };
   const metrics = [
     ["Ingresos", "$ 2,4 M"],
@@ -354,7 +354,7 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
     ["Caña telescópica", "14 unidades", "$ 54.500"]
   ];
   return (
-    <div className="gs-cine-hires">
+    <div className="gs-cine-hires" data-cine-screen={screen}>
       <header className="gs-cine-hires-header">
         <Logo className="gs-cine-hires-logo" aria-hidden="true" />
         <span className="gs-cine-hires-brand">Global Stock<span className="gs-cine-hires-online" /></span>
@@ -400,19 +400,22 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
           <>
             <div className="gs-cine-hires-panel gs-cine-hires-pos">
               <span className="gs-cine-hires-kicker">VENTA EN CURSO</span>
+              <div className="gs-cine-hires-sale-summary">
+                <span>Venta del día</span>
+                <strong>$ 105.800</strong>
+              </div>
               {products.slice(0, 2).map(([name, units, price]) => (
                 <div className="gs-cine-hires-product" key={name}>
                   <span><strong>{name}</strong><small>{units}</small></span>
                   <b>{price}</b>
                 </div>
               ))}
-              <div className="gs-cine-hires-total"><span>Total</span><strong>$ 105.800</strong></div>
               <div className="gs-cine-hires-red-action">Registrar venta <ShoppingCart size={12} /></div>
             </div>
             <div className="gs-cine-hires-panel gs-cine-hires-insight">
               <span className="gs-cine-hires-kicker">CAJA SINCRONIZADA</span>
-              <strong>Ventas y stock al día</strong>
-              <p>Cada movimiento queda registrado en tu negocio.</p>
+              <strong>Todo actualizado</strong>
+              <p>Ventas, cobros y stock conectados.</p>
             </div>
           </>
         ) : screen === "inventory" ? (
@@ -427,17 +430,21 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
             </div>
             <div className="gs-cine-hires-panel gs-cine-hires-pos">
               <span className="gs-cine-hires-kicker">MOVIMIENTO DE STOCK</span>
-              {products.map(([name, units, price]) => (
+              {products.slice(0, 2).map(([name, units, price]) => (
                 <div className="gs-cine-hires-product" key={name}>
                   <span><strong>{name}</strong><small>{units}</small></span>
                   <b>{price}</b>
                 </div>
               ))}
+              <div className="gs-cine-hires-stock-summary">
+                <span><Package size={12} /> Productos sincronizados</span>
+                <strong>1.248</strong>
+              </div>
             </div>
             <div className="gs-cine-hires-panel gs-cine-hires-insight">
               <span className="gs-cine-hires-kicker">INVENTARIO INTELIGENTE</span>
-              <strong>Todo bajo control</strong>
-              <p>Alertas de reposición y stock conectado.</p>
+              <strong>Reposición al instante</strong>
+              <p>Alertas de stock en tiempo real.</p>
             </div>
           </>
         ) : (
@@ -445,13 +452,13 @@ function CinematicMobileScreen({ screen }: { screen: DemoScreen }) {
             <div className="gs-cine-hires-panel gs-cine-hires-ai-intro">
               <span className="gs-cine-hires-ai-symbol"><BrainCircuit size={20} /></span>
               <strong>Preguntale a tu negocio</strong>
-              <p>Usá los datos de ventas, stock y ganancias para tomar mejores decisiones.</p>
+              <p>Ventas, stock y ganancias en un solo lugar.</p>
             </div>
             <div className="gs-cine-hires-chat-user">¿Cómo vienen mis ventas?</div>
             <div className="gs-cine-hires-chat-answer">
               <span className="gs-cine-hires-kicker">GLOBAL INTELLIGENCE</span>
-              <strong>Las ventas vienen creciendo.</strong>
-              <p>Tu ganancia bruta subió esta semana. Revisá el inventario crítico.</p>
+              <strong>Tus ventas están creciendo.</strong>
+              <p>Mejoró tu ganancia. Revisá el stock bajo.</p>
             </div>
           </>
         )}
