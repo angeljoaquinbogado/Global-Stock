@@ -335,6 +335,7 @@ export function DownloadSalesFlow() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isInView, setIsInView] = useState(false);
   const sectionRef = useRef<HTMLDivElement | null>(null);
+  const manualHoldUntilRef = useRef(0);
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -356,6 +357,9 @@ export function DownloadSalesFlow() {
     if (reducedMotion || !isInView) return;
 
     const timer = window.setInterval(() => {
+      // Respect a manual tab choice. Without this pause the automatic demo
+      // could immediately replace the section the user is trying to read.
+      if (performance.now() < manualHoldUntilRef.current) return;
       setActiveIndex((current) => (current + 1) % showcaseStates.length);
     }, 4200);
 
@@ -481,7 +485,10 @@ export function DownloadSalesFlow() {
                   key={item.id}
                   type="button"
                   aria-label={`Mostrar estado ${item.eyebrow}`}
-                  onClick={() => setActiveIndex(index)}
+                  onClick={(event) => {
+                  manualHoldUntilRef.current = event.timeStamp + 12000;
+                  setActiveIndex(index);
+                }}
                   className="grid h-5 w-5 place-items-center rounded-full"
                 >
                   <motion.span
