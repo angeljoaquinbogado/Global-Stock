@@ -3,10 +3,33 @@ import "./globals.css";
 import { PwaRegistrar } from "@/components/PwaRegistrar";
 
 export const metadata: Metadata = {
-  title: "Global Stock",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL?.trim() ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? "https://" + process.env.VERCEL_PROJECT_PRODUCTION_URL
+      : "https://globalstocks.vercel.app")
+  ),
+  title: {
+    default: "Global Stock",
+    template: "%s | Global Stock"
+  },
   description:
-    "Gestión global de stock, ventas, rentabilidad e inteligencia operacional.",
+    "Gestión de stock, ventas, caja y negocios conectados con Global Intelligence.",
   applicationName: "Global Stock",
+  openGraph: {
+    type: "website",
+    locale: "es_AR",
+    siteName: "Global Stock",
+    title: "Global Stock — Gestión inteligente de tu negocio",
+    description: "Ventas, inventario, caja y análisis en una misma aplicación.",
+    images: [{ url: "/icons/global-stock-icon-512.png", width: 512, height: 512, alt: "Global Stock" }]
+  },
+  twitter: {
+    card: "summary",
+    title: "Global Stock — Gestión inteligente",
+    description: "Stock, ventas, caja e inteligencia en un mismo lugar.",
+    images: ["/icons/global-stock-icon-512.png"]
+  },
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
