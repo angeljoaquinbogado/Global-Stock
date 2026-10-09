@@ -43,7 +43,9 @@ for (const size of sizes) {
       ? "button.gs-ecosystem-node--orbit"
       : "button.gs-ecosystem-node--compact";
     const buttons = ecosystem.locator(selector);
-    await expect(buttons).toHaveCount(8);
+    // A direct hash jump can cold-load the deferred module. Allow slower
+    // headless WebKit startup without skipping the real button assertions.
+    await expect(buttons).toHaveCount(8, { timeout: 25_000 });
 
     for (const [name, id] of modules) {
       const button = buttons.filter({ hasText: name });
@@ -124,6 +126,8 @@ test("install tabs show iOS and Android instructions", async ({ page }) => {
   await visit(page);
   const install = page.locator("#download-install");
   const ios = install.getByRole("tab", { name: "iOS" });
+  // Controls are gated until hydration so the first click is never lost.
+  await expect(ios).toBeEnabled({ timeout: 20_000 });
   await ios.click();
   await expect(ios).toHaveAttribute("aria-selected", "true");
   await expect(install.getByRole("heading", { name: /Agregá Global Stock a tu iPhone/ })).toBeVisible();
