@@ -70,7 +70,7 @@ export function DeferredEcosystemHub() {
             <h2 className="mt-5 max-w-2xl text-4xl font-semibold tracking-tight sm:text-6xl">
               Todo tu negocio. En un mismo sistema.
             </h2>
-            <p className="mt-5 max-w-2xl text-base text-white/65">
+            <p className="mt-5 max-w-2xl text-base text-white/85">
               Facturación, contabilidad, clientes, proyectos, inventario, ventas y Global Intelligence conectados.
             </p>
             <div aria-hidden="true" className="mt-12 h-[360px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
@@ -91,7 +91,7 @@ export function DeferredSectorShowcase() {
           <div className="mx-auto min-h-[500px] max-w-[1240px] px-5 py-20 sm:px-8">
             <p className="gs-download-kicker text-xs font-bold uppercase text-[#8F0000]">Para quién es</p>
             <h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Global Stock para tu negocio.</h2>
-            <p className="mt-5 max-w-2xl text-base text-white/65">
+            <p className="mt-5 max-w-2xl text-base text-white/85">
               Comercios, gastronomía, ecommerce, distribución, industria, autónomos y pymes.
             </p>
             <div aria-hidden="true" className="mt-10 h-[230px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
@@ -112,7 +112,7 @@ export function DeferredFAQ() {
           <div className="mx-auto min-h-[480px] max-w-[980px] px-5 py-20 text-center sm:px-8">
             <p className="gs-download-kicker text-xs font-bold uppercase text-[#8F0000]">Preguntas frecuentes</p>
             <h2 className="mt-5 text-4xl font-semibold sm:text-6xl">Todo lo que necesitás saber.</h2>
-            <p className="mt-5 text-base text-white/65">Instalación, ventas, inventario, integraciones y seguridad.</p>
+            <p className="mt-5 text-base text-white/85">Instalación, ventas, inventario, integraciones y seguridad.</p>
             <div aria-hidden="true" className="mt-12 h-[200px] rounded-[32px] border border-white/5 bg-white/[0.025]"/>
           </div>
         </section>
