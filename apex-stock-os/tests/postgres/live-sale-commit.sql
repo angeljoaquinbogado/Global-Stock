@@ -385,5 +385,5 @@ begin
 
   return created_sale;
 end;
-$function$
+$function$;
 
