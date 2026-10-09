@@ -6,6 +6,7 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/global-stock-local-browser-regression.yml"
+      - "apex-stock-os/next.config.mjs"
       - "apex-stock-os/components/DownloadCinematicHero.tsx"
       - "apex-stock-os/components/GlobalStockPhonePreview.tsx"
       - "apex-stock-os/app/download/visual-polish.css"
@@ -30,6 +31,7 @@ jobs:
       CI: "true"
       NEXT_TELEMETRY_DISABLED: "1"
       E2E_BASE_URL: http://127.0.0.1:3000
+      GLOBAL_STOCK_LOCAL_BROWSER_QA: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
