@@ -5,6 +5,11 @@ updates:
     schedule:
       interval: "weekly"
     open-pull-requests-limit: 5
+    ignore:
+      # ESLint 10 breaks eslint-plugin-react shipped by eslint-config-next 16.3.8.
+      # Keep supported ESLint 9.x fixes until the framework plugin supports 10.x.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
     labels:
       - "dependencies"
       - "security"
