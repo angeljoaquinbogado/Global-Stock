@@ -2936,8 +2936,14 @@ textarea:focus-visible {
   box-shadow: 0 28px 82px rgba(30,45,65,.075);
 }
 
-.gs-ecosystem-diagram {
+.gs-ecosystem-stage {
+  /* A fixed 1000x640 design canvas scales uniformly so icons, orbit and
+     lettering keep the same proportions instead of drifting or clipping. */
+  width: min(100%, 960px, calc(156.25svh - 187.5px));
   aspect-ratio: 1000 / 640;
+}
+
+.gs-ecosystem-diagram {
   isolation: isolate;
 }
 
