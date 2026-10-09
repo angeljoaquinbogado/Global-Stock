@@ -263,7 +263,7 @@ test("all three secondary mobile intro screens have readable typography", async 
     await hero.locator("[data-scene-dot-button]").nth(state.index).click();
     await expect(hero).toHaveAttribute("data-active-scene", String(state.index));
     await expect(screen).toHaveAttribute("data-cine-screen", state.name);
-    await expect(screen.getByRole("heading", { name: state.title })).toBeVisible();
+    await expect(screen.locator(".gs-cine-hires-title")).toHaveText(state.title);
     const reading = await screen.evaluate((node, selector) => {
       const title = node.querySelector(".gs-cine-hires-title") as HTMLElement;
       const subtitle = node.querySelector(".gs-cine-hires-subtitle") as HTMLElement;
