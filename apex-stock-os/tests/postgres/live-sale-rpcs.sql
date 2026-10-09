@@ -275,7 +275,7 @@ begin
     received_amount
   );
 end;
-$function$
+$function$;
 
 
 CREATE OR REPLACE FUNCTION public.global_stock_return_sale_item(target_business_id uuid, target_sale_item_id uuid, return_quantity numeric, return_reason text DEFAULT NULL::text, restock boolean DEFAULT true, refund_method text DEFAULT 'cash'::text)
@@ -537,5 +537,5 @@ begin
 
   return created_return;
 end;
-$function$
+$function$;
 
