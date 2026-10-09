@@ -38,8 +38,8 @@ const sectors = [
     icon: ShoppingBag,
     label: "Ecommerce",
     group: "Sector",
-    title: "Conectá la tienda online con el stock del negocio.",
-    body: "Catálogo, existencias y actividad sincronizados con permisos claros.",
+    title: "Prepará tu tienda online para trabajar con el stock del negocio.",
+    body: "Catálogo, pedidos y existencias en una misma vista. La sincronización real requiere integrar cada canal con autorización.",
     accent: "#6ea8ff",
     surface: "rgba(110,168,255,.10)"
   },
