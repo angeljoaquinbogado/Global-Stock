@@ -58,12 +58,19 @@ must(
   workspace.includes("setMenuOpen(false)") &&
   workspace.includes("setShowLogoutConfirm(true)") &&
   workspace.includes("onSignOut={requestSignOut}") &&
-  workspace.includes("showLogoutConfirm ?") &&
+  workspace.includes('if (showLogoutConfirm) return <SafeAreaView') &&
   workspace.includes("Cerrar sesión y borrar copia local") &&
+  workspace.includes('if (menuOpen) return <SafeAreaView') &&
+  workspace.includes('if (businessPicker) return <SafeAreaView') &&
+  workspace.includes("if (showAi) return <NativeAssistant") &&
+  workspace.includes('accessibilityLabel="Cerrar menú"') &&
+  assistant.includes('accessibilityLabel="Cerrar IA"') &&
+  assistant.includes('return (\n    <SafeAreaView edges={["top", "bottom"]}') &&
+  !workspace.includes("StyleSheet.absoluteFillObject,{zIndex:30}") &&
   !workspace.includes("<Modal ") &&
   !assistant.includes("<Modal ") &&
   assistant.includes("if (!visible) return null;"),
-  "iOS logout must confirm in-tree, unmount overlays and reset auth UI without native sheets."
+  "All mobile navigation screens must occupy safe area and close reliably without native or absolute overlays."
 );
 must(workspace.includes("NativePrintCenter") && !workspace.includes("NativeCashCheckout"), "Native cash checkout must remain excluded from Argentina free beta UI.");
 must(cfg.expo.name === "Global Stock" && cfg.expo.slug === "global-stocks", "Expo app identity mismatch.");
