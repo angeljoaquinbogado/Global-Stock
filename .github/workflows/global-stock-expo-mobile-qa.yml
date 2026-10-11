@@ -36,6 +36,8 @@ jobs:
         run: npm run check:repo
       - name: Argentina beta safety gates
         run: npm run check:beta
+      - name: Check mobile dependencies are declared and installed
+        run: npm run check:deps
       - name: Check TypeScript
         run: npm run typecheck
       - name: Check installed Expo package compatibility

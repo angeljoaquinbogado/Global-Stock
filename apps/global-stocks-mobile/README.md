@@ -69,8 +69,7 @@ git pull origin main
 .\INICIAR-GLOBAL-STOCK.cmd
 ```
 
-The launcher goes into `apps/global-stocks-mobile` automatically, installs
-packages the first time and starts Expo in **Expo Go mode**. Do not run
+The launcher goes into `apps/global-stocks-mobile` automatically, **runs npm install on every start** to reconcile new packages from GitHub, audits installed native dependencies (including `expo-print` and `expo-sharing`), then starts Expo in **Expo Go mode**. Do not run
 `npx create-expo-app`; the native app already exists in this repo.
 
 1. Open **Expo Go → Scan QR Code** on the phone. Opening Expo Go alone only

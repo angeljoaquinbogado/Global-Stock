@@ -32,19 +32,22 @@ echo ==================================================
 echo Carpeta correcta: %CD%
 echo NO se iniciara Flutter ni la web de Next.js.
 echo.
-set NEED_INSTALL=0
-if not exist "node_modules\expo\package.json" set NEED_INSTALL=1
-if not exist "node_modules\expo-splash-screen\package.json" set NEED_INSTALL=1
-if not exist "node_modules\lucide-react-native\package.json" set NEED_INSTALL=1
-if not exist "node_modules\react-native-svg\package.json" set NEED_INSTALL=1
-if "%NEED_INSTALL%"=="1" (
-  echo Instalando o actualizando dependencias de Global Stock Mobile...
-  call npm install --no-audit --no-fund
-  if errorlevel 1 (
-    echo ERROR: No se pudieron instalar las dependencias.
-    pause
-    exit /b 1
-  )
+rem Always reconcile the manifest after git pull: checking a few folders
+rem cannot detect newly added native modules (e.g. expo-print/expo-sharing).
+echo Comprobando y actualizando TODAS las dependencias de Global Stock...
+call npm install --no-audit --no-fund
+if errorlevel 1 (
+  echo ERROR: No se pudieron instalar las dependencias.
+  echo Verifica tu conexion y envia este error para revisarlo.
+  pause
+  exit /b 1
+)
+call npm run check:deps
+if errorlevel 1 (
+  echo ERROR: Faltan modulos o dependencias de React Native.
+  echo No se iniciara Expo hasta solucionar la instalacion.
+  pause
+  exit /b 1
 )
 echo.
 echo Conexion publica a Supabase desde la web: automatica.
