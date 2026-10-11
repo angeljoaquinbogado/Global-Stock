@@ -112,7 +112,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   const p = dark ? palette.dark : palette.light;
   const t = content[language];
   const compact = height < 730;
-  const logoSize = Math.min(compact ? 126 : 150, Math.floor(width * 0.40));
+  const logoSize = Math.min(compact ? 110 : 126, Math.floor(width * 0.34));
+  const welcomeVisualHeight = Math.min(228, Math.max(176, Math.floor(height * 0.27)));
   const signup = stage === "signup";
   const form = stage !== "welcome";
   const styles = createStyles(p);
@@ -200,8 +201,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
             ) : null}
           </View>
 
-          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? (compact ? 16 : 35) : Math.min(68, Math.max(26, height * 0.07)) }]}>
-            <View style={[styles.logoStage, { width: logoSize + 40, height: logoSize + 40 }]}>
+          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 8 : (compact ? 6 : 14) }]}>
+            <View style={[styles.logoStage, { width: "100%", height: form ? 104 : welcomeVisualHeight }]}>
               <Svg width="100%" height="100%" viewBox="0 0 240 240" style={StyleSheet.absoluteFillObject} pointerEvents="none">
                 <Defs>
                   <RadialGradient id="redGlow" cx="50%" cy="50%" r="50%">
@@ -213,24 +214,24 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
                 <Circle cx="120" cy="120" r="119" fill="url(#redGlow)" />
               </Svg>
               <Image source={require("../../assets/brand-mark.png")}
-                style={{ width: logoSize, height: logoSize }}
+                style={{ width: form ? 84 : logoSize, height: form ? 84 : logoSize }}
                 resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
             </View>
             {!form ? (
-              <>
+              <View style={styles.welcomeCopy}>
                 <Text style={styles.heroOverline}>{t.welcome}</Text>
                 <Text style={styles.heroName}>
                   Global <Text style={{ color: dark ? "#FF515C" : "#B90D22" }}>Stock</Text>
                 </Text>
                 <Text style={styles.tagline}>{t.tagline}</Text>
                 <Text style={styles.heroDescription}>{t.small}</Text>
-              </>
+              </View>
             ) : (
-              <>
+              <View style={styles.welcomeCopy}>
                 <Text style={styles.formOverline}>{t.access}</Text>
                 <Text style={styles.formHeroTitle}>{signup ? t.signUpTitle : t.signTitle}</Text>
                 <Text style={styles.formSubtitle}>{signup ? t.signUpSubtitle : t.signSubtitle}</Text>
-              </>
+              </View>
             )}
           </View>
 
@@ -362,7 +363,8 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
     compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
-    logoStage: { alignItems:"center",justifyContent:"center",marginBottom:16,flexShrink:0 },
+    logoStage: { position:"relative",alignItems:"center",justifyContent:"center",marginBottom:12,flexShrink:0,overflow:"hidden" },
+    welcomeCopy: { width:"100%",alignItems:"center",justifyContent:"flex-start",flexShrink:0,paddingHorizontal:1 },
     heroOverline: { color:p.secondary,fontSize:14,fontWeight:"600",marginTop:0,textAlign:"center",flexShrink:0 },
     heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:5,flexShrink:0 },
     tagline: { color:p.title,fontSize:19,fontWeight:"700",textAlign:"center",marginTop:13,letterSpacing:-0.2 },
