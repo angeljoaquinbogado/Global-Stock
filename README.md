@@ -12,14 +12,15 @@ application workspaces**:
 
 ## Open Global Stock on a phone using Expo Go
 
-**Windows / VS Code:** Run the following from the terminal in any folder of
-this checked-out Git repository:
+**Windows / CMD:** Run the following from the repository root
+(e.g. `C:\\Users\\joaqu\\Downloads\\global_stock`):
 
-```powershell
-Set-Location (git rev-parse --show-toplevel)
+```cmd
 git pull origin main
-.\INICIAR-GLOBAL-STOCK.cmd
+INICIAR-GLOBAL-STOCK.cmd
 ```
+
+PowerShell users can run the same commands after navigating to the repository root.
 
 The launcher opens the exact mobile folder, installs packages if needed,
 and starts Expo specifically for Expo Go with a fresh QR code.
@@ -63,3 +64,37 @@ Detailed mobile instructions: [mobile README](apps/global-stocks-mobile/README.m
   mobile preview. Saving a local draft is not a sale.
 - Real `.env` files, keys, local databases and build outputs must never be
   committed. A repository-level ignore rule and CI guard help enforce this.
+
+## Browser QA with Playwright
+
+The root `package.json` is only a **test runner**. It does not replace
+the Flutter prototype, Next.js dependencies in `apex-stock-os/`, or Expo
+dependencies in `apps/global-stocks-mobile/`.
+
+From the repository root (Windows CMD or terminal):
+
+```sh
+npm ci
+npm ci --prefix apex-stock-os
+npx playwright install chromium firefox webkit
+npm run test:e2e
+```
+
+Playwright starts the local Next.js development server on
+`http://127.0.0.1:3000`, visits `/download`, and verifies the interactive
+ecosystem and theme across Chromium, Firefox and WebKit. The five viewport
+sizes are **1920×1080, 1366×768, 1280×576, 390×844 and 360×740**.
+Run `npm run test:e2e:report` to view the HTML report.
+
+To target an existing web deployment instead of starting the local server,
+set `PLAYWRIGHT_BASE_URL` to the origin (for example
+`https://globalstocks.vercel.app`). These tests do not require business
+credentials and must not be expanded to make real purchases or publish
+sensitive test data.
+
+GitHub Actions runs these same browser tests on web and test changes.
+Generated files under `playwright-report/` and `test-results/` are ignored
+in Git; failure artifacts are uploaded privately to the workflow run.
+
+**Note:** The browser suite tests the public Next.js website. It cannot
+certify native iPhone/Expo behavior, which still requires device testing.
