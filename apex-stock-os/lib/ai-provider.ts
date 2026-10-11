@@ -297,7 +297,7 @@ export async function generateIntelligenceAnswer({
         let lastError: unknown = primaryError;
         for (const fallbackModel of candidates) {
           const fallbackUrl = fallbackModel === model ? endpoint
-            : \`https://generativelanguage.googleapis.com/v1beta/models/\${encodeURIComponent(fallbackModel)}:generateContent\`;
+            : `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent`;
           try {
             console.warn("[Global Intelligence] retrying after transient Gemini failure", {
               status: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout",
