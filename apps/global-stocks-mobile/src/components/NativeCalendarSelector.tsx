@@ -176,7 +176,7 @@ function styles(p:{bg:string;tile:string;line:string;fg:string;muted:string}){
     monthTile:{width:"22.5%",alignItems:"center",paddingVertical:11,backgroundColor:p.tile,borderRadius:10},
     monthSelected:{backgroundColor:"#A40010"},
     monthTileText:{fontSize:12,fontWeight:"800",color:p.fg},
-    error:{color:"#EDAC7F",fontSize:11},
+    error:{color:"#D95C69",fontSize:11},
     confirm:{backgroundColor:"#A50012",borderRadius:12,minHeight:45,alignItems:"center",justifyContent:"center",flexDirection:"row",gap:8},
     confirmText:{color:"#FFF",fontSize:12,fontWeight:"800"}
   });
