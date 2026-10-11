@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type BusinessKind =
+  | "retail" | "wholesale" | "restaurant" | "services" | "manufacturing" | "other";
+
 export type Business = {
   id: string;
   name: string;
@@ -62,16 +65,20 @@ export async function loadBusinesses(client: SupabaseClient, userId: string): Pr
   return (data ?? []) as Business[];
 }
 
-export async function createBusiness(client: SupabaseClient, userId: string, rawName: string): Promise<Business> {
+export async function createBusiness(
+  client: SupabaseClient, userId: string, rawName: string, type: BusinessKind = "retail"
+): Promise<Business> {
   const name = rawName.trim();
   if (name.length < 2 || name.length > 100) throw new Error("Escribí un nombre de negocio de 2 a 100 caracteres.");
+  const businessTypes: BusinessKind[] = ["retail", "wholesale", "restaurant", "services", "manufacturing", "other"];
+  if (!businessTypes.includes(type)) throw new Error("Seleccioná un tipo de negocio válido.");
 
   const { data, error } = await client
     .from("global_stock_businesses")
     .insert({
       owner_user_id: userId,
       name,
-      business_type: "retail",
+      business_type: type,
       country: "AR",
       base_currency: "ARS",
       locale: "es-AR",
