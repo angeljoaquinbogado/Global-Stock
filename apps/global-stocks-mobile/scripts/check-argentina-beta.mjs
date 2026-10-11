@@ -32,6 +32,17 @@ must(route.includes("authorizeBusinessRequest(request, businessId)") && route.in
 must(offline.includes("AUTOMATIC_SALE_SYNC_ENABLED = false"), "Automatic offline checkout must remain disabled.");
 must(!offline.includes("service_role"), "Mobile storage must not include a service-role secret.");
 must(offline.includes("purgeLocalAccountData") && app.includes("purgeLocalAccountData"), "Device logout must clear plaintext merchant data.");
+must(
+  app.includes("signOutLock.current") &&
+  app.includes("setLoggingOut(true)") &&
+  app.includes("setLoginViewVersion((n) => n + 1)") &&
+  app.includes('supabase.auth.signOut({ scope: "local" })') &&
+  workspace.includes("function requestSignOut()") &&
+  workspace.includes("setShowAi(false)") &&
+  workspace.includes("setMenuOpen(false)") &&
+  workspace.includes("onSignOut={requestSignOut}"),
+  "Logout must dismiss native sheets, prevent double submission and recreate auth UI after signout."
+);
 must(workspace.includes("NativePrintCenter") && !workspace.includes("NativeCashCheckout"), "Native cash checkout must remain excluded from Argentina free beta UI.");
 must(cfg.expo.name === "Global Stock" && cfg.expo.slug === "global-stocks", "Expo app identity mismatch.");
 must(cfg.expo.android?.permissions?.includes("CAMERA"), "Only the documented barcode camera permission is expected.");
