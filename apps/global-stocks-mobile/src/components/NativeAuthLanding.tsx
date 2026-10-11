@@ -218,7 +218,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
             <View style={[styles.logoStage, { height: form ? 108 : welcomeVisualHeight }]}>
               <Image source={require("../../assets/brand-mark.png")}
                 style={{
-                  position: "absolute", alignSelf: "center",
+                  position: "absolute", left: "50%",
+                  marginLeft: -(form ? 44 : logoSize / 2),
                   top: form ? 10 : Math.round((welcomeVisualHeight - logoSize) / 2),
                   width: form ? 88 : logoSize, height: form ? 88 : logoSize
                 }}
