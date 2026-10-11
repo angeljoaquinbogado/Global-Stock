@@ -292,7 +292,7 @@ export default function NativeWorkspace({
   function overview() {
     return <>
       {heading("Centro de control", "Una vista completa de la operación de tu negocio.")}
-      {source === "cache" ? <View style={s.hint}><WifiOff size={13} color="#E9BD76" /><Text style={s.hintText}>Sin conexión · datos de la última sincronización.</Text></View> : null}
+      {source === "cache" ? <View style={s.hint}><WifiOff size={13} color={p.muted} /><Text style={s.hintText}>Sin conexión · datos de la última sincronización.</Text></View> : null}
       <View style={s.metricsGrid}>{indicators.map(metricView)}</View>
       {chartCard()}
       <Pressable accessibilityRole="button" accessibilityLabel={showOverviewDetails?"Ocultar detalles del negocio":"Ver detalles del negocio"} accessibilityState={{expanded:showOverviewDetails}}
@@ -327,7 +327,7 @@ export default function NativeWorkspace({
       {shownProducts.slice(0, 200).map((product) => <View style={s.product} key={product.id}>
         <View style={{ flex: 1, minWidth: 0 }}><Text style={s.productName} numberOfLines={2}>{product.name}</Text>
         <Text style={s.productMeta} numberOfLines={1}>{product.category || product.sku || product.barcode || "Sin categoría"}</Text>
-        <Text style={[s.productMeta, { color: product.stock <= product.min_stock ? "#E6AE69" : "#65C5A1" }]}>{product.stock} unidades disponibles</Text></View>
+        <Text style={[s.productMeta, { color: product.stock <= product.min_stock ? p.redIcon : "#65C5A1" }]}>{product.stock} unidades disponibles</Text></View>
         <View style={{ alignItems: "flex-end", gap: 8 }}><Text style={s.price}>{money(product.price)}</Text>
         <Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="white"/><Text style={s.addText}>Agregar</Text></Pressable></View>
       </View>)}
@@ -410,7 +410,7 @@ export default function NativeWorkspace({
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir menú" onPress={() => setMenuOpen(true)} style={s.iconControl}><Menu size={17} color={p.text}/></Pressable>
       </View>
     </View>
-    {notice && source==="empty" ? <View style={s.hint}><WifiOff size={12} color="#E9BD76"/><Text style={s.hintText} numberOfLines={2}>{notice}</Text></View> : null}
+    {notice && source==="empty" ? <View style={s.hint}><WifiOff size={12} color={p.muted}/><Text style={s.hintText} numberOfLines={2}>{notice}</Text></View> : null}
     <ScrollView
       key={active}
       style={s.scroll}
@@ -537,7 +537,7 @@ function stylesFor(p: Palette) {
     scanDockTab: { flex:1.12,minWidth:0,height:78,alignItems:"center",justifyContent:"flex-start" },
     scanCircle: { width:54,height:54,borderRadius:32,alignItems:"center",justifyContent:"center",backgroundColor:p.red,borderWidth:5,borderColor:p.bg,marginTop:-19,marginBottom:7 },
     
-    warning: { color:"#E4AA65",fontSize:11,lineHeight:17 },
+    warning: { color:"#B8B8C3",fontSize:11,lineHeight:17 },
     rowBetween: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8 },
     searchBar: { flexDirection:"row",alignItems:"center",gap:10,borderWidth:1,borderColor:p.border,borderRadius:13,paddingHorizontal:12,backgroundColor:p.surface,minHeight:46 },
     searchInput: { flex:1,color:p.text,fontSize:12,paddingVertical:10 },
