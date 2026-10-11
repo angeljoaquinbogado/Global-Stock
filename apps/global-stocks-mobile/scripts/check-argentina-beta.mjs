@@ -18,6 +18,8 @@ const fiscal = read("apps/global-stocks-mobile/src/components/NativeFiscalArca.t
 const integrationSql = read("apex-stock-os/supabase/migrations/20261011_mobile_argentina_integrations_fiscal_access.sql");
 const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
+const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
+const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
@@ -43,6 +45,31 @@ must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-11-v3"') &&
   "Fiscal-data privacy notice must trigger a new versioned mobile acceptance.");
 must(ai.includes("global_stock_ai_data_consents") && ai.includes("approved: true"), "AI context requires explicit opt-in.");
 must(ai.includes("client.auth.refreshSession()") && ai.includes("verified.user.id !== userId"), "AI must validate user identity and recover expired access tokens.");
+must(
+  ai.includes("function deviceClockAnswer(input: string)") &&
+  ai.includes("const localClock = deviceClockAnswer(text);") &&
+  ai.includes("Según el reloj de tu dispositivo") &&
+  ai.includes('await client.auth.getUser()'),
+  "Mobile clock utility must be accurate and must never replace actual authenticated AI conversations."
+);
+must(
+  workspace.includes("function lookupBarcode(raw: string)") &&
+  workspace.includes('accessibilityLabel="Código de barras o SKU manual"') &&
+  workspace.includes("initialBarcode={pendingBarcode}") &&
+  workspace.includes("canManageInventory && !productForm") &&
+  productForm.includes("initialBarcode =") &&
+  productForm.includes("currency =") &&
+  mobileData.includes('global_stock_create_mobile_product'),
+  "Manual barcode lookup must support read-only searches and permission-gated cloud product creation."
+);
+must(
+  app.includes("MOBILE_BUSINESS_TYPES") &&
+  app.includes("newBusinessType") &&
+  app.includes("newBusinessName, newBusinessType") &&
+  mobileData.includes("business_type: type") &&
+  mobileData.includes("Seleccioná un tipo de negocio válido."),
+  "Mobile business onboarding must not assume every business is retail."
+);
 must(route.includes("authorizeBusinessRequest(request, businessId)") && route.includes("AI_CONSENT_REQUIRED"), "The server must enforce tenant membership and AI consent.");
 must(offline.includes("AUTOMATIC_SALE_SYNC_ENABLED = false"), "Automatic offline checkout must remain disabled.");
 must(!offline.includes("service_role"), "Mobile storage must not include a service-role secret.");
