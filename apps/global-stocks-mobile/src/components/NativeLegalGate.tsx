@@ -27,13 +27,13 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
     setLoading(true);setError("");
     void (async()=>{
       const {data,error}=await client.from("global_stock_legal_acceptances")
-        .select("id,operates_in_ar_attested").eq("user_id",userId)
+        .select("id,adult_18_attested,operates_in_ar_attested").eq("user_id",userId)
         .eq("terms_version",LEGAL_TERMS_VERSION)
         .eq("privacy_version",LEGAL_PRIVACY_VERSION)
         .maybeSingle();
       if(!active)return;
       if(error)throw error;
-      if(data?.id && data.operates_in_ar_attested === true)readyCallback.current();
+      if(data?.id && data.adult_18_attested === true && data.operates_in_ar_attested === true)readyCallback.current();
     })().catch((err:unknown)=>{
       if(active)setError(err instanceof Error ? err.message : "No se pudo verificar la aceptación.");
     }).finally(()=>{if(active)setLoading(false);});
