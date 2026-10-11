@@ -104,6 +104,7 @@ export default function NativeFxCenter({ dark, baseCurrency }: Props) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 28000);
     const others = codes.filter(v => v !== selected);
+    setOverview([]);
     setOverviewLoading(true);
     void Promise.allSettled(others.map(target => fetchQuote(selected, target, market, controller.signal)))
       .then((results) => {
