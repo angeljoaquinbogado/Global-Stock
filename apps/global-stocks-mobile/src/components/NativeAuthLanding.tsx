@@ -181,9 +181,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
                 <ChevronDown size={14} color={p.secondary} />
               </Pressable>
             </View>
-          </View>
-          {openLanguages ? (
-            <View style={styles.languagePicker}>
+            {openLanguages ? (
+              <View style={styles.languagePicker}>
               <Text style={styles.smallLabel}>{t.language}</Text>
               {languages.map(item => (
                 <Pressable key={item.key} accessibilityRole="button"
@@ -196,11 +195,12 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
                   {language === item.key ? <Check size={16} color={p.red} /> : null}
                 </Pressable>
               ))}
-            </View>
-          ) : null}
+              </View>
+            ) : null}
+          </View>
 
-          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? (compact ? 16 : 35) : (compact ? 38 : 55) }]}>
-            <View style={[styles.logoStage, { width: logoSize + 72, height: logoSize + 72 }]}>
+          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? (compact ? 16 : 35) : Math.min(68, Math.max(26, height * 0.07)) }]}>
+            <View style={[styles.logoStage, { width: logoSize + 40, height: logoSize + 40 }]}>
               <Svg width="100%" height="100%" viewBox="0 0 240 240" style={StyleSheet.absoluteFillObject} pointerEvents="none">
                 <Defs>
                   <RadialGradient id="redGlow" cx="50%" cy="50%" r="50%">
@@ -343,22 +343,22 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
 function createStyles(p: typeof palette.dark | typeof palette.light) {
   return StyleSheet.create({
     page: { flexGrow: 1, paddingHorizontal: 23, paddingBottom: 22 },
-    topRow: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",minHeight:48,zIndex:2 },
+    topRow: { position:"relative",flexDirection:"row",justifyContent:"space-between",alignItems:"center",minHeight:48,zIndex:30,overflow:"visible" },
     topActions: { flexDirection:"row",alignItems:"center",gap:9 },
     topButton: { minWidth:44,height:44,borderRadius:15,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:7,paddingHorizontal:12 },
     themeLabel: { color:p.title,fontSize:12,fontWeight:"700" },
     languageButton: { minHeight:44,borderRadius:15,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:11 },
     languageCode: { fontSize:12,fontWeight:"800",color:p.title },
-    languagePicker: { alignSelf:"flex-end",width:190,borderWidth:1,borderColor:p.border,borderRadius:17,backgroundColor:p.surface,padding:12,gap:6,marginTop:7,zIndex:3 },
+    languagePicker: { position:"absolute",top:54,right:0,width:190,borderWidth:1,borderColor:p.border,borderRadius:17,backgroundColor:p.surface,padding:12,gap:6,zIndex:40,elevation:10,shadowColor:"#000",shadowOffset:{width:0,height:8},shadowOpacity:0.12,shadowRadius:18 },
     smallLabel: { fontSize:10,fontWeight:"700",color:p.secondary,marginBottom:3 },
     languageOption: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",paddingVertical:10,paddingHorizontal:10,borderRadius:10 },
     languageSelected: { backgroundColor:p.elevated },
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
-    hero: { flexGrow:1,alignItems:"center",justifyContent:"center",paddingBottom:14,minHeight:310 },
-    compactHero: { flexGrow:0,minHeight:0,paddingBottom:20 },
-    logoStage: { alignItems:"center",justifyContent:"center",marginBottom:7 },
-    heroOverline: { color:p.secondary,fontSize:15,fontWeight:"600",marginTop:7,textAlign:"center" },
-    heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:8 },
+    hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
+    compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
+    logoStage: { alignItems:"center",justifyContent:"center",marginBottom:16,flexShrink:0 },
+    heroOverline: { color:p.secondary,fontSize:14,fontWeight:"600",marginTop:0,textAlign:"center",flexShrink:0 },
+    heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:5,flexShrink:0 },
     tagline: { color:p.title,fontSize:19,fontWeight:"700",textAlign:"center",marginTop:13,letterSpacing:-0.2 },
     heroDescription: { color:p.secondary,fontSize:13.5,lineHeight:21,textAlign:"center",marginTop:9,maxWidth:280 },
     formOverline: { color:p.red,fontSize:10,fontWeight:"900",letterSpacing:2.3,marginTop:8,textAlign:"center" },
