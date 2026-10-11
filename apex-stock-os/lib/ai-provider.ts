@@ -196,43 +196,70 @@ export async function generateIntelligenceAnswer({
 
     if (config.provider === "gemini") {
       headers["x-goog-api-key"] = apiKey;
+      const mobile = runtime.appContext?.platform === "Global Stock React Native";
+      const systemInstruction = buildSystemPrompt(snapshot, runtime);
+      const contents = conversation.map((item) => ({
+        role: item.role === "assistant" ? "model" : "user",
+        parts: [{ text: item.content }]
+      }));
 
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers,
-        signal: controller.signal,
-        cache: "no-store",
-        body: JSON.stringify({
-          systemInstruction: {
-            parts: [{ text: buildSystemPrompt(snapshot, runtime) }]
-          },
-          contents: conversation.map((item) => ({
-            role: item.role === "assistant" ? "model" : "user",
-            parts: [{ text: item.content }]
-          }))
-        })
-      });
+      // Keep per-attempt limits below the mobile 75s timeout. A transient 503
+      // or saturated Gemini model must not stall the entire conversation.
+      async function askGemini(url: string, selectedModel: string, limitMs: number): Promise<string> {
+        const attempt = new AbortController();
+        const deadline = setTimeout(() => attempt.abort(), limitMs);
+        try {
+          const isFlash25 = /^gemini-2\\.5-flash(?:-|$)/i.test(selectedModel);
+          const response = await fetch(url, {
+            method: "POST",
+            headers,
+            signal: attempt.signal,
+            cache: "no-store",
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemInstruction }] },
+              contents,
+              generationConfig: {
+                temperature: 0.3,
+                maxOutputTokens: mobile ? 800 : 2048,
+                ...(isFlash25 ? { thinkingConfig: { thinkingBudget: 0 } } : {})
+              }
+            })
+          });
 
-      const payload = (await response.json().catch(() => ({}))) as GeminiResponse;
-
-      if (!response.ok) {
-        const providerMessage =
-          payload.error?.message ||
-          `Gemini returned HTTP ${response.status}`;
-        throw new IntelligenceProviderError(response.status, providerMessage);
+          const payload = (await response.json().catch(() => ({}))) as GeminiResponse;
+          if (!response.ok) {
+            throw new IntelligenceProviderError(
+              response.status,
+              payload.error?.message || `Gemini returned HTTP ${response.status}`
+            );
+          }
+          const answer = payload.candidates?.[0]?.content?.parts
+            ?.map((part) => part.text?.trim()).filter(Boolean).join("\\n").trim();
+          if (!answer) throw new Error("Gemini returned an empty response.");
+          return answer;
+        } finally {
+          clearTimeout(deadline);
+        }
       }
 
-      const answer = payload.candidates?.[0]?.content?.parts
-        ?.map((part) => part.text?.trim())
-        .filter(Boolean)
-        .join("\n")
-        .trim();
+      try {
+        return await askGemini(endpoint, model, mobile ? 18000 : 30000);
+      } catch (primaryError) {
+        const transient = primaryError instanceof IntelligenceProviderError
+          ? [500, 502, 503, 504].includes(primaryError.status)
+          : primaryError instanceof Error && primaryError.name === "AbortError";
+        if (!transient || process.env.GEMINI_API_URL?.trim()) throw primaryError;
 
-      if (!answer) {
-        throw new Error("Gemini returned an empty response.");
+        // Retry once on the lightweight public model, using the SAME
+        // credentials and context. Never fall back to synthetic answers.
+        const backupModel = model === "gemini-2.5-flash-lite"
+          ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
+        const backupUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(backupModel)}:generateContent`;
+        console.warn("[Global Intelligence] Gemini primary unavailable; attempting one bounded fallback", {
+          reason: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout"
+        });
+        return await askGemini(backupUrl, backupModel, mobile ? 17000 : 24000);
       }
-
-      return answer;
     }
 
     if (apiKey) {
