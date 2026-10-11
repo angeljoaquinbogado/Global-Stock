@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
 import type { Business } from "../lib/data";
@@ -49,9 +49,40 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [showLanguage, setShowLanguage] = useState(false);
+  const [pane, setPane] = useState<"profile"|"rates"|"appearance"|"account">("profile");
+  const [aiSharing, setAiSharing] = useState<boolean|null>(null);
+  const [aiSaving, setAiSaving] = useState(false);
   const p = dark ? {bg:"#09090B",panel:"#171719",line:"#34343B",fg:"#F8F8FA",muted:"#ABABB6",input:"#212126"} : {bg:"#F5F5F7",panel:"#FFF",line:"#E0E0E6",fg:"#17171B",muted:"#6B6B73",input:"#F2F2F5"};
   const st = styles(p);
   const canEdit=role==="owner"||role==="admin";
+  useEffect(()=>{
+    if(pane!=="account")return;
+    let active=true;
+    void (async()=>{
+      const {data,error}=await client.from("global_stock_ai_data_consents").select("approved")
+        .eq("user_id",userId).eq("business_id",business.id).maybeSingle();
+      if(active){
+        if(error)setError(error.message);
+        else setAiSharing(data?.approved===true);
+      }
+    })().catch((err:unknown)=>{if(active)setError(err instanceof Error?err.message:"No se pudo cargar el permiso de IA.");});
+    return ()=>{active=false;};
+  },[pane,client,userId,business.id]);
+
+  async function revokeAiSharing(){
+    if(aiSaving)return;
+    setAiSaving(true);setError("");
+    try{
+      const {error}=await client.from("global_stock_ai_data_consents").upsert({
+        user_id:userId,business_id:business.id,approved:false,updated_at:new Date().toISOString()
+      },{onConflict:"user_id,business_id"});
+      if(error)throw error;
+      setAiSharing(false);
+      setNotice("Autorización de IA revocada para este negocio.");
+    }catch(err){setError(err instanceof Error?err.message:"No se pudo revocar el permiso.");}
+    finally{setAiSaving(false)}
+  }
+  function openLegal(path:string){void Linking.openURL("https://globalstocks.vercel.app"+path).catch(()=>setError("No se pudo abrir el documento."));}
 
   useEffect(()=>{setName(business.name);setError("");setNotice("");},[business.id,business.name]);
   useEffect(() => {
@@ -153,6 +184,14 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
 
   return <View style={st.container}>
     <View style={{gap:7}}><Text style={st.kicker}>PREFERENCIAS</Text><Text style={st.title}>Configuración</Text><Text style={st.text}>Perfil operativo, idiomas, cotizaciones, apariencia, seguridad y la app.</Text></View>
+    <View style={st.tabs}>
+      {([["profile","Perfil"],["rates","Cotizaciones"],["appearance","Apariencia"],["account","Cuenta"]] as const).map(([id,label])=>
+        <Pressable key={id} onPress={()=>setPane(id)} accessibilityRole="tab" accessibilityState={{selected:pane===id}} style={[st.tab,pane===id&&st.tabActive]}>
+          <Text numberOfLines={1} adjustsFontSizeToFit style={[st.tabLabel,pane===id&&st.tabLabelActive]}>{label}</Text>
+        </Pressable>
+      )}
+    </View>
+    {pane==="profile" ? <>
     <View style={st.card}>
       <View style={st.cardHeading}><Store size={19} color="#C91827"/><Text style={st.sectionTitle}>Perfil operativo</Text></View>
       <Text style={st.help}>Definí el tipo de operación para adaptar análisis, IA y procesos a tu negocio.</Text>
@@ -183,12 +222,16 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       </Pressable>)}</View>:null}
       {action("Cambiar negocio",onSwitchBusiness)}
     </View>
+    </> : null}
+    {pane==="appearance" ? <>
     <View style={st.card}>
       <View style={st.cardHeading}>{dark?<Moon size={19} color="#C91827"/>:<Sun size={19} color="#C91827"/>}<Text style={st.sectionTitle}>Apariencia</Text></View>
       <Text style={st.help}>Tema actual: {dark?"Oscuro":"Claro"}. El aspecto web es independiente del celular.</Text>
       <View style={st.two}><View style={{flex:1}}>{action("Oscuro",()=>onTheme(true))}</View><View style={{flex:1}}>{action("Claro",()=>onTheme(false))}</View></View>
     </View>
-    <NativeFxCenter dark={dark} baseCurrency={business.base_currency} />
+    </> : null}
+    {pane==="rates" ? <NativeFxCenter dark={dark} baseCurrency={business.base_currency} /> : null}
+    {pane==="account" ? <>
     <View style={st.card}>
       <View style={st.cardHeading}><RefreshCw size={18} color="#C91827"/><Text style={st.sectionTitle}>Sincronización y datos</Text></View>
       <Text style={st.help}>Los productos y ventas se consultan de Supabase. Agenda y Proveedores se guardan en tu espacio de trabajo. Los borradores de venta no registran cobros.</Text>
@@ -212,6 +255,18 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       {action("Abrir Global Stock web",onOpenWeb)}
       {action("Cerrar sesión",onSignOut)}
     </View>
+    <View style={st.card}>
+      <View style={st.cardHeading}><ShieldCheck size={19} color="#C91827"/><Text style={st.sectionTitle}>Privacidad y documentos legales</Text></View>
+      <Text style={st.help}>Conocé tus derechos, nuestra política y cómo eliminar o exportar los datos de la cuenta.</Text>
+      {action("Términos de uso",()=>openLegal("/legal/terms"))}
+      {action("Política de privacidad",()=>openLegal("/legal/privacy"))}
+      {action("Información de seguridad",()=>openLegal("/legal/security"))}
+      {action("Solicitar eliminación de cuenta",()=>openLegal("/support"))}
+      <View style={st.line}><Text style={st.label}>Contexto del negocio compartido con Global Intelligence</Text><Text style={st.value}>{aiSharing===null?"Verificando":aiSharing?"Permitido":"No permitido"}</Text></View>
+      {aiSharing===true?action(aiSaving?"Revocando…":"Revocar autorización de IA",()=>Alert.alert("Revocar datos para IA","Global Intelligence dejará de utilizar el contexto de este negocio desde la app.",[{text:"Cancelar",style:"cancel"},{text:"Revocar",style:"destructive",onPress:()=>void revokeAiSharing()}])):null}
+      <Text style={st.help}>La confirmación de edad en la app es una declaración, no una verificación de identidad. La disponibilidad legal y fiscal puede variar según el país.</Text>
+    </View>
+    </> : null}
     {saving?<ActivityIndicator color="#C91827"/>:null}
     {!!error&&<Text style={[st.help,{color:"#E8A975"}]}>{error}</Text>}
     {!!notice&&<Text style={[st.help,{color:"#58C99A"}]}>{notice}</Text>}
@@ -235,5 +290,10 @@ function styles(p:{panel:string;line:string;fg:string;muted:string;input:string}
   primary:{backgroundColor:"#A90011",borderWidth:0},
   buttonText:{fontSize:12,fontWeight:"800",color:p.fg},
   two:{flexDirection:"row",gap:9},
+  tabs:{flexDirection:"row",gap:3,borderRadius:13,borderWidth:1,borderColor:p.line,backgroundColor:p.panel,padding:4},
+  tab:{flex:1,minWidth:0,paddingVertical:12,paddingHorizontal:3,borderRadius:10,alignItems:"center"},
+  tabActive:{backgroundColor:"#950014"},
+  tabLabel:{color:p.muted,fontSize:10.5,fontWeight:"700",textAlign:"center"},
+  tabLabelActive:{color:"#FFF"},
   option:{paddingVertical:11,paddingHorizontal:13,borderRadius:10,backgroundColor:p.input,flexDirection:"row",alignItems:"center",justifyContent:"space-between"}
 })}
