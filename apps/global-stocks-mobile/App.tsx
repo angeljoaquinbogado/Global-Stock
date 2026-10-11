@@ -26,11 +26,19 @@ import NativeAuthLanding from "./src/components/NativeAuthLanding";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
 import { SUPPORT_EMAIL, supportEmailUrl } from "./src/lib/support";
-import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
+import { createBusiness, loadBusinesses, loadProducts, type Business, type BusinessKind, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
 import { cacheBusinesses, cacheProducts, loadOfflineDrafts, purgeLocalAccountData, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
 
 type Tab = "dashboard" | "inventory" | "pos" | "scanner";
 type CartLine = SaleLine;
+const MOBILE_BUSINESS_TYPES: Array<{ value: BusinessKind; label: string }> = [
+  { value: "retail", label: "Comercio / kiosco" },
+  { value: "wholesale", label: "Mayorista / depósito" },
+  { value: "restaurant", label: "Gastronomía" },
+  { value: "manufacturing", label: "Producción / taller" },
+  { value: "services", label: "Servicios con insumos" },
+  { value: "other", label: "Otro tipo de negocio" }
+];
 
 const C = {
   background: "#09090C",
@@ -146,6 +154,7 @@ function MobileApp() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessLoading, setBusinessLoading] = useState(false);
   const [newBusinessName, setNewBusinessName] = useState("");
+  const [newBusinessType, setNewBusinessType] = useState<BusinessKind>("retail");
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -343,10 +352,11 @@ function MobileApp() {
     setCreatingBusiness(true);
     setNotice("");
     try {
-      const created = await createBusiness(supabase, user.id, newBusinessName);
+      const created = await createBusiness(supabase, user.id, newBusinessName, newBusinessType);
       setBusinesses((list) => [...list.filter((b) => b.id !== created.id), created]);
       setBusiness(created);
       setNewBusinessName("");
+      setNewBusinessType("retail");
       setNotice("Negocio real creado y conectado. Ya podés agregar productos.");
       await cacheBusinesses(user.id, [created]).catch(() => null);
     } catch (error) {
@@ -493,6 +503,20 @@ function MobileApp() {
           style={st.input}
           maxLength={100}
         />
+        <Text style={[st.helper,{fontWeight:"700",color:C.white}]}>¿Qué tipo de negocio manejás?</Text>
+        <View style={{flexDirection:"row",flexWrap:"wrap",gap:9}}>
+          {MOBILE_BUSINESS_TYPES.map(item => (
+            <Pressable key={item.value} accessibilityRole="button"
+              accessibilityLabel={item.label} accessibilityState={{selected:newBusinessType===item.value}}
+              onPress={() => setNewBusinessType(item.value)}
+              style={{paddingVertical:11,paddingHorizontal:12,borderRadius:12,
+                borderWidth:1,borderColor:newBusinessType===item.value?C.red:C.border,
+                backgroundColor:newBusinessType===item.value?"#32161C":C.surface}}>
+              <Text style={{color:C.white,fontWeight:newBusinessType===item.value?"800":"600",fontSize:12}}>{item.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+        <Text style={st.helper}>Usá Global Stock para mercadería, materias primas, repuestos, ingredientes o insumos. Cada negocio conserva su inventario independiente.</Text>
         <Button title={creatingBusiness ? "Creando..." : "Crear negocio real"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
         {notice ? <View style={{gap:5}}><Text style={st.warning}>{notice}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda para crear un negocio"))}><Text style={{color:C.red,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
         {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
