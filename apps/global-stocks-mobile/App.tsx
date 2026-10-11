@@ -114,12 +114,14 @@ function ProductCard({ product, currency, onAdd }: {
 
 function BrandedBootScreen() {
   return (
-    <SafeAreaView style={st.boot} edges={["top", "bottom"]}>
+    <SafeAreaView style={[st.boot, { backgroundColor: "#09090C" }]} edges={["top", "bottom"]}>
       <StatusBar style="light" />
       <Image source={require("./assets/brand-mark.png")} style={st.bootImage}
         resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
-      <Text style={st.bootTitle}>Global <Text style={{ color: "#F15A64" }}>Stock</Text></Text>
-      <Text style={st.bootSubtitle}>Preparando tu negocio...</Text>
+      <View style={st.bootTextPlate}>
+        <Text style={st.bootTitle}>Global <Text style={{ color: "#F15A64" }}>Stock</Text></Text>
+        <Text style={st.bootSubtitle}>Preparando tu negocio...</Text>
+      </View>
       <ActivityIndicator color={C.red} style={{ marginTop: 18 }} />
     </SafeAreaView>
   );
@@ -557,6 +559,7 @@ const st = StyleSheet.create({
   base: { flex: 1, backgroundColor: C.background },
   boot: { flex: 1, backgroundColor: C.background, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
   bootImage: { width: 150, height: 150 },
+  bootTextPlate: { backgroundColor: "#09090C", alignItems: "center", justifyContent: "center", paddingHorizontal: 28, paddingVertical: 13, borderRadius: 16, marginTop: 8 },
   bootTitle: { color: C.white, fontWeight: "900", fontSize: 31, letterSpacing: -1, marginTop: 16 },
   bootSubtitle: { color: C.secondary, fontSize: 14, marginTop: 10 },
   loginLogoImage: { width: 90, height: 90, marginBottom: 7 },

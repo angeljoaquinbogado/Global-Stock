@@ -12,7 +12,8 @@
       "bundleIdentifier": "app.globalstocks.mobile",
       "infoPlist": {
         "NSCameraUsageDescription": "Global Stock usa la cámara para identificar códigos de barras y QR de productos."
-      }
+      },
+      "userInterfaceStyle": "dark"
     },
     "android": {
       "package": "app.globalstocks.mobile",
@@ -23,7 +24,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#09090C"
-      }
+      },
+      "userInterfaceStyle": "dark"
     },
     "plugins": [
       [

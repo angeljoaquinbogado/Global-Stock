@@ -151,3 +151,17 @@ transaction has committed.
    stock conflict handling, cash-session rules and rollback.
 5. Test scanners with real EAN/UPC/code128 labels on physical devices.
 6. Set release builds, signing, push notifications and app-store metadata.
+
+### Splash en Expo Go e iOS
+
+El proyecto configura un fondo oscuro `#09090C` y el logo de Global Stock para
+el **splash nativo del build EAS propio**. Expo Go es una app contenedora y su
+pantalla de carga nativa puede usar su propia apariencia (incluso blanca) antes
+de ejecutar nuestro JavaScript. Esto no es un defecto del tema React Native.
+La pantalla de carga **dentro** de Global Stock fuerza un fondo oscuro y una
+placa de alto contraste detrás de los textos para garantizar legibilidad.
+
+Si aparece `[runtime not ready]`, actualizá a la última rama `main`, cerrá
+Metro y reinicialo con `INICIAR-GLOBAL-STOCK.cmd` (que utiliza `--clear`).
+No se solucionan excepciones de JavaScript reinstalando Expo Go a ciegas.
+
