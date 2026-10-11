@@ -16,10 +16,12 @@ const commerce = read("apps/global-stocks-mobile/src/components/NativeCommerceCo
 const fiscal = read("apps/global-stocks-mobile/src/components/NativeFiscalArca.tsx");
 const integrationSql = read("apex-stock-os/supabase/migrations/20261011_mobile_argentina_integrations_fiscal_access.sql");
 const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
+const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
+must(landing.includes('behavior={form && Platform.OS === "ios" ? "padding" : undefined}') && landing.includes('key={form ? "auth-fields" : "welcome"}'), "Welcome must not inherit a stale iOS keyboard layout after logout.");
 must(legal.includes("adult_18_attested:true") && legal.includes("operates_in_ar_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Adult and Argentina eligibility with legal versions must be recorded.");
 must(legal.includes("LEGAL_TERMS_VERSION = \"2026-10-11-ar-beta\"") && legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
 must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-11-v3"') &&
