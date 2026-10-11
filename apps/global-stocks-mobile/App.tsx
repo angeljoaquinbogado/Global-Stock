@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  AppState,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +20,7 @@ import PreviewMode from "./src/components/PreviewMode";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
 import NativeWorkspace from "./src/components/NativeWorkspace";
+import NativeLegalGate from "./src/components/NativeLegalGate";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
@@ -183,6 +185,7 @@ function MobileApp() {
   const [configError, setConfigError] = useState("");
   const [connectionRetry, setConnectionRetry] = useState(0);
   const [user, setUser] = useState<User | null>(null);
+  const [legalUserId, setLegalUserId] = useState<string | null>(null);
   const [starting, setStarting] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
@@ -237,6 +240,7 @@ function MobileApp() {
       if (!alive) return;
       setUser(session?.user ?? null);
       if (!session) {
+        setLegalUserId(null);
         setBusiness(null);
         setBusinesses([]);
         setProducts([]);
@@ -246,6 +250,18 @@ function MobileApp() {
       }
     });
     return () => { alive = false; subscription.unsubscribe(); };
+  }, [supabase]);
+
+  // Resume session renewal in the foreground; do not refresh a backgrounded app.
+  useEffect(() => {
+    if (!supabase) return;
+    const update = (state: string) => {
+      if (state === "active") supabase.auth.startAutoRefresh();
+      else supabase.auth.stopAutoRefresh();
+    };
+    update(AppState.currentState);
+    const subscription = AppState.addEventListener("change", update);
+    return () => { subscription.remove(); supabase.auth.stopAutoRefresh(); };
   }, [supabase]);
 
   useEffect(() => {
@@ -443,6 +459,14 @@ function MobileApp() {
   if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
   if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} onRegister={register} loading={authLoading} error={authError} /></SafeAreaView>;
+
+  if (legalUserId !== user.id) {
+    return <NativeLegalGate
+      client={supabase} userId={user.id}
+      onReady={() => setLegalUserId(user.id)}
+      onSignOut={() => void logout()}
+    />;
+  }
 
   if (!business) {
     return (
