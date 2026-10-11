@@ -1,0 +1,67 @@
+name: Playwright · Global Stock web QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/playwright.yml"
+      - "playwright.config.ts"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - "apex-stock-os/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/playwright.yml"
+      - "playwright.config.ts"
+      - "tests/**"
+      - "package.json"
+      - "package-lock.json"
+      - "apex-stock-os/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: playwright-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-qa:
+    name: Browser QA — PC, notebooks and phones
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    env:
+      CI: "true"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Configure Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            apex-stock-os/package-lock.json
+      - name: Install browser tests
+        run: npm ci --no-audit --no-fund
+      - name: Install Global Stock web app
+        run: npm ci --prefix apex-stock-os --no-audit --no-fund
+      - name: Install supported browsers
+        run: npx playwright install --with-deps chromium firefox webkit
+      - name: Test current Next.js checkout
+        run: npm run test:e2e
+      - name: Upload test report and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-stock-playwright-${{ github.run_attempt }}
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14
