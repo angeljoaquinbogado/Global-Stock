@@ -9,6 +9,7 @@ type Props = {
   onCreated: () => void;
   onCancel: () => void;
   initialBarcode?: string;
+  currency?: string;
 };
 
 function amount(text: string) {
@@ -16,7 +17,7 @@ function amount(text: string) {
   return value;
 }
 
-export default function ProductForm({ client, businessId, onCreated, onCancel, initialBarcode = "" }: Props) {
+export default function ProductForm({ client, businessId, onCreated, onCancel, initialBarcode = "", currency = "ARS" }: Props) {
   const [name, setName] = useState("");
   const [barcode, setBarcode] = useState(initialBarcode);
   const [category, setCategory] = useState("");
@@ -32,7 +33,7 @@ export default function ProductForm({ client, businessId, onCreated, onCancel, i
     ["Nombre del producto", name, setName, "default"],
     ["Código de barras (opcional)", barcode, setBarcode, "default"],
     ["Categoría (opcional)", category, setCategory, "default"],
-    ["Precio de venta (ARS)", price, setPrice, "decimal-pad"],
+    [`Precio de venta (${currency})`, price, setPrice, "decimal-pad"],
     ["Stock inicial", stock, setStock, "decimal-pad"],
     ["Avisar stock bajo desde", minStock, setMinStock, "decimal-pad"]
   ] as const;
