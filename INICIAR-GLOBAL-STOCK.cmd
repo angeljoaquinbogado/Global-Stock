@@ -50,6 +50,15 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
+echo Verificando la sintaxis de toda la aplicacion antes de iniciar Expo...
+call npm run check:syntax
+if errorlevel 1 (
+  echo ERROR: Se detectaron errores de sintaxis. Expo no se iniciara.
+  echo Actualiza a la ultima version o envia el detalle del error.
+  pause
+  exit /b 1
+)
+echo.
 echo Conexion publica a Supabase desde la web: automatica.
 echo No hace falta copiar claves privadas ni crear .env.
 echo.
