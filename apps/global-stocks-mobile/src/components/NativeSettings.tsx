@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
+import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, Mail, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
 import type { Business } from "../lib/data";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import NativeFxCenter from "./NativeFxCenter";
 import NativeAccountDeletion from "./NativeAccountDeletion";
 
@@ -252,6 +253,15 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       <View style={st.line}><Text style={st.label}>Escáner de cámara</Text><Text style={st.value}>Disponible desde Almacén</Text></View>
     </View>
     <View style={st.card}>
+      <View style={st.cardHeading}><Mail size={19} color="#C91827"/><Text style={st.sectionTitle}>Ayuda y soporte</Text></View>
+      <Text style={st.help}>¿Tenés dudas o encontraste un error? Escribinos y contanos qué ocurrió, sin enviar contraseñas ni datos sensibles.</Text>
+      <Pressable accessibilityRole="link" accessibilityLabel={`Contactar soporte: ${SUPPORT_EMAIL}`}
+        onPress={()=>void Linking.openURL(supportEmailUrl("Consulta sobre Global Stock"))} style={st.supportLink}>
+        <Text style={st.supportEmail}>{SUPPORT_EMAIL}</Text>
+        <Mail size={16} color="#C91827"/>
+      </Pressable>
+    </View>
+    <View style={st.card}>
       <View style={st.cardHeading}><UserRound size={19} color="#C91827"/><Text style={st.sectionTitle}>Cuenta</Text></View>
       {action("Abrir Global Stock web",onOpenWeb)}
       {action("Cerrar sesión",onSignOut)}
@@ -269,7 +279,12 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
     </View>
     </> : null}
     {saving?<ActivityIndicator color="#C91827"/>:null}
-    {!!error&&<Text style={[st.help,{color:dark?"#B8B8C3":"#686877"}]}>{error}</Text>}
+    {!!error&&<View style={[st.card,{gap:8}]}>
+      <Text accessibilityRole="alert" style={[st.help,{color:dark?"#B8B8C3":"#686877"}]}>{error}</Text>
+      <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Error en configuración"))}>
+        <Text style={st.supportEmail}>{SUPPORT_EMAIL}</Text>
+      </Pressable>
+    </View>
     {!!notice&&<Text style={[st.help,{color:"#58C99A"}]}>{notice}</Text>}
   </View>;
 }
@@ -296,5 +311,7 @@ function styles(p:{panel:string;line:string;fg:string;muted:string;input:string}
   tabActive:{backgroundColor:"#950014"},
   tabLabel:{color:p.muted,fontSize:10.5,fontWeight:"700",textAlign:"center"},
   tabLabelActive:{color:"#FFF"},
-  option:{paddingVertical:11,paddingHorizontal:13,borderRadius:10,backgroundColor:p.input,flexDirection:"row",alignItems:"center",justifyContent:"space-between"}
+  option:{paddingVertical:11,paddingHorizontal:13,borderRadius:10,backgroundColor:p.input,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
+   supportLink:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:9,backgroundColor:p.input,padding:13,borderRadius:11,borderWidth:1,borderColor:p.line},
+   supportEmail:{color:"#C91827",fontSize:12,fontWeight:"800",flexShrink:1}
 })}
