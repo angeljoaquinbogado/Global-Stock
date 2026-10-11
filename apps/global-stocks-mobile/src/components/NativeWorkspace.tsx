@@ -1,0 +1,577 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator, Alert, Image, Linking, Modal, Pressable, ScrollView,
+  StyleSheet, Text, TextInput, View
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
+import { CameraView, useCameraPermissions } from "expo-camera";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import Svg, { Defs, LinearGradient, Stop, Line, Path } from "react-native-svg";
+import {
+  Activity, ArrowRight, BarChart3, BellRing, Boxes, CalendarDays, ChartNoAxesCombined,
+  Check, ChevronRight, CircleDollarSign, ClipboardList, CreditCard, FileText,
+  Globe2, LayoutDashboard, LogOut, Menu, Moon, PackagePlus, RefreshCw,
+  ScanLine, Search, Settings2, ShoppingBag, ShoppingCart, Sparkles, Store,
+  Sun, Truck, Users, Warehouse, WifiOff, X, Plus, Minus
+} from "lucide-react-native";
+import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
+import ProductForm from "./ProductForm";
+
+type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "activities" |
+  "notes" | "purchases" | "suppliers" | "online" | "documents" | "operations" | "settings";
+type Palette = { bg: string; surface: string; elevated: string; border: string; text: string; muted: string; red: string; redIcon: string };
+const darkPalette: Palette = { bg: "#09090B", surface: "#171719", elevated: "#202024", border: "#313135", text: "#FAFAFA", muted: "#A3A3AE", red: "#A4000C", redIcon: "#CC1420" };
+const lightPalette: Palette = { bg: "#F5F5F7", surface: "#FFFFFF", elevated: "#F1F1F4", border: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#8F0000", redIcon: "#A40A14" };
+type DailyPoint = { day: string; profit: number };
+type Dashboard = { revenue: number; cost: number; salesCount: number; chart: DailyPoint[] };
+
+type Props = {
+  client: SupabaseClient;
+  userId: string;
+  business: Business;
+  businesses: Business[];
+  products: Product[];
+  source: "loading" | "live" | "cache" | "empty";
+  notice: string;
+  drafts: SaleDraft[];
+  cart: SaleLine[];
+  refreshToken: number;
+  onRefresh: () => void;
+  onBusiness: (business: Business) => void;
+  onSignOut: () => void;
+  onAdd: (product: Product) => void;
+  onAdjust: (productId: string, delta: number) => void;
+  onSaveDraft: () => void;
+};
+
+function formatMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat("es-AR", { style: "currency", currency, maximumFractionDigits: 2 }).format(amount);
+  } catch {
+    return "$ " + amount.toLocaleString("es-AR", { maximumFractionDigits: 2 });
+  }
+}
+
+function ProfitTrend({ points, p, showLabels = true }: { points: DailyPoint[]; p: Palette; showLabels?: boolean }) {
+  const width = 320, height = 162, top = 21, bottom = 127;
+  const values = points.length ? points.map((x) => Number(x.profit) || 0) : Array(7).fill(0) as number[];
+  const low = Math.min(0, ...values), high = Math.max(1, ...values);
+  const coords = values.map((v, i) => ({
+    x: 18 + (i * (width - 36)) / Math.max(1, values.length - 1),
+    y: bottom - ((v - low) / (high - low)) * (bottom - top)
+  }));
+  const line = coords.map((xy, i) => `${i === 0 ? "M" : "L"}${xy.x.toFixed(1)} ${xy.y.toFixed(1)}`).join(" ");
+  const area = `${line} L${coords[coords.length - 1].x} ${bottom} L${coords[0].x} ${bottom} Z`;
+  return (
+    <View>
+      <Svg width="100%" height={showLabels ? 172 : 150} viewBox={`0 0 ${width} ${height}`} accessibilityLabel="Gráfico de ganancia bruta de los últimos siete días">
+        <Defs>
+          <LinearGradient id="gsProfitFill" x1="0" y1="0" x2="0" y2="1">
+            <Stop offset="0" stopColor="#B80A16" stopOpacity="0.3" />
+            <Stop offset="1" stopColor="#B80A16" stopOpacity="0" />
+          </LinearGradient>
+        </Defs>
+        {[29, 58, 87, 116].map((y) => <Line key={y} x1="18" y1={y} x2="304" y2={y} stroke={p.border} strokeWidth={0.75} strokeDasharray="1 6" />)}
+        <Path d={area} fill="url(#gsProfitFill)" />
+        <Path d={line} fill="none" stroke="#D20A18" strokeWidth={2.7} strokeLinejoin="round" strokeLinecap="round" />
+      </Svg>
+      {showLabels ? (
+        <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 5, marginTop: -8 }}>
+          {points.map((x, i) => <Text key={i} style={{ fontSize: 9, color: p.muted }}>{x.day}</Text>)}
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function Action({ children, onPress, p, secondary, compact }: { children: React.ReactNode; onPress: () => void; p: Palette; secondary?: boolean; compact?: boolean }) {
+  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => ({
+    minHeight: compact ? 38 : 44, backgroundColor: secondary ? p.elevated : p.red,
+    borderWidth: secondary ? 1 : 0, borderColor: p.border, borderRadius: 12, alignItems: "center",
+    justifyContent: "center", paddingHorizontal: 13, paddingVertical: compact ? 8 : 11, opacity: pressed ? 0.76 : 1
+  })}><Text style={{ color: secondary ? p.text : "#FFFFFF", fontSize: compact ? 11 : 12, fontWeight: "700" }}>{children}</Text></Pressable>;
+}
+
+const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDashboard; group: string; live: boolean }> = [
+  { module: "overview", label: "Inicio", icon: LayoutDashboard, group: "PRINCIPAL", live: true },
+  { module: "pos", label: "Punto de venta", icon: ShoppingCart, group: "PRINCIPAL", live: true },
+  { module: "inventory", label: "Almacén", icon: Warehouse, group: "PRINCIPAL", live: true },
+  { module: "charts", label: "Gráficos", icon: BarChart3, group: "ANÁLISIS", live: true },
+  { module: "activities", label: "Actividad", icon: Activity, group: "ANÁLISIS", live: true },
+  { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: false },
+  { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: false },
+  { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: false },
+  { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: false },
+  { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: false },
+  { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: false },
+  { module: "settings", label: "Configuración", icon: Settings2, group: "GESTIÓN", live: true }
+];
+
+const fullWebsite = "https://globalstocks.vercel.app";
+
+export default function NativeWorkspace({
+  client, userId, business, businesses, products, source, notice, drafts, cart,
+  refreshToken, onRefresh, onBusiness, onSignOut, onAdd, onAdjust, onSaveDraft
+}: Props) {
+  const [active, setActive] = useState<Module>("overview");
+  const [dark, setDark] = useState(true);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [businessPicker, setBusinessPicker] = useState(false);
+  const [productForm, setProductForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [posSearch, setPosSearch] = useState("");
+  const [message, setMessage] = useState("");
+  const [scanned, setScanned] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState("");
+  const [canManageInventory, setCanManageInventory] = useState(false);
+  const [showAi, setShowAi] = useState(false);
+  const p = dark ? darkPalette : lightPalette;
+  const s = useMemo(() => stylesFor(p), [p]);
+
+  useEffect(() => {
+    let alive = true;
+    setDashboard(null);
+    setDashboardError("");
+    setDashboardLoading(true);
+    client.rpc("global_stock_mobile_dashboard", { target_business_id: business.id })
+      .then(({ data, error }) => {
+        if (!alive) return;
+        if (error) {
+          setDashboardError(error.message);
+          return;
+        }
+        const result = data as { revenue?: number; cost?: number; salesCount?: number; chart?: DailyPoint[] } | null;
+        setDashboard({
+          revenue: Number(result?.revenue) || 0,
+          cost: Number(result?.cost) || 0,
+          salesCount: Number(result?.salesCount) || 0,
+          chart: Array.isArray(result?.chart) ? result.chart.map((x) => ({ day: String(x.day), profit: Number(x.profit) || 0 })) : []
+        });
+      })
+      .catch((error: unknown) => { if (alive) setDashboardError(error instanceof Error ? error.message : "No se pudieron cargar las ventas"); })
+      .finally(() => { if (alive) setDashboardLoading(false); });
+    return () => { alive = false; };
+  }, [client, business.id, refreshToken]);
+
+  useEffect(() => {
+    let alive = true;
+    setCanManageInventory(false);
+    client.from("global_stock_members").select("role")
+      .eq("business_id", business.id).eq("user_id", userId).eq("active", true).maybeSingle()
+      .then(({ data }) => {
+        if (alive) setCanManageInventory(["owner", "admin", "manager", "warehouse"].includes(String(data?.role ?? "")));
+      });
+    return () => { alive = false; };
+  }, [client, business.id, userId]);
+
+  useEffect(() => {
+    setProductForm(false);
+    setSearch("");
+    setPosSearch("");
+    setActive("overview");
+  }, [business.id]);
+
+  const inventoryCost = products.reduce((sum, item) => sum + (item.cost ?? 0) * item.stock, 0);
+  const costsMissing = products.some((item) => item.cost == null);
+  const inventoryCostText = products.length && costsMissing ? "—" : formatMoney(inventoryCost, business.base_currency);
+  const critical = products.filter((item) => item.stock <= item.min_stock).length;
+  const totalCart = cart.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const units = products.reduce((sum, item) => sum + item.stock, 0);
+  const shownProducts = products.filter((item) =>
+    [item.name, item.barcode, item.sku, item.category].some((v) => v?.toLowerCase().includes(search.trim().toLowerCase()))
+  );
+  const posProducts = products.filter((item) =>
+    [item.name, item.barcode, item.sku].some((v) => v?.toLowerCase().includes(posSearch.trim().toLowerCase()))
+  ).slice(0, 35);
+  const money = (n: number) => formatMoney(n, business.base_currency);
+  const indicators = [
+    { label: "Ingresos", value: dashboard ? money(dashboard.revenue) : "—", icon: CircleDollarSign, help: "Ventas registradas" },
+    { label: "Costo de inventario", value: source === "loading" ? "—" : inventoryCostText, icon: Boxes, help: costsMissing ? "Faltan costos" : "Stock valorizado" },
+    { label: "Ganancia bruta", value: dashboard ? money(dashboard.revenue - dashboard.cost) : "—", icon: ChartNoAxesCombined, help: "Ingresos − costos" },
+    { label: "Stock crítico", value: String(critical), icon: BellRing, help: "alertas" }
+  ];
+
+  function open(module: Module) {
+    setActive(module);
+    setMenuOpen(false);
+    if (module === "scan") setScanned(false);
+  }
+  function scanResult({ data }: { data: string }) {
+    if (scanned) return;
+    setScanned(true);
+    const value = data.trim();
+    setSearch(value);
+    setMessage(products.some((item) => item.barcode === value || item.sku === value) ? "Código encontrado en el inventario." : "Código escaneado: sin coincidencias en este negocio.");
+    open("inventory");
+  }
+  function addCart(product: Product) {
+    if (product.stock <= 0) {
+      Alert.alert("Sin existencias", "No se puede seleccionar un producto sin stock.");
+      return;
+    }
+    const existing = cart.find((item) => item.product_id === product.id)?.quantity ?? 0;
+    if (existing >= product.stock) {
+      Alert.alert("Stock alcanzado", "El borrador no puede superar el stock consultado.");
+      return;
+    }
+    onAdd(product);
+    open("pos");
+  }
+  function openWebsite() {
+    void Linking.openURL(fullWebsite).catch(() => Alert.alert("No se pudo abrir la web", fullWebsite));
+  }
+
+  function heading(title: string, subtitle: string) {
+    return <View style={s.intro}>
+      <View style={s.eyebrowLine}><Image source={require("../../assets/brand-mark.png")} style={s.eyebrowLogo} /><Text style={s.eyebrow}>GLOBAL STOCK</Text></View>
+      <Text style={s.pageTitle}>{title}</Text>
+      <Text style={s.pageSubtitle}>{subtitle}</Text>
+    </View>;
+  }
+
+  function metricView(item: typeof indicators[number], index: number) {
+    const Icon = item.icon;
+    return <View key={item.label} style={s.metric}>
+      <View style={s.metricIcon}><Icon size={15} color={p.redIcon} strokeWidth={1.9} /></View>
+      <View>
+        <Text style={s.metricLabel} numberOfLines={1}>{item.label}</Text>
+        <Text numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.76} style={s.metricValue}>{item.value}</Text>
+        {(index === 3 || (index === 1 && costsMissing)) ? <Text style={s.metricDetail}>{item.help}</Text> : null}
+      </View>
+    </View>;
+  }
+
+  function chartCard() {
+    return <View style={s.bigCard}>
+      <View style={s.cardHeadingRow}>
+        <View style={{ flex: 1 }}>
+          <Text style={s.eyebrow}>FLUJO DE VENTAS</Text>
+          <Text style={s.chartTitle}>Ganancia bruta</Text>
+        </View>
+        <Pressable accessibilityRole="button" onPress={() => open("charts")} style={s.smallPill}><Text style={s.smallPillText}>Gráficos</Text><ChevronRight size={12} color={p.muted}/></Pressable>
+      </View>
+      {dashboardError ? <Text style={s.warning}>No se pudieron cargar las ventas: {dashboardError}</Text> : null}
+      {dashboardLoading ? <ActivityIndicator style={{ marginVertical: 58 }} color={p.redIcon} /> : <ProfitTrend points={dashboard?.chart ?? []} p={p} />}
+      <View style={s.chartFooter}>
+        <View style={s.liveDot} /><Text style={s.meta}>Últimos 7 días · datos reales</Text>
+        <Pressable accessibilityRole="button" onPress={onRefresh} style={{ marginLeft: "auto" }}><RefreshCw size={15} color={p.muted}/></Pressable>
+      </View>
+    </View>;
+  }
+
+  function overview() {
+    return <>
+      {heading("Centro de control", "Una vista completa de la operación de tu negocio.")}
+      {source === "cache" ? <View style={s.hint}><WifiOff size={13} color="#E9BD76" /><Text style={s.hintText}>Sin conexión · inventario guardado, puede estar desactualizado.</Text></View> : null}
+      <View style={s.metricsGrid}>{indicators.map(metricView)}</View>
+      {chartCard()}
+      <View style={s.bigCard}>
+        <View style={s.cardHeadingRow}><Text style={s.sectionTitle}>Resumen del negocio</Text><Pressable onPress={onRefresh} accessibilityRole="button"><RefreshCw size={16} color={p.muted}/></Pressable></View>
+        <View style={s.summaryRow}><Text style={s.meta}>Productos activos</Text><Text style={s.summaryValue}>{products.length}</Text></View>
+        <View style={s.summaryRow}><Text style={s.meta}>Unidades en almacén</Text><Text style={s.summaryValue}>{units.toLocaleString("es-AR")}</Text></View>
+        <View style={s.summaryRow}><Text style={s.meta}>Ventas registradas</Text><Text style={s.summaryValue}>{dashboard?.salesCount ?? "—"}</Text></View>
+        <View style={s.summaryRow}><Text style={s.meta}>Borradores sin cobrar</Text><Text style={s.summaryValue}>{drafts.length}</Text></View>
+      </View>
+      <View style={s.quickGrid}>
+        <Pressable onPress={() => open("inventory")} style={s.quickCard} accessibilityRole="button"><Warehouse size={18} color={p.redIcon}/><Text style={s.quickText}>Almacén</Text><ArrowRight size={15} color={p.muted}/></Pressable>
+        <Pressable onPress={() => open("pos")} style={s.quickCard} accessibilityRole="button"><ShoppingCart size={18} color={p.redIcon}/><Text style={s.quickText}>Punto de venta</Text><ArrowRight size={15} color={p.muted}/></Pressable>
+      </View>
+    </>;
+  }
+
+  function inventory() {
+    return <>
+      {heading("Almacén y stock", "Controlá existencias, precios y códigos desde un solo lugar.")}
+      <View style={s.rowBetween}><View style={{ flex: 1 }}><Text style={s.sectionTitle}>{products.length} productos</Text><Text style={s.meta}>Inventario de {business.name}</Text></View>
+      <Pressable onPress={onRefresh} accessibilityRole="button" accessibilityLabel="Actualizar inventario" style={s.iconControl}><RefreshCw size={17} color={p.text}/></Pressable></View>
+      <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={search} onChangeText={setSearch} autoCapitalize="none" placeholder="Buscar nombre, código o categoría" placeholderTextColor={p.muted} accessibilityLabel="Buscar productos"/></View>
+      <View style={s.rowBetween}><Action p={p} compact onPress={() => { setScanned(false); open("scan"); }} secondary>Escanear código</Action>
+      {canManageInventory ? <Action p={p} compact onPress={() => setProductForm((v) => !v)}>{productForm ? "Cerrar" : "+ Producto"}</Action> : null}</View>
+      {productForm ? <ProductForm client={client} businessId={business.id} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
+      {source === "loading" ? <ActivityIndicator color={p.redIcon}/> : null}
+      {shownProducts.slice(0, 200).map((product) => <View style={s.product} key={product.id}>
+        <View style={{ flex: 1, minWidth: 0 }}><Text style={s.productName} numberOfLines={2}>{product.name}</Text>
+        <Text style={s.productMeta} numberOfLines={1}>{product.category || product.sku || product.barcode || "Sin categoría"}</Text>
+        <Text style={[s.productMeta, { color: product.stock <= product.min_stock ? "#E6AE69" : "#65C5A1" }]}>{product.stock} unidades disponibles</Text></View>
+        <View style={{ alignItems: "flex-end", gap: 8 }}><Text style={s.price}>{money(product.price)}</Text>
+        <Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="white"/><Text style={s.addText}>Agregar</Text></Pressable></View>
+      </View>)}
+      {shownProducts.length > 200 ? <Text style={s.meta}>Mostrando 200 productos. Usá la búsqueda para encontrar los demás.</Text> : null}
+      {source !== "loading" && shownProducts.length === 0 ? <View style={s.empty}><Boxes size={26} color={p.muted}/><Text style={s.emptyTitle}>Todavía no hay productos</Text><Text style={s.meta}>Agregá el primero y se sincronizará con Global Stock web.</Text></View> : null}
+    </>;
+  }
+
+  function pointOfSale() {
+    return <>
+      {heading("Punto de venta", "Seleccioná productos y prepará el carrito.")}
+      <View style={s.warnBox}><CreditCard size={16} color="#D7A65C"/><Text style={s.warnText}>MODO BORRADOR. No se procesan cobros ni se descuenta stock. Las ventas reales siguen disponibles en la versión web.</Text></View>
+      <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={posSearch} onChangeText={setPosSearch} placeholder="Buscar producto" placeholderTextColor={p.muted} accessibilityLabel="Buscar para punto de venta"/></View>
+      <View style={s.rowBetween}><Text style={s.sectionTitle}>Productos</Text><Pressable onPress={() => open("scan")} accessibilityRole="button"><Text style={s.textLink}>Escanear →</Text></Pressable></View>
+      {posProducts.map((product) => <View key={product.id} style={s.product}>
+        <View style={{ flex: 1 }}><Text style={s.productName}>{product.name}</Text><Text style={s.productMeta}>{product.stock} disponibles</Text></View>
+        <View style={{ alignItems:"flex-end",gap:7 }}><Text style={s.price}>{money(product.price)}</Text><Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="#fff"/><Text style={s.addText}>Agregar</Text></Pressable></View>
+      </View>)}
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Carrito · borrador</Text>
+        {cart.length===0 ? <Text style={[s.meta,{marginTop:12}]}>Todavía no agregaste productos.</Text> : cart.map((line) => <View key={line.product_id} style={s.cartLine}>
+          <View style={{ flex:1 }}><Text style={s.productName}>{line.name}</Text><Text style={s.productMeta}>{money(line.unit_price)} c/u</Text></View>
+          <Pressable accessibilityRole="button" accessibilityLabel={"Quitar una unidad de "+line.name} onPress={() => onAdjust(line.product_id,-1)} style={s.quantityButton}><Minus size={14} color={p.text}/></Pressable>
+          <Text style={s.quantity}>{line.quantity}</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={"Agregar una unidad de "+line.name} onPress={() => {
+            const product = products.find((p) => p.id === line.product_id);
+            if (product && line.quantity >= product.stock) { Alert.alert("Stock máximo", "No quedan suficientes unidades."); return; }
+            onAdjust(line.product_id,1);
+          }} style={s.quantityButton}><Plus size={14} color={p.text}/></Pressable>
+        </View>)}
+        <View style={s.totalRow}><Text style={s.meta}>Total estimado</Text><Text style={s.total}>{money(totalCart)}</Text></View>
+        <Action p={p} onPress={onSaveDraft}>Guardar borrador local</Action>
+        <Text style={s.smallPrint}>Sin cobro, comprobante ni modificación de existencias.</Text>
+      </View>
+      {drafts.length>0 ? <View style={s.bigCard}><Text style={s.sectionTitle}>Borradores locales</Text>{drafts.slice(0,8).map((draft) => <View key={draft.id} style={s.summaryRow}><Text style={s.meta}>{new Date(draft.created_at).toLocaleDateString("es-AR")}</Text><Text style={s.summaryValue}>{money(draft.total)}</Text></View>)}</View> : null}
+    </>;
+  }
+
+  function chartScreen() {
+    return <>{heading("Gráficos", "Analizá las ventas, el stock y los costos del negocio.")}
+      {chartCard()}
+      <View style={s.metricsGrid}>{indicators.map(metricView)}</View>
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Stock por producto</Text>
+        {products.length ? products.slice().sort((a,b) => b.stock-a.stock).slice(0,8).map((product) => <View key={product.id} style={{ marginTop: 16, gap: 7 }}>
+          <View style={s.rowBetween}><Text style={[s.meta,{flex:1}]} numberOfLines={1}>{product.name}</Text><Text style={s.summaryValue}>{product.stock}</Text></View>
+          <View style={[s.track,{backgroundColor:p.border}]}><View style={[s.trackFill,{width:`${Math.min(100,(product.stock/Math.max(1,...products.map(v=>v.stock)))*100)}%`, backgroundColor:p.redIcon}]}/></View>
+        </View>) : <Text style={[s.meta,{marginTop:14}]}>Agregá productos para visualizar el stock.</Text>}
+      </View>
+    </>;
+  }
+
+  function activityScreen() {
+    return <>{heading("Actividad", "Consultá el movimiento real del negocio.")}
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Resumen de ventas</Text>
+      <View style={s.summaryRow}><Text style={s.meta}>Ventas completadas</Text><Text style={s.summaryValue}>{dashboard?.salesCount ?? "—"}</Text></View>
+      <View style={s.summaryRow}><Text style={s.meta}>Ingresos registrados</Text><Text style={s.summaryValue}>{dashboard ? money(dashboard.revenue) : "—"}</Text></View>
+      </View>
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Borradores de este dispositivo</Text>
+      {drafts.length===0 ? <Text style={[s.meta,{marginTop:12}]}>Sin movimientos locales por ahora.</Text> : drafts.map(d => <View key={d.id} style={s.summaryRow}><Text style={s.meta}>{new Date(d.created_at).toLocaleString("es-AR")}</Text><Text style={s.summaryValue}>{money(d.total)}</Text></View>)}
+      </View>
+      <Text style={s.smallPrint}>El historial completo y los filtros de actividad están disponibles en Global Stock web.</Text>
+      <Action p={p} secondary onPress={openWebsite}>Abrir historial en la web</Action>
+    </>;
+  }
+
+  function settingsScreen() {
+    return <>{heading("Configuración", "Tu negocio, tus preferencias y tu cuenta.")}
+      <View style={s.bigCard}>
+        <Text style={s.sectionTitle}>Negocio activo</Text>
+        <Text style={s.settingPrimary}>{business.name}</Text>
+        <Text style={s.meta}>Moneda: {business.base_currency} · Idioma: {business.locale}</Text>
+        <Action p={p} secondary onPress={() => setBusinessPicker(true)}>Cambiar de negocio</Action>
+      </View>
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Apariencia</Text>
+        <Action p={p} secondary onPress={() => setDark((value) => !value)}>{dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}</Action>
+      </View>
+      <Action p={p} secondary onPress={openWebsite}>Abrir Global Stock web</Action>
+      <Action p={p} secondary onPress={onSignOut}>Cerrar sesión</Action>
+    </>;
+  }
+
+  function pendingModule() {
+    const details: Record<Module,string> = {
+      overview:"", pos:"",inventory:"",scan:"",charts:"",activities:"",notes:"Notas, tareas, recordatorios y calendario",
+      purchases:"Pedidos de reposición y recepción de mercadería",suppliers:"Fichas y contactos de proveedores",
+      online:"Integraciones y conexión con las tiendas online",documents:"Comprobantes y documentos inteligentes",
+      operations:"Operaciones y administración del negocio",settings:""
+    };
+    const label=navigation.find(x=>x.module===active)?.label ?? "Módulo";
+    return <>{heading(label,details[active])}
+      <View style={s.pendingPanel}>
+        <Globe2 size={32} color={p.redIcon}/>
+        <Text style={s.pendingTitle}>En adaptación a React Native</Text>
+        <Text style={s.pendingText}>Esta sección ya existe en Global Stock web. La versión nativa se está desarrollando sin interrumpir la versión de PC ni simular funciones que aún no están listas.</Text>
+        <Action p={p} onPress={openWebsite}>Usar {label} en Global Stock web →</Action>
+      </View>
+    </>;
+  }
+
+  const groups = ["PRINCIPAL", "ANÁLISIS", "ORGANIZACIÓN", "GESTIÓN"];
+  const isMenuActive = !["overview","pos","inventory","scan"].includes(active);
+
+  return <SafeAreaView edges={["top","bottom"]} style={[s.shell,{backgroundColor:p.bg}]}>
+    <StatusBar style={dark ? "light" : "dark"}/>
+    <View style={s.header}>
+      <Pressable accessibilityRole="button" accessibilityLabel="Ir a inicio" onPress={() => open("overview")} style={s.brandRow}>
+        <Image source={require("../../assets/brand-mark.png")} style={s.brandIcon} resizeMode="contain"/>
+        <Text style={s.brandName}>Global Stock</Text>
+      </Pressable>
+      <View style={s.headerButtons}>
+        <Pressable accessibilityRole="button" accessibilityLabel={dark?"Cambiar a claro":"Cambiar a oscuro"} onPress={() => setDark(!dark)} style={s.iconControl}>{dark ? <Sun size={16} color={p.text}/> : <Moon size={16} color={p.text}/>}</Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Abrir menú" onPress={() => setMenuOpen(true)} style={s.iconControl}><Menu size={17} color={p.text}/></Pressable>
+      </View>
+    </View>
+    {notice && source==="empty" ? <View style={s.hint}><WifiOff size={12} color="#E9BD76"/><Text style={s.hintText} numberOfLines={2}>{notice}</Text></View> : null}
+    <ScrollView
+      key={active}
+      style={s.scroll}
+      contentContainerStyle={s.content}
+      showsVerticalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+    >
+      {active==="overview" ? overview() : null}
+      {active==="inventory" ? inventory() : null}
+      {active==="pos" ? pointOfSale() : null}
+      {active==="charts" ? chartScreen() : null}
+      {active==="activities" ? activityScreen() : null}
+      {active==="settings" ? settingsScreen() : null}
+      {active==="scan" ? <>
+        {heading("Escanear código", "Apuntá la cámara al código de barras o QR del producto.")}
+        {!permission ? <ActivityIndicator color={p.redIcon}/> : !permission.granted ? <Action p={p} onPress={() => void requestPermission()}>Permitir acceso a la cámara</Action> :
+        <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
+        <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
+      </> : null}
+      {["notes","purchases","suppliers","online","documents","operations"].includes(active) ? pendingModule() : null}
+      {message ? <View style={s.hint}><Check size={13} color="#67CFA8"/><Text style={s.hintText}>{message}</Text></View> : null}
+    </ScrollView>
+
+    <View style={[s.dock,{backgroundColor:p.surface}]}>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Inicio" accessibilityState={{selected:active==="overview"}} onPress={() => open("overview")} style={s.dockTab}><Store size={18} color={active==="overview" ? p.redIcon : p.muted}/><Text style={[s.dockLabel,{color:active==="overview"?p.redIcon:p.muted}]}>Inicio</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Punto de venta" accessibilityState={{selected:active==="pos"}} onPress={() => open("pos")} style={s.dockTab}><ShoppingCart size={18} color={active==="pos"?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:active==="pos"?p.redIcon:p.muted}]}>Punto de venta</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Escanear" accessibilityState={{selected:active==="scan"}} onPress={() => {setScanned(false);open("scan");}} style={s.scanDockTab}><View style={s.scanCircle}><ScanLine size={23} color="#FFFFFF" strokeWidth={2}/></View><Text style={[s.dockLabel,{color:p.redIcon}]}>Escanear</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Almacén" accessibilityState={{selected:active==="inventory"}} onPress={() => open("inventory")} style={s.dockTab}><Boxes size={18} color={active==="inventory"?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:active==="inventory"?p.redIcon:p.muted}]}>Almacén</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Menú" accessibilityState={{selected:isMenuActive}} onPress={() => setMenuOpen(true)} style={s.dockTab}><Menu size={18} color={isMenuActive?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:isMenuActive?p.redIcon:p.muted}]}>Menú</Text></Pressable>
+    </View>
+
+    <Pressable accessibilityRole="button" accessibilityLabel="Asistente de Global Stock" onPress={() => setShowAi(true)} style={s.aiButton}><Sparkles size={19} color="#fff"/></Pressable>
+
+    <Modal visible={menuOpen} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setMenuOpen(false)}>
+      <View style={s.backdrop}><Pressable style={{ flex:1 }} onPress={() => setMenuOpen(false)}/><View style={s.sheet}>
+        <View style={s.sheetHandle}/>
+        <View style={s.cardHeadingRow}><View style={s.brandRow}><Image source={require("../../assets/brand-mark.png")} style={s.brandIcon}/><View><Text style={s.sectionTitle}>Menú</Text><Text style={s.meta} numberOfLines={1}>{business.name}</Text></View></View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cerrar menú" onPress={() => setMenuOpen(false)} style={s.iconControl}><X size={19} color={p.text}/></Pressable></View>
+        <ScrollView contentContainerStyle={{ paddingBottom: 14 }} showsVerticalScrollIndicator={false}>
+          {groups.map((g) => <View key={g} style={{ marginTop: 21 }}><Text style={s.menuGroup}>{g}</Text><View style={s.menuGrid}>
+          {navigation.filter((v) => v.group===g).map((item) => {
+            const Icon=item.icon;
+            return <Pressable key={item.module} accessibilityRole="button" onPress={() => open(item.module)} style={[s.menuTile,active===item.module && s.menuTileActive]}>
+              <View style={s.menuTileIcon}><Icon size={16} color={p.redIcon}/></View>
+              <View style={{ flex:1 }}><Text style={s.menuTileText} numberOfLines={2}>{item.label}</Text>
+              {!item.live ? <Text style={s.menuSoon}>En adaptación</Text> : null}</View>
+            </Pressable>;
+          })}</View></View>)}
+          <Pressable onPress={() => {setMenuOpen(false);setBusinessPicker(true);}} style={s.menuLink} accessibilityRole="button"><Store size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cambiar negocio</Text><ChevronRight size={15} color={p.muted}/></Pressable>
+          <Pressable onPress={() => {setMenuOpen(false);onSignOut();}} style={s.menuLink} accessibilityRole="button"><LogOut size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text><ChevronRight size={15} color={p.muted}/></Pressable>
+        </ScrollView>
+      </View></View>
+    </Modal>
+
+    <Modal visible={businessPicker} transparent animationType="fade" onRequestClose={() => setBusinessPicker(false)}>
+      <View style={s.modalBackdrop}><View style={s.modalCard}>
+        <View style={s.cardHeadingRow}><Text style={s.sectionTitle}>Tus negocios</Text><Pressable onPress={() => setBusinessPicker(false)} accessibilityRole="button"><X size={20} color={p.text}/></Pressable></View>
+        {businesses.map((b) => <Pressable key={b.id} style={s.menuLink} onPress={() => {setBusinessPicker(false);onBusiness(b);}} accessibilityRole="button">
+          <Store size={16} color={p.redIcon}/><Text style={s.menuLinkLabel}>{b.name}</Text>{b.id===business.id?<Check size={16} color="#65C5A1"/>:null}
+        </Pressable>)}
+      </View></View>
+    </Modal>
+
+    <Modal visible={showAi} transparent animationType="fade" onRequestClose={() => setShowAi(false)}>
+      <View style={s.modalBackdrop}><View style={s.modalCard}>
+        <View style={s.cardHeadingRow}><View style={{flexDirection:"row",alignItems:"center",gap:9}}><Sparkles size={20} color={p.redIcon}/><Text style={s.sectionTitle}>Global Stock IA</Text></View>
+          <Pressable onPress={() => setShowAi(false)} accessibilityRole="button"><X size={20} color={p.text}/></Pressable></View>
+        <Text style={s.pendingText}>El asistente completo está disponible en Global Stock web. Estamos adaptando la conversación y los permisos a la aplicación nativa.</Text>
+        <Action p={p} onPress={() => {setShowAi(false);openWebsite();}}>Abrir asistente web</Action>
+      </View></View>
+    </Modal>
+  </SafeAreaView>;
+}
+
+function stylesFor(p: Palette) {
+  return StyleSheet.create({
+    shell: { flex:1 },
+    header: { height: 56, flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingHorizontal:16, borderBottomWidth:1, borderBottomColor:p.border, backgroundColor:p.surface },
+    brandRow: { flexDirection:"row", alignItems:"center", gap:9, flex:1 },
+    brandIcon: { width:27,height:27 },
+    brandName: { fontWeight:"800",color:p.text,fontSize:13,letterSpacing:-0.25 },
+    headerButtons: { flexDirection:"row",gap:7 },
+    iconControl: { width:35,height:35,borderRadius:11,borderWidth:1,borderColor:p.border,backgroundColor:p.elevated,alignItems:"center",justifyContent:"center" },
+    scroll: { flex:1 },
+    content: { paddingHorizontal:17,paddingTop:19,paddingBottom:90,gap:15 },
+    intro: { gap:5,marginBottom:2 },
+    eyebrowLine: { flexDirection:"row",gap:6,alignItems:"center",marginBottom:2 },
+    eyebrowLogo: { width:14,height:14 },
+    eyebrow: { color:p.redIcon,fontSize:10,fontWeight:"800",letterSpacing:1.45 },
+    pageTitle: { fontSize:23,fontWeight:"800",letterSpacing:-0.75,color:p.text,lineHeight:29 },
+    pageSubtitle: { color:p.muted,fontSize:11.5,lineHeight:18 },
+    metricsGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:9,rowGap:9 },
+    metric: { width:"48.65%",minHeight:111,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,borderRadius:17,padding:13,justifyContent:"space-between" },
+    metricIcon: { width:31,height:31,borderRadius:12,backgroundColor:p.red+"24",alignItems:"center",justifyContent:"center",marginBottom:8 },
+    metricLabel: { color:p.muted,fontSize:10.5 },
+    metricValue: { color:p.text,fontWeight:"800",fontSize:14.5,letterSpacing:-0.35,marginTop:4 },
+    metricDetail: { color:p.muted,fontSize:9.5,marginTop:4 },
+    bigCard: { backgroundColor:p.surface,borderColor:p.border,borderWidth:1,borderRadius:19,padding:15,gap:10 },
+    cardHeadingRow: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:9 },
+    chartTitle: { marginTop:5,fontSize:15,fontWeight:"800",color:p.text },
+    smallPill: { flexDirection:"row",gap:3,alignItems:"center",borderWidth:1,borderColor:p.border,borderRadius:40,paddingHorizontal:9,paddingVertical:6 },
+    smallPillText: { color:p.muted,fontSize:10 },
+    chartFooter: { flexDirection:"row",alignItems:"center",gap:7,paddingTop:2 },
+    liveDot: { width:6,height:6,borderRadius:4,backgroundColor:"#55CB9B" },
+    meta: { fontSize:11,color:p.muted,lineHeight:17 },
+    sectionTitle: { fontSize:14,fontWeight:"800",color:p.text },
+    summaryRow: { flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:0.75,borderBottomColor:p.border,paddingVertical:9,gap:8 },
+    summaryValue: { color:p.text,fontSize:12,fontWeight:"800" },
+    quickGrid: { flexDirection:"row",gap:9 },
+    quickCard: { flex:1,borderWidth:1,borderColor:p.border,borderRadius:13,backgroundColor:p.surface,padding:14,gap:12,alignItems:"flex-start" },
+    quickText: { color:p.text,fontWeight:"800",fontSize:12 },
+    dock: { minHeight:69,borderTopWidth:1,borderTopColor:p.border,flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",paddingHorizontal:6,paddingBottom:3 },
+    dockTab: { flex:1,justifyContent:"center",alignItems:"center",gap:4 },
+    dockLabel: { fontSize:9,fontWeight:"700" },
+    scanDockTab: { flex:1.12,alignItems:"center",justifyContent:"flex-end",gap:2,paddingBottom:9 },
+    scanCircle: { width:58,height:58,borderRadius:35,alignItems:"center",justifyContent:"center",backgroundColor:p.red,borderWidth:5,borderColor:p.bg,marginTop:-29 },
+    aiButton: { position:"absolute",bottom:100,right:16,width:46,height:46,borderRadius:30,backgroundColor:p.red,borderWidth:6,borderColor:p.bg,alignItems:"center",justifyContent:"center",elevation:5 },
+    warning: { color:"#E4AA65",fontSize:11,lineHeight:17 },
+    rowBetween: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8 },
+    searchBar: { flexDirection:"row",alignItems:"center",gap:10,borderWidth:1,borderColor:p.border,borderRadius:13,paddingHorizontal:12,backgroundColor:p.surface,minHeight:46 },
+    searchInput: { flex:1,color:p.text,fontSize:12,paddingVertical:10 },
+    textLink: { color:p.redIcon,fontSize:12,fontWeight:"800" },
+    product: { flexDirection:"row",gap:10,alignItems:"center",backgroundColor:p.surface,borderWidth:1,borderColor:p.border,borderRadius:14,padding:13 },
+    productName: { color:p.text,fontSize:12.5,fontWeight:"800",lineHeight:18 },
+    productMeta: { color:p.muted,fontSize:10.5,lineHeight:16,marginTop:4 },
+    price: { color:p.text,fontSize:12,fontWeight:"800" },
+    addSmall: { flexDirection:"row",gap:4,alignItems:"center",backgroundColor:p.red,borderRadius:9,paddingHorizontal:8,paddingVertical:7 },
+    addText: { color:"white",fontSize:10,fontWeight:"800" },
+    empty: { backgroundColor:p.surface,borderWidth:1,borderColor:p.border,borderRadius:15,padding:20,alignItems:"center",gap:9 },
+    emptyTitle: { color:p.text,fontSize:14,fontWeight:"800" },
+    warnBox: { backgroundColor: "#2E231D", borderWidth:1,borderColor:"#765438",padding:12,borderRadius:12,flexDirection:"row",gap:10,alignItems:"flex-start" },
+    warnText: { flex:1,color:"#F1D9B3",fontSize:11.5,lineHeight:18 },
+    cartLine: { flexDirection:"row",alignItems:"center",gap:10,paddingVertical:10,borderBottomWidth:0.7,borderColor:p.border },
+    quantityButton: { width:26,height:26,borderRadius:8,backgroundColor:p.elevated,borderWidth:1,borderColor:p.border,alignItems:"center",justifyContent:"center" },
+    quantity: { color:p.text,fontSize:12,fontWeight:"800" },
+    totalRow: { flexDirection:"row",justifyContent:"space-between",paddingVertical:14,alignItems:"center" },
+    total: { color:p.text,fontWeight:"800",fontSize:20 },
+    smallPrint: { color:p.muted,fontSize:10,lineHeight:15 },
+    track: { height:6,borderRadius:10,overflow:"hidden" },
+    trackFill: { height:6,borderRadius:10 },
+    settingPrimary: { fontSize:19,fontWeight:"800",color:p.text },
+    pendingPanel: { borderRadius:19,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,alignItems:"center",padding:23,gap:16 },
+    pendingTitle: { fontSize:18,fontWeight:"800",color:p.text,textAlign:"center" },
+    pendingText: { color:p.muted,fontSize:12,lineHeight:19,textAlign:"center" },
+    hint: { borderRadius:10,backgroundColor:p.elevated,padding:9,flexDirection:"row",alignItems:"center",gap:8 },
+    hintText: { flex:1,color:p.muted,fontSize:10.5,lineHeight:15 },
+    cameraWrap: { height:350,overflow:"hidden",borderRadius:17,position:"relative",backgroundColor:"#000" },
+    cameraReticle: { position:"absolute",left:"15%",right:"15%",top:"26%",bottom:"26%",borderWidth:2,borderColor:p.redIcon,borderRadius:16 },
+    backdrop: { flex:1,backgroundColor:"rgba(0,0,0,0.65)",justifyContent:"flex-end" },
+    sheet: { maxHeight:"83%",borderTopLeftRadius:28,borderTopRightRadius:28,backgroundColor:p.surface,paddingHorizontal:16,paddingTop:10,paddingBottom:10,borderTopWidth:1,borderColor:p.border },
+    sheetHandle: { alignSelf:"center",height:4,width:37,borderRadius:5,backgroundColor:p.border,marginBottom:15 },
+    menuGroup: { color:p.muted,fontSize:9.5,letterSpacing:1.5,fontWeight:"800",marginBottom:9 },
+    menuGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:9,rowGap:9 },
+    menuTile: { flexDirection:"row",alignItems:"center",gap:9,width:"48.5%",minHeight:64,padding:10,backgroundColor:p.elevated,borderRadius:13,borderWidth:1,borderColor:p.border },
+    menuTileActive: { borderColor:p.redIcon },
+    menuTileIcon: { width:31,height:31,borderRadius:10,backgroundColor:p.red+"20",justifyContent:"center",alignItems:"center" },
+    menuTileText: { color:p.text,fontSize:11.5,fontWeight:"800" },
+    menuSoon: { color:p.muted,fontSize:9,marginTop:3 },
+    menuLink: { flexDirection:"row",alignItems:"center",gap:12,paddingVertical:14,borderBottomWidth:0.7,borderColor:p.border },
+    menuLinkLabel: { color:p.text,flex:1,fontSize:12,fontWeight:"700" },
+    modalBackdrop: { flex:1,backgroundColor:"rgba(0,0,0,.72)",justifyContent:"center",paddingHorizontal:24 },
+    modalCard: { borderRadius:20,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,padding:19,gap:16 }
+  });
+}
