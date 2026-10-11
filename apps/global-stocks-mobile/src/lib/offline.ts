@@ -87,5 +87,20 @@ export async function loadOfflineDrafts(userId: string, businessId: string): Pro
   return rows.map((r) => JSON.parse(r.payload) as SaleDraft);
 }
 
+/**
+ * Explicit logout cleanup for the current account. SQLite is unencrypted:
+ * remove merchant snapshots and unsynced local quotes when the user opts out.
+ * All statements run in a transaction so a partial cleanup can be retried.
+ */
+export async function purgeLocalAccountData(userId: string): Promise<void> {
+  if (!userId || typeof userId !== "string") throw new Error("Invalid account for local cleanup");
+  const db = await database();
+  await db.withTransactionAsync(async () => {
+    await db.runAsync("DELETE FROM offline_sale_drafts WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM inventory_snapshots WHERE user_id = ?", userId);
+    await db.runAsync("DELETE FROM business_snapshots WHERE user_id = ?", userId);
+  });
+}
+
 /** No implicit upload: stock, cash and payments must be committed atomically online. */
 export const AUTOMATIC_SALE_SYNC_ENABLED = false;

@@ -25,7 +25,7 @@ import NativeLegalGate from "./src/components/NativeLegalGate";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
-import { cacheBusinesses, cacheProducts, loadOfflineDrafts, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
+import { cacheBusinesses, cacheProducts, loadOfflineDrafts, purgeLocalAccountData, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
 
 type Tab = "dashboard" | "inventory" | "pos" | "scanner";
 type CartLine = SaleLine;
@@ -430,8 +430,38 @@ function MobileApp() {
 
   async function logout() {
     if (!supabase) return;
-    const { error } = await supabase.auth.signOut();
-    if (error) Alert.alert("No se pudo cerrar la sesión", error.message);
+    // Deleting unsynced local budgets is irreversible. Ask the current user
+    // before proceeding; the web inventory itself stays in Supabase.
+    Alert.alert(
+      "Cerrar sesión en este dispositivo",
+      "Por privacidad, se borrarán las copias locales del inventario y los presupuestos no sincronizados de esta cuenta. Esto no elimina los datos guardados en Global Stock web. ¿Querés continuar?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Cerrar y borrar copia local",
+          style: "destructive",
+          onPress: () => {
+            void (async () => {
+              try {
+                const { data: { user: authenticatedUser }, error: userError } = await supabase.auth.getUser();
+                if (userError || !authenticatedUser?.id) {
+                  Alert.alert("No se pudo verificar la sesión", "Comprobá tu conexión y volvé a intentarlo. No se borró ningún archivo.");
+                  return;
+                }
+                // Do not change authentication before completing local cleanup.
+                await purgeLocalAccountData(authenticatedUser.id);
+                const { error: signOutError } = await supabase.auth.signOut();
+                if (signOutError) {
+                  Alert.alert("No se pudo cerrar la sesión", "La copia local se borró, pero el servidor no confirmó el cierre de sesión. Reintentá.");
+                }
+              } catch (error) {
+                Alert.alert("No se pudo borrar la copia local", error instanceof Error ? error.message : "Error de almacenamiento. Reintentá el cierre de sesión.");
+              }
+            })();
+          }
+        }
+      ]
+    );
   }
 
   function add(product: Product) {
