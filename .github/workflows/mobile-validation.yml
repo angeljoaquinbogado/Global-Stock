@@ -28,5 +28,7 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Verify TypeScript and JSX syntax
         run: npm run check:syntax
+      - name: Verify beta privacy and session lifecycle
+        run: npm run check:beta
       - name: Typecheck mobile
         run: npm run typecheck
