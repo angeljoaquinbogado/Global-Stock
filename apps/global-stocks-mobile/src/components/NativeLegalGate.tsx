@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Check, ExternalLink, ShieldCheck } from "lucide-react-native";
@@ -12,6 +12,8 @@ const BASE = "https://globalstocks.vercel.app";
 type Props = { client: SupabaseClient; userId: string; onReady: () => void; onSignOut: () => void };
 
 export default function NativeLegalGate({ client, userId, onReady, onSignOut }: Props) {
+  const readyCallback = useRef(onReady);
+  readyCallback.current = onReady;
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [adult,setAdult]=useState(false);
@@ -30,12 +32,12 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
         .maybeSingle();
       if(!active)return;
       if(error)throw error;
-      if(data?.id)onReady();
+      if(data?.id)readyCallback.current();
     })().catch((err:unknown)=>{
       if(active)setError(err instanceof Error ? err.message : "No se pudo verificar la aceptación.");
     }).finally(()=>{if(active)setLoading(false);});
     return ()=>{active=false;};
-  },[client,userId,onReady,retry]);
+  },[client,userId,retry]);
 
   async function accept() {
     if(!adult || !terms || loading || saving)return;
@@ -46,7 +48,7 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
         adult_18_attested:true
       },{onConflict:"user_id,terms_version,privacy_version",ignoreDuplicates:true});
       if(error)throw error;
-      onReady();
+      readyCallback.current();
     }catch(err){setError(err instanceof Error?err.message:"No se pudo registrar la aceptación.");}
     finally{setSaving(false);}
   }
