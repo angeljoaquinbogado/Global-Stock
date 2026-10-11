@@ -9,6 +9,7 @@ const must = (condition, explanation) => { if (!condition) throw new Error("BETA
 
 const app = read("apps/global-stocks-mobile/App.tsx");
 const legal = read("apps/global-stocks-mobile/src/components/NativeLegalGate.tsx");
+const privacy = read("apex-stock-os/app/legal/privacy/page.tsx");
 const ai = read("apps/global-stocks-mobile/src/components/NativeAssistant.tsx");
 const offline = read("apps/global-stocks-mobile/src/lib/offline.ts");
 const commerce = read("apps/global-stocks-mobile/src/components/NativeCommerceConnect.tsx");
@@ -21,6 +22,10 @@ const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
 must(legal.includes("adult_18_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Age and document versions must be recorded.");
 must(legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
+must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-11-v2"') &&
+  privacy.includes("Versión 2026-10-11-v2") &&
+  privacy.includes("CUIT"),
+  "Fiscal-data privacy notice must trigger a new versioned mobile acceptance.");
 must(ai.includes("global_stock_ai_data_consents") && ai.includes("approved: true"), "AI context requires explicit opt-in.");
 must(ai.includes("client.auth.refreshSession()") && ai.includes("verified.user.id !== userId"), "AI must validate user identity and recover expired access tokens.");
 must(route.includes("authorizeBusinessRequest(request, businessId)") && route.includes("AI_CONSENT_REQUIRED"), "The server must enforce tenant membership and AI consent.");
