@@ -32,16 +32,24 @@ must(route.includes("authorizeBusinessRequest(request, businessId)") && route.in
 must(offline.includes("AUTOMATIC_SALE_SYNC_ENABLED = false"), "Automatic offline checkout must remain disabled.");
 must(!offline.includes("service_role"), "Mobile storage must not include a service-role secret.");
 must(offline.includes("purgeLocalAccountData") && app.includes("purgeLocalAccountData"), "Device logout must clear plaintext merchant data.");
+const assistant = read("apps/global-stocks-mobile/src/components/NativeAssistant.tsx");
 must(
   app.includes("signOutLock.current") &&
   app.includes("setLoggingOut(true)") &&
   app.includes("setLoginViewVersion((n) => n + 1)") &&
   app.includes('supabase.auth.signOut({ scope: "local" })') &&
+  app.includes("onSignOut={() => void performLogout()}") &&
   workspace.includes("function requestSignOut()") &&
   workspace.includes("setShowAi(false)") &&
   workspace.includes("setMenuOpen(false)") &&
-  workspace.includes("onSignOut={requestSignOut}"),
-  "Logout must dismiss native sheets, prevent double submission and recreate auth UI after signout."
+  workspace.includes("setShowLogoutConfirm(true)") &&
+  workspace.includes("onSignOut={requestSignOut}") &&
+  workspace.includes("showLogoutConfirm ?") &&
+  workspace.includes("Cerrar sesión y borrar copia local") &&
+  !workspace.includes("<Modal ") &&
+  !assistant.includes("<Modal ") &&
+  assistant.includes("if (!visible) return null;"),
+  "iOS logout must confirm in-tree, unmount overlays and reset auth UI without native sheets."
 );
 must(workspace.includes("NativePrintCenter") && !workspace.includes("NativeCashCheckout"), "Native cash checkout must remain excluded from Argentina free beta UI.");
 must(cfg.expo.name === "Global Stock" && cfg.expo.slug === "global-stocks", "Expo app identity mismatch.");
