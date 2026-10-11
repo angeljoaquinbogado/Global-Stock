@@ -59,6 +59,15 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
+echo Revisando que menu, IA y cierre de sesion esten conectados correctamente...
+call npm run check:beta
+if errorlevel 1 (
+  echo ERROR: La navegacion o privacidad de la beta no pasa las verificaciones.
+  echo No se iniciara Expo. Envia la salida de esta ventana para revisarlo.
+  pause
+  exit /b 1
+)
+echo.
 echo Conexion publica a Supabase desde la web: automatica.
 echo No hace falta copiar claves privadas ni crear .env.
 echo.
