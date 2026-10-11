@@ -65,6 +65,12 @@ const MAX_HISTORY_MESSAGES = 20;
 const MAX_CONTEXT_PRODUCTS = 300;
 const MODEL_TIMEOUT_MS = 60000;
 
+// Warm serverless instances reuse this public model capability list instead
+// of contacting Google's model catalogue on every failed user request.
+let cachedGeminiModels: { models: string[]; expiresAt: number } | null = null;
+const geminiQuotaCooldown = new Map<string, number>();
+const GEMINI_COOLDOWN_MS = 60_000;
+
 export class IntelligenceProviderError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);
@@ -203,8 +209,9 @@ export async function generateIntelligenceAnswer({
         parts: [{ text: item.content }]
       }));
 
-      // Keep per-attempt limits below the mobile 75s timeout. A transient 503
-      // or saturated Gemini model must not stall the entire conversation.
+      // A single user question may call Gemini at most twice, and the second
+      // attempt MUST use a different model reported as available by Google.
+      // Do not retry the exhausted model or hammer the key after a 429.
       async function askGemini(url: string, selectedModel: string, limitMs: number): Promise<string> {
         const attempt = new AbortController();
         const deadline = setTimeout(() => attempt.abort(), limitMs);
@@ -220,11 +227,15 @@ export async function generateIntelligenceAnswer({
               contents,
               generationConfig: {
                 temperature: 0.3,
-                maxOutputTokens: mobile && isFlash25 ? 640 : mobile ? 1024 : 2048,
+                maxOutputTokens: mobile ? 640 : 2048,
                 ...(isFlash25 ? { thinkingConfig: { thinkingBudget: 0 } } : {})
               }
             })
           });
+
+          if (response.status === 429) {
+            geminiQuotaCooldown.set(selectedModel, Date.now() + GEMINI_COOLDOWN_MS);
+          }
 
           const payload = (await response.json().catch(() => ({}))) as GeminiResponse;
           if (!response.ok) {
@@ -236,86 +247,91 @@ export async function generateIntelligenceAnswer({
           const answer = payload.candidates?.[0]?.content?.parts
             ?.map((part) => part.text?.trim()).filter(Boolean).join("\n").trim();
           if (!answer) throw new IntelligenceProviderError(503, "Gemini returned an empty response.");
+          geminiQuotaCooldown.delete(selectedModel);
           return answer;
         } finally {
           clearTimeout(deadline);
         }
       }
 
-      try {
-        return await askGemini(endpoint, model, mobile ? 24000 : 30000);
-      } catch (primaryError) {
-        const transient = primaryError instanceof IntelligenceProviderError
-          ? [404, 500, 502, 503, 504].includes(primaryError.status)
-          : primaryError instanceof Error && primaryError.name === "AbortError";
-        if (!transient) throw primaryError;
-
-        // Resolve fallback names from this key's actual supported Gemini models.
-        // An assumed "flash-lite" model previously produced 404 for this account.
-        // Discovery is best-effort; always retain a bounded same-model retry.
-        let alternatives: string[] = [];
-        if (!process.env.GEMINI_API_URL?.trim()) {
-          const discovery = new AbortController();
-          const stopDiscovery = setTimeout(() => discovery.abort(), 3500);
+      async function getBackupModel(exclude: string): Promise<string | null> {
+        if (process.env.GEMINI_API_URL?.trim()) return null;
+        if (!cachedGeminiModels || cachedGeminiModels.expiresAt <= Date.now()) {
+          const controller = new AbortController();
+          const deadline = setTimeout(() => controller.abort(), 3500);
           try {
-            const modelsResponse = await fetch(
+            const response = await fetch(
               "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100",
-              {
-                method: "GET",
-                headers: { "x-goog-api-key": apiKey, Accept: "application/json" },
-                cache: "no-store",
-                signal: discovery.signal
-              }
+              { method: "GET", headers: { "x-goog-api-key": apiKey }, cache: "no-store", signal: controller.signal }
             );
-            if (modelsResponse.ok) {
-              const listing = (await modelsResponse.json()) as {
+            if (response.ok) {
+              const body = (await response.json()) as {
                 models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
               };
-              const supported = new Set(
-                (listing.models ?? [])
-                  .filter(item => item.supportedGenerationMethods?.includes("generateContent"))
-                  .map(item => item.name?.replace(/^models\//, "") ?? "")
-                  .filter(name => /^gemini-[a-z0-9.-]+$/.test(name))
-              );
-              // Prefer lower-latency models, but only those returned as available.
-              alternatives = [
-                "gemini-2.5-flash",
-                "gemini-2.5-flash-lite",
-                "gemini-2.0-flash",
-                "gemini-2.0-flash-lite"
-              ].filter(name => supported.has(name) && name !== model).slice(0, 2);
+              cachedGeminiModels = {
+                models: (body.models ?? [])
+                  .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
+                  .map(m => m.name?.replace(/^models\//, "") || "")
+                  .filter(name => /^gemini-[a-z0-9.-]+$/.test(name)),
+                expiresAt: Date.now() + 10 * 60_000
+              };
             }
           } catch {
-            // Discovery may fail during Google outages; retry the configured model.
+            // The capability lookup is best-effort and never generates tokens.
           } finally {
-            clearTimeout(stopDiscovery);
+            clearTimeout(deadline);
           }
         }
+        const available = new Set(cachedGeminiModels?.models ?? []);
+        const preferred = [
+          "gemini-2.5-flash-lite",
+          "gemini-2.5-flash",
+          "gemini-2.0-flash-lite",
+          "gemini-2.0-flash"
+        ];
+        return preferred.find(candidate =>
+          candidate !== exclude &&
+          available.has(candidate) &&
+          (geminiQuotaCooldown.get(candidate) ?? 0) < Date.now()
+        ) ?? null;
+      }
 
-        // Never substitute canned text. Every attempt calls a real AI provider.
-        const candidates = alternatives.length ? alternatives : [model];
-        let lastError: unknown = primaryError;
-        for (const fallbackModel of candidates) {
-          const fallbackUrl = fallbackModel === model ? endpoint
-            : `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(fallbackModel)}:generateContent`;
-          try {
-            console.warn("[Global Intelligence] retrying after transient Gemini failure", {
-              status: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout",
-              sameModel: fallbackModel === model
-            });
-            return await askGemini(fallbackUrl, fallbackModel, mobile ? 19000 : 21000);
-          } catch (fallbackError) {
-            lastError = fallbackError;
-            // A listed model can become unavailable; try one more listed candidate.
-            if (!(fallbackError instanceof IntelligenceProviderError && fallbackError.status === 404)) break;
-          }
+      const mainInCooldown = (geminiQuotaCooldown.get(model) ?? 0) > Date.now();
+      let primaryError: unknown;
+      if (!mainInCooldown) {
+        try {
+          return await askGemini(endpoint, model, mobile ? 22000 : 30000);
+        } catch (error) {
+          primaryError = error;
         }
-        // Do not report an unsupported fallback as if the configured model were missing.
-        if (lastError instanceof IntelligenceProviderError && lastError.status === 404) {
+      } else {
+        primaryError = new IntelligenceProviderError(429, "Gemini model is temporarily at quota.");
+      }
+
+      const canUseAlternate = primaryError instanceof IntelligenceProviderError
+        ? [404, 429, 500, 502, 503, 504].includes(primaryError.status)
+        : primaryError instanceof Error && primaryError.name === "AbortError";
+      if (!canUseAlternate) throw primaryError;
+      const alternate = await getBackupModel(model);
+      if (!alternate) throw primaryError;
+
+      // One bounded alternate only. If the whole Google project quota has
+      // expired, surface an actionable 429 rather than endless API calls.
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(alternate)}:generateContent`;
+      try {
+        console.warn("[Global Intelligence] trying one available alternative model", {
+          reason: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout"
+        });
+        return await askGemini(fallbackUrl, alternate, mobile ? 18000 : 21000);
+      } catch (fallbackError) {
+        if (fallbackError instanceof IntelligenceProviderError && fallbackError.status === 404) {
+          // Stale discovery result: do not repeat the same invalid model.
+          cachedGeminiModels = null;
           throw primaryError;
         }
-        throw lastError;
+        throw fallbackError;
       }
+
     }
 
     if (apiKey) {
