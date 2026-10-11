@@ -46,3 +46,30 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Protect ALL workspaces (Flutter, Next.js, Expo) from local secrets and build junk.
+**/.env
+**/.env.*
+!**/.env.example
+!**/.env.sample
+!**/.env.template
+**/node_modules/
+**/.next/
+**/.expo/
+**/.vercel/
+**/dist/
+**/web-build/
+**/*.pem
+**/*.key
+**/*.p8
+**/*.p12
+**/*.jks
+**/*.keystore
+**/*.mobileprovision
+**/*.cer
+**/*.sqlite
+**/*.sqlite3
+**/*.db
+**/*.db-journal
+**/*.db-wal
+**/*.db-shm

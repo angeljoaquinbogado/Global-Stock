@@ -13,6 +13,7 @@ the production website.
 - ✅ Live product inventory, scoped by business, with SQLite last-known cache.
 - ✅ Camera scanning for EAN/UPC/Code128/QR via `expo-camera`.
 - ✅ Offline sale **drafts only**, stored on the current device.
+- ✅ Clearly marked offline UI demonstration if Supabase has not been configured.
 - ⛔ No payment capture, no real sale posting, no stock deduction, no automatic
   sync of drafts. The web/backend must implement an idempotent atomic commit
   and conflict resolution before these workflows can go live.
@@ -20,19 +21,41 @@ the production website.
   trusted test devices during this phase. Add at-rest encryption, retention
   rules and proper multi-device sync before real merchant data.
 
-## Run on a development computer
+## Open Global Stock with Expo Go (Windows / VS Code)
 
-Requires Node.js and an Expo Go build compatible with this project's Expo SDK.
+Use this **exact block**, even if your terminal is currently inside `apex-stock-os`:
 
-```bash
-cd apps/global-stocks-mobile
-npm install
-npx expo install --fix
-cp .env.example .env
-# Edit .env with your existing Supabase project URL and publishable/anon key
-npm run typecheck
-npx expo start
+```powershell
+Set-Location (git rev-parse --show-toplevel)
+git pull origin main
+.\INICIAR-GLOBAL-STOCK.cmd
 ```
+
+The launcher goes into `apps/global-stocks-mobile` automatically, installs
+packages the first time and starts Expo in **Expo Go mode**. Do not run
+`npx create-expo-app`; the native app already exists in this repo.
+
+1. Open **Expo Go → Scan QR Code** on the phone. Opening Expo Go alone only
+   shows the Expo Go home screen.
+2. Scan the **fresh QR code shown by the launcher**. Keep the terminal open.
+3. Connect phone and PC to the same Wi-Fi. If the QR loads indefinitely,
+   stop the server with Ctrl+C, then from the mobile folder use:
+   `npx expo start --go --clear --tunnel`.
+
+Without a configured `.env`, the app shows a clearly marked **Global Stock
+DEMO** dashboard with sample inventory and the native scanner. That is
+normal. Demo data is not real stock and demo actions cannot charge money.
+
+To connect the real Supabase account, create `apps/global-stocks-mobile/.env`
+from `.env.example` and set these **public client configuration** values:
+
+```dotenv
+EXPO_PUBLIC_SUPABASE_URL=https://YOUR-SUPABASE-PROJECT.supabase.co
+EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
+```
+
+Do not commit `.env`, and **never** use `service_role`. Restart Expo after
+editing `.env`. Then the real Global Stock sign-in screen will appear.
 
 This project is pinned to **Expo SDK 57 / React Native 0.86.3**, using the
 compatible official Expo `sdk-57` TypeScript template and native-module list.

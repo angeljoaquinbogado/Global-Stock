@@ -32,6 +32,8 @@ jobs:
           node-version: "22"
       - name: Install Expo project
         run: npm install --no-audit --no-fund
+      - name: Check tracked secrets, app identity and launcher
+        run: npm run check:repo
       - name: Check TypeScript
         run: npm run typecheck
       - name: Check installed Expo package compatibility
