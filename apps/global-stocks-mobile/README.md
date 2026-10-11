@@ -34,12 +34,10 @@ npm run typecheck
 npx expo start
 ```
 
-The Expo SDK / React Native versions are taken from the official Expo
-TypeScript blank template available when this foundation was created. If that
-SDK is prerelease on your machine, regenerate a stable compatible starter with
-`npx create-expo-app@latest` and let `npx expo install --fix` align native
-dependency versions **before any store build**. Never force incompatible native
-versions with `--legacy-peer-deps` just to silence an error.
+This project is pinned to **Expo SDK 57 / React Native 0.86.3**, using the
+compatible official Expo `sdk-57` TypeScript template and native-module list.
+Run `npx expo install --check` after installation. Do not force incompatible
+native versions with `--legacy-peer-deps` to silence an error.
 
 Scan the development QR code with Expo Go. Connect the device and the
 development computer to a reachable network, or use `npx expo start --tunnel`

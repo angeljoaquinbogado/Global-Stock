@@ -2,7 +2,7 @@
 
 This is the Expo configuration supplied for the **Global Stock** mobile-app workstream.
 
-> **Status:** Setup reference recorded on 2026-10-10. Not evidence that the Expo plugin, Expo SDK, Expo Go, or EAS connection is installed, that the app has been initialized, or that the project ID has been verified with Expo. Keep the existing Next.js / PWA application independent until an integration is explicitly planned.
+> **Status:** Native React Native + Expo code is now present at [`apps/global-stocks-mobile/`](../apps/global-stocks-mobile/README.md). The Expo plugin is not installed in Codex through this chat, and ownership of the supplied EAS project ID has not been verified with Expo. The existing Next.js/PWA and Flutter projects are independent.
 
 ## Expo project details
 
@@ -25,18 +25,22 @@ Alternatively, use `/plugins` from a Codex session and select **expo**.
 
 This is a Codex plugin command, **not** an npm command and **not** proof that it is installed in ChatGPT.
 
-## Create a separate Expo app
+## Run the existing Expo app
 
-Run the following on your **own development computer or supported cloud developer environment**, from the intended parent directory:
+The native starter is already checked into this repository. **Do not rerun
+`create-expo-app` in the repository**, since that would produce a second app.
 
 ```bash
-npx create-expo-app@latest global-stocks
-cd global-stocks
-npx eas-cli@latest init --id d3f33419-261b-4615-818d-f6802350b085
+cd apps/global-stocks-mobile
+npm install
+npx expo install --check
+# Copy .env.example to .env, then configure your public Supabase URL/key
 npx expo start
 ```
 
-This creates a new Expo React Native starter project, rather than converting the existing Next.js site. Avoid running create-expo-app in an existing populated `global-stocks` folder. The EAS command needs an Expo account with access to the provided project.
+To verify EAS access, sign in with the Expo account that owns this project
+and run `npx eas-cli@latest project:info`. The ID is already recorded in
+`app.json`, but cannot be verified from GitHub alone.
 
 ## Preview
 

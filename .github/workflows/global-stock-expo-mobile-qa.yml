@@ -37,4 +37,6 @@ jobs:
       - name: Check installed Expo package compatibility
         run: npx expo install --check
       - name: Bundle JavaScript for Android
-        run: npx expo export --platform android --output-dir dist-ci
+        run: npx expo export --platform android --output-dir dist-android
+      - name: Bundle JavaScript for iOS
+        run: npx expo export --platform ios --output-dir dist-ios
