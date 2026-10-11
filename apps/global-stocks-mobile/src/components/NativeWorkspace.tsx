@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View
@@ -147,23 +147,15 @@ export default function NativeWorkspace({
   const [dashboardError, setDashboardError] = useState("");
   const [canManageInventory, setCanManageInventory] = useState(false);
   const [showAi, setShowAi] = useState(false);
-  const signOutDelay = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => () => {
-    if (signOutDelay.current) clearTimeout(signOutDelay.current);
-  }, []);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   function requestSignOut() {
-    // Native iOS Modal dismissal is asynchronous. Unmounting the workspace
-    // during dismissal may leave a blank modal in front of the login page.
-    if (signOutDelay.current) return;
+    // Confirm within the same React tree. Native iOS alerts and modal sheets
+    // were leaving a blank presentation layer above the signed-out screen.
     setMenuOpen(false);
     setBusinessPicker(false);
     setShowAi(false);
-    signOutDelay.current = setTimeout(() => {
-      signOutDelay.current = null;
-      onSignOut(); // User must still confirm local-data deletion.
-    }, 650);
+    setShowLogoutConfirm(true);
   }
   const [showOverviewDetails, setShowOverviewDetails] = useState(false);
   const p = dark ? darkPalette : lightPalette;
@@ -508,6 +500,30 @@ export default function NativeWorkspace({
 
     <NativeAssistant visible={showAi} onClose={() => setShowAi(false)}
       client={client} business={business} userId={userId} products={products} dark={dark} />
+
+    {showLogoutConfirm ? (
+      <View style={[StyleSheet.absoluteFillObject,{zIndex:100}]} accessibilityViewIsModal>
+        <View style={s.modalBackdrop}>
+          <View style={s.modalCard}>
+            <Text style={s.sectionTitle}>¿Cerrar sesión en este dispositivo?</Text>
+            <Text style={[s.meta,{fontSize:12,lineHeight:20}]}>
+              Para proteger tu negocio, se borrarán de este dispositivo las copias
+              locales del inventario y los presupuestos que no estén sincronizados.
+              Los datos guardados en Global Stock web no se eliminan.
+            </Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Cancelar cierre de sesión"
+              onPress={()=>setShowLogoutConfirm(false)}
+              style={[s.menuLink,{justifyContent:"center"}]}>
+              <Text style={s.menuLinkLabel}>Cancelar</Text>
+            </Pressable>
+            <Action p={p} onPress={()=>{
+              setShowLogoutConfirm(false);
+              onSignOut();
+            }}>Cerrar sesión y borrar copia local</Action>
+          </View>
+        </View>
+      </View>
+    ) : null}
   </SafeAreaView>;
 }
 
