@@ -55,7 +55,7 @@ export default function NativeAccountDeletion({ client, onDeleted, dark }: Props
     {!open ? <Pressable accessibilityRole="button" disabled={checking} onPress={()=>void start()} style={[st.button,{backgroundColor:panel,borderColor:border}]}>
       <Text style={{color:fg,fontWeight:"800",fontSize:12}}>{checking?"Verificando…":"Iniciar eliminación de cuenta"}</Text>
     </Pressable> : <View style={[st.box,{backgroundColor:panel,borderColor:border}]}>
-      <View style={{flexDirection:"row",gap:9}}><AlertTriangle size={20} color="#EA9A62"/><Text style={{flex:1,color:fg,fontSize:12,lineHeight:19}}>Acción irreversible. Puede eliminar negocios y datos de tu propiedad exclusiva. Revisá antes de continuar.</Text></View>
+      <View style={{flexDirection:"row",gap:9}}><AlertTriangle size={20} color="#D6505F"/><Text style={{flex:1,color:fg,fontSize:12,lineHeight:19}}>Acción irreversible. Puede eliminar negocios y datos de tu propiedad exclusiva. Revisá antes de continuar.</Text></View>
       <Text style={{color:muted,fontSize:12}}>Cuenta autenticada: {email}</Text>
       <Text style={{color:fg,fontWeight:"700",fontSize:12}}>Repetí tu correo</Text>
       <TextInput accessibilityLabel="Correo para confirmar eliminación" value={confirmEmail} onChangeText={setConfirmEmail} autoCapitalize="none" keyboardType="email-address" placeholder={email} placeholderTextColor={muted} style={[st.input,{color:fg,borderColor:border}]}/>
@@ -66,7 +66,7 @@ export default function NativeAccountDeletion({ client, onDeleted, dark }: Props
       </Pressable>
       <Pressable disabled={deleting} accessibilityRole="button" onPress={()=>{setOpen(false);setError("");}} style={st.button}><Text style={{color:fg,fontWeight:"700"}}>Cancelar</Text></Pressable>
     </View>}
-    {!!error && <Text accessibilityRole="alert" style={{color:"#E6A272",fontSize:12,lineHeight:18}}>{error}</Text>}
+    {!!error && <Text accessibilityRole="alert" style={{color:"#D95C69",fontSize:12,lineHeight:18}}>{error}</Text>}
   </View>;
 }
 const st=StyleSheet.create({
