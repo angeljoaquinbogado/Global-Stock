@@ -251,7 +251,7 @@ function makeStyles(p: Palette) {
     amount:{height:49,borderWidth:1,borderColor:p.line,borderRadius:12,backgroundColor:p.elevated,color:p.fg,paddingHorizontal:12,fontSize:15,fontWeight:"700"},
     result:{height:49,borderWidth:1,borderColor:"#711821",borderRadius:12,backgroundColor: p.elevated,justifyContent:"center",paddingHorizontal:12},
     resultText:{color:p.fg,fontSize:12,fontWeight:"800"},
-    warning:{color:"#E7A170",fontSize:11,lineHeight:17},
+    warning:{color:"#D95C69",fontSize:11,lineHeight:17},
     rateBox:{backgroundColor:p.elevated,borderRadius:15,borderWidth:1,borderColor:p.line,padding:13,gap:7},
     largeRate:{color:p.fg,fontSize:21,fontWeight:"800"},
     quoteItem:{flex:1,borderRadius:12,backgroundColor:p.bg,padding:11,gap:7},
