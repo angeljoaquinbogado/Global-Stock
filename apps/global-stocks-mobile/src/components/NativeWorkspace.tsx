@@ -23,7 +23,7 @@ import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
 
 type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "activities" |
-  "notes" | "purchases" | "suppliers" | "online" | "documents" | "operations" | "settings";
+  "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings";
 type Palette = { bg: string; surface: string; elevated: string; border: string; text: string; muted: string; red: string; redIcon: string };
 const darkPalette: Palette = { bg: "#09090B", surface: "#171719", elevated: "#202024", border: "#313135", text: "#FAFAFA", muted: "#A3A3AE", red: "#A4000C", redIcon: "#CC1420" };
 const lightPalette: Palette = { bg: "#F5F5F7", surface: "#FFFFFF", elevated: "#F1F1F4", border: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#8F0000", redIcon: "#A40A14" };
@@ -106,8 +106,9 @@ const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDash
   { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: true },
   { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
   { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: true },
-  { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: false },
+  { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: true },
   { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: false },
+  { module: "fiscal", label: "ARCA · Facturación", icon: ShieldCheck, group: "GESTIÓN", live: true },
   { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: true },
   { module: "settings", label: "Configuración", icon: Settings2, group: "GESTIÓN", live: true }
 ];
@@ -431,9 +432,9 @@ export default function NativeWorkspace({
         <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
         <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
       </> : null}
-      {["notes","purchases","suppliers","online","documents","operations"].includes(active) ? (
+      {["notes","purchases","suppliers","online","documents","fiscal","operations"].includes(active) ? (
         <NativeExtraModules
-          client={client} business={business} products={products}
+          client={client} business={business} userId={userId} products={products}
           module={active as ExtraModule} dark={dark}
           onOpenInventory={() => open("inventory")}
           onOpenWeb={openWebsite}

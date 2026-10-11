@@ -4,13 +4,15 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, FileText, Globe2, Package, Plus, RefreshCw, Store, Trash2, Truck, Users } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
 import NativeCalendarSelector from "./NativeCalendarSelector";
+import NativeCommerceConnect from "./NativeCommerceConnect";
+import NativeFiscalArca from "./NativeFiscalArca";
 
-export type ExtraModule = "notes" | "suppliers" | "purchases" | "online" | "documents" | "operations";
+export type ExtraModule = "notes" | "suppliers" | "purchases" | "online" | "documents" | "operations" | "fiscal";
 export type Note = { id: string; title: string; body: string; pinned: boolean; createdAt: string; updatedAt: string };
 export type Reminder = { id: string; text: string; date: string; done: boolean; createdAt: string };
 export type Supplier = { id: string; name: string; contactName: string; phone: string; email: string; website: string; address: string; taxId: string; notes: string; createdAt: string; updatedAt: string };
 type Workspace = { freeNotes?: Note[]; notes?: Reminder[]; supplierProfiles?: Supplier[]; onlineConnections?: unknown; onlineOrders?: unknown; smartDocuments?: unknown; internalDocuments?: unknown };
-type Props = { client: SupabaseClient; business: Business; products: Product[]; module: ExtraModule; dark: boolean; onOpenInventory: () => void; onOpenWeb: () => void };
+type Props = { client: SupabaseClient; business: Business; userId: string; products: Product[]; module: ExtraModule; dark: boolean; onOpenInventory: () => void; onOpenWeb: () => void };
 const base = "#9F0011";
 
 function key() { return Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 12); }
@@ -28,7 +30,7 @@ function counts(value: unknown): number {
   return 0;
 }
 
-export default function NativeExtraModules({ client, business, products, module, dark, onOpenInventory, onOpenWeb }: Props) {
+export default function NativeExtraModules({ client, business, userId, products, module, dark, onOpenInventory, onOpenWeb }: Props) {
   const c = useMemo(() => ({
     bg: dark?"#09090B":"#F5F5F7", panel:dark?"#18181C":"#FFF",
     elevated:dark?"#222227":"#F0F0F4", line:dark?"#34343A":"#E2E2E8",
@@ -247,13 +249,13 @@ export default function NativeExtraModules({ client, business, products, module,
   }
 
   function online(){
-    return <>{title("ECOMMERCE","Tienda online","Integraciones de comercio y pedidos asociados a este negocio.")}
-      <View style={styles.card}><Globe2 size={22} color="#D01A27"/><Text style={styles.cardTitle}>Conexiones actuales</Text>
-        <Text style={styles.itemTitle}>{counts(workspace.onlineConnections)} registros de integración</Text>
-        <Text style={styles.caption}>Las credenciales y la vinculación de tiendas requieren la configuración segura de Global Stock web.</Text>
+    return <>{title("CANALES","Tienda online","Conectá tiendas y canales sin depender de una sola plataforma.")}
+      <NativeCommerceConnect client={client} business={business} dark={dark} onOpenWeb={onOpenWeb}/>
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Órdenes del espacio de trabajo</Text>
+        <Text style={styles.itemTitle}>{counts(workspace.onlineOrders)} registros</Text>
+        <Text style={styles.caption}>La sincronización de pedidos requiere una conexión previamente autorizada y un conector compatible.</Text>
       </View>
-      <View style={styles.card}><Text style={styles.cardTitle}>Órdenes sincronizadas</Text><Text style={styles.itemTitle}>{counts(workspace.onlineOrders)} registros</Text></View>
-      {button("Administrar conexiones desde la web",onOpenWeb,true)}
     </>;
   }
 
@@ -290,7 +292,8 @@ export default function NativeExtraModules({ client, business, products, module,
       module==="suppliers" ? supplierModule() :
       module==="purchases" ? purchases() :
       module==="online" ? online() :
-      module==="documents" ? documents() : operations())}
+      module==="documents" ? documents() :
+      module==="fiscal" ? <NativeFiscalArca client={client} business={business} userId={userId} dark={dark}/> : operations())}
   </View>;
 }
 
