@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator, Alert, Image, Linking, Modal, Pressable, ScrollView,
+  ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -476,7 +476,7 @@ export default function NativeWorkspace({
     </View>
 
 
-    <Modal visible={menuOpen} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setMenuOpen(false)}>
+    {menuOpen ? <View style={[StyleSheet.absoluteFillObject,{zIndex:30}]} accessibilityViewIsModal>
       <View style={s.backdrop}><Pressable style={{ flex:1 }} onPress={() => setMenuOpen(false)}/><View style={s.sheet}>
         <View style={s.sheetHandle}/>
         <View style={s.cardHeadingRow}><View style={s.brandRow}><Image source={require("../../assets/brand-mark.png")} style={s.brandIcon}/><View><Text style={s.sectionTitle}>Menú</Text><Text style={s.meta} numberOfLines={1}>{business.name}</Text></View></View>
@@ -495,16 +495,16 @@ export default function NativeWorkspace({
           <Pressable onPress={requestSignOut} style={s.menuLink} accessibilityRole="button"><LogOut size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text><ChevronRight size={15} color={p.muted}/></Pressable>
         </ScrollView>
       </View></View>
-    </Modal>
+    </View> : null}
 
-    <Modal visible={businessPicker} transparent animationType="fade" onRequestClose={() => setBusinessPicker(false)}>
+    {businessPicker ? <View style={[StyleSheet.absoluteFillObject,{zIndex:30}]} accessibilityViewIsModal>
       <View style={s.modalBackdrop}><View style={s.modalCard}>
         <View style={s.cardHeadingRow}><Text style={s.sectionTitle}>Tus negocios</Text><Pressable onPress={() => setBusinessPicker(false)} accessibilityRole="button"><X size={20} color={p.text}/></Pressable></View>
         {businesses.map((b) => <Pressable key={b.id} style={s.menuLink} onPress={() => {setBusinessPicker(false);onBusiness(b);}} accessibilityRole="button">
           <Store size={16} color={p.redIcon}/><Text style={s.menuLinkLabel}>{b.name}</Text>{b.id===business.id?<Check size={16} color="#65C5A1"/>:null}
         </Pressable>)}
       </View></View>
-    </Modal>
+    </View> : null}
 
     <NativeAssistant visible={showAi} onClose={() => setShowAi(false)}
       client={client} business={business} userId={userId} products={products} dark={dark} />
