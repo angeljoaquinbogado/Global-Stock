@@ -85,7 +85,7 @@ export default function NativeAssistant({ visible, onClose, client, business, pr
         if (response.status === 429) throw new Error("Demasiadas consultas seguidas. Esperá un momento.");
         throw new Error("El asistente no pudo responder. Probá nuevamente.");
       }
-      if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant", content: data.answer! }].slice(-40));
+      if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant" as const, content: data.answer! }].slice(-40));
     } catch (err) {
       if (mounted.current) {
         setError(err instanceof Error && err.name === "AbortError" ? "Se agotó el tiempo de respuesta del asistente." : err instanceof Error ? err.message : "Error de conexión.");
