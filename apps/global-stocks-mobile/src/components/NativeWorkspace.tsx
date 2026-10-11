@@ -17,6 +17,9 @@ import {
 } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
 import ProductForm from "./ProductForm";
+import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
+import NativeAssistant from "./NativeAssistant";
+import NativeSettings from "./NativeSettings";
 
 type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "activities" |
   "notes" | "purchases" | "suppliers" | "online" | "documents" | "operations" | "settings";
@@ -99,12 +102,12 @@ const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDash
   { module: "inventory", label: "Almacén", icon: Warehouse, group: "PRINCIPAL", live: true },
   { module: "charts", label: "Gráficos", icon: BarChart3, group: "ANÁLISIS", live: true },
   { module: "activities", label: "Actividad", icon: Activity, group: "ANÁLISIS", live: true },
-  { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: false },
-  { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: false },
-  { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: false },
+  { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: true },
+  { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
+  { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: true },
   { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: false },
   { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: false },
-  { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: false },
+  { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: true },
   { module: "settings", label: "Configuración", icon: Settings2, group: "GESTIÓN", live: true }
 ];
 
@@ -369,40 +372,6 @@ export default function NativeWorkspace({
     </>;
   }
 
-  function settingsScreen() {
-    return <>{heading("Configuración", "Tu negocio, tus preferencias y tu cuenta.")}
-      <View style={s.bigCard}>
-        <Text style={s.sectionTitle}>Negocio activo</Text>
-        <Text style={s.settingPrimary}>{business.name}</Text>
-        <Text style={s.meta}>Moneda: {business.base_currency} · Idioma: {business.locale}</Text>
-        <Action p={p} secondary onPress={() => setBusinessPicker(true)}>Cambiar de negocio</Action>
-      </View>
-      <View style={s.bigCard}><Text style={s.sectionTitle}>Apariencia</Text>
-        <Action p={p} secondary onPress={() => setDark((value) => !value)}>{dark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}</Action>
-      </View>
-      <Action p={p} secondary onPress={openWebsite}>Abrir Global Stock web</Action>
-      <Action p={p} secondary onPress={onSignOut}>Cerrar sesión</Action>
-    </>;
-  }
-
-  function pendingModule() {
-    const details: Record<Module,string> = {
-      overview:"", pos:"",inventory:"",scan:"",charts:"",activities:"",notes:"Notas, tareas, recordatorios y calendario",
-      purchases:"Pedidos de reposición y recepción de mercadería",suppliers:"Fichas y contactos de proveedores",
-      online:"Integraciones y conexión con las tiendas online",documents:"Comprobantes y documentos inteligentes",
-      operations:"Operaciones y administración del negocio",settings:""
-    };
-    const label=navigation.find(x=>x.module===active)?.label ?? "Módulo";
-    return <>{heading(label,details[active])}
-      <View style={s.pendingPanel}>
-        <Globe2 size={32} color={p.redIcon}/>
-        <Text style={s.pendingTitle}>En adaptación a React Native</Text>
-        <Text style={s.pendingText}>Esta sección ya existe en Global Stock web. La versión nativa se está desarrollando sin interrumpir la versión de PC ni simular funciones que aún no están listas.</Text>
-        <Action p={p} onPress={openWebsite}>Usar {label} en Global Stock web →</Action>
-      </View>
-    </>;
-  }
-
   const groups = ["PRINCIPAL", "ANÁLISIS", "ORGANIZACIÓN", "GESTIÓN"];
   const isMenuActive = !["overview","pos","inventory","scan"].includes(active);
 
@@ -414,6 +383,7 @@ export default function NativeWorkspace({
         <Text style={s.brandName}>Global Stock</Text>
       </Pressable>
       <View style={s.headerButtons}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Abrir Global Stock IA" onPress={() => setShowAi(true)} style={s.iconControl}><Sparkles size={17} color={p.redIcon}/></Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel={dark?"Cambiar a claro":"Cambiar a oscuro"} onPress={() => setDark(!dark)} style={s.iconControl}>{dark ? <Sun size={16} color={p.text}/> : <Moon size={16} color={p.text}/>}</Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir menú" onPress={() => setMenuOpen(true)} style={s.iconControl}><Menu size={17} color={p.text}/></Pressable>
       </View>
@@ -431,26 +401,37 @@ export default function NativeWorkspace({
       {active==="pos" ? pointOfSale() : null}
       {active==="charts" ? chartScreen() : null}
       {active==="activities" ? activityScreen() : null}
-      {active==="settings" ? settingsScreen() : null}
+      {active==="settings" ? <NativeSettings
+        client={client} business={business} userId={userId} dark={dark}
+        onTheme={setDark} onBusiness={onBusiness}
+        onSwitchBusiness={() => setBusinessPicker(true)}
+        onRefresh={onRefresh} onSignOut={onSignOut} onOpenWeb={openWebsite}
+      /> : null}
       {active==="scan" ? <>
         {heading("Escanear código", "Apuntá la cámara al código de barras o QR del producto.")}
         {!permission ? <ActivityIndicator color={p.redIcon}/> : !permission.granted ? <Action p={p} onPress={() => void requestPermission()}>Permitir acceso a la cámara</Action> :
         <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
         <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
       </> : null}
-      {["notes","purchases","suppliers","online","documents","operations"].includes(active) ? pendingModule() : null}
+      {["notes","purchases","suppliers","online","documents","operations"].includes(active) ? (
+        <NativeExtraModules
+          client={client} business={business} products={products}
+          module={active as ExtraModule} dark={dark}
+          onOpenInventory={() => open("inventory")}
+          onOpenWeb={openWebsite}
+        />
+      ) : null}
       {message ? <View style={s.hint}><Check size={13} color="#67CFA8"/><Text style={s.hintText}>{message}</Text></View> : null}
     </ScrollView>
 
     <View style={[s.dock,{backgroundColor:p.surface}]}>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Inicio" accessibilityState={{selected:active==="overview"}} onPress={() => open("overview")} style={s.dockTab}><Store size={18} color={active==="overview" ? p.redIcon : p.muted}/><Text style={[s.dockLabel,{color:active==="overview"?p.redIcon:p.muted}]}>Inicio</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Punto de venta" accessibilityState={{selected:active==="pos"}} onPress={() => open("pos")} style={s.dockTab}><ShoppingCart size={18} color={active==="pos"?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:active==="pos"?p.redIcon:p.muted}]}>Punto de venta</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Escanear" accessibilityState={{selected:active==="scan"}} onPress={() => {setScanned(false);open("scan");}} style={s.scanDockTab}><View style={s.scanCircle}><ScanLine size={23} color="#FFFFFF" strokeWidth={2}/></View><Text style={[s.dockLabel,{color:p.redIcon}]}>Escanear</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Almacén" accessibilityState={{selected:active==="inventory"}} onPress={() => open("inventory")} style={s.dockTab}><Boxes size={18} color={active==="inventory"?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:active==="inventory"?p.redIcon:p.muted}]}>Almacén</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Menú" accessibilityState={{selected:isMenuActive}} onPress={() => setMenuOpen(true)} style={s.dockTab}><Menu size={18} color={isMenuActive?p.redIcon:p.muted}/><Text style={[s.dockLabel,{color:isMenuActive?p.redIcon:p.muted}]}>Menú</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Inicio" accessibilityState={{selected:active==="overview"}} onPress={() => open("overview")} style={s.dockTab}><Store size={18} color={active==="overview" ? p.redIcon : p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="overview"?p.redIcon:p.muted}]}>Inicio</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Punto de venta" accessibilityState={{selected:active==="pos"}} onPress={() => open("pos")} style={s.dockTab}><ShoppingCart size={18} color={active==="pos"?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="pos"?p.redIcon:p.muted}]}>Punto de venta</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Escanear" accessibilityState={{selected:active==="scan"}} onPress={() => {setScanned(false);open("scan");}} style={s.scanDockTab}><View style={s.scanCircle}><ScanLine size={23} color="#FFFFFF" strokeWidth={2}/></View><Text numberOfLines={2} style={[s.dockLabel,{color:p.redIcon}]}>Escanear</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Almacén" accessibilityState={{selected:active==="inventory"}} onPress={() => open("inventory")} style={s.dockTab}><Boxes size={18} color={active==="inventory"?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="inventory"?p.redIcon:p.muted}]}>Almacén</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Menú" accessibilityState={{selected:isMenuActive}} onPress={() => setMenuOpen(true)} style={s.dockTab}><Menu size={18} color={isMenuActive?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:isMenuActive?p.redIcon:p.muted}]}>Menú</Text></Pressable>
     </View>
 
-    <Pressable accessibilityRole="button" accessibilityLabel="Asistente de Global Stock" onPress={() => setShowAi(true)} style={s.aiButton}><Sparkles size={19} color="#fff"/></Pressable>
 
     <Modal visible={menuOpen} transparent animationType="slide" statusBarTranslucent onRequestClose={() => setMenuOpen(false)}>
       <View style={s.backdrop}><Pressable style={{ flex:1 }} onPress={() => setMenuOpen(false)}/><View style={s.sheet}>
@@ -482,14 +463,8 @@ export default function NativeWorkspace({
       </View></View>
     </Modal>
 
-    <Modal visible={showAi} transparent animationType="fade" onRequestClose={() => setShowAi(false)}>
-      <View style={s.modalBackdrop}><View style={s.modalCard}>
-        <View style={s.cardHeadingRow}><View style={{flexDirection:"row",alignItems:"center",gap:9}}><Sparkles size={20} color={p.redIcon}/><Text style={s.sectionTitle}>Global Stock IA</Text></View>
-          <Pressable onPress={() => setShowAi(false)} accessibilityRole="button"><X size={20} color={p.text}/></Pressable></View>
-        <Text style={s.pendingText}>El asistente completo está disponible en Global Stock web. Estamos adaptando la conversación y los permisos a la aplicación nativa.</Text>
-        <Action p={p} onPress={() => {setShowAi(false);openWebsite();}}>Abrir asistente web</Action>
-      </View></View>
-    </Modal>
+    <NativeAssistant visible={showAi} onClose={() => setShowAi(false)}
+      client={client} business={business} products={products} dark={dark} />
   </SafeAreaView>;
 }
 
@@ -503,7 +478,7 @@ function stylesFor(p: Palette) {
     headerButtons: { flexDirection:"row",gap:7 },
     iconControl: { width:35,height:35,borderRadius:11,borderWidth:1,borderColor:p.border,backgroundColor:p.elevated,alignItems:"center",justifyContent:"center" },
     scroll: { flex:1 },
-    content: { paddingHorizontal:17,paddingTop:19,paddingBottom:90,gap:15 },
+    content: { paddingHorizontal:17,paddingTop:19,paddingBottom:40,gap:15 },
     intro: { gap:5,marginBottom:2 },
     eyebrowLine: { flexDirection:"row",gap:6,alignItems:"center",marginBottom:2 },
     eyebrowLogo: { width:14,height:14 },
@@ -530,12 +505,12 @@ function stylesFor(p: Palette) {
     quickGrid: { flexDirection:"row",gap:9 },
     quickCard: { flex:1,borderWidth:1,borderColor:p.border,borderRadius:13,backgroundColor:p.surface,padding:14,gap:12,alignItems:"flex-start" },
     quickText: { color:p.text,fontWeight:"800",fontSize:12 },
-    dock: { minHeight:69,borderTopWidth:1,borderTopColor:p.border,flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",paddingHorizontal:6,paddingBottom:3 },
-    dockTab: { flex:1,justifyContent:"center",alignItems:"center",gap:4 },
-    dockLabel: { fontSize:9,fontWeight:"700" },
-    scanDockTab: { flex:1.12,alignItems:"center",justifyContent:"flex-end",gap:2,paddingBottom:9 },
-    scanCircle: { width:58,height:58,borderRadius:35,alignItems:"center",justifyContent:"center",backgroundColor:p.red,borderWidth:5,borderColor:p.bg,marginTop:-29 },
-    aiButton: { position:"absolute",bottom:100,right:16,width:46,height:46,borderRadius:30,backgroundColor:p.red,borderWidth:6,borderColor:p.bg,alignItems:"center",justifyContent:"center",elevation:5 },
+    dock: { height:76,borderTopWidth:1,borderTopColor:p.border,flexDirection:"row",justifyContent:"space-between",alignItems:"stretch",paddingHorizontal:6,paddingBottom:1 },
+    dockTab: { flex:1,minWidth:0,height:74,justifyContent:"flex-start",alignItems:"center",paddingTop:12,gap:6 },
+    dockLabel: { fontSize:9,fontWeight:"700",lineHeight:11,minHeight:24,textAlign:"center",textAlignVertical:"top",alignSelf:"stretch",paddingHorizontal:1 },
+    scanDockTab: { flex:1.12,minWidth:0,height:74,alignItems:"center",justifyContent:"flex-start" },
+    scanCircle: { width:58,height:58,borderRadius:35,alignItems:"center",justifyContent:"center",backgroundColor:p.red,borderWidth:5,borderColor:p.bg,marginTop:-22,marginBottom:6 },
+    
     warning: { color:"#E4AA65",fontSize:11,lineHeight:17 },
     rowBetween: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8 },
     searchBar: { flexDirection:"row",alignItems:"center",gap:10,borderWidth:1,borderColor:p.border,borderRadius:13,paddingHorizontal:12,backgroundColor:p.surface,minHeight:46 },
