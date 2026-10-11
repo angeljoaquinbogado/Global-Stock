@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ArrowUp, Bot, CheckCircle2, CircleAlert, Sparkles, X } from "lucide-react-native";
+import { ArrowUp, Bot, CheckCircle2, Sparkles, X } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
 
 type Message = { id: string; role: "user" | "assistant"; content: string };
@@ -134,7 +134,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
 
       async function request(token: string): Promise<Response> {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 30000);
+        const timeout = setTimeout(() => controller.abort(), 75000);
         try {
           return await fetch(ENDPOINT, {
             method: "POST",
@@ -154,14 +154,21 @@ export default function NativeAssistant({ visible, onClose, client, business, us
       }
       const data = await response.json().catch(() => ({})) as { answer?: string; code?: string };
       if (!response.ok || !data.answer) {
-        if (data.code === "AI_NOT_CONNECTED") throw new Error("El proveedor de IA todavía no está disponible. Probá más tarde.");
+        if (data.code === "AI_NOT_CONNECTED") throw new Error("Global Intelligence está pendiente de conexión en el servidor. Intentá más tarde.");
+        if (data.code === "AI_PROVIDER_MODEL_UNAVAILABLE") throw new Error("El modelo de IA configurado ya no está disponible. Necesita actualizarse en el servidor.");
+        if (data.code === "AI_PROVIDER_AUTH") throw new Error("El proveedor de IA rechazó las credenciales del servidor. Necesita revisar su configuración.");
+        if (data.code === "AI_PROVIDER_RATE_LIMIT") throw new Error("El servicio de IA alcanzó su límite temporal de solicitudes. Probá en unos minutos.");
+        if (data.code === "AI_PROVIDER_TIMEOUT") throw new Error("El servicio de IA tardó demasiado en responder. Podés intentarlo nuevamente.");
+        if (data.code === "AI_PROVIDER_UPSTREAM") throw new Error("El proveedor de IA está teniendo inconvenientes. Probá más tarde.");
         if (response.status === 401) throw new Error("El servidor rechazó la autorización de IA. Actualizá y, si persiste, contactá soporte.");
         if (data.code === "AI_CONSENT_REQUIRED") throw new Error("El permiso para compartir el inventario con IA fue revocado. Cerrá y abrí Global Intelligence para autorizarlo de nuevo.");
         if (response.status === 403) throw new Error(data.code === "FORBIDDEN"
           ? "Tu cuenta necesita un permiso de acceso para este negocio. Comprobá tu membresía en Configuración."
           : "No tenés permiso para consultar este negocio.");
         if (response.status === 429) throw new Error("Demasiadas consultas seguidas. Esperá un momento.");
-        throw new Error("El asistente no pudo responder. Probá nuevamente.");
+        if (data.code === "MISSING_INPUT" || data.code === "INVALID_REQUEST") throw new Error("No pudimos procesar la consulta. Volvé a enviarla.");
+        if (response.status === 502 || response.status === 503) throw new Error("El servicio de IA no está respondiendo. Probá nuevamente en unos minutos.");
+        throw new Error("No pudimos completar la consulta. Comprobá la conexión y reintentá.");
       }
       if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant" as const, content: data.answer! }].slice(-40));
     } catch (err) {
@@ -169,7 +176,9 @@ export default function NativeAssistant({ visible, onClose, client, business, us
         // Preserve the original question so authorization/network failures do not destroy work.
         setDraft((current) => current.trim() ? current : text);
         setMessages((current) => current.filter((item) => item.id !== userMessage.id));
-        setError(err instanceof Error && err.name === "AbortError" ? "Se agotó el tiempo de respuesta del asistente." : err instanceof Error ? err.message : "Error de conexión.");
+        setError(err instanceof Error && err.name === "AbortError" ? "La respuesta demoró demasiado. Reintentá en un momento." :
+          err instanceof TypeError ? "No se pudo conectar con Global Intelligence. Revisá internet y volvé a intentar." :
+          err instanceof Error ? err.message : "No pudimos conectar con la IA.");
       }
     } finally {
       if (mounted.current) setSending(false);
@@ -217,7 +226,12 @@ export default function NativeAssistant({ visible, onClose, client, business, us
             <Text style={{color:m.role==="user"?"#fff":fg,fontSize:13,lineHeight:20}}>{m.content}</Text>
           </View>)}
           {sending && <View style={{alignSelf:"flex-start",backgroundColor:panel,padding:14,borderRadius:14}}><ActivityIndicator color="#C20D1A" /></View>}
-          {error ? <View style={{flexDirection:"row",alignItems:"flex-start",gap:7,padding:10}}><CircleAlert size={16} color="#E29B65"/><Text style={{color:"#E29B65",fontSize:12,flex:1}}>{error}</Text></View> : null}
+          {error ? <View style={[st.errorPanel, { backgroundColor: panel, borderColor: border }]}>
+            <Text style={{color:muted,fontSize:12,lineHeight:18,flex:1}}>{error}</Text>
+            {!!draft.trim() && !sending ? <Pressable accessibilityRole="button" accessibilityLabel="Reintentar pregunta a Global Intelligence" onPress={()=>void ask()} style={[st.retryButton,{borderColor:border}]}>
+              <Text style={{color:fg,fontWeight:"700",fontSize:11}}>Reintentar</Text>
+            </Pressable> : null}
+          </View> : null}
         </ScrollView> : null}
         {consent ? <View style={[st.composer,{borderColor:border,backgroundColor:bg}]}>
           <TextInput
@@ -228,7 +242,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
           />
           <Pressable disabled={sending || !draft.trim()} onPress={() => void ask()} accessibilityRole="button" accessibilityLabel="Enviar mensaje a la IA" style={[st.send,{opacity:sending || !draft.trim()?0.4:1}]}><ArrowUp size={21} color="#fff" /></Pressable>
         </View> : null}
-        {!consent && error ? <Text style={{color:"#E6A579",paddingHorizontal:18,paddingVertical:8}}>{error}</Text> : null}
+        {!consent && error ? <Text style={{color:muted,paddingHorizontal:18,paddingVertical:8,fontSize:12}}>{error}</Text> : null}
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -245,5 +259,7 @@ const st=StyleSheet.create({
   userBubble:{backgroundColor:"#9C0D17",alignSelf:"flex-end"},
   composer:{flexDirection:"row",gap:9,borderTopWidth:1,padding:12,alignItems:"flex-end"},
   input:{flex:1,maxHeight:125,minHeight:43,borderRadius:13,borderWidth:1,paddingVertical:10,paddingHorizontal:12,fontSize:13},
-  send:{width:43,height:43,borderRadius:12,backgroundColor:"#AD0011",alignItems:"center",justifyContent:"center"}
+  send:{width:43,height:43,borderRadius:12,backgroundColor:"#AD0011",alignItems:"center",justifyContent:"center"},
+  errorPanel:{flexDirection:"row",alignItems:"center",gap:10,borderWidth:1,borderRadius:12,padding:12},
+  retryButton:{borderWidth:1,borderRadius:9,paddingHorizontal:12,paddingVertical:10}
 });
