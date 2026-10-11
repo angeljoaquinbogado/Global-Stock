@@ -112,8 +112,9 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   const p = dark ? palette.dark : palette.light;
   const t = content[language];
   const compact = height < 730;
-  const logoSize = Math.min(compact ? 110 : 126, Math.floor(width * 0.34));
-  const welcomeVisualHeight = Math.min(228, Math.max(176, Math.floor(height * 0.27)));
+  const logoSize = Math.min(compact ? 116 : 154, Math.floor(width * 0.405));
+  // Fixed-height logo area, separated from copy and never clipped.
+  const welcomeVisualHeight = compact ? 192 : 228;
   const signup = stage === "signup";
   const form = stage !== "welcome";
   const styles = createStyles(p);
@@ -156,6 +157,18 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   return (
     <SafeAreaView edges={["top","bottom"]} style={{ flex: 1, backgroundColor: p.bg }}>
       <StatusBar style={dark ? "light" : "dark"} />
+      {/* One continuous page-wide glow. No separate clipped panel under the toolbar. */}
+      <Svg pointerEvents="none" width="100%" height="100%" viewBox="0 0 380 800"
+        preserveAspectRatio="none" style={StyleSheet.absoluteFillObject}>
+        <Defs>
+          <RadialGradient id="pageGlow" cx="50%" cy="50%" r="50%">
+            <Stop offset="0%" stopColor={dark ? "#A80E24" : "#C94B62"} stopOpacity={dark ? "0.23" : "0.11"} />
+            <Stop offset="58%" stopColor="#B0243D" stopOpacity="0.045" />
+            <Stop offset="100%" stopColor="#B0243D" stopOpacity="0" />
+          </RadialGradient>
+        </Defs>
+        <Circle cx="190" cy="237" r="218" fill="url(#pageGlow)" />
+      </Svg>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -202,19 +215,13 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
           </View>
 
           <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 8 : (compact ? 6 : 14) }]}>
-            <View style={[styles.logoStage, { width: "100%", height: form ? 104 : welcomeVisualHeight }]}>
-              <Svg width="100%" height="100%" viewBox="0 0 240 240" style={StyleSheet.absoluteFillObject} pointerEvents="none">
-                <Defs>
-                  <RadialGradient id="redGlow" cx="50%" cy="50%" r="50%">
-                    <Stop offset="0%" stopColor={dark ? "#CB0B29" : "#DA1C31"} stopOpacity={dark ? "0.27" : "0.14"} />
-                    <Stop offset="60%" stopColor="#A2081A" stopOpacity="0.07" />
-                    <Stop offset="100%" stopColor="#A2081A" stopOpacity="0" />
-                  </RadialGradient>
-                </Defs>
-                <Circle cx="120" cy="120" r="119" fill="url(#redGlow)" />
-              </Svg>
+            <View style={[styles.logoStage, { height: form ? 108 : welcomeVisualHeight }]}>
               <Image source={require("../../assets/brand-mark.png")}
-                style={{ width: form ? 84 : logoSize, height: form ? 84 : logoSize }}
+                style={{
+                  position: "absolute", alignSelf: "center",
+                  top: form ? 10 : Math.round((welcomeVisualHeight - logoSize) / 2),
+                  width: form ? 88 : logoSize, height: form ? 88 : logoSize
+                }}
                 resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
             </View>
             {!form ? (
@@ -363,7 +370,7 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
     compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
-    logoStage: { position:"relative",alignItems:"center",justifyContent:"center",marginBottom:12,flexShrink:0,overflow:"hidden" },
+    logoStage: { position:"relative",width:"100%",alignItems:"center",justifyContent:"flex-start",marginBottom:12,flexShrink:0,overflow:"visible" },
     welcomeCopy: { width:"100%",alignItems:"center",justifyContent:"flex-start",flexShrink:0,paddingHorizontal:1 },
     heroOverline: { color:p.secondary,fontSize:14,fontWeight:"600",marginTop:0,textAlign:"center",flexShrink:0 },
     heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:5,flexShrink:0 },
