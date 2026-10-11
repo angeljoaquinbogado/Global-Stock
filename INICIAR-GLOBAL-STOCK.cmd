@@ -32,7 +32,7 @@ echo ==================================================
 echo Carpeta correcta: %CD%
 echo NO se iniciara Flutter ni la web de Next.js.
 echo.
-if not exist "node_modules\expo\package.json" (
+if not exist "node_modules\expo-splash-screen\package.json" (
   echo Primera ejecucion: instalando React Native y Expo...
   call npm install --no-audit --no-fund
   if errorlevel 1 (
@@ -41,12 +41,9 @@ if not exist "node_modules\expo\package.json" (
     exit /b 1
   )
 )
-if not exist ".env" (
-  echo.
-  echo AVISO: No hay archivo .env con datos publicos de Supabase.
-  echo Se abrira la vista previa DEMO de Global Stock.
-  echo Luego podras conectar tu cuenta con .env.
-)
+echo.
+echo Conexion publica a Supabase desde la web: automatica.
+echo No hace falta copiar claves privadas ni crear .env.
 echo.
 echo En el celular, abre Expo Go, usa "Scan QR Code" y escanea el QR de ESTA ventana.
 echo Si tu PC y el celular no estan en la misma Wi-Fi, cierra y ejecuta:

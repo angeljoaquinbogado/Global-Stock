@@ -35,4 +35,7 @@ if (!entry.includes("PreviewMode") || !existsSync(resolve(project, "src/componen
 if (!existsSync(resolve(repository, "INICIAR-GLOBAL-STOCK.cmd"))) {
   throw new Error("Windows launcher is missing.");
 }
+for (const asset of ["assets/icon.png", "assets/splash.png", "assets/brand-mark.png"]) {
+  if (!existsSync(resolve(project, asset))) throw new Error("Missing mobile brand asset: " + asset);
+}
 if (!process.exitCode) process.stdout.write("Expo project and tracked-file hygiene checks passed.\n");

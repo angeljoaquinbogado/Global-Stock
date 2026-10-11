@@ -16,8 +16,14 @@
     },
     "android": {
       "package": "app.globalstocks.mobile",
-      "permissions": ["CAMERA"],
-      "edgeToEdgeEnabled": true
+      "permissions": [
+        "CAMERA"
+      ],
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icon.png",
+        "backgroundColor": "#09090C"
+      }
     },
     "plugins": [
       [
@@ -27,12 +33,30 @@
           "recordAudioAndroid": false
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#09090C",
+          "image": "./assets/splash.png",
+          "imageWidth": 180,
+          "dark": {
+            "backgroundColor": "#09090C",
+            "image": "./assets/splash.png"
+          }
+        }
+      ]
     ],
     "extra": {
       "eas": {
         "projectId": "d3f33419-261b-4615-818d-f6802350b085"
       }
+    },
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#09090C"
     }
   }
 }

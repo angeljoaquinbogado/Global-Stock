@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -107,6 +108,19 @@ function ProductCard({ product, currency, onAdd }: {
   );
 }
 
+function BrandedBootScreen() {
+  return (
+    <SafeAreaView style={st.boot} edges={["top", "bottom"]}>
+      <StatusBar style="light" />
+      <Image source={require("./assets/brand-mark.png")} style={st.bootImage}
+        resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
+      <Text style={st.bootTitle}>Global <Text style={{ color: "#F15A64" }}>Stock</Text></Text>
+      <Text style={st.bootSubtitle}>Preparando tu negocio...</Text>
+      <ActivityIndicator color={C.red} style={{ marginTop: 18 }} />
+    </SafeAreaView>
+  );
+}
+
 function Login({ onSubmit, onRegister, loading, error }: {
   onSubmit: (email: string, password: string) => void;
   onRegister: (email: string, password: string) => void;
@@ -119,7 +133,8 @@ function Login({ onSubmit, onRegister, loading, error }: {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={st.loginWrap} keyboardShouldPersistTaps="handled">
-        <View style={st.logo}><Text style={st.logoSymbol}>◈</Text></View>
+        <Image source={require("./assets/brand-mark.png")} style={st.loginLogoImage}
+          resizeMode="contain" accessibilityLabel="Global Stock" />
         <Text style={st.brand}>Global <Text style={{ color: "#F15A64" }}>Stock</Text></Text>
         <Text style={st.subtitle}>Todo tu negocio, conectado.</Text>
         <View style={st.loginCard}>
@@ -326,7 +341,11 @@ function MobileApp() {
     setAuthError("");
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setAuthError(error.message);
+      if (error) {
+        setAuthError(error.message.toLowerCase().includes("invalid login credentials")
+          ? "Correo o contraseña incorrectos. La cuenta de demostración no sirve para iniciar sesión: usá tu cuenta real."
+          : error.message);
+      }
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
     } finally {
@@ -419,7 +438,7 @@ function MobileApp() {
     setNotice(found ? `Producto encontrado: ${data.trim()}` : `Código ${data.trim()}: no está en el inventario cargado`);
   };
 
-  if (configLoading || (supabase && starting)) return <SafeAreaView style={st.centered}><ActivityIndicator size="large" color={C.red} /></SafeAreaView>;
+  if (configLoading || (supabase && starting)) return <BrandedBootScreen />;
   if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
   if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} onRegister={register} loading={authLoading} error={authError} /></SafeAreaView>;
@@ -429,7 +448,7 @@ function MobileApp() {
       <StatusBar style="light" />
       <View style={st.header}>
         <View style={st.headerBrand}>
-          <View style={st.miniLogo}><Text style={{ color: C.white, fontSize: 15 }}>◈</Text></View>
+          <Image source={require("./assets/brand-mark.png")} style={st.miniLogoImage} resizeMode="contain" accessibilityLabel="Global Stock" />
           <View>
             <Text style={st.headerTitle}>Global Stock</Text>
             <Text style={st.headerSubtitle} numberOfLines={1}>{business?.name ?? "Elegí tu negocio"}</Text>
@@ -667,6 +686,12 @@ export default function App() {
 
 const st = StyleSheet.create({
   base: { flex: 1, backgroundColor: C.background },
+  boot: { flex: 1, backgroundColor: C.background, alignItems: "center", justifyContent: "center", paddingHorizontal: 24 },
+  bootImage: { width: 150, height: 150 },
+  bootTitle: { color: C.white, fontWeight: "900", fontSize: 31, letterSpacing: -1, marginTop: 16 },
+  bootSubtitle: { color: C.secondary, fontSize: 14, marginTop: 10 },
+  loginLogoImage: { width: 90, height: 90, marginBottom: 7 },
+  miniLogoImage: { width: 38, height: 38 },
   centered: { flex: 1, backgroundColor: C.background, alignItems: "center", justifyContent: "center" },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 18, paddingVertical: 22, gap: 14, paddingBottom: 45 },
@@ -674,9 +699,9 @@ const st = StyleSheet.create({
   logoSymbol: { fontSize: 30, fontWeight: "900", color: C.white },
   brand: { color: C.white, fontSize: 30, fontWeight: "900", letterSpacing: -1.5 },
   subtitle: { color: C.secondary, marginTop: 5, fontSize: 14 },
-  loginWrap: { flexGrow: 1, padding: 26, paddingTop: 85, justifyContent: "center" },
-  loginCard: { backgroundColor: C.surface, borderColor: C.border, borderWidth: 1, borderRadius: 22, padding: 22, marginTop: 36, gap: 14 },
-  loginFoot: { color: C.secondary, textAlign: "center", marginTop: 26, fontSize: 12 },
+  loginWrap: { flexGrow: 1, paddingHorizontal: 24, paddingVertical: 26, justifyContent: "center" },
+  loginCard: { backgroundColor: C.surface, borderColor: C.border, borderWidth: 1, borderRadius: 22, padding: 20, marginTop: 24, gap: 13 },
+  loginFoot: { color: C.secondary, textAlign: "center", marginTop: 14, fontSize: 11 },
   label: { fontSize: 10, fontWeight: "900", letterSpacing: 2.1, color: "#F56B73" },
   heading: { color: C.white, fontSize: 25, lineHeight: 30, fontWeight: "800", letterSpacing: -0.7 },
   pageTitle: { color: C.white, fontSize: 26, fontWeight: "800", lineHeight: 31, letterSpacing: -0.8 },
