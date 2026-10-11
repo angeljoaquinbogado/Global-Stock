@@ -35,11 +35,22 @@ export async function GET() {
     validUrl = false;
   }
 
+  // A legacy key must explicitly have role=anon; checking only the JWT
+  // prefix could accidentally publish a misconfigured service_role secret.
+  let isLegacyAnon = false;
+  if (publicKey.startsWith("eyJ") && publicKey.length > 100) {
+    try {
+      const parts = publicKey.split(".");
+      const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8")) as { role?: unknown };
+      isLegacyAnon = parts.length === 3 && payload.role === "anon";
+    } catch {
+      isLegacyAnon = false;
+    }
+  }
+
   if (
     !validUrl ||
-    (!publicKey.startsWith("sb_publishable_") &&
-      // The web app may use a legacy public anon JWT; never send service-role.
-      !(publicKey.startsWith("eyJ") && publicKey.length > 100))
+    !(publicKey.startsWith("sb_publishable_") || isLegacyAnon)
   ) {
     return NextResponse.json(
       { error: "mobile_config_mismatch" },
