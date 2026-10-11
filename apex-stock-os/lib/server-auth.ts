@@ -107,10 +107,13 @@ export async function authorizeApiRequest(
       .maybeSingle();
 
     if (profileError || !profile?.user_id) {
+      // The access token has already passed auth.getUser(). A missing
+      // application profile is an onboarding/permission problem, not an
+      // expired session. Never mislead the native user into logging out.
       return {
         ok: false,
-        code: "AUTH_REQUIRED",
-        status: 401
+        code: "FORBIDDEN",
+        status: 403
       };
     }
 

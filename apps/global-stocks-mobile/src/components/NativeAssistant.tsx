@@ -83,6 +83,16 @@ export default function NativeAssistant({ visible, onClose, client, business, us
       const { data: verified, error: userError } = await client.auth.getUser();
       if (userError || !verified.user?.id || verified.user.id !== userId)
         throw new Error("No se pudo verificar tu cuenta. Cerrá sesión y volvé a ingresar si persiste.");
+      // The web API expects a profile in addition to a valid Auth identity.
+      // Only create the authenticated user's own row; RLS remains enforced.
+      const { data: profile, error: profileError } = await client
+        .from("global_stock_profiles").select("user_id").eq("user_id", userId).maybeSingle();
+      if (profileError) throw new Error("No se pudo comprobar el perfil de tu cuenta. Probá sincronizar y reintentar.");
+      if (!profile?.user_id) {
+        const { error: repairError } = await client
+          .from("global_stock_profiles").upsert({ user_id: userId }, { onConflict: "user_id", ignoreDuplicates: true });
+        if (repairError) throw new Error("Falta completar tu perfil para usar Global Intelligence: " + repairError.message);
+      }
       const sessionInfo = await client.auth.getSession();
       if (sessionInfo.error || !sessionInfo.data.session?.access_token)
         throw new Error("La sesión se cerró. Iniciá sesión nuevamente.");
@@ -136,7 +146,9 @@ export default function NativeAssistant({ visible, onClose, client, business, us
         if (data.code === "AI_NOT_CONNECTED") throw new Error("El proveedor de IA todavía no está disponible. Probá más tarde.");
         if (response.status === 401) throw new Error("El servidor rechazó la autorización de IA. Actualizá y, si persiste, contactá soporte.");
         if (data.code === "AI_CONSENT_REQUIRED") throw new Error("El permiso para compartir el inventario con IA fue revocado. Cerrá y abrí Global Intelligence para autorizarlo de nuevo.");
-        if (response.status === 403) throw new Error("No tenés permiso para consultar este negocio.");
+        if (response.status === 403) throw new Error(data.code === "FORBIDDEN"
+          ? "Tu cuenta necesita un permiso de acceso para este negocio. Comprobá tu membresía en Configuración."
+          : "No tenés permiso para consultar este negocio.");
         if (response.status === 429) throw new Error("Demasiadas consultas seguidas. Esperá un momento.");
         throw new Error("El asistente no pudo responder. Probá nuevamente.");
       }
