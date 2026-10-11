@@ -14,6 +14,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
+import PreviewMode from "./src/components/PreviewMode";
 import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "./src/lib/supabase";
@@ -359,22 +360,7 @@ function MobileApp() {
     setNotice(found ? `Producto encontrado: ${data.trim()}` : `Código ${data.trim()}: no está en el inventario cargado`);
   };
 
-  if (!supabase) {
-    return (
-      <SafeAreaView style={st.base}>
-        <StatusBar style="light" />
-        <View style={st.configWrap}>
-          <Text style={st.brand}>Global Stock</Text>
-          <Text style={st.heading}>Configuración pendiente</Text>
-          <Text style={st.helper}>
-            Copiá .env.example a .env en apps/global-stocks-mobile e indicá
-            EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY del mismo Supabase que usa la web.
-            Nunca uses la clave service_role en el celular.
-          </Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (!supabase) return <PreviewMode />;
 
   if (starting) {
     return <SafeAreaView style={st.centered}><ActivityIndicator size="large" color={C.red} /></SafeAreaView>;
