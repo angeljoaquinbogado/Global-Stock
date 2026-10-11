@@ -13,7 +13,7 @@ import {
   Activity, ArrowRight, BarChart3, BellRing, Boxes, CalendarDays, ChartNoAxesCombined,
   Check, ChevronRight, CircleDollarSign, ClipboardList, CreditCard, FileText,
   Globe2, LayoutDashboard, LogOut, Menu, Moon, PackagePlus, RefreshCw,
-  ScanLine, Search, Settings2, ShoppingBag, ShoppingCart, Sparkles, Store,
+  ScanLine, Search, Settings2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Store,
   Sun, Truck, Users, Warehouse, WifiOff, X, Plus, Minus
 } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
