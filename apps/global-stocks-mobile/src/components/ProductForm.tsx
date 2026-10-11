@@ -8,6 +8,7 @@ type Props = {
   businessId: string;
   onCreated: () => void;
   onCancel: () => void;
+  initialBarcode?: string;
 };
 
 function amount(text: string) {
@@ -15,9 +16,9 @@ function amount(text: string) {
   return value;
 }
 
-export default function ProductForm({ client, businessId, onCreated, onCancel }: Props) {
+export default function ProductForm({ client, businessId, onCreated, onCancel, initialBarcode = "" }: Props) {
   const [name, setName] = useState("");
-  const [barcode, setBarcode] = useState("");
+  const [barcode, setBarcode] = useState(initialBarcode);
   const [category, setCategory] = useState("");
   const [price, setPrice] = useState("");
   const [stock, setStock] = useState("");
@@ -75,6 +76,9 @@ export default function ProductForm({ client, businessId, onCreated, onCancel }:
           <Text style={st.label}>{label}</Text>
           <TextInput
             style={st.input}
+            maxLength={label.startsWith("Código") ? 64 : label.startsWith("Nombre") ? 160 : 100}
+            autoCapitalize={label.startsWith("Código") ? "characters" : "sentences"}
+            autoCorrect={!label.startsWith("Código")}
             accessibilityLabel={label}
             placeholder={label}
             placeholderTextColor="#8E8E9B"
