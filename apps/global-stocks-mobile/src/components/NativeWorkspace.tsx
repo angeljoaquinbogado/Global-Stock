@@ -137,8 +137,9 @@ export default function NativeWorkspace({
     setDashboard(null);
     setDashboardError("");
     setDashboardLoading(true);
-    client.rpc("global_stock_mobile_dashboard", { target_business_id: business.id })
-      .then(({ data, error }) => {
+    void (async () => {
+      try {
+        const { data, error } = await client.rpc("global_stock_mobile_dashboard", { target_business_id: business.id });
         if (!alive) return;
         if (error) {
           setDashboardError(error.message);
@@ -151,9 +152,12 @@ export default function NativeWorkspace({
           salesCount: Number(result?.salesCount) || 0,
           chart: Array.isArray(result?.chart) ? result.chart.map((x) => ({ day: String(x.day), profit: Number(x.profit) || 0 })) : []
         });
-      })
-      .catch((error: unknown) => { if (alive) setDashboardError(error instanceof Error ? error.message : "No se pudieron cargar las ventas"); })
-      .finally(() => { if (alive) setDashboardLoading(false); });
+      } catch (error) {
+        if (alive) setDashboardError(error instanceof Error ? error.message : "No se pudieron cargar las ventas");
+      } finally {
+        if (alive) setDashboardLoading(false);
+      }
+    })();
     return () => { alive = false; };
   }, [client, business.id, refreshToken]);
 
