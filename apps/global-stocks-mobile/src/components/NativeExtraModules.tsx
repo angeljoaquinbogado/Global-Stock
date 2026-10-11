@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, FileText, Globe2, Package, Plus, RefreshCw, Store, Trash2, Truck, Users } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import NativeCalendarSelector from "./NativeCalendarSelector";
 import NativeCommerceConnect from "./NativeCommerceConnect";
 import NativeFiscalArca from "./NativeFiscalArca";
@@ -286,8 +287,13 @@ export default function NativeExtraModules({ client, business, userId, products,
 
   return <View style={{gap:15,paddingBottom:35}}>
     {loading ? <View style={styles.loading}><ActivityIndicator color={base}/><Text style={styles.caption}>Cargando datos del negocio...</Text></View> : null}
-    {error ? <View style={[styles.error,{borderColor:c.line}]}><Text style={{fontSize:12,color:c.muted,lineHeight:18}}>{error}</Text>
-      {button("Reintentar",()=>setRefresh(v=>v+1),true)}</View>:null}
+    {error ? <View style={[styles.error,{borderColor:c.line}]}>
+      <Text accessibilityRole="alert" style={{fontSize:12,color:c.muted,lineHeight:18}}>{error}</Text>
+      <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda con un módulo de Global Stock"))}>
+        <Text style={{color:dark?"#EA7C88":"#A50017",fontSize:11,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text>
+      </Pressable>
+      {button("Reintentar",()=>setRefresh(v=>v+1),true)}
+    </View>:null}
     {!loading && (module==="notes" ? agenda() :
       module==="suppliers" ? supplierModule() :
       module==="purchases" ? purchases() :
