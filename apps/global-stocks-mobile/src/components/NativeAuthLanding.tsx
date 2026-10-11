@@ -169,8 +169,10 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
         </Defs>
         <Circle cx="190" cy="237" r="218" fill="url(#pageGlow)" />
       </Svg>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={form && Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
+          key={form ? "auth-fields" : "welcome"}
+          keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18 }]}
