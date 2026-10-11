@@ -220,7 +220,7 @@ export async function generateIntelligenceAnswer({
               contents,
               generationConfig: {
                 temperature: 0.3,
-                maxOutputTokens: mobile ? 800 : 2048,
+                maxOutputTokens: mobile && isFlash25 ? 640 : mobile ? 1024 : 2048,
                 ...(isFlash25 ? { thinkingConfig: { thinkingBudget: 0 } } : {})
               }
             })
@@ -235,7 +235,7 @@ export async function generateIntelligenceAnswer({
           }
           const answer = payload.candidates?.[0]?.content?.parts
             ?.map((part) => part.text?.trim()).filter(Boolean).join("\n").trim();
-          if (!answer) throw new Error("Gemini returned an empty response.");
+          if (!answer) throw new IntelligenceProviderError(503, "Gemini returned an empty response.");
           return answer;
         } finally {
           clearTimeout(deadline);
@@ -243,10 +243,10 @@ export async function generateIntelligenceAnswer({
       }
 
       try {
-        return await askGemini(endpoint, model, mobile ? 14500 : 24000);
+        return await askGemini(endpoint, model, mobile ? 24000 : 30000);
       } catch (primaryError) {
         const transient = primaryError instanceof IntelligenceProviderError
-          ? [500, 502, 503, 504].includes(primaryError.status)
+          ? [404, 500, 502, 503, 504].includes(primaryError.status)
           : primaryError instanceof Error && primaryError.name === "AbortError";
         if (!transient) throw primaryError;
 
@@ -280,8 +280,8 @@ export async function generateIntelligenceAnswer({
               // Prefer lower-latency models, but only those returned as available.
               alternatives = [
                 "gemini-2.5-flash",
-                "gemini-2.0-flash",
                 "gemini-2.5-flash-lite",
+                "gemini-2.0-flash",
                 "gemini-2.0-flash-lite"
               ].filter(name => supported.has(name) && name !== model).slice(0, 2);
             }
@@ -303,7 +303,7 @@ export async function generateIntelligenceAnswer({
               status: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout",
               sameModel: fallbackModel === model
             });
-            return await askGemini(fallbackUrl, fallbackModel, mobile ? 13500 : 19000);
+            return await askGemini(fallbackUrl, fallbackModel, mobile ? 19000 : 21000);
           } catch (fallbackError) {
             lastError = fallbackError;
             // A listed model can become unavailable; try one more listed candidate.
