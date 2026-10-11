@@ -209,7 +209,7 @@ export async function generateIntelligenceAnswer({
         const attempt = new AbortController();
         const deadline = setTimeout(() => attempt.abort(), limitMs);
         try {
-          const isFlash25 = /^gemini-2\\.5-flash(?:-|$)/i.test(selectedModel);
+          const isFlash25 = /^gemini-2\.5-flash(?:-|$)/i.test(selectedModel);
           const response = await fetch(url, {
             method: "POST",
             headers,
@@ -234,7 +234,7 @@ export async function generateIntelligenceAnswer({
             );
           }
           const answer = payload.candidates?.[0]?.content?.parts
-            ?.map((part) => part.text?.trim()).filter(Boolean).join("\\n").trim();
+            ?.map((part) => part.text?.trim()).filter(Boolean).join("\n").trim();
           if (!answer) throw new Error("Gemini returned an empty response.");
           return answer;
         } finally {
