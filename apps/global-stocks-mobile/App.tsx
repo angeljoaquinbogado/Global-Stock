@@ -489,8 +489,10 @@ function MobileApp() {
 
   if (!business) {
     return (
-      <SafeAreaView style={[st.base, { paddingHorizontal: 23, paddingVertical: 25, justifyContent: "center", gap: 16 }]}>
+      <SafeAreaView style={[st.base, { paddingHorizontal: 23 }]}>
         <StatusBar style="light" />
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 16, paddingVertical: 25 }}>
         <Image source={require("./assets/brand-mark.png")} style={{width:80,height:80}} resizeMode="contain"/>
         <Text style={[st.heading,{fontSize:24}]}>Configurá tu negocio</Text>
         <Text style={st.helper}>Todavía no hay negocios vinculados con tu cuenta. Creá uno para usar la misma información desde PC y celular.</Text>
@@ -525,6 +527,7 @@ function MobileApp() {
           loadBusinesses(supabase,user.id).then((list) => {setBusinesses(list);setBusiness(list[0] ?? null);}).catch((e: unknown) => setNotice(e instanceof Error ? e.message : "No se pudieron cargar los negocios")).finally(() => setBusinessLoading(false));
         }}/>}
         <Button title="Cerrar sesión" secondary onPress={() => void logout()}/>
+        </ScrollView>
       </SafeAreaView>
     );
   }
