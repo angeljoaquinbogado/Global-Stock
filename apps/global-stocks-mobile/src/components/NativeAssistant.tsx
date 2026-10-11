@@ -91,8 +91,9 @@ export default function NativeAssistant({ visible, onClose, client, business, us
       const snapshot = {
         products: products.slice(0, 100).map((p) => ({
           id: p.id, barcode: p.barcode || "", name: p.name, category: p.category || "",
-          stock: p.stock, minStock: p.min_stock, cost: p.cost ?? null,
-          costKnown: p.cost != null, price: p.price, active: p.active
+          stock: p.stock, minStock: p.min_stock, cost: p.cost ?? 0,
+          costKnown: p.cost != null, price: p.price, sold30d: 0,
+          supplier: "", active: p.active
         })),
         trend: [],
         currency: business.base_currency,
@@ -105,8 +106,8 @@ export default function NativeAssistant({ visible, onClose, client, business, us
         history: messages.slice(-18).map(({ role, content }) => ({ role, content })),
         runtime: {
           clientNow: new Date().toISOString(),
-          clientTimeZone: "America/Argentina/Buenos_Aires",
-          appContext: { businessName: business.name, businessId: business.id, platform: "Global Stock React Native" }
+          clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC",
+          appContext: { businessName: business.name, businessId: business.id, platform: "Global Stock React Native", dataQuality: "Inventario verificado; costos desconocidos indicados por costKnown=false; vendidos 30d no disponibles (sold30d=0 es marcador, no ventas reales). Nunca inventar proyecciones o resultados." }
         }
       });
 
@@ -134,6 +135,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
       if (!response.ok || !data.answer) {
         if (data.code === "AI_NOT_CONNECTED") throw new Error("El proveedor de IA todavía no está disponible. Probá más tarde.");
         if (response.status === 401) throw new Error("El servidor rechazó la autorización de IA. Actualizá y, si persiste, contactá soporte.");
+        if (data.code === "AI_CONSENT_REQUIRED") throw new Error("El permiso para compartir el inventario con IA fue revocado. Cerrá y abrí Global Intelligence para autorizarlo de nuevo.");
         if (response.status === 403) throw new Error("No tenés permiso para consultar este negocio.");
         if (response.status === 429) throw new Error("Demasiadas consultas seguidas. Esperá un momento.");
         throw new Error("El asistente no pudo responder. Probá nuevamente.");

@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as SecureStore from "expo-secure-store";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import Svg, { Defs, LinearGradient, Stop, Line, Path } from "react-native-svg";
@@ -119,6 +120,17 @@ export default function NativeWorkspace({
 }: Props) {
   const [active, setActive] = useState<Module>("overview");
   const [dark, setDark] = useState(true);
+  useEffect(() => {
+    let active = true;
+    void SecureStore.getItemAsync("gs.mobile.theme.v1").then((value) => {
+      if (active && value) setDark(value === "dark");
+    }).catch(() => null);
+    return () => { active = false; };
+  }, []);
+  function setPersistedTheme(next: boolean) {
+    setDark(next);
+    void SecureStore.setItemAsync("gs.mobile.theme.v1", next ? "dark" : "light").catch(() => null);
+  }
   const [menuOpen, setMenuOpen] = useState(false);
   const [businessPicker, setBusinessPicker] = useState(false);
   const [productForm, setProductForm] = useState(false);
@@ -390,7 +402,7 @@ export default function NativeWorkspace({
       </Pressable>
       <View style={s.headerButtons}>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir Global Intelligence" onPress={() => setShowAi(true)} style={s.iconControl}><Sparkles size={17} color={p.redIcon}/></Pressable>
-        <Pressable accessibilityRole="button" accessibilityLabel={dark?"Cambiar a claro":"Cambiar a oscuro"} onPress={() => setDark(!dark)} style={s.iconControl}>{dark ? <Sun size={16} color={p.text}/> : <Moon size={16} color={p.text}/>}</Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel={dark?"Cambiar a claro":"Cambiar a oscuro"} onPress={() => setPersistedTheme(!dark)} style={s.iconControl}>{dark ? <Sun size={16} color={p.text}/> : <Moon size={16} color={p.text}/>}</Pressable>
         <Pressable accessibilityRole="button" accessibilityLabel="Abrir menú" onPress={() => setMenuOpen(true)} style={s.iconControl}><Menu size={17} color={p.text}/></Pressable>
       </View>
     </View>
@@ -409,7 +421,7 @@ export default function NativeWorkspace({
       {active==="activities" ? activityScreen() : null}
       {active==="settings" ? <NativeSettings
         client={client} business={business} userId={userId} dark={dark}
-        onTheme={setDark} onBusiness={onBusiness}
+        onTheme={setPersistedTheme} onBusiness={onBusiness}
         onSwitchBusiness={() => setBusinessPicker(true)}
         onRefresh={onRefresh} onSignOut={onSignOut} onOpenWeb={openWebsite}
       /> : null}
