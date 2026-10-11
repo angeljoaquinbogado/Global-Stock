@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArrowUp, Bot, CheckCircle2, Sparkles, X } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
@@ -200,8 +200,12 @@ export default function NativeAssistant({ visible, onClose, client, business, us
     }
   }, [business, client, consent, draft, messages, products, sending, userId]);
 
+  if (!visible) return null;
+
+  // Keep AI inside the React navigation tree. Native iOS presentation layers can
+  // survive a session change and obscure the login screen after sign-out.
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <View style={[StyleSheet.absoluteFillObject, { zIndex: 80, backgroundColor: bg }]} accessibilityViewIsModal>
       <KeyboardAvoidingView style={{ flex:1, backgroundColor:bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={[st.header, { borderColor:border }]}>
           <View style={{ flexDirection:"row",alignItems:"center",gap:10,flex:1 }}>
@@ -270,7 +274,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
           </Pressable>
         </View> : null}
       </KeyboardAvoidingView>
-    </Modal>
+    </View>
   );
 }
 
