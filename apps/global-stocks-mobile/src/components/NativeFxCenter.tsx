@@ -49,13 +49,24 @@ async function fetchQuote(base: Currency, target: Currency, market: Market, sign
   return validQuote(await response.json(), base, target);
 }
 
+/**
+ * Display three decimals at most, without falsely rounding tiny positive
+ * values to zero. The inverse-rate line conveys the practical peso amount.
+ * Never round a number before multiplying it in an FX conversion.
+ */
+function plain(value: number) {
+  if (!Number.isFinite(value)) return "—";
+  if (value > 0 && value < 0.001) return "< 0,001";
+  return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 3 }).format(value);
+}
 function showNumber(value: number, currency: Currency) {
+  if (!Number.isFinite(value)) return "—";
+  if (value > 0 && value < 0.001) return `< 0,001 ${currency}`;
   return new Intl.NumberFormat("es-AR", {
-    style: "currency", currency, maximumFractionDigits: 6,
+    style: "currency", currency, maximumFractionDigits: 3,
     minimumFractionDigits: currency === "ARS" ? 2 : 2
   }).format(value);
 }
-function plain(value: number) { return new Intl.NumberFormat("es-AR", { maximumFractionDigits: 8 }).format(value); }
 function readAmount(raw: string) {
   const input = raw.trim().replace(/\s/g, "").replace(/[^\d,.]/g, "");
   if (!input) return NaN;
@@ -185,6 +196,12 @@ export default function NativeFxCenter({ dark, baseCurrency }: Props) {
       {quote && <View style={st.rateBox}>
         <Text style={st.helper}>1 {from} equivale a</Text>
         <Text style={st.largeRate}>{plain(quote.rate)} {to}</Text>
+        {quote.rate < 0.001 ? (
+          <Text style={st.helper}>Para una comparación más clara: 1 {to} ≈ {showNumber(1 / quote.rate,from)}. El cálculo utiliza la tasa completa, sin redondear.</Text>
+        ) : null}
+        {hasArs && from !== "USD" && to !== "USD" ? (
+          <Text style={st.helper}>La cotización ARS/{to === "ARS" ? from : to} es una referencia cruzada por USD; no es una cotización directa de euros u otra moneda del mercado argentino.</Text>
+        ) : null}
         {quote.quote && <View style={st.pair}>
           <View style={st.quoteItem}><Text style={st.label}>COMPRA USD/ARS</Text><Text style={st.quotePrice}>{quote.quote.buy !== null ? showNumber(quote.quote.buy,"ARS") : "No disponible"}</Text></View>
           <View style={st.quoteItem}><Text style={st.label}>VENTA USD/ARS</Text><Text style={st.quotePrice}>{showNumber(quote.quote.sell,"ARS")}</Text></View>
@@ -196,14 +213,18 @@ export default function NativeFxCenter({ dark, baseCurrency }: Props) {
 
       <View style={{gap:10}}>
         <Text style={st.heading}>Cotizaciones desde {baseCurrency}</Text>
-        <Text style={st.helper}>Valores de referencia de 1 {baseCurrency}. Si el proveedor no responde, no se muestran tasas antiguas como actuales.</Text>
+        <Text style={st.helper}>Tasas consultadas al proveedor. Si una unidad de {baseCurrency} vale menos de 0,001, mostramos también la equivalencia inversa para facilitar la lectura.</Text>
         {overviewLoading ? <ActivityIndicator color="#B50A18"/> : null}
         {overview.map((v,i) => {
           const selected = codes.includes(baseCurrency as Currency) ? baseCurrency as Currency : "ARS";
           const target = codes.filter(x=>x!==selected)[i];
           if (!v) return <View style={st.quoteListItem} key={target}><Text style={st.listTitle}>{target}</Text><Text style={st.helper}>No disponible</Text></View>;
           return <Pressable key={target} accessibilityRole="button" onPress={() => {setFrom(selected);setTo(target);}}>
-            <View style={st.quoteListItem}><View style={{flex:1}}><Text style={st.listTitle}>{target}</Text><Text style={st.small}>{names[target]}</Text></View><Text numberOfLines={1} adjustsFontSizeToFit style={st.listValue}>{plain(v.rate)}</Text></View>
+            <View style={st.quoteListItem}><View style={{flex:1}}><Text style={st.listTitle}>{target}</Text><Text style={st.small}>{names[target]}</Text></View>
+              <View style={{alignItems:"flex-end",maxWidth:"55%"}}>
+                <Text numberOfLines={1} adjustsFontSizeToFit style={st.listValue}>{plain(v.rate)} {target}</Text>
+                {v.rate < 0.001 ? <Text style={st.small}>1 {target} ≈ {showNumber(1/v.rate, selected)}</Text> : null}
+              </View></View>
           </Pressable>;
         })}
       </View>
