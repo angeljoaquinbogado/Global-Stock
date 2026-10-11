@@ -3,10 +3,25 @@ import { ActivityIndicator, KeyboardAvoidingView, Linking, Modal, Platform, Pres
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArrowUp, Bot, CheckCircle2, Sparkles, X } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 
 type Message = { id: string; role: "user" | "assistant"; content: string };
 type Props = { visible: boolean; onClose: () => void; client: SupabaseClient; business: Business; userId: string; products: Product[]; dark: boolean };
 const ENDPOINT = "https://globalstocks.vercel.app/api/intelligence";
+
+/** Convert the model's legacy Markdown into readable native text without removing data. */
+function formatAssistantText(value: string): string {
+  return value.replace(/\r\n/g, "\n")
+    .replace(/^\s*```[^\n]*\n?/gm, "")
+    .replace(/^\s*#{1,6}\s+/gm, "")
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/__([^_\n]+)__/g, "$1")
+    .replace(/`([^`\n]+)`/g, "$1")
+    .replace(/^\s*[-*•]\s+/gm, "• ")
+    .replace(/^\s*---+\s*$/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 
 export default function NativeAssistant({ visible, onClose, client, business, userId, products, dark }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -170,7 +185,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
         if (response.status === 502 || response.status === 503) throw new Error("El servicio de IA no está respondiendo. Probá nuevamente en unos minutos.");
         throw new Error("No pudimos completar la consulta. Comprobá la conexión y reintentá.");
       }
-      if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant" as const, content: data.answer! }].slice(-40));
+      if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant" as const, content: formatAssistantText(data.answer!) }].slice(-40));
     } catch (err) {
       if (mounted.current) {
         // Preserve the original question so authorization/network failures do not destroy work.
@@ -223,11 +238,17 @@ export default function NativeAssistant({ visible, onClose, client, business, us
             <View style={{flexDirection:"row",alignItems:"center",gap:5}}><CheckCircle2 size={13} color="#56BB95"/><Text style={{color:muted,fontSize:11}}>Contexto: {products.length} productos del negocio actual</Text></View>
           </View>}
           {messages.map(m => <View key={m.id} style={[st.message, m.role==="user" ? st.userBubble : {alignSelf:"flex-start",backgroundColor:panel,borderWidth:1,borderColor:border}]}>
-            <Text style={{color:m.role==="user"?"#fff":fg,fontSize:13,lineHeight:20}}>{m.content}</Text>
+            <Text style={{color:m.role==="user"?"#fff":fg,fontSize:13,lineHeight:20}}>{m.role==="assistant"?formatAssistantText(m.content):m.content}</Text>
           </View>)}
           {sending && <View style={{alignSelf:"flex-start",backgroundColor:panel,padding:14,borderRadius:14}}><ActivityIndicator color="#C20D1A" /></View>}
           {error ? <View style={[st.errorPanel, { backgroundColor: panel, borderColor: border }]}>
-            <Text style={{color:muted,fontSize:12,lineHeight:18,flex:1}}>{error}</Text>
+            <View style={{ flex: 1, gap: 6 }}>
+              <Text style={{color:muted,fontSize:12,lineHeight:18}}>{error}</Text>
+              <Pressable accessibilityRole="link" accessibilityLabel={`Escribir a ${SUPPORT_EMAIL}`}
+                onPress={()=>void Linking.openURL(supportEmailUrl("Error en Global Intelligence"))}>
+                <Text style={{color:dark?"#F08A96":"#9F0011",fontSize:11,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text>
+              </Pressable>
+            </View>
             {!!draft.trim() && !sending ? <Pressable accessibilityRole="button" accessibilityLabel="Reintentar pregunta a Global Intelligence" onPress={()=>void ask()} style={[st.retryButton,{borderColor:border}]}>
               <Text style={{color:fg,fontWeight:"700",fontSize:11}}>Reintentar</Text>
             </Pressable> : null}
@@ -242,7 +263,12 @@ export default function NativeAssistant({ visible, onClose, client, business, us
           />
           <Pressable disabled={sending || !draft.trim()} onPress={() => void ask()} accessibilityRole="button" accessibilityLabel="Enviar mensaje a la IA" style={[st.send,{opacity:sending || !draft.trim()?0.4:1}]}><ArrowUp size={21} color="#fff" /></Pressable>
         </View> : null}
-        {!consent && error ? <Text style={{color:muted,paddingHorizontal:18,paddingVertical:8,fontSize:12}}>{error}</Text> : null}
+        {!consent && error ? <View style={{paddingHorizontal:18,paddingVertical:8,gap:7}}>
+          <Text style={{color:muted,fontSize:12}}>{error}</Text>
+          <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda con permisos de IA"))}>
+            <Text style={{color:dark?"#F08A96":"#9F0011",fontSize:12,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text>
+          </Pressable>
+        </View> : null}
       </KeyboardAvoidingView>
     </Modal>
   );
