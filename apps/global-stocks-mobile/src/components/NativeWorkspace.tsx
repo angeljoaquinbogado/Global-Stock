@@ -365,7 +365,7 @@ export default function NativeWorkspace({
           <ChevronRight size={17} color={p.muted}/>
         </Pressable>
       ) : null}
-      {productForm ? <ProductForm client={client} businessId={business.id} initialBarcode={pendingBarcode} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); setPendingBarcode(""); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
+      {productForm ? <ProductForm client={client} businessId={business.id} initialBarcode={pendingBarcode} currency={business.base_currency} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); setPendingBarcode(""); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
       {source === "loading" ? <ActivityIndicator color={p.redIcon}/> : null}
       {shownProducts.slice(0, 200).map((product) => <View style={s.product} key={product.id}>
         <View style={{ flex: 1, minWidth: 0 }}><Text style={s.productName} numberOfLines={2}>{product.name}</Text>
