@@ -16,6 +16,7 @@ export type Product = {
   category: string | null;
   price: number;
   stock: number;
+  cost: number | null;
   min_stock: number;
   active: boolean;
 };
@@ -141,7 +142,7 @@ export async function loadProducts(client: SupabaseClient, businessId: string): 
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await client
       .from("global_stock_products")
-      .select("id,business_id,name,sku,barcode,category,price,stock,min_stock,active")
+      .select("id,business_id,name,sku,barcode,category,price,cost,stock,min_stock,active")
       .eq("business_id", businessId)
       .eq("active", true)
       .order("name")
@@ -152,6 +153,7 @@ export async function loadProducts(client: SupabaseClient, businessId: string): 
       ...p,
       price: Number(p.price) || 0,
       stock: Number(p.stock) || 0,
+      cost: p.cost == null ? null : Number(p.cost),
       min_stock: Number(p.min_stock) || 0
     })));
     if (page.length < pageSize) return result;

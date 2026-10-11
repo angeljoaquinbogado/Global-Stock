@@ -18,6 +18,7 @@ import { StatusBar } from "expo-status-bar";
 import PreviewMode from "./src/components/PreviewMode";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
+import NativeWorkspace from "./src/components/NativeWorkspace";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
@@ -443,236 +444,57 @@ function MobileApp() {
 
   if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} onRegister={register} loading={authLoading} error={authError} /></SafeAreaView>;
 
+  if (!business) {
+    return (
+      <SafeAreaView style={[st.base, { paddingHorizontal: 23, paddingVertical: 25, justifyContent: "center", gap: 16 }]}>
+        <StatusBar style="light" />
+        <Image source={require("./assets/brand-mark.png")} style={{width:80,height:80}} resizeMode="contain"/>
+        <Text style={[st.heading,{fontSize:24}]}>Configurá tu negocio</Text>
+        <Text style={st.helper}>Todavía no hay negocios vinculados con tu cuenta. Creá uno para usar la misma información desde PC y celular.</Text>
+        <TextInput
+          value={newBusinessName}
+          onChangeText={setNewBusinessName}
+          placeholder="Nombre del negocio"
+          placeholderTextColor={C.secondary}
+          accessibilityLabel="Nombre del negocio"
+          style={st.input}
+          maxLength={100}
+        />
+        <Button title={creatingBusiness ? "Creando..." : "Crear negocio real"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
+        {notice ? <Text style={st.warning}>{notice}</Text> : null}
+        {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
+          if (!supabase || !user) return;
+          setBusinessLoading(true);
+          loadBusinesses(supabase,user.id).then((list) => {setBusinesses(list);setBusiness(list[0] ?? null);}).catch((e: unknown) => setNotice(e instanceof Error ? e.message : "No se pudieron cargar los negocios")).finally(() => setBusinessLoading(false));
+        }}/>}
+        <Button title="Cerrar sesión" secondary onPress={() => void logout()}/>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={st.base} edges={["top", "bottom"]}>
-      <StatusBar style="light" />
-      <View style={st.header}>
-        <View style={st.headerBrand}>
-          <Image source={require("./assets/brand-mark.png")} style={st.miniLogoImage} resizeMode="contain" accessibilityLabel="Global Stock" />
-          <View>
-            <Text style={st.headerTitle}>Global Stock</Text>
-            <Text style={st.headerSubtitle} numberOfLines={1}>{business?.name ?? "Elegí tu negocio"}</Text>
-          </View>
-        </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Cambiar negocio" style={st.headerAction} onPress={() => setShowBusinessPicker((v) => !v)}>
-          <Text style={st.headerActionText}>NEGOCIOS</Text>
-        </Pressable>
-      </View>
-
-      {showBusinessPicker ? (
-        <View style={st.picker}>
-          {businesses.map((b) => (
-            <Pressable key={b.id} style={st.pickerItem} onPress={() => { setBusiness(b); setShowBusinessPicker(false); setSearch(""); setTab("dashboard"); }}>
-              <Text style={{ color: C.white, fontWeight: "700" }}>{b.name}</Text>
-              {b.id === business?.id ? <Text style={{ color: C.green }}>Activo</Text> : null}
-            </Pressable>
-          ))}
-          <Button title="Cerrar sesión" secondary onPress={() => { setShowBusinessPicker(false); void logout(); }} />
-        </View>
-      ) : null}
-
-      {!business ? (
-        <View style={st.empty}>
-          {businessLoading ? <ActivityIndicator color={C.red} /> : (
-            <>
-              <Text style={st.heading}>Todavía no hay un negocio conectado</Text>
-              <Text style={st.helper}>
-                No hay negocios reales vinculados con tu usuario todavía.
-                Podés crear uno ahora; la PC y el celular usarán el mismo Supabase.
-              </Text>
-              <TextInput
-                style={st.input}
-                placeholder="Nombre de tu negocio"
-                placeholderTextColor="#858594"
-                accessibilityLabel="Nombre del negocio nuevo"
-                value={newBusinessName}
-                onChangeText={setNewBusinessName}
-                maxLength={100}
-              />
-              <Button
-                title={creatingBusiness ? "Creando negocio..." : "Crear mi negocio en Supabase"}
-                disabled={creatingBusiness || newBusinessName.trim().length < 2}
-                onPress={() => void createFirstBusiness()}
-              />
-              {notice ? <Text style={st.warning}>{notice}</Text> : null}
-              <Button title="Volver a comprobar" onPress={() => { setRefresh((n) => n + 1); loadBusinesses(supabase!, user.id).then((list) => { setBusinesses(list); setBusiness(list[0] ?? null); }).catch((e: unknown) => setNotice(String(e))); }} />
-              <Button title="Cerrar sesión" secondary onPress={() => void logout()} />
-            </>
-          )}
-        </View>
-      ) : (
-        <>
-          {notice ? (
-            <View style={st.syncBar}>
-              <View style={[st.dot, { backgroundColor: source === "live" ? C.green : C.amber }]} />
-              <Text numberOfLines={2} style={st.syncText}>{notice}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel="Actualizar inventario" onPress={() => setRefresh((n) => n + 1)}>
-                <Text style={st.syncRefresh}>Actualizar</Text>
-              </Pressable>
-            </View>
-          ) : null}
-
-          <ScrollView
-            style={st.scroll}
-            contentContainerStyle={st.content}
-            keyboardShouldPersistTaps="handled"
-          >
-            {tab === "dashboard" ? (
-              <>
-                <Label>PANEL CONECTADO</Label>
-                <Text style={st.pageTitle}>Tu negocio, en un solo lugar.</Text>
-                <Text style={st.helper}>Datos reales del negocio seleccionado. El estado offline se indica arriba.</Text>
-                <View style={st.metrics}>
-                  {[
-                    ["Productos", products.length.toString()],
-                    ["Unidades", units.toLocaleString("es-AR")],
-                    ["Stock bajo", lowCount.toString()],
-                    ["Borradores locales", drafts.length.toString()]
-                  ].map(([label, value]) => (
-                    <View key={label} style={st.metric}>
-                      <Text style={st.metricLabel}>{label}</Text>
-                      <Text style={st.metricValue}>{value}</Text>
-                    </View>
-                  ))}
-                </View>
-                <View style={st.panel}>
-                  <Text style={st.sectionTitle}>Accesos rápidos</Text>
-                  <Button title="Consultar inventario" onPress={() => setTab("inventory")} />
-                  <Button title="Escanear un producto" secondary onPress={() => { setScanned(false); setTab("scanner"); }} />
-                </View>
-                <Label>PRODUCTOS DEL NEGOCIO</Label>
-                {products.slice(0, 4).map((p) => <ProductCard key={p.id} product={p} currency={currency} onAdd={add} />)}
-                {source === "loading" ? <ActivityIndicator color={C.red} /> : null}
-                {source !== "loading" && products.length === 0 ? <Text style={st.helper}>No hay productos cargados en este negocio.</Text> : null}
-              </>
-            ) : null}
-
-            {tab === "inventory" ? (
-              <>
-                <Label>INVENTARIO</Label>
-                <Text style={st.pageTitle}>Todos tus productos.</Text>
-                <Text style={st.helper}>Stock real en Supabase. Actualizá para ver cambios realizados desde la PC. Sin internet se mostrará la última copia.</Text>
-                <Button title={showProductForm ? "Cerrar nuevo producto" : "+ Agregar producto real"} secondary onPress={() => setShowProductForm((current) => !current)} />
-                {showProductForm ? <ProductForm client={supabase} businessId={business.id} onCreated={() => { setShowProductForm(false); setRefresh((v) => v + 1); setNotice("Producto guardado en Supabase: también estará disponible en la web al actualizarla."); }} onCancel={() => setShowProductForm(false)} /> : null}
-                <TextInput
-                  style={st.input}
-                  accessibilityLabel="Buscar por nombre, SKU o código"
-                  placeholder="Buscar por nombre, SKU o código"
-                  placeholderTextColor="#858594"
-                  value={search}
-                  onChangeText={setSearch}
-                  autoCapitalize="none"
-                />
-                <View style={st.sectionRow}>
-                  <Text style={st.sectionTitle}>{filteredProducts.length} productos</Text>
-                  <Pressable accessibilityRole="button" onPress={() => { setScanned(false); setTab("scanner"); }}><Text style={st.link}>Escanear ↗</Text></Pressable>
-                </View>
-                {filteredProducts.slice(0, 250).map((p) => (
-                  <ProductCard key={p.id} product={p} currency={currency} onAdd={add} />
-                ))}
-                {filteredProducts.length > 250 ? <Text style={st.helper}>Mostrando los primeros 250. Usá la búsqueda para localizar otros productos.</Text> : null}
-                {source === "loading" ? <ActivityIndicator color={C.red} /> : null}
-                {source !== "loading" && filteredProducts.length === 0 ? <Text style={st.helper}>No se encontraron coincidencias.</Text> : null}
-              </>
-            ) : null}
-
-            {tab === "pos" ? (
-              <>
-                <Label>CAJA / VENTAS</Label>
-                <Text style={st.pageTitle}>Borradores de venta.</Text>
-                <View style={st.caution}>
-                  <Text style={st.cautionTitle}>MODO BORRADOR · NO ES UN COBRO</Text>
-                  <Text style={st.cautionText}>
-                    Podés preparar la venta sin internet. Por seguridad, guardar un borrador NO descuenta inventario,
-                    NO confirma el pago y NO sincroniza ventas automáticamente.
-                  </Text>
-                </View>
-                <View style={st.sectionRow}>
-                  <Text style={st.sectionTitle}>Productos seleccionados</Text>
-                  <Pressable accessibilityRole="button" onPress={() => setTab("inventory")}><Text style={st.link}>Agregar productos ↗</Text></Pressable>
-                </View>
-                {cart.length === 0 ? <Text style={st.helper}>Agregá productos desde Inventario o Inicio.</Text> : null}
-                {cart.map((line) => (
-                  <View key={line.product_id} style={st.cartLine}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={st.productName}>{line.name}</Text>
-                      <Text style={st.productMeta}>{money(line.unit_price, currency)} c/u</Text>
-                    </View>
-                    <View style={st.stepper}>
-                      <Pressable accessibilityRole="button" accessibilityLabel={`Quitar una unidad de ${line.name}`} onPress={() => adjust(line.product_id, -1)} style={st.stepperBtn}><Text style={st.stepperText}>−</Text></Pressable>
-                      <Text style={st.stepperQty}>{line.quantity}</Text>
-                      <Pressable accessibilityRole="button" accessibilityLabel={`Añadir una unidad de ${line.name}`} onPress={() => adjust(line.product_id, 1)} style={st.stepperBtn}><Text style={st.stepperText}>+</Text></Pressable>
-                    </View>
-                  </View>
-                ))}
-                <View style={st.totalRow}>
-                  <Text style={st.helper}>Total estimado</Text>
-                  <Text style={st.totalText}>{money(total, currency)}</Text>
-                </View>
-                <Button title="Guardar borrador en este dispositivo" disabled={cart.length === 0} onPress={() => void saveDraft()} />
-                <Label>BORRADORES SIN SINCRONIZAR</Label>
-                {drafts.map((d) => (
-                  <View key={d.id} style={st.draft}>
-                    <Text style={st.productName}>{money(d.total, currency)}</Text>
-                    <Text style={st.productMeta}>{d.items.length} productos · {new Date(d.created_at).toLocaleString("es-AR")}</Text>
-                    <Text style={st.draftNotice}>Pendiente · Sin venta registrada ni stock descontado</Text>
-                  </View>
-                ))}
-                {drafts.length === 0 ? <Text style={st.helper}>Todavía no guardaste borradores.</Text> : null}
-              </>
-            ) : null}
-
-            {tab === "scanner" ? (
-              <>
-                <Label>LECTOR DE CÓDIGOS</Label>
-                <Text style={st.pageTitle}>Escaneá tus productos.</Text>
-                <Text style={st.helper}>Códigos de barras y QR. La búsqueda utiliza el inventario de este negocio.</Text>
-                {!permission ? (
-                  <ActivityIndicator color={C.red} />
-                ) : !permission.granted ? (
-                  <View style={st.panel}>
-                    <Text style={st.helper}>Necesitamos permiso para acceder a la cámara.</Text>
-                    <Button title="Permitir acceso a la cámara" onPress={() => void requestPermission()} />
-                  </View>
-                ) : (
-                  <View style={st.cameraWrap}>
-                    <CameraView
-                      style={st.camera}
-                      facing="back"
-                      barcodeScannerSettings={{
-                        barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "qr"]
-                      }}
-                      onBarcodeScanned={scanned ? undefined : scanResult}
-                    />
-                    <View pointerEvents="none" style={st.cameraReticle} />
-                  </View>
-                )}
-                <Button title="Volver al inventario" secondary onPress={() => setTab("inventory")} />
-              </>
-            ) : null}
-          </ScrollView>
-          <View style={st.tabBar}>
-            {([
-              ["dashboard", "Inicio"],
-              ["inventory", "Inventario"],
-              ["scanner", "Escanear"],
-              ["pos", "Ventas"]
-            ] as const).map(([id, title]) => (
-              <Pressable
-                key={id}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: tab === id }}
-                accessibilityLabel={title}
-                onPress={() => { if (id === "scanner") setScanned(false); setTab(id); }}
-                style={[st.tabItem, tab === id && st.tabItemActive]}
-              >
-                <Text style={[st.tabText, tab === id && st.tabTextActive]}>{title}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </>
-      )}
-    </SafeAreaView>
+    <NativeWorkspace
+      client={supabase}
+      userId={user.id}
+      business={business}
+      businesses={businesses}
+      products={products}
+      source={source}
+      notice={notice}
+      drafts={drafts}
+      cart={cart}
+      refreshToken={refresh}
+      onRefresh={() => setRefresh((v) => v + 1)}
+      onBusiness={(selected) => {
+        setBusiness(selected);
+        setCart([]);
+        setSearch("");
+      }}
+      onSignOut={() => void logout()}
+      onAdd={add}
+      onAdjust={adjust}
+      onSaveDraft={() => void saveDraft()}
+    />
   );
 }
 
