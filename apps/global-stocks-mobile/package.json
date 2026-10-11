@@ -8,6 +8,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
+    "check:syntax": "node scripts/check-mobile-syntax.mjs",
     "doctor": "expo install --check",
     "check:repo": "node scripts/check-mobile-repo.mjs",
     "check:beta": "node scripts/check-argentina-beta.mjs",
