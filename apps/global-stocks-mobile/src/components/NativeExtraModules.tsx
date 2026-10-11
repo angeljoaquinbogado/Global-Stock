@@ -286,7 +286,7 @@ export default function NativeExtraModules({ client, business, userId, products,
 
   return <View style={{gap:15,paddingBottom:35}}>
     {loading ? <View style={styles.loading}><ActivityIndicator color={base}/><Text style={styles.caption}>Cargando datos del negocio...</Text></View> : null}
-    {error ? <View style={styles.error}><Text style={{fontSize:12,color:c.muted,lineHeight:18}}>{error}</Text>
+    {error ? <View style={[styles.error,{borderColor:c.line}]}><Text style={{fontSize:12,color:c.muted,lineHeight:18}}>{error}</Text>
       {button("Reintentar",()=>setRefresh(v=>v+1),true)}</View>:null}
     {!loading && (module==="notes" ? agenda() :
       module==="suppliers" ? supplierModule() :
