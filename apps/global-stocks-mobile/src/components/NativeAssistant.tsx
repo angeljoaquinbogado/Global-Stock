@@ -25,6 +25,48 @@ function formatAssistantText(value: string): string {
     .trim();
 }
 
+/**
+ * Native clock utility, not a simulated AI answer. Basic date/time questions
+ * should not burn the business's paid or limited model quota.
+ * General questions still go to the real authenticated AI service.
+ */
+function deviceClockAnswer(input: string): string | null {
+  const normalized = input.trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[¿?!.]/g, "").replace(/\s+/g, " ").trim();
+  const askDate = [
+    /^(que|cual) dia (es|estamos) hoy$/,
+    /^que dia es$/,
+    /^(cual es la|que|cual es) fecha (de )?hoy$/,
+    /^que fecha es hoy$/,
+    /^what (day|date) is (it )?(today)?$/,
+    /^(que dia e hoje|qual e a data de hoje)$/
+  ].some(regex => regex.test(normalized));
+  const askTime = [
+    /^(que hora es|que hora es ahora|que hora tienes|que hora tenemos)$/,
+    /^what time is it( now)?$/,
+    /^(que horas sao|que horas sao agora)$/
+  ].some(regex => regex.test(normalized));
+  if (!askDate && !askTime) return null;
+  const locale = /\b(what|today|time)\b/.test(normalized) ? "en-US" :
+    /\b(hoje|qual|horas)\b/.test(normalized) ? "pt-BR" : "es-AR";
+  const now = new Date();
+  if (askDate) {
+    const date = new Intl.DateTimeFormat(locale, {
+      weekday: "long", day: "numeric", month: "long", year: "numeric"
+    }).format(now);
+    return locale === "en-US" ? `According to your device, today is ${date}.`
+      : locale === "pt-BR" ? `De acordo com o relógio do seu dispositivo, hoje é ${date}.`
+      : `Según el reloj de tu dispositivo, hoy es ${date}.`;
+  }
+  const time = new Intl.DateTimeFormat(locale, {
+    hour: "2-digit", minute: "2-digit", hour12: false
+  }).format(now);
+  return locale === "en-US" ? `Your device shows ${time}.`
+    : locale === "pt-BR" ? `Seu dispositivo marca ${time}.`
+    : `El reloj de tu dispositivo marca las ${time}.`;
+}
+
 export default function NativeAssistant({ visible, onClose, client, business, userId, products, dark }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
@@ -96,6 +138,13 @@ export default function NativeAssistant({ visible, onClose, client, business, us
     const userMessage: Message = { id: Date.now().toString() + "-user", role: "user", content: text };
     setMessages((old) => [...old, userMessage].slice(-40));
     try {
+      const localClock = deviceClockAnswer(text);
+      if (localClock) {
+        if (mounted.current) setMessages(old => [...old, {
+          id: Date.now().toString() + "-clock", role: "assistant" as const, content: localClock
+        }].slice(-40));
+        return;
+      }
       // getUser validates/renews the identity when returning from background.
       let { data: verified, error: userError } = await client.auth.getUser();
       if (userError || !verified.user?.id) {
