@@ -354,7 +354,7 @@ export default function NativeWorkspace({
       {heading("Almacén y stock", "Controlá existencias, precios y códigos desde un solo lugar.")}
       <View style={s.rowBetween}><View style={{ flex: 1 }}><Text style={s.sectionTitle}>{products.length} productos</Text><Text style={s.meta}>Inventario de {business.name}</Text></View>
       <Pressable onPress={onRefresh} accessibilityRole="button" accessibilityLabel="Actualizar inventario" style={s.iconControl}><RefreshCw size={17} color={p.text}/></Pressable></View>
-      <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={search} onChangeText={setSearch} autoCapitalize="none" placeholder="Buscar nombre, código o categoría" placeholderTextColor={p.muted} accessibilityLabel="Buscar productos"/></View>
+      <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={search} onChangeText={(value) => {setSearch(value);setPendingBarcode("");}} autoCapitalize="none" placeholder="Buscar nombre, código o categoría" placeholderTextColor={p.muted} accessibilityLabel="Buscar productos"/></View>
       <View style={s.rowBetween}><Action p={p} compact onPress={() => { setScanned(false); open("scan"); }} secondary>Escanear código</Action>
       {canManageInventory ? <Action p={p} compact onPress={() => setProductForm((v) => !v)}>{productForm ? "Cerrar" : "+ Producto"}</Action> : null}</View>
       {pendingBarcode && canManageInventory && !productForm ? (
@@ -375,7 +375,7 @@ export default function NativeWorkspace({
         <Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="white"/><Text style={s.addText}>Agregar</Text></Pressable></View>
       </View>)}
       {shownProducts.length > 200 ? <Text style={s.meta}>Mostrando 200 productos. Usá la búsqueda para encontrar los demás.</Text> : null}
-      {source !== "loading" && shownProducts.length === 0 ? <View style={s.empty}><Boxes size={26} color={p.muted}/><Text style={s.emptyTitle}>Todavía no hay productos</Text><Text style={s.meta}>Agregá el primero y se sincronizará con Global Stock web.</Text></View> : null}
+      {source !== "loading" && shownProducts.length === 0 ? <View style={s.empty}><Boxes size={26} color={p.muted}/><Text style={s.emptyTitle}>{search.trim() ? "Sin coincidencias" : "Todavía no hay productos"}</Text><Text style={s.meta}>{search.trim() ? "Revisá el código, SKU o categoría. No se creó ni modificó ningún producto." : "Agregá el primero y se sincronizará con Global Stock web."}</Text></View> : null}
     </>;
   }
 
