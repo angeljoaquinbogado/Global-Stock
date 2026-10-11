@@ -141,6 +141,9 @@ export default function NativeWorkspace({
   const [posSearch, setPosSearch] = useState("");
   const [message, setMessage] = useState("");
   const [scanned, setScanned] = useState(false);
+  const [manualBarcode, setManualBarcode] = useState("");
+  const [barcodeError, setBarcodeError] = useState("");
+  const [pendingBarcode, setPendingBarcode] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
@@ -209,6 +212,9 @@ export default function NativeWorkspace({
     setProductForm(false);
     setSearch("");
     setPosSearch("");
+    setManualBarcode("");
+    setBarcodeError("");
+    setPendingBarcode("");
     setActive("overview");
   }, [business.id]);
 
@@ -237,13 +243,31 @@ export default function NativeWorkspace({
     setMenuOpen(false);
     if (module === "scan") setScanned(false);
   }
+  function lookupBarcode(raw: string) {
+    const value = raw.trim();
+    if (!value || value.length > 64) {
+      setBarcodeError("Ingresá un código válido de hasta 64 caracteres.");
+      return;
+    }
+    setBarcodeError("");
+    setManualBarcode(value);
+    // Keep leading zeroes (EAN/UPC), handle case-insensitive SKUs and
+    // match only the currently selected business's inventory.
+    const product = products.find(item =>
+      item.barcode?.trim().toLowerCase() === value.toLowerCase() ||
+      item.sku?.trim().toLowerCase() === value.toLowerCase()
+    );
+    setSearch(value);
+    setPendingBarcode(product ? "" : value);
+    setMessage(product ? `Encontrado: ${product.name}` :
+      "No hay productos con ese código. Podés crearlo en este negocio si tenés permiso.");
+    setProductForm(false);
+    open("inventory");
+  }
   function scanResult({ data }: { data: string }) {
     if (scanned) return;
     setScanned(true);
-    const value = data.trim();
-    setSearch(value);
-    setMessage(products.some((item) => item.barcode === value || item.sku === value) ? "Código encontrado en el inventario." : "Código escaneado: sin coincidencias en este negocio.");
-    open("inventory");
+    lookupBarcode(data);
   }
   function addCart(product: Product) {
     if (product.stock <= 0) {
@@ -333,7 +357,15 @@ export default function NativeWorkspace({
       <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={search} onChangeText={setSearch} autoCapitalize="none" placeholder="Buscar nombre, código o categoría" placeholderTextColor={p.muted} accessibilityLabel="Buscar productos"/></View>
       <View style={s.rowBetween}><Action p={p} compact onPress={() => { setScanned(false); open("scan"); }} secondary>Escanear código</Action>
       {canManageInventory ? <Action p={p} compact onPress={() => setProductForm((v) => !v)}>{productForm ? "Cerrar" : "+ Producto"}</Action> : null}</View>
-      {productForm ? <ProductForm client={client} businessId={business.id} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
+      {pendingBarcode && canManageInventory && !productForm ? (
+        <Pressable accessibilityRole="button" accessibilityLabel="Crear producto con código de barras ingresado"
+          onPress={() => setProductForm(true)} style={[s.menuTile,{borderColor:p.redIcon}]}>
+          <PackagePlus size={18} color={p.redIcon}/>
+          <Text style={[s.menuTileText,{flex:1}]}>Crear producto con código {pendingBarcode}</Text>
+          <ChevronRight size={17} color={p.muted}/>
+        </Pressable>
+      ) : null}
+      {productForm ? <ProductForm client={client} businessId={business.id} initialBarcode={pendingBarcode} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); setPendingBarcode(""); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
       {source === "loading" ? <ActivityIndicator color={p.redIcon}/> : null}
       {shownProducts.slice(0, 200).map((product) => <View style={s.product} key={product.id}>
         <View style={{ flex: 1, minWidth: 0 }}><Text style={s.productName} numberOfLines={2}>{product.name}</Text>
@@ -523,7 +555,26 @@ export default function NativeWorkspace({
         onRefresh={onRefresh} onSignOut={requestSignOut} onOpenWeb={openWebsite}
       /> : null}
       {active==="scan" ? <>
-        {heading("Escanear código", "Apuntá la cámara al código de barras o QR del producto.")}
+        {heading("Buscar por código", "Escaneá o escribí el código de barras o SKU. Funciona aunque no otorgues acceso a la cámara.")}
+        <View style={s.bigCard}>
+          <Text style={s.sectionTitle}>Ingresar código manualmente</Text>
+          <Text style={s.meta}>EAN, UPC, Code 128 o código interno de tu negocio. Los ceros iniciales se conservan.</Text>
+          <View style={s.searchBar}>
+            <ScanLine size={18} color={p.redIcon}/>
+            <TextInput value={manualBarcode}
+              onChangeText={(value) => { setManualBarcode(value); setBarcodeError(""); }}
+              onSubmitEditing={() => lookupBarcode(manualBarcode)}
+              autoCapitalize="characters" autoCorrect={false}
+              returnKeyType="search" maxLength={64}
+              placeholder="Ej.: 7791234567890"
+              placeholderTextColor={p.muted}
+              accessibilityLabel="Código de barras o SKU manual"
+              style={s.searchInput}/>
+          </View>
+          {barcodeError ? <Text accessibilityRole="alert" style={s.warning}>{barcodeError}</Text> : null}
+          <Action p={p} onPress={() => lookupBarcode(manualBarcode)}>Buscar código</Action>
+        </View>
+        <Text style={s.meta}>O escaneá con la cámara</Text>
         {!permission ? <ActivityIndicator color={p.redIcon}/> : !permission.granted ? <Action p={p} onPress={() => void requestPermission()}>Permitir acceso a la cámara</Action> :
         <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","code39","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
         <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
