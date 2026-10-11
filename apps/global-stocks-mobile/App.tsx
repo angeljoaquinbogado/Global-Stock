@@ -40,7 +40,7 @@ const C = {
   secondary: "#A8A9B5",
   red: "#B50914",
   green: "#53D5A5",
-  amber: "#F5B86E"
+  amber: "#B8B8C3"
 };
 
 function money(value: number, currency: string) {
@@ -572,7 +572,7 @@ const st = StyleSheet.create({
   addButtonText: { color: C.white, fontSize: 11, fontWeight: "800" },
   caution: { borderWidth: 1, borderColor: "#6F4520", backgroundColor: "#2A2119", borderRadius: 12, padding: 13, gap: 7 },
   cautionTitle: { color: C.amber, fontSize: 11, fontWeight: "900", letterSpacing: 0.7 },
-  cautionText: { color: "#E5CFB8", fontSize: 12, lineHeight: 19 },
+  cautionText: { color: "#B8B8C3", fontSize: 12, lineHeight: 19 },
   cartLine: { flexDirection: "row", padding: 13, borderRadius: 13, borderColor: C.border, borderWidth: 1, backgroundColor: C.surface, alignItems: "center" },
   stepper: { flexDirection: "row", gap: 8, alignItems: "center" },
   stepperBtn: { width: 30, height: 30, justifyContent: "center", alignItems: "center", borderRadius: 8, backgroundColor: C.raised },
