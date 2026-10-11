@@ -21,7 +21,19 @@ const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
-must(landing.includes('behavior={form && Platform.OS === "ios" ? "padding" : undefined}') && landing.includes('key={form ? "auth-fields" : "welcome"}'), "Welcome must not inherit a stale iOS keyboard layout after logout.");
+must(
+  landing.includes('<SafeAreaView edges={["top","bottom"]}') &&
+  landing.includes("styles.topRow") &&
+  landing.includes("styles.logoStage") &&
+  landing.includes("{t.welcome}") &&
+  landing.includes("{t.begin}") &&
+  landing.includes("{t.existing}") &&
+  landing.includes("styles.languagePicker") &&
+  !landing.includes("<Svg") &&
+  !landing.includes("StyleSheet.absoluteFillObject") &&
+  !landing.includes('overflow:"hidden"'),
+  "The restored welcome must show its navigation, brand, login options and no full-screen SVG layer."
+);
 must(legal.includes("adult_18_attested:true") && legal.includes("operates_in_ar_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Adult and Argentina eligibility with legal versions must be recorded.");
 must(legal.includes("LEGAL_TERMS_VERSION = \"2026-10-11-ar-beta\"") && legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
 must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-11-v3"') &&
