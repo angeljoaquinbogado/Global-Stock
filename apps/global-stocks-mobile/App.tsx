@@ -523,7 +523,7 @@ function MobileApp() {
         setCart([]);
         setSearch("");
       }}
-      onSignOut={() => void logout()}
+      onSignOut={() => void performLogout()}
       onAdd={add}
       onAdjust={adjust}
       onSaveDraft={() => void saveDraft()}
