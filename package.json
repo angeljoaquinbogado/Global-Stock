@@ -1,0 +1,15 @@
+{
+  "name": "global_stock",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Global Stock repository browser QA (Playwright). Flutter and Next.js remain independent workspaces.",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.64.0",
+    "@types/node": "^26.6.4"
+  }
+}
