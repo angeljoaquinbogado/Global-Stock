@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator, Alert, Image, Linking, Modal, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View
@@ -147,6 +147,24 @@ export default function NativeWorkspace({
   const [dashboardError, setDashboardError] = useState("");
   const [canManageInventory, setCanManageInventory] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const signOutDelay = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => () => {
+    if (signOutDelay.current) clearTimeout(signOutDelay.current);
+  }, []);
+
+  function requestSignOut() {
+    // Native iOS Modal dismissal is asynchronous. Unmounting the workspace
+    // during dismissal may leave a blank modal in front of the login page.
+    if (signOutDelay.current) return;
+    setMenuOpen(false);
+    setBusinessPicker(false);
+    setShowAi(false);
+    signOutDelay.current = setTimeout(() => {
+      signOutDelay.current = null;
+      onSignOut(); // User must still confirm local-data deletion.
+    }, 650);
+  }
   const [showOverviewDetails, setShowOverviewDetails] = useState(false);
   const p = dark ? darkPalette : lightPalette;
   const s = useMemo(() => stylesFor(p), [p]);
@@ -428,7 +446,7 @@ export default function NativeWorkspace({
         client={client} business={business} userId={userId} dark={dark}
         onTheme={setPersistedTheme} onBusiness={onBusiness}
         onSwitchBusiness={() => setBusinessPicker(true)}
-        onRefresh={onRefresh} onSignOut={onSignOut} onOpenWeb={openWebsite}
+        onRefresh={onRefresh} onSignOut={requestSignOut} onOpenWeb={openWebsite}
       /> : null}
       {active==="scan" ? <>
         {heading("Escanear código", "Apuntá la cámara al código de barras o QR del producto.")}
@@ -474,7 +492,7 @@ export default function NativeWorkspace({
             </Pressable>;
           })}</View></View>)}
           <Pressable onPress={() => {setMenuOpen(false);setBusinessPicker(true);}} style={s.menuLink} accessibilityRole="button"><Store size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cambiar negocio</Text><ChevronRight size={15} color={p.muted}/></Pressable>
-          <Pressable onPress={() => {setMenuOpen(false);onSignOut();}} style={s.menuLink} accessibilityRole="button"><LogOut size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text><ChevronRight size={15} color={p.muted}/></Pressable>
+          <Pressable onPress={requestSignOut} style={s.menuLink} accessibilityRole="button"><LogOut size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text><ChevronRight size={15} color={p.muted}/></Pressable>
         </ScrollView>
       </View></View>
     </Modal>
