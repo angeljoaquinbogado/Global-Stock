@@ -80,9 +80,20 @@ export default function NativeAssistant({ visible, onClose, client, business, us
     setMessages((old) => [...old, userMessage].slice(-40));
     try {
       // getUser validates/renews the identity when returning from background.
-      const { data: verified, error: userError } = await client.auth.getUser();
+      let { data: verified, error: userError } = await client.auth.getUser();
+      if (userError || !verified.user?.id) {
+        // A sleeping phone can keep a stale access token. Refresh once,
+        // then validate the identity. Do not sign out on network failures.
+        const { data: refreshed, error: refreshError } = await client.auth.refreshSession();
+        if (refreshError || !refreshed.session?.access_token) {
+          throw new Error("No se pudo verificar la sesión. Comprobá internet y tocá Enviar de nuevo. Si sigue fallando, cerrá sesión e ingresá otra vez.");
+        }
+        const retried = await client.auth.getUser();
+        verified = retried.data;
+        userError = retried.error;
+      }
       if (userError || !verified.user?.id || verified.user.id !== userId)
-        throw new Error("No se pudo verificar tu cuenta. Cerrá sesión y volvé a ingresar si persiste.");
+        throw new Error("No se pudo comprobar que esta sesión corresponda a tu usuario. Cerrá sesión y volvé a ingresar.");
       // The web API expects a profile in addition to a valid Auth identity.
       // Only create the authenticated user's own row; RLS remains enforced.
       const { data: profile, error: profileError } = await client
