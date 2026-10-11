@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   generateIntelligenceAnswer,
@@ -10,6 +11,7 @@ import {
 } from "@/lib/ai-provider";
 import {
   authorizeApiRequest,
+  authorizeBusinessRequest,
   isApiAuthAvailable,
   isApiAuthConfigured
 } from "@/lib/server-auth";
@@ -140,6 +142,49 @@ export async function POST(request: Request) {
       },
       { status: 413, headers: noStoreHeaders() }
     );
+  }
+
+  // Native mobile requests require valid business membership and a
+  // server-verified, revocable per-business AI context authorization.
+  // This does not alter the existing web chat authorization flow.
+  if (body.runtime?.appContext?.platform === "Global Stock React Native") {
+    const businessId = body.runtime?.appContext?.businessId;
+    if (
+      typeof businessId !== "string" ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(businessId)
+    ) return NextResponse.json(
+      { code: "INVALID_BUSINESS" }, { status: 400, headers: noStoreHeaders() }
+    );
+
+    const businessAuth = await authorizeBusinessRequest(request, businessId);
+    if (!businessAuth.ok) return NextResponse.json(
+      { code: businessAuth.code }, { status: businessAuth.status, headers: noStoreHeaders() }
+    );
+
+    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+    const bearer = request.headers.get("authorization")?.trim();
+    if (!url || !key || !bearer?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { code: "AUTH_NOT_CONFIGURED" }, { status: 503, headers: noStoreHeaders() }
+      );
+    }
+    const merchantClient = createClient(url, key, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+      global: { headers: { Authorization: bearer } }
+    });
+    const { data: consent, error: consentError } = await merchantClient
+      .from("global_stock_ai_data_consents")
+      .select("approved")
+      .eq("user_id", authorization.userId)
+      .eq("business_id", businessId)
+      .maybeSingle();
+
+    if (consentError || consent?.approved !== true) {
+      return NextResponse.json(
+        { code: "AI_CONSENT_REQUIRED" }, { status: 403, headers: noStoreHeaders() }
+      );
+    }
   }
 
   try {
