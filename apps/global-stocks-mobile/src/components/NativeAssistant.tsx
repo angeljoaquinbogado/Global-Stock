@@ -166,6 +166,9 @@ export default function NativeAssistant({ visible, onClose, client, business, us
       if (mounted.current) setMessages((old) => [...old, { id: Date.now().toString() + "-ai", role: "assistant" as const, content: data.answer! }].slice(-40));
     } catch (err) {
       if (mounted.current) {
+        // Preserve the original question so authorization/network failures do not destroy work.
+        setDraft((current) => current.trim() ? current : text);
+        setMessages((current) => current.filter((item) => item.id !== userMessage.id));
         setError(err instanceof Error && err.name === "AbortError" ? "Se agotó el tiempo de respuesta del asistente." : err instanceof Error ? err.message : "Error de conexión.");
       }
     } finally {
