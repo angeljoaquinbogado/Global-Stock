@@ -310,6 +310,10 @@ export async function generateIntelligenceAnswer({
             if (!(fallbackError instanceof IntelligenceProviderError && fallbackError.status === 404)) break;
           }
         }
+        // Do not report an unsupported fallback as if the configured model were missing.
+        if (lastError instanceof IntelligenceProviderError && lastError.status === 404) {
+          throw primaryError;
+        }
         throw lastError;
       }
     }
