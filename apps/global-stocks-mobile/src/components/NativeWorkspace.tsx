@@ -408,6 +408,88 @@ export default function NativeWorkspace({
   const groups = ["PRINCIPAL", "ANÁLISIS", "ORGANIZACIÓN", "GESTIÓN"];
   const isMenuActive = !["overview","pos","inventory","scan"].includes(active);
 
+
+  // Native overlays added after the bottom dock were not full-height on iOS.
+  // Render each destination as an ordinary full-screen route in this tree.
+  if (showAi) return <NativeAssistant visible onClose={() => setShowAi(false)}
+    client={client} business={business} userId={userId} products={products} dark={dark} />;
+
+  if (showLogoutConfirm) return <SafeAreaView edges={["top","bottom"]} style={[s.shell,{backgroundColor:p.bg}]}>
+    <StatusBar style={dark ? "light" : "dark"}/>
+    <View style={s.header}>
+      <Text style={[s.sectionTitle,{flex:1}]}>Cerrar sesión</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Cancelar cierre de sesión"
+        onPress={() => setShowLogoutConfirm(false)} style={s.iconControl}><X size={20} color={p.text}/></Pressable>
+    </View>
+    <View style={{flex:1,justifyContent:"center",padding:22}}>
+      <View style={s.modalCard}>
+        <Text style={s.sectionTitle}>¿Cerrar sesión en este dispositivo?</Text>
+        <Text style={[s.meta,{fontSize:12,lineHeight:20}]}>
+          Por privacidad, se borrarán de este dispositivo las copias locales del inventario
+          y los presupuestos no sincronizados. Los datos guardados en Global Stock web no se eliminan.
+        </Text>
+        <Action p={p} secondary onPress={() => setShowLogoutConfirm(false)}>Cancelar</Action>
+        <Action p={p} onPress={() => {setShowLogoutConfirm(false);onSignOut();}}>
+          Cerrar sesión y borrar copia local
+        </Action>
+      </View>
+    </View>
+  </SafeAreaView>;
+
+  if (businessPicker) return <SafeAreaView edges={["top","bottom"]} style={[s.shell,{backgroundColor:p.bg}]}>
+    <StatusBar style={dark ? "light" : "dark"}/>
+    <View style={s.header}>
+      <Text style={[s.sectionTitle,{flex:1}]}>Tus negocios</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel="Volver al panel"
+        onPress={() => setBusinessPicker(false)} style={s.iconControl}><X size={20} color={p.text}/></Pressable>
+    </View>
+    <ScrollView style={{flex:1}} contentContainerStyle={{padding:18,gap:10}}>
+      {businesses.map(b => <Pressable key={b.id} accessibilityRole="button" style={[s.menuLink,{padding:13,backgroundColor:p.surface,borderRadius:13}]}
+        onPress={() => {setBusinessPicker(false);onBusiness(b);}}>
+        <Store size={18} color={p.redIcon}/><Text style={s.menuLinkLabel}>{b.name}</Text>
+        {b.id===business.id ? <Check size={17} color="#65C5A1"/> : null}
+      </Pressable>)}
+    </ScrollView>
+  </SafeAreaView>;
+
+  if (menuOpen) return <SafeAreaView edges={["top","bottom"]} style={[s.shell,{backgroundColor:p.bg}]}>
+    <StatusBar style={dark ? "light" : "dark"}/>
+    <View style={s.header}>
+      <View style={{flex:1,gap:4}}>
+        <Text style={s.sectionTitle}>Menú de Global Stock</Text>
+        <Text style={s.meta} numberOfLines={1}>{business.name}</Text>
+      </View>
+      <Pressable accessibilityRole="button" accessibilityLabel="Cerrar menú" onPress={() => setMenuOpen(false)}
+        style={s.iconControl}><X size={20} color={p.text}/></Pressable>
+    </View>
+    <ScrollView style={{flex:1}} contentContainerStyle={{paddingHorizontal:18,paddingVertical:18,paddingBottom:35}}
+      showsVerticalScrollIndicator={false}>
+      {groups.map(group => <View key={group} style={{marginBottom:21}}>
+        <Text style={s.menuGroup}>{group}</Text>
+        <View style={s.menuGrid}>
+          {navigation.filter(item => item.group===group).map(item => {
+            const Icon=item.icon;
+            return <Pressable key={item.module} accessibilityRole="button" style={[s.menuTile,active===item.module&&s.menuTileActive]}
+              onPress={() => open(item.module)}>
+              <View style={s.menuTileIcon}><Icon size={17} color={p.redIcon}/></View>
+              <View style={{flex:1}}>
+                <Text style={s.menuTileText}>{item.label}</Text>
+                {!item.live ? <Text style={s.menuSoon}>En adaptación</Text> : null}
+              </View>
+              <ChevronRight size={17} color={p.muted}/>
+            </Pressable>;
+          })}
+        </View>
+      </View>)}
+      <Pressable accessibilityRole="button" onPress={() => {setMenuOpen(false);setBusinessPicker(true);}}
+        style={s.menuLink}><Store size={18} color={p.redIcon}/><Text style={s.menuLinkLabel}>Cambiar negocio</Text>
+        <ChevronRight size={17} color={p.muted}/></Pressable>
+      <Pressable accessibilityRole="button" onPress={requestSignOut} style={s.menuLink}>
+        <LogOut size={18} color={p.redIcon}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text>
+        <ChevronRight size={17} color={p.muted}/></Pressable>
+    </ScrollView>
+  </SafeAreaView>;
+
   return <SafeAreaView edges={["top","bottom"]} style={[s.shell,{backgroundColor:p.bg}]}>
     <StatusBar style={dark ? "light" : "dark"}/>
     <View style={s.header}>
@@ -468,62 +550,7 @@ export default function NativeWorkspace({
     </View>
 
 
-    {menuOpen ? <View style={[StyleSheet.absoluteFillObject,{zIndex:30}]} accessibilityViewIsModal>
-      <View style={s.backdrop}><Pressable style={{ flex:1 }} onPress={() => setMenuOpen(false)}/><View style={s.sheet}>
-        <View style={s.sheetHandle}/>
-        <View style={s.cardHeadingRow}><View style={s.brandRow}><Image source={require("../../assets/brand-mark.png")} style={s.brandIcon}/><View><Text style={s.sectionTitle}>Menú</Text><Text style={s.meta} numberOfLines={1}>{business.name}</Text></View></View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Cerrar menú" onPress={() => setMenuOpen(false)} style={s.iconControl}><X size={19} color={p.text}/></Pressable></View>
-        <ScrollView contentContainerStyle={{ paddingBottom: 14 }} showsVerticalScrollIndicator={false}>
-          {groups.map((g) => <View key={g} style={{ marginTop: 21 }}><Text style={s.menuGroup}>{g}</Text><View style={s.menuGrid}>
-          {navigation.filter((v) => v.group===g).map((item) => {
-            const Icon=item.icon;
-            return <Pressable key={item.module} accessibilityRole="button" onPress={() => open(item.module)} style={[s.menuTile,active===item.module && s.menuTileActive]}>
-              <View style={s.menuTileIcon}><Icon size={16} color={p.redIcon}/></View>
-              <View style={{ flex:1 }}><Text style={s.menuTileText} numberOfLines={2}>{item.label}</Text>
-              {!item.live ? <Text style={s.menuSoon}>En adaptación</Text> : null}</View>
-            </Pressable>;
-          })}</View></View>)}
-          <Pressable onPress={() => {setMenuOpen(false);setBusinessPicker(true);}} style={s.menuLink} accessibilityRole="button"><Store size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cambiar negocio</Text><ChevronRight size={15} color={p.muted}/></Pressable>
-          <Pressable onPress={requestSignOut} style={s.menuLink} accessibilityRole="button"><LogOut size={17} color={p.muted}/><Text style={s.menuLinkLabel}>Cerrar sesión</Text><ChevronRight size={15} color={p.muted}/></Pressable>
-        </ScrollView>
-      </View></View>
-    </View> : null}
 
-    {businessPicker ? <View style={[StyleSheet.absoluteFillObject,{zIndex:30}]} accessibilityViewIsModal>
-      <View style={s.modalBackdrop}><View style={s.modalCard}>
-        <View style={s.cardHeadingRow}><Text style={s.sectionTitle}>Tus negocios</Text><Pressable onPress={() => setBusinessPicker(false)} accessibilityRole="button"><X size={20} color={p.text}/></Pressable></View>
-        {businesses.map((b) => <Pressable key={b.id} style={s.menuLink} onPress={() => {setBusinessPicker(false);onBusiness(b);}} accessibilityRole="button">
-          <Store size={16} color={p.redIcon}/><Text style={s.menuLinkLabel}>{b.name}</Text>{b.id===business.id?<Check size={16} color="#65C5A1"/>:null}
-        </Pressable>)}
-      </View></View>
-    </View> : null}
-
-    <NativeAssistant visible={showAi} onClose={() => setShowAi(false)}
-      client={client} business={business} userId={userId} products={products} dark={dark} />
-
-    {showLogoutConfirm ? (
-      <View style={[StyleSheet.absoluteFillObject,{zIndex:100}]} accessibilityViewIsModal>
-        <View style={s.modalBackdrop}>
-          <View style={s.modalCard}>
-            <Text style={s.sectionTitle}>¿Cerrar sesión en este dispositivo?</Text>
-            <Text style={[s.meta,{fontSize:12,lineHeight:20}]}>
-              Para proteger tu negocio, se borrarán de este dispositivo las copias
-              locales del inventario y los presupuestos que no estén sincronizados.
-              Los datos guardados en Global Stock web no se eliminan.
-            </Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cancelar cierre de sesión"
-              onPress={()=>setShowLogoutConfirm(false)}
-              style={[s.menuLink,{justifyContent:"center"}]}>
-              <Text style={s.menuLinkLabel}>Cancelar</Text>
-            </Pressable>
-            <Action p={p} onPress={()=>{
-              setShowLogoutConfirm(false);
-              onSignOut();
-            }}>Cerrar sesión y borrar copia local</Action>
-          </View>
-        </View>
-      </View>
-    ) : null}
   </SafeAreaView>;
 }
 
