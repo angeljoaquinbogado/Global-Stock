@@ -32,15 +32,29 @@ const sources = [
   ...["App.tsx", "index.ts"].map((file) => join(root, file)).filter(existsSync),
 ];
 const used = new Map();
-const imports = /\b(?:from\s*|import\s*|require\s*\(\s*)["']([^"'\n\r]+)["']/g;
+function register(name, source) {
+  const dep = packageName(name);
+  if (!dep) return;
+  if (!used.has(dep)) used.set(dep, []);
+  used.get(dep).push(source.substring(root.length + 1));
+}
 for (const source of sources) {
   const code = readFileSync(source, "utf8");
-  for (const [, name] of code.matchAll(imports)) {
-    const dep = packageName(name);
-    if (!dep) continue;
-    if (!used.has(dep)) used.set(dep, []);
-    used.get(dep).push(source.substring(root.length + 1));
+  // Only parse actual import declarations. A bare "from \"...\"" regex
+  // also matches JSX expressions and text inside the currency converter.
+  let statement = "";
+  for (const line of code.split("\\n")) {
+    if (!statement && /^\\s*import(?:\\s|\\{|$)/.test(line)) statement = line;
+    else if (statement) statement += "\\n" + line;
+    if (statement && (statement.includes(";") || statement.length > 1200)) {
+      const found = statement.match(/\\bfrom\\s*["']([^"'\\r\\n]+)["']/)
+        ?? statement.match(/^\\s*import\\s*["']([^"'\\r\\n]+)["']/);
+      if (found) register(found[1], source);
+      statement = "";
+    }
   }
+  const requires = /\\brequire\\s*\\(\\s*["']([^"'\\r\\n]+)["']\\s*\\)/g;
+  for (const [, name] of code.matchAll(requires)) register(name, source);
 }
 const errors = [];
 for (const [dep, paths] of used) {
