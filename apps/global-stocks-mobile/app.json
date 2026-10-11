@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "Global Stock",
+    "slug": "global-stocks",
+    "scheme": "globalstocks",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "app.globalstocks.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Global Stock usa la cámara para identificar códigos de barras y QR de productos."
+      }
+    },
+    "android": {
+      "package": "app.globalstocks.mobile",
+      "permissions": ["CAMERA"],
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Global Stock necesita la cámara para escanear productos.",
+          "recordAudioAndroid": false
+        }
+      ],
+      "expo-secure-store"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "d3f33419-261b-4615-818d-f6802350b085"
+      }
+    }
+  }
+}
