@@ -284,7 +284,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Error en configuración"))}>
         <Text style={st.supportEmail}>{SUPPORT_EMAIL}</Text>
       </Pressable>
-    </View>
+    </View>}
     {!!notice&&<Text style={[st.help,{color:"#58C99A"}]}>{notice}</Text>}
   </View>;
 }
