@@ -37,7 +37,7 @@ function FormatPrice({ amount }: { amount: number }) {
   return <Text style={styles.price}>{"$ " + amount.toLocaleString("es-AR")}</Text>;
 }
 
-export default function PreviewMode() {
+export default function PreviewMode({ connectionError, onRetry }: { connectionError?: string; onRetry?: () => void }) {
   const [page, setPage] = useState<Page>("inicio");
   const [query, setQuery] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
@@ -75,10 +75,11 @@ export default function PreviewMode() {
         <View style={styles.notice}>
           <Text style={styles.noticeHead}>ESTÁS EN NUESTRA APP</Text>
           <Text style={styles.noticeText}>
-            Esta es la vista previa de Global Stock. Son datos ficticios:
-            falta configurar la clave pública de Supabase para iniciar sesión
-            y consultar los datos reales de tu negocio.
+            Esta es la vista previa con datos ficticios. La conexión real se obtiene automáticamente
+            desde globalstocks.vercel.app cuando el sitio termina de desplegarse.
           </Text>
+          {connectionError ? <Text style={styles.noticeText}>{connectionError}</Text> : null}
+          {onRetry ? <Pressable onPress={onRetry} accessibilityRole="button" style={styles.primaryButton}><Text style={styles.primaryButtonText}>Conectar con mi Global Stock real →</Text></Pressable> : null}
         </View>
 
         {page === "inicio" ? (

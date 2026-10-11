@@ -15,10 +15,11 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
 import PreviewMode from "./src/components/PreviewMode";
-import type { User } from "@supabase/supabase-js";
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+import ProductForm from "./src/components/ProductForm";
 
-import { supabase } from "./src/lib/supabase";
-import { loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
+import { loadMobileSupabase } from "./src/lib/supabase";
+import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
 import { cacheBusinesses, cacheProducts, loadOfflineDrafts, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
 
 type Tab = "dashboard" | "inventory" | "pos" | "scanner";
@@ -106,13 +107,15 @@ function ProductCard({ product, currency, onAdd }: {
   );
 }
 
-function Login({ onSubmit, loading, error }: {
+function Login({ onSubmit, onRegister, loading, error }: {
   onSubmit: (email: string, password: string) => void;
+  onRegister: (email: string, password: string) => void;
   loading: boolean;
   error: string;
 }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [registerMode, setRegisterMode] = useState(false);
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={st.loginWrap} keyboardShouldPersistTaps="handled">
@@ -121,8 +124,8 @@ function Login({ onSubmit, loading, error }: {
         <Text style={st.subtitle}>Todo tu negocio, conectado.</Text>
         <View style={st.loginCard}>
           <Label>BIENVENIDO</Label>
-          <Text style={st.heading}>Iniciá sesión</Text>
-          <Text style={st.helper}>Usá la misma cuenta de tu Global Stock web.</Text>
+          <Text style={st.heading}>{registerMode ? "Creá tu cuenta" : "Iniciá sesión"}</Text>
+          <Text style={st.helper}>Usá la misma cuenta que en Global Stock web, sin crear otra base de datos.</Text>
           <TextInput
             style={st.input}
             placeholder="Correo electrónico"
@@ -146,10 +149,11 @@ function Login({ onSubmit, loading, error }: {
           />
           {error ? <Text accessibilityRole="alert" style={st.warning}>{error}</Text> : null}
           <Button
-            title={loading ? "Ingresando..." : "Ingresar"}
+            title={loading ? "Procesando..." : registerMode ? "Crear cuenta" : "Ingresar"}
             disabled={loading || !email.trim() || !password}
-            onPress={() => onSubmit(email.trim(), password)}
+            onPress={() => registerMode ? onRegister(email.trim(), password) : onSubmit(email.trim(), password)}
           />
+          <Button title={registerMode ? "Ya tengo cuenta · Iniciar sesión" : "No tengo cuenta · Registrarme"} secondary onPress={() => setRegisterMode((old) => !old)} />
         </View>
         <Text style={st.loginFoot}>Sesiones protegidas · Datos de cada negocio aislados</Text>
       </ScrollView>
@@ -158,6 +162,10 @@ function Login({ onSubmit, loading, error }: {
 }
 
 function MobileApp() {
+  const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
+  const [configLoading, setConfigLoading] = useState(true);
+  const [configError, setConfigError] = useState("");
+  const [connectionRetry, setConnectionRetry] = useState(0);
   const [user, setUser] = useState<User | null>(null);
   const [starting, setStarting] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
@@ -165,6 +173,9 @@ function MobileApp() {
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessLoading, setBusinessLoading] = useState(false);
+  const [newBusinessName, setNewBusinessName] = useState("");
+  const [creatingBusiness, setCreatingBusiness] = useState(false);
+  const [showProductForm, setShowProductForm] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
   const [source, setSource] = useState<"loading" | "live" | "cache" | "empty">("loading");
   const [notice, setNotice] = useState("");
@@ -178,10 +189,25 @@ function MobileApp() {
   const [scanned, setScanned] = useState(false);
 
   useEffect(() => {
-    if (!supabase) {
-      setStarting(false);
-      return;
-    }
+    let active = true;
+    setConfigLoading(true);
+    void loadMobileSupabase()
+      .then((client) => {
+        if (!active) return;
+        setConfigError("");
+        setSupabase(client);
+      })
+      .catch((error: unknown) => {
+        if (!active) return;
+        setConfigError(error instanceof Error ? error.message : "No se pudo conectar con Supabase.");
+        setSupabase(null);
+      })
+      .finally(() => { if (active) setConfigLoading(false); });
+    return () => { active = false; };
+  }, [connectionRetry]);
+
+  useEffect(() => {
+    if (!supabase) return;
     let alive = true;
     supabase.auth.getSession().then(({ data, error }) => {
       if (!alive) return;
@@ -204,7 +230,7 @@ function MobileApp() {
       }
     });
     return () => { alive = false; subscription.unsubscribe(); };
-  }, []);
+  }, [supabase]);
 
   useEffect(() => {
     if (!user || !supabase) return;
@@ -234,7 +260,7 @@ function MobileApp() {
       }
     })();
     return () => { alive = false; };
-  }, [user?.id]);
+  }, [user?.id, supabase]);
 
   useEffect(() => {
     if (!user || !business || !supabase) return;
@@ -280,7 +306,7 @@ function MobileApp() {
       }
     });
     return () => { alive = false; };
-  }, [user?.id, business?.id, refresh]);
+  }, [user?.id, business?.id, refresh, supabase]);
 
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -305,6 +331,39 @@ function MobileApp() {
       setAuthError(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
     } finally {
       setAuthLoading(false);
+    }
+  }
+
+  async function register(email: string, password: string) {
+    if (!supabase) return;
+    setAuthLoading(true);
+    setAuthError("");
+    try {
+      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (error) setAuthError(error.message);
+      else if (!data.session) setAuthError("Revisá tu correo para confirmar el registro; después iniciá sesión.");
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function createFirstBusiness() {
+    if (!supabase || !user || creatingBusiness) return;
+    setCreatingBusiness(true);
+    setNotice("");
+    try {
+      const created = await createBusiness(supabase, user.id, newBusinessName);
+      setBusinesses((list) => [...list.filter((b) => b.id !== created.id), created]);
+      setBusiness(created);
+      setNewBusinessName("");
+      setNotice("Negocio real creado y conectado. Ya podés agregar productos.");
+      await cacheBusinesses(user.id, [created]).catch(() => null);
+    } catch (error) {
+      setNotice(error instanceof Error ? error.message : "No se pudo crear el negocio.");
+    } finally {
+      setCreatingBusiness(false);
     }
   }
 
@@ -360,12 +419,10 @@ function MobileApp() {
     setNotice(found ? `Producto encontrado: ${data.trim()}` : `Código ${data.trim()}: no está en el inventario cargado`);
   };
 
-  if (!supabase) return <PreviewMode />;
+  if (configLoading || (supabase && starting)) return <SafeAreaView style={st.centered}><ActivityIndicator size="large" color={C.red} /></SafeAreaView>;
+  if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
-  if (starting) {
-    return <SafeAreaView style={st.centered}><ActivityIndicator size="large" color={C.red} /></SafeAreaView>;
-  }
-  if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} loading={authLoading} error={authError} /></SafeAreaView>;
+  if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} onRegister={register} loading={authLoading} error={authError} /></SafeAreaView>;
 
   return (
     <SafeAreaView style={st.base} edges={["top", "bottom"]}>
@@ -401,9 +458,23 @@ function MobileApp() {
             <>
               <Text style={st.heading}>Todavía no hay un negocio conectado</Text>
               <Text style={st.helper}>
-                Creá tu negocio desde Global Stock web o pedí una invitación.
-                Cuando estés autorizado, aparecerá acá.
+                No hay negocios reales vinculados con tu usuario todavía.
+                Podés crear uno ahora; la PC y el celular usarán el mismo Supabase.
               </Text>
+              <TextInput
+                style={st.input}
+                placeholder="Nombre de tu negocio"
+                placeholderTextColor="#858594"
+                accessibilityLabel="Nombre del negocio nuevo"
+                value={newBusinessName}
+                onChangeText={setNewBusinessName}
+                maxLength={100}
+              />
+              <Button
+                title={creatingBusiness ? "Creando negocio..." : "Crear mi negocio en Supabase"}
+                disabled={creatingBusiness || newBusinessName.trim().length < 2}
+                onPress={() => void createFirstBusiness()}
+              />
               {notice ? <Text style={st.warning}>{notice}</Text> : null}
               <Button title="Volver a comprobar" onPress={() => { setRefresh((n) => n + 1); loadBusinesses(supabase!, user.id).then((list) => { setBusinesses(list); setBusiness(list[0] ?? null); }).catch((e: unknown) => setNotice(String(e))); }} />
               <Button title="Cerrar sesión" secondary onPress={() => void logout()} />
@@ -461,7 +532,9 @@ function MobileApp() {
               <>
                 <Label>INVENTARIO</Label>
                 <Text style={st.pageTitle}>Todos tus productos.</Text>
-                <Text style={st.helper}>Stock de tu negocio. En modo offline puede estar desactualizado.</Text>
+                <Text style={st.helper}>Stock real en Supabase. Actualizá para ver cambios realizados desde la PC. Sin internet se mostrará la última copia.</Text>
+                <Button title={showProductForm ? "Cerrar nuevo producto" : "+ Agregar producto real"} secondary onPress={() => setShowProductForm((current) => !current)} />
+                {showProductForm ? <ProductForm client={supabase} businessId={business.id} onCreated={() => { setShowProductForm(false); setRefresh((v) => v + 1); setNotice("Producto guardado en Supabase: también estará disponible en la web al actualizarla."); }} onCancel={() => setShowProductForm(false)} /> : null}
                 <TextInput
                   style={st.input}
                   accessibilityLabel="Buscar por nombre, SKU o código"
