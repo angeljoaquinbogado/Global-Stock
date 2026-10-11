@@ -3,7 +3,7 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View
 import type { SupabaseClient } from "@supabase/supabase-js";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
-import { Barcode, FileCheck2, FileText, Printer, RefreshCw, Share2, ShieldAlert, Tag } from "lucide-react-native";
+import { Barcode, FileCheck2, FileText, Printer, RefreshCw, Share2, Tag } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
 
 type FiscalDocument = {
@@ -108,16 +108,19 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
     {surface:"#FFF",line:"#E0E0E6",text:"#17171C",muted:"#666675",tile:"#F5F5F7"},[dark]);
  const st=useMemo(()=>styles(p),[p]);
  useEffect(()=>{
+   // Only query fiscal documents when this section is actually opened.
+   // Missing availability must never masquerade as an empty fiscal record.
+   if (tab !== "fiscal") return;
    let active=true;setError("");
    setDocumentList([]);
    setLoading(true);
    void client.from("global_stock_fiscal_documents").select("id,kind,letter,status,local_reference,total_amount,created_at,issued_at,authorization_code,voucher_number,point_of_sale,qr_url,customer_name,currency")
      .eq("business_id",business.id).order("created_at",{ascending:false}).limit(50)
      .then(({data,error})=>{if(!active)return;if(error)throw error;setDocumentList((data??[]) as FiscalDocument[]);})
-     .catch((err:unknown)=>{if(active)setError(err instanceof Error?err.message:"No se pudieron consultar las facturas.")})
+     .catch((err:unknown)=>{if(active){setError("No pudimos actualizar los documentos fiscales. Revisá tu conexión e intentá otra vez.");console.warn("Fiscal documents query failed",err instanceof Error?err.name:"query-error");}})
      .finally(()=>{if(active)setLoading(false)});
    return ()=>{active=false};
- },[client,business.id,version]);
+ },[client,business.id,version,tab]);
  const flagged=products.filter(p=>selected.includes(p.id));
  async function print(html:string,mode:"print"|"share"){
    if(working)return;
@@ -177,10 +180,10 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
      {btn("Abrir configuración ARCA",onFiscal,true)}
      {btn("Actualizar documentos",()=>setVersion(v=>v+1),true)}
      {loading?<ActivityIndicator color="#C71B2A"/>:null}
-     {documentList.length===0&&!loading?<Text style={st.helper}>No hay documentos fiscales registrados todavía.</Text>:null}
+     {documentList.length===0&&!loading&&!error?<Text style={st.helper}>Todavía no hay facturas registradas para este negocio.</Text>:null}
      {documentList.map(d=><View key={d.id} style={st.row}>
        <View style={{flex:1,gap:3}}><Text style={st.value}>{d.kind} {d.letter||""} · {d.local_reference}</Text>
-         <Text style={[st.meta,{color:d.status==="authorized"?"#5AB995":"#E4AE78"}]}>{d.status==="authorized"?"AUTORIZADO":d.status.toUpperCase()}</Text>
+         <Text style={[st.meta,{color:d.status==="authorized"?"#5AB995":p.muted}]}>{d.status==="authorized"?"AUTORIZADO":d.status.toUpperCase()}</Text>
          <Text style={st.meta}>{money(Number(d.total_amount)||0,d.currency||"ARS")}</Text></View>
        <Pressable accessibilityRole="button" disabled={d.status!=="authorized"||!d.authorization_code} accessibilityLabel="Imprimir copia de factura autorizada"
          style={[st.iconButton,d.status!=="authorized"&&{opacity:0.35}]} onPress={()=>void print(fiscalHtml(business,d),"print")}><Printer size={18} color={p.text}/></Pressable>
@@ -189,7 +192,7 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
      </View>)}
    </View>:null}
    {working?<ActivityIndicator color="#C81724"/>:null}
-   {!!error?<View style={st.alert}><ShieldAlert size={16} color="#E7A970"/><Text style={st.alertText}>{error}</Text></View>:null}
+   {!!error?<View style={st.alert}><Text style={st.alertText}>{error}</Text><Pressable accessibilityRole="button" accessibilityLabel="Reintentar consulta fiscal" onPress={()=>setVersion(v=>v+1)} style={st.retry}><Text style={{color:p.text,fontWeight:"700",fontSize:12}}>Reintentar</Text></Pressable></View>:null}
  </View>;
 }
 function styles(p:{surface:string;line:string;text:string;muted:string;tile:string}){
@@ -208,7 +211,8 @@ function styles(p:{surface:string;line:string;text:string;muted:string;tile:stri
   btnText:{color:"#FFF",fontWeight:"800",fontSize:12},
   iconButton:{backgroundColor:p.tile,borderRadius:10,padding:11,borderWidth:1,borderColor:p.line},
   checkbox:{width:22,height:22,borderWidth:1,borderColor:p.line,borderRadius:5,alignItems:"center",justifyContent:"center"},
-  alert:{flexDirection:"row",gap:8,backgroundColor:p.tile,padding:12,borderRadius:12},
-  alertText:{color:"#D9A26B",fontSize:11,flex:1,lineHeight:17}
+  alert:{flexDirection:"row",alignItems:"center",gap:10,backgroundColor:p.tile,padding:12,borderRadius:12,borderWidth:1,borderColor:p.line},
+  alertText:{color:p.muted,fontSize:11,flex:1,lineHeight:17},
+  retry:{paddingVertical:10,paddingHorizontal:12,borderRadius:9,backgroundColor:p.surface,borderWidth:1,borderColor:p.line}
  });
 }
