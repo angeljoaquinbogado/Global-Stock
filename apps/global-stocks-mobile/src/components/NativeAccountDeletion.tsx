@@ -66,7 +66,7 @@ export default function NativeAccountDeletion({ client, onDeleted, dark }: Props
       </Pressable>
       <Pressable disabled={deleting} accessibilityRole="button" onPress={()=>{setOpen(false);setError("");}} style={st.button}><Text style={{color:fg,fontWeight:"700"}}>Cancelar</Text></Pressable>
     </View>}
-    {!!error && <Text accessibilityRole="alert" style={{color:"#D95C69",fontSize:12,lineHeight:18}}>{error}</Text>}
+    {!!error && <Text accessibilityRole="alert" style={{color:dark?"#EE7A87":"#A70016",fontSize:12,lineHeight:18}}>{error}</Text>}
   </View>;
 }
 const st=StyleSheet.create({
