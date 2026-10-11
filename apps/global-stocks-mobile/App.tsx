@@ -5,6 +5,7 @@ import {
   AppState,
   Image,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -133,6 +134,8 @@ function Login({ onSubmit, onRegister, loading, error }: {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [registerMode, setRegisterMode] = useState(false);
+  const [adultConfirmed, setAdultConfirmed] = useState(false);
+  const [termsConfirmed, setTermsConfirmed] = useState(false);
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={st.loginWrap} keyboardShouldPersistTaps="handled">
@@ -165,10 +168,30 @@ function Login({ onSubmit, onRegister, loading, error }: {
             value={password}
             onChangeText={setPassword}
           />
+          {registerMode ? <View style={{gap:11}}>
+            <Pressable accessibilityRole="checkbox" accessibilityState={{checked:adultConfirmed}} onPress={()=>setAdultConfirmed(v=>!v)}
+              style={{flexDirection:"row",gap:11,alignItems:"flex-start"}}>
+              <View style={{width:20,height:20,borderRadius:6,borderWidth:1,borderColor:"#666673",backgroundColor:adultConfirmed?C.red:"transparent",alignItems:"center",justifyContent:"center"}}><Text style={{color:"#fff",fontSize:13}}>{adultConfirmed?"✓":""}</Text></View>
+              <Text style={{flex:1,fontSize:12,color:C.secondary,lineHeight:18}}>Confirmo que tengo 18 años o más y capacidad legal para utilizar la plataforma.</Text>
+            </Pressable>
+            <Pressable accessibilityRole="checkbox" accessibilityState={{checked:termsConfirmed}} onPress={()=>setTermsConfirmed(v=>!v)}
+              style={{flexDirection:"row",gap:11,alignItems:"flex-start"}}>
+              <View style={{width:20,height:20,borderRadius:6,borderWidth:1,borderColor:"#666673",backgroundColor:termsConfirmed?C.red:"transparent",alignItems:"center",justifyContent:"center"}}><Text style={{color:"#fff",fontSize:13}}>{termsConfirmed?"✓":""}</Text></View>
+              <Text style={{flex:1,fontSize:12,color:C.secondary,lineHeight:18}}>Leí los términos y la política de privacidad.</Text>
+            </Pressable>
+            <View style={{flexDirection:"row",flexWrap:"wrap",gap:16}}>
+              <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL("https://globalstocks.vercel.app/legal/terms")}>
+                <Text style={{fontSize:12,color:"#EF737B"}}>Términos de uso ↗</Text>
+              </Pressable>
+              <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL("https://globalstocks.vercel.app/legal/privacy")}>
+                <Text style={{fontSize:12,color:"#EF737B"}}>Privacidad ↗</Text>
+              </Pressable>
+            </View>
+          </View> : null}
           {error ? <Text accessibilityRole="alert" style={st.warning}>{error}</Text> : null}
           <Button
             title={loading ? "Procesando..." : registerMode ? "Crear cuenta" : "Ingresar"}
-            disabled={loading || !email.trim() || !password}
+            disabled={loading || !email.trim() || !password || (registerMode && (!adultConfirmed || !termsConfirmed))}
             onPress={() => registerMode ? onRegister(email.trim(), password) : onSubmit(email.trim(), password)}
           />
           <Button title={registerMode ? "Ya tengo cuenta · Iniciar sesión" : "No tengo cuenta · Registrarme"} secondary onPress={() => setRegisterMode((old) => !old)} />
