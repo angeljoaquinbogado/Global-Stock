@@ -121,6 +121,10 @@ export async function createProduct(
 ): Promise<string> {
   if (form.name.trim().length < 2 || form.name.trim().length > 160)
     throw new Error("El nombre debe tener entre 2 y 160 caracteres.");
+  if (form.barcode.trim().length > 64 || /[\u0000-\u001f\u007f]/.test(form.barcode))
+    throw new Error("El código debe tener hasta 64 caracteres y no contener caracteres de control.");
+  if (form.category.trim().length > 100)
+    throw new Error("La categoría debe tener hasta 100 caracteres.");
   if (!Number.isFinite(form.price) || form.price < 0 || form.price > 1_000_000_000)
     throw new Error("Ingresá un precio válido.");
   if (!Number.isFinite(form.stock) || form.stock < 0 || form.stock > 1_000_000_000)
