@@ -397,5 +397,5 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
   });
 }
 function darkWarning(p: typeof palette.dark | typeof palette.light) {
-  return p.bg === palette.dark.bg ? "#F1AB85" : "#9E401B";
+  return p.bg === palette.dark.bg ? "#DF6C78" : "#9F1020";
 }
