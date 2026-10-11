@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
 import type { Business } from "../lib/data";
+import NativeFxCenter from "./NativeFxCenter";
 
 type Props = {
   client: SupabaseClient;
@@ -79,7 +80,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
   }
 
   return <View style={st.container}>
-    <View style={{gap:7}}><Text style={st.kicker}>PREFERENCIAS</Text><Text style={st.title}>Configuración</Text><Text style={st.text}>Tu negocio, tus preferencias, la app y tu cuenta.</Text></View>
+    <View style={{gap:7}}><Text style={st.kicker}>PREFERENCIAS</Text><Text style={st.title}>Configuración</Text><Text style={st.text}>Perfil operativo, idiomas, cotizaciones, apariencia, seguridad y la app.</Text></View>
     <View style={st.card}>
       <View style={st.cardHeading}><Store size={19} color="#C91827"/><Text style={st.sectionTitle}>Negocio</Text></View>
       <Text style={st.label}>Nombre del negocio</Text>
@@ -99,6 +100,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       <Text style={st.help}>Tema actual: {dark?"Oscuro":"Claro"}. El aspecto web es independiente del celular.</Text>
       <View style={st.two}><View style={{flex:1}}>{action("Oscuro",()=>onTheme(true))}</View><View style={{flex:1}}>{action("Claro",()=>onTheme(false))}</View></View>
     </View>
+    <NativeFxCenter dark={dark} baseCurrency={business.base_currency} />
     <View style={st.card}>
       <View style={st.cardHeading}><RefreshCw size={18} color="#C91827"/><Text style={st.sectionTitle}>Sincronización y datos</Text></View>
       <Text style={st.help}>Los productos y ventas se consultan de Supabase. Agenda y Proveedores se guardan en tu espacio de trabajo. Los borradores de venta no registran cobros.</Text>

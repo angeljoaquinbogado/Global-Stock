@@ -101,7 +101,7 @@ export default function NativeAssistant({ visible, onClose, client, business, pr
         <View style={[st.header, { borderColor:border }]}>
           <View style={{ flexDirection:"row",alignItems:"center",gap:10,flex:1 }}>
             <View style={st.brand}><Sparkles size={18} color="#fff" /></View>
-            <View style={{flex:1}}><Text style={{color:fg,fontWeight:"800",fontSize:16}}>Global Stock IA</Text><Text style={{color:muted,fontSize:11}} numberOfLines={1}>Asistente de {business.name}</Text></View>
+            <View style={{flex:1}}><Text style={{color:fg,fontWeight:"800",fontSize:16}}>Global Intelligence</Text><Text style={{color:muted,fontSize:11}} numberOfLines={1}>Inteligencia Global · {business.name}</Text></View>
           </View>
           <Pressable accessibilityRole="button" accessibilityLabel="Cerrar IA" onPress={onClose} style={[st.close,{backgroundColor:panel}]}><X size={20} color={fg} /></Pressable>
         </View>
@@ -121,7 +121,7 @@ export default function NativeAssistant({ visible, onClose, client, business, pr
         <View style={[st.composer,{borderColor:border,backgroundColor:bg}]}>
           <TextInput
             value={draft} onChangeText={setDraft} editable={!sending} multiline maxLength={4000}
-            placeholder="Preguntale a Global Stock IA…" placeholderTextColor={muted}
+            placeholder="Preguntale a Global Intelligence…" placeholderTextColor={muted}
             accessibilityLabel="Mensaje para la inteligencia artificial"
             style={[st.input,{color:fg,backgroundColor:panel,borderColor:border}]}
           />

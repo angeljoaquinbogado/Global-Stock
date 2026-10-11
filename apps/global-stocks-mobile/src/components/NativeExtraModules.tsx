@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, FileText, Globe2, Package, Plus, RefreshCw, Store, Trash2, Truck, Users } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
+import NativeCalendarSelector from "./NativeCalendarSelector";
 
 export type ExtraModule = "notes" | "suppliers" | "purchases" | "online" | "documents" | "operations";
 export type Note = { id: string; title: string; body: string; pinned: boolean; createdAt: string; updatedAt: string };
@@ -188,13 +189,13 @@ export default function NativeExtraModules({ client, business, products, module,
         </View><Text style={styles.caption}>{n.body}</Text><Text style={styles.timestamp}>{new Date(n.updatedAt).toLocaleDateString("es-AR")}</Text>
       </View>)}</>:null}
       {mode!=="bloc"?<><View style={styles.card}>
-        <Text style={styles.cardTitle}>{mode==="calendar"?"Calendario":"Tus recordatorios"}</Text>
-        <View style={styles.row}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Día anterior" style={styles.step} onPress={()=>setDay(d=>dateWithOffset(d,-1))}><ChevronLeft size={18} color={c.fg}/></Pressable>
-          <Text style={styles.dayText}>{day.split("-").reverse().join("/")}</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Día siguiente" style={styles.step} onPress={()=>setDay(d=>dateWithOffset(d,1))}><ChevronRight size={18} color={c.fg}/></Pressable>
-          <Pressable accessibilityRole="button" onPress={()=>setDay(dateKey(new Date()))}><Text style={{color:"#E55C66",fontSize:12}}>Hoy</Text></Pressable>
-        </View>
+        <Text style={styles.cardTitle}>{mode==="calendar"?"Calendario de recordatorios":"Organizá tus recordatorios"}</Text>
+        <NativeCalendarSelector
+          selectedDate={day}
+          onSelect={setDay}
+          eventDates={tasks.filter(t => !t.done).map(t => t.date)}
+          dark={dark}
+        />
         {input("Nuevo recordatorio",taskText,setTaskText)}
         {button("Agregar recordatorio",()=>void addTask(),false,!taskText.trim())}
       </View>
