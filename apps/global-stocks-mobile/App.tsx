@@ -22,6 +22,7 @@ import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
 import NativeWorkspace from "./src/components/NativeWorkspace";
 import NativeLegalGate from "./src/components/NativeLegalGate";
+import NativeAuthLanding from "./src/components/NativeAuthLanding";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
@@ -124,83 +125,6 @@ function BrandedBootScreen() {
       </View>
       <ActivityIndicator color={C.red} style={{ marginTop: 18 }} />
     </SafeAreaView>
-  );
-}
-
-function Login({ onSubmit, onRegister, loading, error }: {
-  onSubmit: (email: string, password: string) => void;
-  onRegister: (email: string, password: string) => void;
-  loading: boolean;
-  error: string;
-}) {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [registerMode, setRegisterMode] = useState(false);
-  const [adultConfirmed, setAdultConfirmed] = useState(false);
-  const [termsConfirmed, setTermsConfirmed] = useState(false);
-  return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
-      <ScrollView contentContainerStyle={st.loginWrap} keyboardShouldPersistTaps="handled">
-        <Image source={require("./assets/brand-mark.png")} style={st.loginLogoImage}
-          resizeMode="contain" accessibilityLabel="Global Stock" />
-        <Text style={st.brand}>Global <Text style={{ color: "#F15A64" }}>Stock</Text></Text>
-        <Text style={st.subtitle}>Todo tu negocio, conectado.</Text>
-        <View style={st.loginCard}>
-          <Label>BIENVENIDO</Label>
-          <Text style={st.heading}>{registerMode ? "Creá tu cuenta" : "Iniciá sesión"}</Text>
-          <Text style={st.helper}>Usá la misma cuenta que en Global Stock web, sin crear otra base de datos.</Text>
-          <TextInput
-            style={st.input}
-            placeholder="Correo electrónico"
-            placeholderTextColor="#858594"
-            accessibilityLabel="Correo electrónico"
-            autoCapitalize="none"
-            autoComplete="email"
-            keyboardType="email-address"
-            value={email}
-            onChangeText={setEmail}
-          />
-          <TextInput
-            style={st.input}
-            placeholder="Contraseña"
-            placeholderTextColor="#858594"
-            accessibilityLabel="Contraseña"
-            secureTextEntry
-            autoComplete="current-password"
-            value={password}
-            onChangeText={setPassword}
-          />
-          {registerMode ? <View style={{gap:11}}>
-            <Pressable accessibilityRole="checkbox" accessibilityState={{checked:adultConfirmed}} onPress={()=>setAdultConfirmed(v=>!v)}
-              style={{flexDirection:"row",gap:11,alignItems:"flex-start"}}>
-              <View style={{width:20,height:20,borderRadius:6,borderWidth:1,borderColor:"#666673",backgroundColor:adultConfirmed?C.red:"transparent",alignItems:"center",justifyContent:"center"}}><Text style={{color:"#fff",fontSize:13}}>{adultConfirmed?"✓":""}</Text></View>
-              <Text style={{flex:1,fontSize:12,color:C.secondary,lineHeight:18}}>Confirmo que tengo 18 años o más y capacidad legal para utilizar la plataforma.</Text>
-            </Pressable>
-            <Pressable accessibilityRole="checkbox" accessibilityState={{checked:termsConfirmed}} onPress={()=>setTermsConfirmed(v=>!v)}
-              style={{flexDirection:"row",gap:11,alignItems:"flex-start"}}>
-              <View style={{width:20,height:20,borderRadius:6,borderWidth:1,borderColor:"#666673",backgroundColor:termsConfirmed?C.red:"transparent",alignItems:"center",justifyContent:"center"}}><Text style={{color:"#fff",fontSize:13}}>{termsConfirmed?"✓":""}</Text></View>
-              <Text style={{flex:1,fontSize:12,color:C.secondary,lineHeight:18}}>Leí los términos y la política de privacidad.</Text>
-            </Pressable>
-            <View style={{flexDirection:"row",flexWrap:"wrap",gap:16}}>
-              <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL("https://globalstocks.vercel.app/legal/terms")}>
-                <Text style={{fontSize:12,color:"#EF737B"}}>Términos de uso ↗</Text>
-              </Pressable>
-              <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL("https://globalstocks.vercel.app/legal/privacy")}>
-                <Text style={{fontSize:12,color:"#EF737B"}}>Privacidad ↗</Text>
-              </Pressable>
-            </View>
-          </View> : null}
-          {error ? <Text accessibilityRole="alert" style={st.warning}>{error}</Text> : null}
-          <Button
-            title={loading ? "Procesando..." : registerMode ? "Crear cuenta" : "Ingresar"}
-            disabled={loading || !email.trim() || !password || (registerMode && (!adultConfirmed || !termsConfirmed))}
-            onPress={() => registerMode ? onRegister(email.trim(), password) : onSubmit(email.trim(), password)}
-          />
-          <Button title={registerMode ? "Ya tengo cuenta · Iniciar sesión" : "No tengo cuenta · Registrarme"} secondary onPress={() => setRegisterMode((old) => !old)} />
-        </View>
-        <Text style={st.loginFoot}>Sesiones protegidas · Datos de cada negocio aislados</Text>
-      </ScrollView>
-    </KeyboardAvoidingView>
   );
 }
 
@@ -514,7 +438,7 @@ function MobileApp() {
   if (configLoading || (supabase && starting)) return <BrandedBootScreen />;
   if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
-  if (!user) return <SafeAreaView style={st.base}><StatusBar style="light" /><Login onSubmit={login} onRegister={register} loading={authLoading} error={authError} /></SafeAreaView>;
+  if (!user) return <NativeAuthLanding onSubmit={login} onRegister={register} loading={authLoading} error={authError} />;
 
   if (legalUserId !== user.id) {
     return <NativeLegalGate
