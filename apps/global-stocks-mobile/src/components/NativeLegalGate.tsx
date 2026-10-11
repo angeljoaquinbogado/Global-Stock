@@ -5,7 +5,7 @@ import { Check, ExternalLink, ShieldCheck } from "lucide-react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Version changes must be reviewed with updated public legal text.
-export const LEGAL_TERMS_VERSION = "2026-10-11";
+export const LEGAL_TERMS_VERSION = "2026-10-11-ar-beta";
 export const LEGAL_PRIVACY_VERSION = "2026-10-11-v2";
 const BASE = "https://globalstocks.vercel.app";
 
@@ -17,6 +17,7 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [adult,setAdult]=useState(false);
+  const [operatesInAr,setOperatesInAr]=useState(false);
   const [terms,setTerms]=useState(false);
   const [error,setError]=useState("");
   const [retry,setRetry]=useState(0);
@@ -26,13 +27,13 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
     setLoading(true);setError("");
     void (async()=>{
       const {data,error}=await client.from("global_stock_legal_acceptances")
-        .select("id").eq("user_id",userId)
+        .select("id,operates_in_ar_attested").eq("user_id",userId)
         .eq("terms_version",LEGAL_TERMS_VERSION)
         .eq("privacy_version",LEGAL_PRIVACY_VERSION)
         .maybeSingle();
       if(!active)return;
       if(error)throw error;
-      if(data?.id)readyCallback.current();
+      if(data?.id && data.operates_in_ar_attested === true)readyCallback.current();
     })().catch((err:unknown)=>{
       if(active)setError(err instanceof Error ? err.message : "No se pudo verificar la aceptación.");
     }).finally(()=>{if(active)setLoading(false);});
@@ -40,12 +41,12 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
   },[client,userId,retry]);
 
   async function accept() {
-    if(!adult || !terms || loading || saving)return;
+    if(!adult || !operatesInAr || !terms || loading || saving)return;
     setError("");setSaving(true);
     try{
       const {error}=await client.from("global_stock_legal_acceptances").upsert({
         user_id:userId,terms_version:LEGAL_TERMS_VERSION,privacy_version:LEGAL_PRIVACY_VERSION,
-        adult_18_attested:true
+        adult_18_attested:true,operates_in_ar_attested:true
       },{onConflict:"user_id,terms_version,privacy_version",ignoreDuplicates:true});
       if(error)throw error;
       readyCallback.current();
@@ -70,11 +71,15 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
           <View style={[s.checkbox,adult&&s.selected]}>{adult?<Check color="#fff" size={14}/>:null}</View>
           <Text style={s.consentText}>Confirmo que tengo <Text style={s.strong}>18 años o más</Text> y que tengo capacidad legal para crear o administrar una cuenta comercial.</Text>
         </Pressable>
+        <Pressable onPress={()=>setOperatesInAr(v=>!v)} accessibilityRole="checkbox" accessibilityState={{checked:operatesInAr}} style={s.consent}>
+          <View style={[s.checkbox,operatesInAr&&s.selected]}>{operatesInAr?<Check color="#fff" size={14}/>:null}</View>
+          <Text style={s.consentText}>Confirmo que el negocio con el que voy a utilizar Global Stock <Text style={s.strong}>opera en Argentina</Text> y entiendo que esta primera beta no está dirigida a otros países.</Text>
+        </Pressable>
         <Pressable onPress={()=>setTerms(v=>!v)} accessibilityRole="checkbox" accessibilityState={{checked:terms}} style={s.consent}>
           <View style={[s.checkbox,terms&&s.selected]}>{terms?<Check color="#fff" size={14}/>:null}</View>
           <Text style={s.consentText}>Leí y acepto los <Text style={s.strong}>Términos de uso</Text> y la <Text style={s.strong}>Política de privacidad</Text> de Global Stock.</Text>
         </Pressable>
-        <Pressable accessibilityRole="button" disabled={!adult||!terms||saving} onPress={()=>void accept()} style={[s.button,(!adult||!terms||saving)&&{opacity:0.5}]}>
+        <Pressable accessibilityRole="button" disabled={!adult||!operatesInAr||!terms||saving} onPress={()=>void accept()} style={[s.button,(!adult||!operatesInAr||!terms||saving)&&{opacity:0.5}]}>
           {saving?<ActivityIndicator color="#fff"/>:<Text style={s.buttonText}>Aceptar y continuar</Text>}
         </Pressable>
         <Text style={s.secondary}>Esta confirmación es una declaración del usuario, no una verificación documental de edad. El lanzamiento comercial en cada país requiere sus propias comprobaciones.</Text>

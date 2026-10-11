@@ -12,7 +12,7 @@ export default function TermsPage() {
     <LegalArticle
       eyebrow="Términos"
       title="Términos de uso"
-      intro="Versión 2026-10-11. Estos términos regulan el acceso y uso de Global Stock. La app móvil registra la aceptación expresa antes del primer uso. La publicación de esta página no habilita automáticamente operaciones comerciales o fiscales en todas las jurisdicciones."
+      intro="Versión 2026-10-11-ar-beta. Estos términos regulan el acceso y uso de Global Stock. La app móvil registra la aceptación expresa antes del primer uso. La publicación de esta página no habilita automáticamente operaciones comerciales o fiscales en todas las jurisdicciones."
     >
       <section>
         <h2>1. Operador</h2>
@@ -42,9 +42,9 @@ export default function TermsPage() {
       </section>
 
       <section>
-        <h2>3. Capacidad y cuentas</h2>
+        <h2>3. Capacidad, alcance territorial y cuentas</h2>
         <p>
-          Para el registro y uso de la aplicación móvil en esta etapa,
+          En esta beta gratuita inicial, Global Stock está dirigido a negocios que operan en Argentina. La persona usuaria debe declarar expresamente que su negocio opera en Argentina, sin que esa declaración equivalga a una verificación oficial de residencia o domicilio. La disponibilidad en otros países requiere una etapa posterior y revisión de requisitos aplicables. Para el registro y uso de la aplicación móvil en esta etapa,
           Global Stock exige que la persona tenga al menos 18 años y capacidad
           legal suficiente para contratar o administrar un negocio. El acceso
           mediante una cuenta de una persona adulta no habilita su transferencia

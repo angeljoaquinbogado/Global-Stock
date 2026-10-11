@@ -6,7 +6,7 @@
 
 - País de comercialización inicial: **Argentina**; interfaz y soporte iniciales en español y moneda ARS. No afirmar que la ubicación del usuario está verificada: el país se confirma en el registro y el operador revisa la distribución por tiendas.
 - **Beta gratuita, sin suscripción ni cobros a usuarios de Global Stock.** Sin acceso de pago, sin prometer facturación fiscal válida y sin procesar pagos ni liquidaciones desde Expo.
-- Permitir registro 18+ con declaración explícita, lectura y aceptación registrada por versión de términos y privacidad, y un consentimiento **independiente y revocable** antes de enviar datos comerciales a IA.
+- Permitir registro 18+ y declaración separada de que el negocio opera en Argentina, lectura y aceptación registrada por versión de términos y privacidad, y un consentimiento **independiente y revocable** antes de enviar datos comerciales a IA. Estas declaraciones no verifican edad ni domicilio.
 - Funciones habilitadas para pilotos: inicio de sesión, negocios aislados con RLS, inventario, lector de códigos, panel, agenda, contactos de proveedores, alertas, preferencias y IA *solo si* el proveedor está configurado y el consentimiento fue otorgado. Los borradores locales **no son ventas**.
 - No prometer paridad completa con la web: integraciones ecommerce, emisión fiscal, documentos y cobros complejos quedan fuera del compromiso de la beta hasta pasar pruebas independientes.
 
@@ -101,3 +101,10 @@ Antes de facturar:
 
 **Estos pasos requieren documentación oficial vigente y asesoramiento fiscal.** No es posible garantizar hoy cumplimiento de todas las obligaciones argentinas sin esa verificación.
 
+
+## Cambios de seguridad del 11/10: alcance AR y almacenamiento local
+
+- La aceptación móvil ahora exige confirmar **18+** y **negocio que opera en Argentina**, de forma separada y auditable en Supabase. Esta autodeclaración no demuestra residencia ni impide técnicamente descargar la aplicación desde otro país.
+- Nueva versión de términos `2026-10-11-ar-beta`: usuarios de versiones anteriores deben volver a aceptarla, conservando los registros históricos.
+- Al cerrar sesión, la app pide confirmación y elimina los inventarios, negocios y presupuestos locales del usuario (SQLite no cifrado). Los datos del servidor no se borran. Hasta implementar cifrado local, mantener pruebas con datos ficticios o no confidenciales.
+- **Bloqueo de CI actual:** las ejecuciones recientes de GitHub Actions fallan en pocos segundos sin pasos ni logs accesibles. No considerar el código validado ni publicar la beta hasta recuperar CI y probarlo en dispositivos reales.
