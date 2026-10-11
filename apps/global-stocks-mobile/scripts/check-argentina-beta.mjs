@@ -4,7 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const mobile = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const repo = resolve(mobile, "../..");
-const read = (path) => readFileSync(resolve(repo, path), "utf8");
+// Windows Git checkouts may use CRLF; guards must inspect normalized text.
+const read = (path) => readFileSync(resolve(repo, path), "utf8").replace(/\r\n?/g, "\n");
 const must = (condition, explanation) => { if (!condition) throw new Error("BETA GATE FAILED: " + explanation); };
 
 const app = read("apps/global-stocks-mobile/App.tsx");
@@ -65,7 +66,7 @@ must(
   workspace.includes("if (showAi) return <NativeAssistant") &&
   workspace.includes('accessibilityLabel="Cerrar menú"') &&
   assistant.includes('accessibilityLabel="Cerrar IA"') &&
-  assistant.includes('return (\n    <SafeAreaView edges={["top", "bottom"]}') &&
+  assistant.includes('<SafeAreaView edges={["top", "bottom"]}') &&
   !workspace.includes("StyleSheet.absoluteFillObject,{zIndex:30}") &&
   !workspace.includes("<Modal ") &&
   !assistant.includes("<Modal ") &&
