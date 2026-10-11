@@ -132,6 +132,7 @@ export default function NativeWorkspace({
   const [dashboardError, setDashboardError] = useState("");
   const [canManageInventory, setCanManageInventory] = useState(false);
   const [showAi, setShowAi] = useState(false);
+  const [showOverviewDetails, setShowOverviewDetails] = useState(false);
   const p = dark ? darkPalette : lightPalette;
   const s = useMemo(() => stylesFor(p), [p]);
 
@@ -277,16 +278,21 @@ export default function NativeWorkspace({
   function overview() {
     return <>
       {heading("Centro de control", "Una vista completa de la operación de tu negocio.")}
-      {source === "cache" ? <View style={s.hint}><WifiOff size={13} color="#E9BD76" /><Text style={s.hintText}>Sin conexión · inventario guardado, puede estar desactualizado.</Text></View> : null}
+      {source === "cache" ? <View style={s.hint}><WifiOff size={13} color="#E9BD76" /><Text style={s.hintText}>Sin conexión · datos de la última sincronización.</Text></View> : null}
       <View style={s.metricsGrid}>{indicators.map(metricView)}</View>
       {chartCard()}
-      <View style={s.bigCard}>
+      <Pressable accessibilityRole="button" accessibilityLabel={showOverviewDetails?"Ocultar detalles del negocio":"Ver detalles del negocio"} accessibilityState={{expanded:showOverviewDetails}}
+        onPress={() => setShowOverviewDetails((v) => !v)} style={s.detailsToggle}>
+        <Text style={s.detailsText}>{showOverviewDetails ? "Ocultar detalles" : "Ver detalles del negocio"}</Text>
+        <ChevronRight size={15} color={p.muted} style={{transform:[{rotate:showOverviewDetails?"90deg":"0deg"}]}}/>
+      </Pressable>
+      {showOverviewDetails ? <View style={s.bigCard}>
         <View style={s.cardHeadingRow}><Text style={s.sectionTitle}>Resumen del negocio</Text><Pressable onPress={onRefresh} accessibilityRole="button"><RefreshCw size={16} color={p.muted}/></Pressable></View>
         <View style={s.summaryRow}><Text style={s.meta}>Productos activos</Text><Text style={s.summaryValue}>{products.length}</Text></View>
         <View style={s.summaryRow}><Text style={s.meta}>Unidades en almacén</Text><Text style={s.summaryValue}>{units.toLocaleString("es-AR")}</Text></View>
         <View style={s.summaryRow}><Text style={s.meta}>Ventas registradas</Text><Text style={s.summaryValue}>{dashboard?.salesCount ?? "—"}</Text></View>
         <View style={s.summaryRow}><Text style={s.meta}>Borradores sin cobrar</Text><Text style={s.summaryValue}>{drafts.length}</Text></View>
-      </View>
+      </View> : null}
       <View style={s.quickGrid}>
         <Pressable onPress={() => open("inventory")} style={s.quickCard} accessibilityRole="button"><Warehouse size={18} color={p.redIcon}/><Text style={s.quickText}>Almacén</Text><ArrowRight size={15} color={p.muted}/></Pressable>
         <Pressable onPress={() => open("pos")} style={s.quickCard} accessibilityRole="button"><ShoppingCart size={18} color={p.redIcon}/><Text style={s.quickText}>Punto de venta</Text><ArrowRight size={15} color={p.muted}/></Pressable>
@@ -471,27 +477,27 @@ export default function NativeWorkspace({
 function stylesFor(p: Palette) {
   return StyleSheet.create({
     shell: { flex:1 },
-    header: { height: 56, flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingHorizontal:16, borderBottomWidth:1, borderBottomColor:p.border, backgroundColor:p.surface },
+    header: { height: 60, flexDirection:"row", alignItems:"center", justifyContent:"space-between", paddingHorizontal:16, borderBottomWidth:1, borderBottomColor:p.border, backgroundColor:p.surface },
     brandRow: { flexDirection:"row", alignItems:"center", gap:9, flex:1 },
     brandIcon: { width:27,height:27 },
     brandName: { fontWeight:"800",color:p.text,fontSize:13,letterSpacing:-0.25 },
     headerButtons: { flexDirection:"row",gap:7 },
     iconControl: { width:35,height:35,borderRadius:11,borderWidth:1,borderColor:p.border,backgroundColor:p.elevated,alignItems:"center",justifyContent:"center" },
     scroll: { flex:1 },
-    content: { paddingHorizontal:17,paddingTop:19,paddingBottom:40,gap:15 },
-    intro: { gap:5,marginBottom:2 },
+    content: { paddingHorizontal:20,paddingTop:24,paddingBottom:45,gap:21 },
+    intro: { gap:8,marginBottom:1 },
     eyebrowLine: { flexDirection:"row",gap:6,alignItems:"center",marginBottom:2 },
     eyebrowLogo: { width:14,height:14 },
     eyebrow: { color:p.redIcon,fontSize:10,fontWeight:"800",letterSpacing:1.45 },
     pageTitle: { fontSize:23,fontWeight:"800",letterSpacing:-0.75,color:p.text,lineHeight:29 },
-    pageSubtitle: { color:p.muted,fontSize:11.5,lineHeight:18 },
-    metricsGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:9,rowGap:9 },
-    metric: { width:"48%",minHeight:111,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,borderRadius:17,padding:13,justifyContent:"space-between" },
+    pageSubtitle: { color:p.muted,fontSize:12.5,lineHeight:20 },
+    metricsGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:12,rowGap:12 },
+    metric: { width:"48%",minHeight:120,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,borderRadius:17,padding:15,justifyContent:"space-between" },
     metricIcon: { width:31,height:31,borderRadius:12,backgroundColor:p.red+"24",alignItems:"center",justifyContent:"center",marginBottom:8 },
     metricLabel: { color:p.muted,fontSize:10.5 },
     metricValue: { color:p.text,fontWeight:"800",fontSize:14.5,letterSpacing:-0.35,marginTop:4 },
     metricDetail: { color:p.muted,fontSize:9.5,marginTop:4 },
-    bigCard: { backgroundColor:p.surface,borderColor:p.border,borderWidth:1,borderRadius:19,padding:15,gap:10 },
+    bigCard: { backgroundColor:p.surface,borderColor:p.border,borderWidth:1,borderRadius:19,padding:18,gap:14 },
     cardHeadingRow: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:9 },
     chartTitle: { marginTop:5,fontSize:15,fontWeight:"800",color:p.text },
     smallPill: { flexDirection:"row",gap:3,alignItems:"center",borderWidth:1,borderColor:p.border,borderRadius:40,paddingHorizontal:9,paddingVertical:6 },
@@ -499,8 +505,10 @@ function stylesFor(p: Palette) {
     chartFooter: { flexDirection:"row",alignItems:"center",gap:7,paddingTop:2 },
     liveDot: { width:6,height:6,borderRadius:4,backgroundColor:"#55CB9B" },
     meta: { fontSize:11,color:p.muted,lineHeight:17 },
-    sectionTitle: { fontSize:14,fontWeight:"800",color:p.text },
-    summaryRow: { flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:0.75,borderBottomColor:p.border,paddingVertical:9,gap:8 },
+    sectionTitle: { fontSize:15,fontWeight:"800",color:p.text },
+    summaryRow: { flexDirection:"row",alignItems:"center",justifyContent:"space-between",borderBottomWidth:0.75,borderBottomColor:p.border,paddingVertical:11,gap:8 },
+  detailsToggle: {flexDirection:"row",alignItems:"center",justifyContent:"space-between",minHeight:41,paddingHorizontal:9},
+  detailsText: {color:p.muted,fontSize:12,fontWeight:"700"},
     summaryValue: { color:p.text,fontSize:12,fontWeight:"800" },
     quickGrid: { flexDirection:"row",gap:9 },
     quickCard: { flex:1,borderWidth:1,borderColor:p.border,borderRadius:13,backgroundColor:p.surface,padding:14,gap:12,alignItems:"flex-start" },
@@ -547,11 +555,11 @@ function stylesFor(p: Palette) {
     sheetHandle: { alignSelf:"center",height:4,width:37,borderRadius:5,backgroundColor:p.border,marginBottom:15 },
     menuGroup: { color:p.muted,fontSize:9.5,letterSpacing:1.5,fontWeight:"800",marginBottom:9 },
     menuGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:9,rowGap:9 },
-    menuTile: { flexDirection:"row",alignItems:"center",gap:9,width:"48.5%",minHeight:64,padding:10,backgroundColor:p.elevated,borderRadius:13,borderWidth:1,borderColor:p.border },
+    menuTile: { flexDirection:"row",alignItems:"center",gap:13,width:"100%",minHeight:56,paddingHorizontal:13,paddingVertical:10,backgroundColor:p.elevated,borderRadius:14,borderWidth:1,borderColor:p.border },
     menuTileActive: { borderColor:p.redIcon },
     menuTileIcon: { width:31,height:31,borderRadius:10,backgroundColor:p.red+"20",justifyContent:"center",alignItems:"center" },
-    menuTileText: { color:p.text,fontSize:11.5,fontWeight:"800" },
-    menuSoon: { color:p.muted,fontSize:9,marginTop:3 },
+    menuTileText: { color:p.text,fontSize:13,fontWeight:"700" },
+    menuSoon: { color:p.muted,fontSize:10,marginTop:3 },
     menuLink: { flexDirection:"row",alignItems:"center",gap:12,paddingVertical:14,borderBottomWidth:0.7,borderColor:p.border },
     menuLinkLabel: { color:p.text,flex:1,fontSize:12,fontWeight:"700" },
     modalBackdrop: { flex:1,backgroundColor:"rgba(0,0,0,.72)",justifyContent:"center",paddingHorizontal:24 },
