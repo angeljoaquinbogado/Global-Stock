@@ -43,6 +43,7 @@ const content = {
     safe: "Tus datos están protegidos por los permisos de cada negocio.",
     beta: "BETA GRATUITA · ARGENTINA", language: "Idioma de acceso",
     alternate: "Cambiar idioma", light: "Usar tema claro", dark: "Usar tema oscuro",
+    lightName: "Claro", darkName: "Oscuro",
     legal: "Beta para mayores de 18 años, con actividad en Argentina.",
     languageNote: ""
   },
@@ -60,6 +61,7 @@ const content = {
     safe: "Your business data is protected by individual permissions.",
     beta: "FREE BETA · ARGENTINA", language: "Sign-in language",
     alternate: "Change language", light: "Use light mode", dark: "Use dark mode",
+    lightName: "Light", darkName: "Dark",
     legal: "Beta for adults aged 18+ operating in Argentina.",
     languageNote: "The business dashboard remains in Spanish during the Argentina beta."
   },
@@ -77,6 +79,7 @@ const content = {
     safe: "Os dados da sua empresa são protegidos por permissões individuais.",
     beta: "BETA GRATUITO · ARGENTINA", language: "Idioma de acesso",
     alternate: "Alterar idioma", light: "Usar tema claro", dark: "Usar tema escuro",
+    lightName: "Claro", darkName: "Escuro",
     legal: "Beta para maiores de 18 anos que operam na Argentina.",
     languageNote: "O painel de negócios continua em espanhol durante o beta na Argentina."
   }
@@ -108,7 +111,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   const p = dark ? palette.dark : palette.light;
   const t = content[language];
   const compact = height < 730;
-  const logoSize = Math.min(compact ? 136 : 164, Math.floor(width * 0.41));
+  const logoSize = Math.min(compact ? 126 : 150, Math.floor(width * 0.40));
   const signup = stage === "signup";
   const form = stage !== "welcome";
   const styles = createStyles(p);
@@ -167,7 +170,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
             <View style={styles.topActions}>
               <Pressable accessibilityRole="button" accessibilityLabel={dark ? t.light : t.dark}
                 onPress={() => changeTheme(!dark)} style={styles.topButton}>
-                {dark ? <Sun size={18} color={p.title} /> : <Moon size={18} color={p.title} />}
+                {dark ? <Moon size={17} color={p.title} /> : <Sun size={17} color={p.title} />}
+                <Text style={styles.themeLabel}>{dark ? t.darkName : t.lightName}</Text>
               </Pressable>
               <Pressable accessibilityRole="button" accessibilityLabel={t.alternate}
                 accessibilityState={{ expanded: openLanguages }}
@@ -341,7 +345,8 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     page: { flexGrow: 1, paddingHorizontal: 23, paddingBottom: 22 },
     topRow: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",minHeight:48,zIndex:2 },
     topActions: { flexDirection:"row",alignItems:"center",gap:9 },
-    topButton: { width:44,height:44,borderRadius:15,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,justifyContent:"center",alignItems:"center" },
+    topButton: { minWidth:44,height:44,borderRadius:15,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,justifyContent:"center",alignItems:"center",flexDirection:"row",gap:7,paddingHorizontal:12 },
+    themeLabel: { color:p.title,fontSize:12,fontWeight:"700" },
     languageButton: { minHeight:44,borderRadius:15,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,flexDirection:"row",alignItems:"center",gap:7,paddingHorizontal:11 },
     languageCode: { fontSize:12,fontWeight:"800",color:p.title },
     languagePicker: { alignSelf:"flex-end",width:190,borderWidth:1,borderColor:p.border,borderRadius:17,backgroundColor:p.surface,padding:12,gap:6,marginTop:7,zIndex:3 },
@@ -351,11 +356,11 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"center",paddingBottom:14,minHeight:310 },
     compactHero: { flexGrow:0,minHeight:0,paddingBottom:20 },
-    logoStage: { alignItems:"center",justifyContent:"center",marginBottom:10 },
+    logoStage: { alignItems:"center",justifyContent:"center",marginBottom:7 },
     heroOverline: { color:p.secondary,fontSize:15,fontWeight:"600",marginTop:7,textAlign:"center" },
-    heroName: { color:p.title,fontSize:43,fontWeight:"900",letterSpacing:-2.2,textAlign:"center",marginTop:8 },
+    heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:8 },
     tagline: { color:p.title,fontSize:19,fontWeight:"700",textAlign:"center",marginTop:13,letterSpacing:-0.2 },
-    heroDescription: { color:p.secondary,fontSize:13.5,lineHeight:21,textAlign:"center",marginTop:9 },
+    heroDescription: { color:p.secondary,fontSize:13.5,lineHeight:21,textAlign:"center",marginTop:9,maxWidth:280 },
     formOverline: { color:p.red,fontSize:10,fontWeight:"900",letterSpacing:2.3,marginTop:8,textAlign:"center" },
     formHeroTitle: { color:p.title,fontSize:25,fontWeight:"800",letterSpacing:-0.8,marginTop:10,textAlign:"center" },
     formSubtitle: { color:p.secondary,fontSize:12.5,lineHeight:19,marginTop:8,textAlign:"center" },
