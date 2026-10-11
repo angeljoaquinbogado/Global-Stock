@@ -537,7 +537,7 @@ function stylesFor(p: Palette) {
     scanDockTab: { flex:1.12,minWidth:0,height:78,alignItems:"center",justifyContent:"flex-start" },
     scanCircle: { width:54,height:54,borderRadius:32,alignItems:"center",justifyContent:"center",backgroundColor:p.red,borderWidth:5,borderColor:p.bg,marginTop:-19,marginBottom:7 },
     
-    warning: { color:"#B8B8C3",fontSize:11,lineHeight:17 },
+    warning: { color:p.muted,fontSize:11,lineHeight:17 },
     rowBetween: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",gap:8 },
     searchBar: { flexDirection:"row",alignItems:"center",gap:10,borderWidth:1,borderColor:p.border,borderRadius:13,paddingHorizontal:12,backgroundColor:p.surface,minHeight:46 },
     searchInput: { flex:1,color:p.text,fontSize:12,paddingVertical:10 },
