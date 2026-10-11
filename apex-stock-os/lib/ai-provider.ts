@@ -198,7 +198,7 @@ export async function generateIntelligenceAnswer({
       headers["x-goog-api-key"] = apiKey;
       const mobile = runtime.appContext?.platform === "Global Stock React Native";
       const systemInstruction = buildSystemPrompt(snapshot, runtime);
-      const contents = conversation.map((item) => ({
+      const contents = (mobile ? conversation.slice(-10) : conversation).map((item) => ({
         role: item.role === "assistant" ? "model" : "user",
         parts: [{ text: item.content }]
       }));
@@ -243,22 +243,74 @@ export async function generateIntelligenceAnswer({
       }
 
       try {
-        return await askGemini(endpoint, model, mobile ? 18000 : 30000);
+        return await askGemini(endpoint, model, mobile ? 14500 : 24000);
       } catch (primaryError) {
         const transient = primaryError instanceof IntelligenceProviderError
           ? [500, 502, 503, 504].includes(primaryError.status)
           : primaryError instanceof Error && primaryError.name === "AbortError";
-        if (!transient || process.env.GEMINI_API_URL?.trim()) throw primaryError;
+        if (!transient) throw primaryError;
 
-        // Retry once on the lightweight public model, using the SAME
-        // credentials and context. Never fall back to synthetic answers.
-        const backupModel = model === "gemini-2.5-flash-lite"
-          ? "gemini-2.5-flash" : "gemini-2.5-flash-lite";
-        const backupUrl = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(backupModel)}:generateContent`;
-        console.warn("[Global Intelligence] Gemini primary unavailable; attempting one bounded fallback", {
-          reason: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout"
-        });
-        return await askGemini(backupUrl, backupModel, mobile ? 17000 : 24000);
+        // Resolve fallback names from this key's actual supported Gemini models.
+        // An assumed "flash-lite" model previously produced 404 for this account.
+        // Discovery is best-effort; always retain a bounded same-model retry.
+        let alternatives: string[] = [];
+        if (!process.env.GEMINI_API_URL?.trim()) {
+          const discovery = new AbortController();
+          const stopDiscovery = setTimeout(() => discovery.abort(), 3500);
+          try {
+            const modelsResponse = await fetch(
+              "https://generativelanguage.googleapis.com/v1beta/models?pageSize=100",
+              {
+                method: "GET",
+                headers: { "x-goog-api-key": apiKey, Accept: "application/json" },
+                cache: "no-store",
+                signal: discovery.signal
+              }
+            );
+            if (modelsResponse.ok) {
+              const listing = (await modelsResponse.json()) as {
+                models?: Array<{ name?: string; supportedGenerationMethods?: string[] }>;
+              };
+              const supported = new Set(
+                (listing.models ?? [])
+                  .filter(item => item.supportedGenerationMethods?.includes("generateContent"))
+                  .map(item => item.name?.replace(/^models\//, "") ?? "")
+                  .filter(name => /^gemini-[a-z0-9.-]+$/.test(name))
+              );
+              // Prefer lower-latency models, but only those returned as available.
+              alternatives = [
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+                "gemini-2.5-flash-lite",
+                "gemini-2.0-flash-lite"
+              ].filter(name => supported.has(name) && name !== model).slice(0, 2);
+            }
+          } catch {
+            // Discovery may fail during Google outages; retry the configured model.
+          } finally {
+            clearTimeout(stopDiscovery);
+          }
+        }
+
+        // Never substitute canned text. Every attempt calls a real AI provider.
+        const candidates = alternatives.length ? alternatives : [model];
+        let lastError: unknown = primaryError;
+        for (const fallbackModel of candidates) {
+          const fallbackUrl = fallbackModel === model ? endpoint
+            : \`https://generativelanguage.googleapis.com/v1beta/models/\${encodeURIComponent(fallbackModel)}:generateContent\`;
+          try {
+            console.warn("[Global Intelligence] retrying after transient Gemini failure", {
+              status: primaryError instanceof IntelligenceProviderError ? primaryError.status : "timeout",
+              sameModel: fallbackModel === model
+            });
+            return await askGemini(fallbackUrl, fallbackModel, mobile ? 13500 : 19000);
+          } catch (fallbackError) {
+            lastError = fallbackError;
+            // A listed model can become unavailable; try one more listed candidate.
+            if (!(fallbackError instanceof IntelligenceProviderError && fallbackError.status === 404)) break;
+          }
+        }
+        throw lastError;
       }
     }
 
