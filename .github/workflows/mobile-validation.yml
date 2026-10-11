@@ -1,0 +1,32 @@
+name: Global Stock Mobile - validate source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "apps/global-stocks-mobile/**"
+      - "INICIAR-GLOBAL-STOCK.cmd"
+      - ".github/workflows/mobile-validation.yml"
+  pull_request:
+    paths:
+      - "apps/global-stocks-mobile/**"
+      - "INICIAR-GLOBAL-STOCK.cmd"
+      - ".github/workflows/mobile-validation.yml"
+
+jobs:
+  verify-mobile:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/global-stocks-mobile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Expo dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify TypeScript and JSX syntax
+        run: npm run check:syntax
+      - name: Typecheck mobile
+        run: npm run typecheck
