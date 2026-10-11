@@ -108,3 +108,7 @@ Antes de facturar:
 - Nueva versión de términos `2026-10-11-ar-beta`: usuarios de versiones anteriores deben volver a aceptarla, conservando los registros históricos.
 - Al cerrar sesión, la app pide confirmación y elimina los inventarios, negocios y presupuestos locales del usuario (SQLite no cifrado). Los datos del servidor no se borran. Hasta implementar cifrado local, mantener pruebas con datos ficticios o no confidenciales.
 - **Bloqueo de CI actual:** las ejecuciones recientes de GitHub Actions fallan en pocos segundos sin pasos ni logs accesibles. No considerar el código validado ni publicar la beta hasta recuperar CI y probarlo en dispositivos reales.
+
+### Nueva información de privacidad (versión 2026-10-11-v3)
+
+Se informa expresamente que el alcance Argentina se basa en una autodeclaración almacenada con la aceptación legal y que las copias SQLite no están cifradas. La app pide permiso para eliminarlas durante el cierre de sesión; las versiones anteriores de consentimiento deberán volver a aceptarse.

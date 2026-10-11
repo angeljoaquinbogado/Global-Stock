@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Version changes must be reviewed with updated public legal text.
 export const LEGAL_TERMS_VERSION = "2026-10-11-ar-beta";
-export const LEGAL_PRIVACY_VERSION = "2026-10-11-v2";
+export const LEGAL_PRIVACY_VERSION = "2026-10-11-v3";
 const BASE = "https://globalstocks.vercel.app";
 
 type Props = { client: SupabaseClient; userId: string; onReady: () => void; onSignOut: () => void };

@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalArticle
       eyebrow="Privacidad"
       title="Política de privacidad"
-      intro="Versión 2026-10-11-v2. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
+      intro="Versión 2026-10-11-v3. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
     >
       <section>
         <h2>1. Responsable y alcance</h2>
@@ -29,7 +29,7 @@ export default function PrivacyPage() {
         <h2>2. Datos que puede procesar la plataforma</h2>
         <p>
           Dependiendo de las funciones utilizadas, Global Stock puede procesar
-          datos de cuenta, nombre y perfil del negocio, configuración de idioma y
+          datos de cuenta, nombre y perfil del negocio, declaración de operación en Argentina para la beta, configuración de idioma y
           moneda, productos, códigos de barras, costos, precios, cantidades de
           stock, ventas, actividad operativa, clientes, proveedores, notas,
           comprobantes internos, datos fiscales que el comerciante decida aportar
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
         <p>
           Algunas preferencias y operaciones pendientes de sincronización pueden
           almacenarse en el dispositivo mediante mecanismos como localStorage
-          (web) o bases SQLite locales (aplicación móvil). En iPhone y Android,
+          (web) o bases SQLite locales (aplicación móvil). En la primera beta, esas copias SQLite de inventario, negocios y presupuestos no están cifradas en reposo: no deben utilizarse para datos confidenciales. Al cerrar sesión en ese dispositivo, previa confirmación, la app intenta eliminar las copias locales asociadas a la cuenta; los datos de Supabase permanecen. En iPhone y Android,
           la app utiliza almacenamiento protegido del sistema para mantener
           la sesión de autenticación.
           Ese almacenamiento se trata como información no confiable al volver a
