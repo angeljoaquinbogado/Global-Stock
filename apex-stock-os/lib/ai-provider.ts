@@ -65,6 +65,13 @@ const MAX_HISTORY_MESSAGES = 20;
 const MAX_CONTEXT_PRODUCTS = 300;
 const MODEL_TIMEOUT_MS = 60000;
 
+export class IntelligenceProviderError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = "IntelligenceProviderError";
+  }
+}
+
 export class IntelligenceNotConfiguredError extends Error {
   constructor() {
     super("Global Intelligence has no model provider configured.");
@@ -212,7 +219,7 @@ export async function generateIntelligenceAnswer({
         const providerMessage =
           payload.error?.message ||
           `Gemini returned HTTP ${response.status}`;
-        throw new Error(providerMessage);
+        throw new IntelligenceProviderError(response.status, providerMessage);
       }
 
       const answer = payload.candidates?.[0]?.content?.parts
@@ -256,7 +263,7 @@ export async function generateIntelligenceAnswer({
       const providerMessage =
         payload.error?.message ||
         `AI provider returned HTTP ${response.status}`;
-      throw new Error(providerMessage);
+      throw new IntelligenceProviderError(response.status, providerMessage);
     }
 
     const answer = payload.choices?.[0]?.message?.content?.trim();
