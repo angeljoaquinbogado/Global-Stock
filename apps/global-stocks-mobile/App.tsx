@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -139,6 +139,9 @@ function MobileApp() {
   const [starting, setStarting] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [loggingOut, setLoggingOut] = useState(false);
+  const [loginViewVersion, setLoginViewVersion] = useState(0);
+  const signOutLock = useRef(false);
   const [businesses, setBusinesses] = useState<Business[]>([]);
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessLoading, setBusinessLoading] = useState(false);
@@ -353,10 +356,50 @@ function MobileApp() {
     }
   }
 
-  async function logout() {
-    if (!supabase) return;
-    // Deleting unsynced local budgets is irreversible. Ask the current user
-    // before proceeding; the web inventory itself stays in Supabase.
+  async function performLogout() {
+    if (!supabase || signOutLock.current) return;
+    signOutLock.current = true;
+    setLoggingOut(true);
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !session?.user?.id) {
+        throw new Error("No se pudo comprobar la sesión. No se borraron datos locales.");
+      }
+
+      // Keep privacy cleanup transactional and require a successful logout.
+      await purgeLocalAccountData(session.user.id);
+      const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
+      if (signOutError) throw new Error("No se pudo cerrar la sesión. Volvé a intentar.");
+
+      // The auth listener normally resets these immediately. Also reset
+      // explicitly, keeping the branded transition until iOS dismisses alerts.
+      setAuthError("");
+      setUser(null);
+      setLegalUserId(null);
+      setBusiness(null);
+      setBusinesses([]);
+      setProducts([]);
+      setCart([]);
+      setDrafts([]);
+      setNotice("");
+      setSource("loading");
+      setTab("dashboard");
+      setStarting(false);
+      setLoginViewVersion((n) => n + 1);
+      await new Promise<void>((resolve) => setTimeout(resolve, 450));
+    } catch (error) {
+      Alert.alert(
+        "No se completó el cierre de sesión",
+        error instanceof Error ? error.message : "Error de almacenamiento. Reintentá."
+      );
+    } finally {
+      setLoggingOut(false);
+      signOutLock.current = false;
+    }
+  }
+
+  function logout() {
+    if (!supabase || signOutLock.current) return;
     Alert.alert(
       "Cerrar sesión en este dispositivo",
       "Por privacidad, se borrarán las copias locales del inventario y los presupuestos no sincronizados de esta cuenta. Esto no elimina los datos guardados en Global Stock web. ¿Querés continuar?",
@@ -366,24 +409,9 @@ function MobileApp() {
           text: "Cerrar y borrar copia local",
           style: "destructive",
           onPress: () => {
-            void (async () => {
-              try {
-                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-                if (sessionError || !session?.user?.id) {
-                  Alert.alert("No se encontró una sesión local", "No se borró ningún archivo. Volvé a intentar.");
-                  return;
-                }
-                // Sign out of this device even when temporarily offline.
-                // This does not revoke other devices' independent sessions.
-                await purgeLocalAccountData(session.user.id);
-                const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
-                if (signOutError) {
-                  Alert.alert("No se pudo cerrar la sesión", "La copia local se borró, pero la sesión sigue abierta. Reintentá.");
-                }
-              } catch (error) {
-                Alert.alert("No se pudo borrar la copia local", error instanceof Error ? error.message : "Error de almacenamiento. Reintentá el cierre de sesión.");
-              }
-            })();
+            // Wait for the native confirmation alert to disappear before
+            // unmounting the authenticated navigation tree on iOS.
+            setTimeout(() => { void performLogout(); }, 360);
           }
         }
       ]
@@ -436,10 +464,10 @@ function MobileApp() {
     setNotice(found ? `Producto encontrado: ${data.trim()}` : `Código ${data.trim()}: no está en el inventario cargado`);
   };
 
-  if (configLoading || (supabase && starting)) return <BrandedBootScreen />;
+  if (configLoading || (supabase && starting) || loggingOut) return <BrandedBootScreen />;
   if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
-  if (!user) return <NativeAuthLanding onSubmit={login} onRegister={register} loading={authLoading} error={authError} />;
+  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} loading={authLoading} error={authError} />;
 
   if (legalUserId !== user.id) {
     return <NativeLegalGate
