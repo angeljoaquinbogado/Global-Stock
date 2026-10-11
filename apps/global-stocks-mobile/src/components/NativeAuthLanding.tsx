@@ -6,6 +6,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SecureStore from "expo-secure-store";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff,
@@ -300,7 +301,12 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
                   </View>
                 </View>
               ) : null}
-              {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+              {error ? <View style={styles.authError}>
+                <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
+                <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Problema de acceso a Global Stock"))}>
+                  <Text style={styles.supportEmail}>{SUPPORT_EMAIL}</Text>
+                </Pressable>
+              </View> : null}
               <Pressable accessibilityRole="button" accessibilityLabel={signup ? t.create : t.login}
                 disabled={loading || !email.trim() || !password || (signup && (!adultConfirmed || !termsConfirmed))}
                 onPress={submit}
@@ -385,6 +391,8 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     legalLinks: { flexDirection:"row",gap:21,paddingLeft:32 },
     legalLink: { color:p.red,fontSize:12,fontWeight:"700" },
     error: { color:darkWarning(p),fontSize:12,lineHeight:19 },
+    authError: { gap:6,backgroundColor:p.surface,borderRadius:12,borderWidth:1,borderColor:p.border,padding:12 },
+    supportEmail: { color:p.red,fontSize:12,fontWeight:"700" },
     switchLink: { flexDirection:"row",gap:7,justifyContent:"center",alignItems:"center",paddingVertical:11 },
     switchText: { color:p.title,fontSize:12,fontWeight:"700" },
     bottomNote: { alignItems:"center",gap:9,paddingTop:10 },
