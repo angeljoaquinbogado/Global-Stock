@@ -25,7 +25,9 @@
     "react-native-url-polyfill": "^2.0.0",
     "expo-splash-screen": "~57.0.9",
     "react-native-svg": "15.15.4",
-    "lucide-react-native": "latest"
+    "lucide-react-native": "latest",
+    "expo-print": "~57.0.2",
+    "expo-sharing": "~57.0.22"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

@@ -21,6 +21,7 @@ import ProductForm from "./ProductForm";
 import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
 import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
+import NativePrintCenter from "./NativePrintCenter";
 
 type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "activities" |
   "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings";
@@ -107,7 +108,7 @@ const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDash
   { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
   { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: true },
   { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: true },
-  { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: false },
+  { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: true },
   { module: "fiscal", label: "ARCA · Facturación", icon: ShieldCheck, group: "GESTIÓN", live: true },
   { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: true },
   { module: "settings", label: "Configuración", icon: Settings2, group: "GESTIÓN", live: true }
@@ -337,15 +338,15 @@ export default function NativeWorkspace({
 
   function pointOfSale() {
     return <>
-      {heading("Punto de venta", "Seleccioná productos y prepará el carrito.")}
-      <View style={s.warnBox}><CreditCard size={16} color="#D7A65C"/><Text style={s.warnText}>MODO BORRADOR. No se procesan cobros ni se descuenta stock. Las ventas reales siguen disponibles en la versión web.</Text></View>
+      {heading("Punto de venta", "Prepará operaciones, presupuestos y comprobantes.")}
+      <View style={s.warnBox}><CreditCard size={16} color="#D7A65C"/><Text style={s.warnText}>Para completar un cobro y descontar stock, confirmá la venta desde Global Stock web. Desde aquí podés preparar y compartir presupuestos.</Text></View>
       <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={posSearch} onChangeText={setPosSearch} placeholder="Buscar producto" placeholderTextColor={p.muted} accessibilityLabel="Buscar para punto de venta"/></View>
       <View style={s.rowBetween}><Text style={s.sectionTitle}>Productos</Text><Pressable onPress={() => open("scan")} accessibilityRole="button"><Text style={s.textLink}>Escanear →</Text></Pressable></View>
       {posProducts.map((product) => <View key={product.id} style={s.product}>
         <View style={{ flex: 1 }}><Text style={s.productName}>{product.name}</Text><Text style={s.productMeta}>{product.stock} disponibles</Text></View>
         <View style={{ alignItems:"flex-end",gap:7 }}><Text style={s.price}>{money(product.price)}</Text><Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="#fff"/><Text style={s.addText}>Agregar</Text></Pressable></View>
       </View>)}
-      <View style={s.bigCard}><Text style={s.sectionTitle}>Carrito · borrador</Text>
+      <View style={s.bigCard}><Text style={s.sectionTitle}>Detalle de productos</Text>
         {cart.length===0 ? <Text style={[s.meta,{marginTop:12}]}>Todavía no agregaste productos.</Text> : cart.map((line) => <View key={line.product_id} style={s.cartLine}>
           <View style={{ flex:1 }}><Text style={s.productName}>{line.name}</Text><Text style={s.productMeta}>{money(line.unit_price)} c/u</Text></View>
           <Pressable accessibilityRole="button" accessibilityLabel={"Quitar una unidad de "+line.name} onPress={() => onAdjust(line.product_id,-1)} style={s.quantityButton}><Minus size={14} color={p.text}/></Pressable>
@@ -357,10 +358,12 @@ export default function NativeWorkspace({
           }} style={s.quantityButton}><Plus size={14} color={p.text}/></Pressable>
         </View>)}
         <View style={s.totalRow}><Text style={s.meta}>Total estimado</Text><Text style={s.total}>{money(totalCart)}</Text></View>
-        <Action p={p} onPress={onSaveDraft}>Guardar borrador local</Action>
-        <Text style={s.smallPrint}>Sin cobro, comprobante ni modificación de existencias.</Text>
+        <Action p={p} onPress={onSaveDraft}>Guardar presupuesto</Action>
+        <Text style={s.smallPrint}>El presupuesto no registra un cobro ni modifica existencias.</Text>
       </View>
-      {drafts.length>0 ? <View style={s.bigCard}><Text style={s.sectionTitle}>Borradores locales</Text>{drafts.slice(0,8).map((draft) => <View key={draft.id} style={s.summaryRow}><Text style={s.meta}>{new Date(draft.created_at).toLocaleDateString("es-AR")}</Text><Text style={s.summaryValue}>{money(draft.total)}</Text></View>)}</View> : null}
+      <NativePrintCenter client={client} business={business} products={products} drafts={drafts} cart={cart}
+        dark={dark} onFiscal={() => open("fiscal")} embedded />
+      {drafts.length>0 ? <View style={s.bigCard}><Text style={s.sectionTitle}>Presupuestos guardados</Text>{drafts.slice(0,8).map((draft) => <View key={draft.id} style={s.summaryRow}><Text style={s.meta}>{new Date(draft.created_at).toLocaleDateString("es-AR")}</Text><Text style={s.summaryValue}>{money(draft.total)}</Text></View>)}</View> : null}
     </>;
   }
 
@@ -429,10 +432,12 @@ export default function NativeWorkspace({
       {active==="scan" ? <>
         {heading("Escanear código", "Apuntá la cámara al código de barras o QR del producto.")}
         {!permission ? <ActivityIndicator color={p.redIcon}/> : !permission.granted ? <Action p={p} onPress={() => void requestPermission()}>Permitir acceso a la cámara</Action> :
-        <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
+        <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","code39","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
         <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
       </> : null}
-      {["notes","purchases","suppliers","online","documents","fiscal","operations"].includes(active) ? (
+      {active==="documents" ? <NativePrintCenter client={client} business={business} products={products}
+        drafts={drafts} cart={cart} dark={dark} onFiscal={() => open("fiscal")} /> : null}
+      {["notes","purchases","suppliers","online","fiscal","operations"].includes(active) ? (
         <NativeExtraModules
           client={client} business={business} userId={userId} products={products}
           module={active as ExtraModule} dark={dark}
