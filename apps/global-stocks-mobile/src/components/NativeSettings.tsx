@@ -18,6 +18,17 @@ type Props = {
   onOpenWeb: () => void;
 };
 
+const industries = [
+  { id: "retail", name: "Comercio / retail" },
+  { id: "restaurant", name: "Restaurante / gastronomía" },
+  { id: "services", name: "Servicios" },
+  { id: "wholesale", name: "Mayorista / distribución" },
+  { id: "ecommerce", name: "Ecommerce" },
+  { id: "industry", name: "Industria / fabricación" },
+  { id: "advisory", name: "Asesoría / estudio contable" },
+  { id: "other", name: "Otro" }
+];
+
 const languageOptions = [
   { id: "es-AR", label: "Español (Argentina)" },
   { id: "en-US", label: "English" },
@@ -28,6 +39,11 @@ const languageOptions = [
 
 export default function NativeSettings({ client, business, userId, dark, onTheme, onBusiness, onSwitchBusiness, onRefresh, onSignOut, onOpenWeb }: Props) {
   const [name, setName] = useState(business.name);
+  const [industry, setIndustry] = useState("retail");
+  const [country, setCountry] = useState("Argentina");
+  const [description, setDescription] = useState("");
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [showIndustries, setShowIndustries] = useState(false);
   const [saving, setSaving] = useState(false);
   const [role, setRole] = useState<string | null>(null);
   const [error, setError] = useState("");
@@ -38,6 +54,30 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
   const canEdit=role==="owner"||role==="admin";
 
   useEffect(()=>{setName(business.name);setError("");setNotice("");},[business.id,business.name]);
+  useEffect(() => {
+    let active = true;
+    setProfileLoading(true);
+    void (async () => {
+      const [entity, state] = await Promise.all([
+        client.from("global_stock_businesses")
+          .select("name,business_type,country").eq("id",business.id).single(),
+        client.from("global_stock_workspaces")
+          .select("state").eq("business_id",business.id).maybeSingle()
+      ]);
+      if (!active) return;
+      if (entity.error) throw entity.error;
+      setName(String(entity.data?.name ?? business.name));
+      setIndustry(String(entity.data?.business_type ?? "retail"));
+      setCountry(String(entity.data?.country ?? "Argentina"));
+      if (!state.error && state.data?.state && typeof state.data.state === "object" && !Array.isArray(state.data.state)) {
+        const cloud = state.data.state as Record<string,unknown>;
+        setDescription(typeof cloud.businessDescription === "string" ? cloud.businessDescription : "");
+      } else setDescription("");
+    })().catch((err:unknown) => {
+      if (active) setError(err instanceof Error ? err.message : "No se pudo cargar el perfil.");
+    }).finally(()=>{if(active)setProfileLoading(false)});
+    return () => {active=false};
+  },[client,business.id]);
   useEffect(()=>{
     let active=true;
     setRole(null);
@@ -69,10 +109,42 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
     ]);
   }
 
-  function saveName(){
-    const clean=name.trim();
-    if(clean.length<2||clean.length>100){setError("El nombre debe tener entre 2 y 100 caracteres.");return;}
-    if(clean!==business.name)void update({name:clean});
+  async function saveProfile() {
+    if (!canEdit || saving || profileLoading) return;
+    const clean = name.trim();
+    if (clean.length < 2 || clean.length > 100) {
+      setError("El nombre debe tener entre 2 y 100 caracteres."); return;
+    }
+    if (!industries.some(x => x.id === industry)) {
+      setError("Seleccioná una actividad válida."); return;
+    }
+    if (country.trim().length > 100 || description.length > 1500) {
+      setError("El país o la descripción es demasiado largo."); return;
+    }
+    setSaving(true); setError("");setNotice("");
+    try {
+      const {data,error} = await client.from("global_stock_businesses").update({
+        name:clean,business_type:industry,country:country.trim() || null
+      }).eq("id",business.id).select("id,name,base_currency,locale").single();
+      if (error) throw error;
+      const {error:workspaceError} = await client.rpc("global_stock_merge_workspace_state",{
+        target_business_id:business.id,
+        state_patch: {
+          businessName:clean,
+          businessType:industry,
+          businessCountry:country.trim(),
+          businessDescription:description.trim()
+        }
+      });
+      if(workspaceError) {
+        // Never falsely claim a complete save when Supabase's workspace merge failed.
+        onBusiness(data as Business);
+        throw new Error("Se actualizó la ficha del negocio, pero no su perfil de la web: "+workspaceError.message);
+      }
+      onBusiness(data as Business);
+      setNotice("Perfil actualizado en Supabase y compartido con la versión web.");
+    } catch(err){setError(err instanceof Error?err.message:"No se pudo guardar el perfil.");}
+    finally{setSaving(false)}
   }
 
   function action(label:string,onPress:()=>void,secondary=true){
@@ -82,13 +154,29 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
   return <View style={st.container}>
     <View style={{gap:7}}><Text style={st.kicker}>PREFERENCIAS</Text><Text style={st.title}>Configuración</Text><Text style={st.text}>Perfil operativo, idiomas, cotizaciones, apariencia, seguridad y la app.</Text></View>
     <View style={st.card}>
-      <View style={st.cardHeading}><Store size={19} color="#C91827"/><Text style={st.sectionTitle}>Negocio</Text></View>
-      <Text style={st.label}>Nombre del negocio</Text>
-      <TextInput style={st.input} value={name} onChangeText={setName} editable={canEdit&&!saving} placeholder="Nombre comercial" placeholderTextColor={p.muted} accessibilityLabel="Nombre del negocio"/>
-      {canEdit&&name.trim()!==business.name?action(saving?"Guardando…":"Guardar nombre",saveName,false):null}
+      <View style={st.cardHeading}><Store size={19} color="#C91827"/><Text style={st.sectionTitle}>Perfil operativo</Text></View>
+      <Text style={st.help}>Definí el tipo de operación para adaptar análisis, IA y procesos a tu negocio.</Text>
+      {profileLoading ? <ActivityIndicator color="#C91827" /> : <>
+        <Text style={st.label}>NOMBRE DEL NEGOCIO</Text>
+        <TextInput style={st.input} value={name} onChangeText={setName} editable={canEdit&&!saving} placeholder="Nombre comercial" placeholderTextColor={p.muted} accessibilityLabel="Nombre del negocio"/>
+        <Text style={st.label}>ACTIVIDAD</Text>
+        {action(industries.find(x=>x.id===industry)?.name ?? industry,()=>setShowIndustries(v=>!v))}
+        {showIndustries&&<View style={{gap:7}}>{industries.map(item=><Pressable accessibilityRole="button" accessibilityState={{selected:industry===item.id}} key={item.id}
+          onPress={()=>{setIndustry(item.id);setShowIndustries(false)}} style={st.option}>
+          <Text style={st.value}>{item.name}</Text>{industry===item.id?<Check size={16} color="#55C69E"/>:null}
+        </Pressable>)}</View>}
+        <Text style={st.label}>PAÍS DE OPERACIÓN</Text>
+        <TextInput style={st.input} value={country} onChangeText={setCountry} editable={canEdit&&!saving} placeholder="País" placeholderTextColor={p.muted} accessibilityLabel="País de operación"/>
+        <Text style={st.label}>¿A QUÉ SE DEDICA EL NEGOCIO?</Text>
+        <TextInput multiline textAlignVertical="top" style={[st.input,{minHeight:85}]} value={description} onChangeText={setDescription} editable={canEdit&&!saving} placeholder="Descripción del negocio" placeholderTextColor={p.muted} accessibilityLabel="Descripción del negocio" maxLength={1500}/>
+        {canEdit?action(saving?"Guardando…":"Guardar perfil",()=>void saveProfile(),false):<Text style={st.help}>Solo propietarios y administradores pueden editar este perfil.</Text>}
+      </>}
+    </View>
+    <View style={st.card}>
+      <View style={st.cardHeading}><Globe2 size={18} color="#C91827"/><Text style={st.sectionTitle}>Idioma y moneda</Text></View>
       <View style={st.line}><Text style={st.label}>Moneda base</Text><Text style={st.value}>{business.base_currency}</Text></View>
-      <Text style={st.help}>La moneda base está vinculada a precios y ventas. No se cambia desde el celular para evitar modificar valores accidentalmente.</Text>
-      <View style={st.line}><Text style={st.label}>Idioma de la cuenta comercial</Text><Text style={st.value}>{languageOptions.find(o=>o.id===business.locale)?.label??business.locale}</Text></View>
+      <Text style={st.help}>El centro de cotizaciones permite convertir importes sin cambiar precios históricos de venta.</Text>
+      <View style={st.line}><Text style={st.label}>Idioma del negocio</Text><Text style={st.value}>{languageOptions.find(o=>o.id===business.locale)?.label??business.locale}</Text></View>
       {canEdit?action(showLanguage?"Cerrar idiomas":"Seleccionar idioma",()=>setShowLanguage(v=>!v)):null}
       {showLanguage&&canEdit?<View style={{gap:7}}>{languageOptions.map(item=><Pressable onPress={()=>chooseLanguage(item.id)} key={item.id} style={st.option} accessibilityRole="button">
         <Text style={st.value}>{item.label}</Text>{business.locale===item.id?<Check size={17} color="#54C29D"/>:null}
