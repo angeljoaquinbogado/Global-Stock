@@ -31,6 +31,8 @@ must(ai.includes("client.auth.refreshSession()") && ai.includes("verified.user.i
 must(route.includes("authorizeBusinessRequest(request, businessId)") && route.includes("AI_CONSENT_REQUIRED"), "The server must enforce tenant membership and AI consent.");
 must(offline.includes("AUTOMATIC_SALE_SYNC_ENABLED = false"), "Automatic offline checkout must remain disabled.");
 must(!offline.includes("service_role"), "Mobile storage must not include a service-role secret.");
+must(offline.includes("purgeLocalAccountData") && app.includes("purgeLocalAccountData"), "Device logout must clear plaintext merchant data.");
+must(workspace.includes("NativePrintCenter") && !workspace.includes("NativeCashCheckout"), "Native cash checkout must remain excluded from Argentina free beta UI.");
 must(cfg.expo.name === "Global Stock" && cfg.expo.slug === "global-stocks", "Expo app identity mismatch.");
 must(cfg.expo.android?.permissions?.includes("CAMERA"), "Only the documented barcode camera permission is expected.");
 must(existsSync(resolve(repo, "docs/ARGENTINA_BETA_LAUNCH_2026.md")), "The Argentina beta release checklist must exist.");

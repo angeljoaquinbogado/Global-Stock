@@ -23,6 +23,24 @@ Solo Argentina durante la beta.
 El plan, obligaciones argentinas y bloqueos de lanzamiento están documentados
 en [ARGENTINA_BETA_LAUNCH_2026.md](../../docs/ARGENTINA_BETA_LAUNCH_2026.md).
 
+## Argentina beta safety note
+
+The published mobile beta still exposes **budgets/drafts only**, not cash settlement:
+`NativeCashCheckout.tsx` contains experimental checkout code and **must not**
+be mounted in the live interface before merchant isolation, idempotent settlement,
+fiscal obligations, reversals and offline reconciliation have passed testing.
+The source guard enforces this launch constraint.
+
+The app now asks before logging out and wipes plaintext SQLite inventory,
+business and unsynced drafts belonging to that account. This is a **data-loss
+warning** for any local budgets that have not been copied to the web.
+It does not delete records held in Supabase and does not encrypt offline files.
+Only test or non-confidential data belongs in the initial pilot.
+
+The first-access gate records separate declarations for age 18+ and a
+business operating in Argentina. These are attestations, **not verified ID,
+physical location, or a substitute for legal review**.
+
 ## Status
 
 **Mobile foundation / internal preview, not production-ready point of sale.**
