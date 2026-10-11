@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { StatusBar } from "expo-status-bar";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { ArrowUp, Bot, CheckCircle2, Sparkles, X } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
@@ -202,10 +204,11 @@ export default function NativeAssistant({ visible, onClose, client, business, us
 
   if (!visible) return null;
 
-  // Keep AI inside the React navigation tree. Native iOS presentation layers can
-  // survive a session change and obscure the login screen after sign-out.
+  // This is a separate navigation screen, not an absolutely positioned child
+  // of the dashboard. The composer and close button must remain visible on iOS.
   return (
-    <View style={[StyleSheet.absoluteFillObject, { zIndex: 80, backgroundColor: bg }]} accessibilityViewIsModal>
+    <SafeAreaView edges={["top", "bottom"]} style={{ flex: 1, backgroundColor: bg }}>
+      <StatusBar style={dark ? "light" : "dark"} />
       <KeyboardAvoidingView style={{ flex:1, backgroundColor:bg }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <View style={[st.header, { borderColor:border }]}>
           <View style={{ flexDirection:"row",alignItems:"center",gap:10,flex:1 }}>
@@ -274,7 +277,7 @@ export default function NativeAssistant({ visible, onClose, client, business, us
           </Pressable>
         </View> : null}
       </KeyboardAvoidingView>
-    </View>
+    </SafeAreaView>
   );
 }
 
