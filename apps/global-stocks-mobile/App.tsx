@@ -18,7 +18,7 @@ import type { User } from "@supabase/supabase-js";
 
 import { supabase } from "./src/lib/supabase";
 import { loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
-import { cacheProducts, loadOfflineDrafts, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
+import { cacheBusinesses, cacheProducts, loadOfflineDrafts, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
 
 type Tab = "dashboard" | "inventory" | "pos" | "scanner";
 type CartLine = SaleLine;
@@ -209,16 +209,29 @@ function MobileApp() {
     if (!user || !supabase) return;
     let alive = true;
     setBusinessLoading(true);
-    loadBusinesses(supabase, user.id)
-      .then((list) => {
+    const userId = user.id;
+    void (async () => {
+      const cached = await readCachedBusinesses(userId).catch(() => null);
+      if (!alive) return;
+      if (cached?.length) {
+        setBusinesses(cached);
+        setBusiness((prior) => cached.find((b) => b.id === prior?.id) ?? cached[0]);
+        setNotice("Negocios cargados desde la copia local hasta confirmar conexión.");
+      }
+      try {
+        const list = await loadBusinesses(supabase!, userId);
         if (!alive) return;
         setBusinesses(list);
         setBusiness((prior) => list.find((b) => b.id === prior?.id) ?? list[0] ?? null);
-      })
-      .catch((error: unknown) => {
-        if (alive) setNotice(`No se pudieron cargar los negocios: ${error instanceof Error ? error.message : "Error de red"}`);
-      })
-      .finally(() => { if (alive) setBusinessLoading(false); });
+        await cacheBusinesses(userId, list).catch(() => null);
+      } catch (error: unknown) {
+        if (alive) setNotice(cached?.length
+          ? "Sin conexión. Negocios mostrados desde caché; permisos aún no revalidados."
+          : `No se pudieron cargar los negocios: ${error instanceof Error ? error.message : "Error de red"}`);
+      } finally {
+        if (alive) setBusinessLoading(false);
+      }
+    })();
     return () => { alive = false; };
   }, [user?.id]);
 
@@ -607,7 +620,7 @@ const st = StyleSheet.create({
   loginFoot: { color: C.secondary, textAlign: "center", marginTop: 26, fontSize: 12 },
   label: { fontSize: 10, fontWeight: "900", letterSpacing: 2.1, color: "#F56B73" },
   heading: { color: C.white, fontSize: 25, lineHeight: 30, fontWeight: "800", letterSpacing: -0.7 },
-  pageTitle: { color: C.white, fontSize: 26, fontWeight: "850", lineHeight: 31, letterSpacing: -0.8 },
+  pageTitle: { color: C.white, fontSize: 26, fontWeight: "800", lineHeight: 31, letterSpacing: -0.8 },
   helper: { color: C.secondary, fontSize: 13, lineHeight: 20 },
   input: { color: C.white, borderWidth: 1, borderColor: C.border, backgroundColor: "#1D1D24", borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, fontSize: 14, minHeight: 48 },
   button: { backgroundColor: C.red, padding: 15, borderRadius: 12, alignItems: "center", justifyContent: "center", minHeight: 48 },
@@ -620,7 +633,7 @@ const st = StyleSheet.create({
   header: { paddingVertical: 12, paddingHorizontal: 18, borderBottomWidth: 1, borderBottomColor: C.border, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   headerBrand: { flexDirection: "row", gap: 10, alignItems: "center", flex: 1 },
   miniLogo: { width: 34, height: 34, borderRadius: 11, backgroundColor: C.red, justifyContent: "center", alignItems: "center" },
-  headerTitle: { color: C.white, fontSize: 15, fontWeight: "850" },
+  headerTitle: { color: C.white, fontSize: 15, fontWeight: "800" },
   headerSubtitle: { color: C.secondary, fontSize: 11, maxWidth: 190 },
   headerAction: { backgroundColor: C.raised, paddingHorizontal: 10, paddingVertical: 10, borderRadius: 9, borderWidth: 1, borderColor: C.border },
   headerActionText: { color: C.white, fontSize: 10, letterSpacing: 0.5, fontWeight: "800" },
@@ -635,7 +648,7 @@ const st = StyleSheet.create({
   metrics: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", gap: 12 },
   metric: { width: "48%", minHeight: 90, backgroundColor: C.surface, borderColor: C.border, borderWidth: 1, borderRadius: 14, padding: 14, justifyContent: "space-between" },
   metricLabel: { color: C.secondary, fontSize: 12 },
-  metricValue: { color: C.white, fontSize: 25, fontWeight: "850", letterSpacing: -0.5 },
+  metricValue: { color: C.white, fontSize: 25, fontWeight: "800", letterSpacing: -0.5 },
   panel: { gap: 14, borderRadius: 16, padding: 16, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border },
   sectionTitle: { color: C.white, fontSize: 15, fontWeight: "800" },
   sectionRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 10 },
@@ -643,7 +656,7 @@ const st = StyleSheet.create({
   productCard: { flexDirection: "row", backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 14, gap: 8 },
   productName: { color: C.white, fontSize: 13, fontWeight: "800", lineHeight: 18 },
   productMeta: { color: C.secondary, fontSize: 11, marginTop: 5, lineHeight: 15 },
-  productPrice: { color: C.white, fontSize: 13, fontWeight: "850" },
+  productPrice: { color: C.white, fontSize: 13, fontWeight: "800" },
   addButton: { backgroundColor: "#6C1017", paddingHorizontal: 10, paddingVertical: 8, borderRadius: 8 },
   addButtonText: { color: C.white, fontSize: 11, fontWeight: "800" },
   caution: { borderWidth: 1, borderColor: "#6F4520", backgroundColor: "#2A2119", borderRadius: 12, padding: 13, gap: 7 },

@@ -1,5 +1,5 @@
 import * as SQLite from "expo-sqlite";
-import type { Product, SaleDraft } from "./data";
+import type { Business, Product, SaleDraft } from "./data";
 
 let openPromise: ReturnType<typeof SQLite.openDatabaseAsync> | null = null;
 
@@ -9,6 +9,11 @@ async function database() {
   }
   const db = await openPromise;
   await db.execAsync(`
+    CREATE TABLE IF NOT EXISTS business_snapshots (
+      user_id TEXT PRIMARY KEY,
+      payload TEXT NOT NULL,
+      cached_at TEXT NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS inventory_snapshots (
       user_id TEXT NOT NULL,
       business_id TEXT NOT NULL,
@@ -25,6 +30,23 @@ async function database() {
     );
   `);
   return db;
+}
+
+export async function readCachedBusinesses(userId: string): Promise<Business[] | null> {
+  const db = await database();
+  const row = await db.getFirstAsync<{ payload: string }>(
+    "SELECT payload FROM business_snapshots WHERE user_id = ?", userId
+  );
+  return row ? JSON.parse(row.payload) as Business[] : null;
+}
+
+export async function cacheBusinesses(userId: string, businesses: Business[]) {
+  const db = await database();
+  await db.runAsync(
+    `INSERT INTO business_snapshots (user_id,payload,cached_at) VALUES (?,?,?)
+     ON CONFLICT(user_id) DO UPDATE SET payload=excluded.payload,cached_at=excluded.cached_at`,
+    userId, JSON.stringify(businesses), new Date().toISOString()
+  );
 }
 
 export async function readCachedProducts(userId: string, businessId: string) {
