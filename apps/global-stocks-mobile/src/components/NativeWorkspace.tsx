@@ -17,6 +17,7 @@ import {
   Sun, Truck, Users, Warehouse, WifiOff, X, Plus, Minus
 } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import ProductForm from "./ProductForm";
 import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
 import NativeAssistant from "./NativeAssistant";
@@ -280,7 +281,7 @@ export default function NativeWorkspace({
         </View>
         <Pressable accessibilityRole="button" onPress={() => open("charts")} style={s.smallPill}><Text style={s.smallPillText}>Gráficos</Text><ChevronRight size={12} color={p.muted}/></Pressable>
       </View>
-      {dashboardError ? <Text style={s.warning}>No se pudieron cargar las ventas: {dashboardError}</Text> : null}
+      {dashboardError ? <View style={{gap:5}}><Text style={s.warning}>No pudimos actualizar las ventas. Volvé a intentar.</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Error en panel de ventas"))}><Text style={[s.meta,{color:p.redIcon,fontWeight:"700"}]}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
       {dashboardLoading ? <ActivityIndicator style={{ marginVertical: 58 }} color={p.redIcon} /> : <ProfitTrend points={dashboard?.chart ?? []} p={p} />}
       <View style={s.chartFooter}>
         <View style={s.liveDot} /><Text style={s.meta}>Últimos 7 días · datos reales</Text>
