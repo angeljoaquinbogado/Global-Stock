@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import * as Print from "expo-print";
 import * as Sharing from "expo-sharing";
 import { Barcode, FileCheck2, FileText, Printer, RefreshCw, Share2, Tag } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
+import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 
 type FiscalDocument = {
   id: string; kind: string; letter: string | null; status: string; local_reference: string;
@@ -192,7 +193,15 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
      </View>)}
    </View>:null}
    {working?<ActivityIndicator color="#C81724"/>:null}
-   {!!error?<View style={st.alert}><Text style={st.alertText}>{error}</Text><Pressable accessibilityRole="button" accessibilityLabel="Reintentar consulta fiscal" onPress={()=>setVersion(v=>v+1)} style={st.retry}><Text style={{color:p.text,fontWeight:"700",fontSize:12}}>Reintentar</Text></Pressable></View>:null}
+   {!!error?<View style={st.alert}>
+     <View style={{flex:1,gap:6}}>
+       <Text accessibilityRole="alert" style={st.alertText}>{error}</Text>
+       <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Consulta sobre documentos de ARCA"))}>
+         <Text style={{color:"#C91827",fontSize:11,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text>
+       </Pressable>
+     </View>
+     <Pressable accessibilityRole="button" accessibilityLabel="Reintentar consulta fiscal" onPress={()=>setVersion(v=>v+1)} style={st.retry}><Text style={{color:p.text,fontWeight:"700",fontSize:12}}>Reintentar</Text></Pressable>
+   </View>:null}
  </View>;
 }
 function styles(p:{surface:string;line:string;text:string;muted:string;tile:string}){
