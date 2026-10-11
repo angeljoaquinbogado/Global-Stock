@@ -112,7 +112,7 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
       <Text style={s.choiceName}>{opt.name}</Text><Text style={s.caption}>{opt.method}</Text>
     </Pressable>)}</View>}
     <View style={s.card}>
-      <View style={s.statusLine}><Text style={s.cardTitle}>{current.name}</Text><Text style={[s.pill,{color:isVerified.length?"#66D1A4":"#E5B17D"}]}>{isVerified.length?"Verificada":isConfigured?"API disponible":"Preparación"}</Text></View>
+      <View style={s.statusLine}><Text style={s.cardTitle}>{current.name}</Text><Text style={[s.pill,{color:isVerified.length?"#66D1A4":"#B2B2BC"}]}>{isVerified.length?"Verificada":isConfigured?"API disponible":"Preparación"}</Text></View>
       <Text style={s.caption}>{current.help}</Text>
       {selected!=="custom" && selected!=="other" && <Text style={s.explainer}>
         {isConfigured?"El proveedor dispone de configuración inicial, pero necesitás autorizar tu cuenta en el portal web.":"Este proveedor todavía requiere configuración del conector oficial antes de sincronizar."}
@@ -160,7 +160,7 @@ function styles(p:{panel:string;tile:string;line:string;fg:string;muted:string})
   actionText:{color:"#FFF",fontSize:12,fontWeight:"800"},
   secondary:{minHeight:43,borderRadius:11,backgroundColor:p.tile,flexDirection:"row",gap:8,alignItems:"center",justifyContent:"center"},
   secondaryText:{fontSize:11,fontWeight:"700",color:p.fg},
-  error:{fontSize:11,color:"#ECB18D",lineHeight:18},success:{fontSize:11,color:"#62C99D",lineHeight:18},
+  error:{fontSize:11,color:"#D95C69",lineHeight:18},success:{fontSize:11,color:"#62C99D",lineHeight:18},
   listItem:{flexDirection:"row",alignItems:"center",paddingVertical:10,borderTopWidth:0.7,borderColor:p.line,gap:8},
   pending:{fontSize:10,fontWeight:"700",color:"#D8A76B"},footer:{fontSize:11,color:p.muted,lineHeight:17}
 })}
