@@ -1,8 +1,7 @@
 /**
- * Prevent red-screen "Unable to resolve module" errors in Expo Go.
- * Scans all mobile TypeScript imports and package.json and verifies that
- * every declared native runtime dependency is actually installed locally.
- * No network requests, no credentials, and no automatic package changes.
+ * Check Expo Go imports against package.json and installed node_modules.
+ * Prevent runtime "Unable to resolve module" red screens following a git pull.
+ * Works without internet or any secrets.
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -40,34 +39,33 @@ function register(name, source) {
 }
 for (const source of sources) {
   const code = readFileSync(source, "utf8");
-  // Only parse actual import declarations. A bare "from \"...\"" regex
-  // also matches JSX expressions and text inside the currency converter.
+  // Parse real import declarations only, not JSX strings containing "from".
   let statement = "";
-  for (const line of code.split("\\n")) {
-    if (!statement && /^\\s*import(?:\\s|\\{|$)/.test(line)) statement = line;
-    else if (statement) statement += "\\n" + line;
+  for (const line of code.split("\n")) {
+    if (!statement && /^\s*import(?:\s|\{|$)/.test(line)) statement = line;
+    else if (statement) statement += "\n" + line;
     if (statement && (statement.includes(";") || statement.length > 1200)) {
-      const found = statement.match(/\\bfrom\\s*["']([^"'\\r\\n]+)["']/)
-        ?? statement.match(/^\\s*import\\s*["']([^"'\\r\\n]+)["']/);
+      const found = statement.match(/\bfrom\s*["']([^"'\r\n]+)["']/)
+        ?? statement.match(/^\s*import\s*["']([^"'\r\n]+)["']/);
       if (found) register(found[1], source);
       statement = "";
     }
   }
-  const requires = /\\brequire\\s*\\(\\s*["']([^"'\\r\\n]+)["']\\s*\\)/g;
+  const requires = /\brequire\s*\(\s*["']([^"'\r\n]+)["']\s*\)/g;
   for (const [, name] of code.matchAll(requires)) register(name, source);
 }
 const errors = [];
 for (const [dep, paths] of used) {
-  if (!Object.hasOwn(dependencies, dep)) errors.push(`Package "${dep}" imported by ${paths[0]} is missing from package.json`);
+  if (!Object.hasOwn(dependencies, dep)) errors.push('Package "' + dep + '" imported by ' + paths[0] + ' is missing from package.json');
 }
 if (verifyInstalled) {
   for (const dep of Object.keys(pkg.dependencies ?? {})) {
     const path = join(root, "node_modules", ...dep.split("/"), "package.json");
-    if (!existsSync(path)) errors.push(`Package "${dep}" is missing from node_modules (run npm install)`);
+    if (!existsSync(path)) errors.push('Package "' + dep + '" is missing from node_modules (run npm install)');
   }
 }
 if (errors.length) {
   process.stderr.write("Global Stock Mobile dependency check failed:\n" + errors.map((item) => " - " + item).join("\n") + "\n");
   process.exit(1);
 }
-process.stdout.write(`Dependency audit passed: ${used.size} imported packages, ${Object.keys(pkg.dependencies ?? {}).length} runtime dependencies${verifyInstalled ? " installed" : " declared"}.\n`);
+process.stdout.write("Dependency audit passed: " + used.size + " imported packages, " + Object.keys(pkg.dependencies ?? {}).length + " runtime dependencies " + (verifyInstalled ? "installed" : "declared") + ".\n");
