@@ -112,7 +112,7 @@ export default function NativeFiscalArca({client,business,userId,dark}:Props){
   }
   return <View style={{gap:15}}>
     <View style={st.top}><FileCheck2 size={22} color="#D01B2A"/><View style={{flex:1}}><Text style={st.title}>ARCA · Facturación argentina</Text><Text style={st.caption}>Prepará los datos para emitir comprobantes electrónicos oficiales cuando se complete la integración.</Text></View></View>
-    <View style={st.notice}><ShieldAlert size={18} color="#B8B8C3"/><Text style={st.noticeText}>
+    <View style={st.notice}><ShieldAlert size={18} color={p.muted}/><Text style={st.noticeText}>
       La beta NO emite facturas ni CAE. Un comprobante interno o una simulación no reemplazan una factura fiscal. No pegues clave fiscal, certificados, tokens ni contraseñas acá.
     </Text></View>
     {loading?<ActivityIndicator color="#A90815"/>:<View style={st.card}>
@@ -148,7 +148,7 @@ function styles(p:{panel:string;tile:string;line:string;fg:string;muted:string})
   top:{flexDirection:"row",alignItems:"flex-start",gap:10},
   title:{fontSize:17,fontWeight:"800",color:p.fg},caption:{fontSize:11,lineHeight:17,color:p.muted},
   notice:{padding:12,backgroundColor:p.tile,borderRadius:12,flexDirection:"row",gap:10,alignItems:"flex-start"},
-  noticeText:{flex:1,color:"#B8B8C3",fontSize:11,lineHeight:18},
+  noticeText:{flex:1,color:p.muted,fontSize:11,lineHeight:18},
   card:{padding:15,gap:13,borderWidth:1,borderRadius:17,borderColor:p.line,backgroundColor:p.panel},
   cardTitle:{color:p.fg,fontSize:14,fontWeight:"800"},label:{fontSize:10,fontWeight:"800",color:p.muted,letterSpacing:0.6},
   input:{minHeight:44,paddingHorizontal:12,backgroundColor:p.tile,borderRadius:11,borderWidth:1,borderColor:p.line,color:p.fg,fontSize:12},
