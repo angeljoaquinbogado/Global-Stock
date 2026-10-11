@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalArticle
       eyebrow="Privacidad"
       title="Política de privacidad"
-      intro="Esta política describe qué información puede procesar Global Stock cuando una persona crea una cuenta, administra un negocio, conecta servicios externos o utiliza funciones de inteligencia artificial."
+      intro="Versión 2026-10-11. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
     >
       <section>
         <h2>1. Responsable y alcance</h2>
@@ -76,7 +76,14 @@ export default function PrivacyPage() {
         <p>
           Cuando Global Intelligence está habilitada, la consulta del usuario y
           el contexto necesario para responder pueden enviarse al proveedor de
-          IA configurado por la plataforma. Global Stock puede utilizar
+          IA configurado por la plataforma. En la app móvil, antes de enviar
+          contexto comercial, se solicita un permiso explícito e independiente
+          para el negocio seleccionado. Se registra si ese permiso está
+          activo y se puede revocar desde Configuración. La revocación
+          impide nuevos envíos desde la app móvil, pero no elimina
+          automáticamente datos que un proveedor haya procesado anteriormente,
+          los cuales se gestionan conforme a los acuerdos y políticas aplicables.
+          Global Stock puede utilizar
           proveedores externos, incluido Google Gemini u otros proveedores
           compatibles configurados en el servidor. Las claves de acceso a esos
           servicios permanecen del lado del servidor.
@@ -96,7 +103,10 @@ export default function PrivacyPage() {
         <h2>6. Almacenamiento local y sesiones</h2>
         <p>
           Algunas preferencias y operaciones pendientes de sincronización pueden
-          almacenarse en el dispositivo mediante mecanismos como localStorage.
+          almacenarse en el dispositivo mediante mecanismos como localStorage
+          (web) o bases SQLite locales (aplicación móvil). En iPhone y Android,
+          la app utiliza almacenamiento protegido del sistema para mantener
+          la sesión de autenticación.
           Ese almacenamiento se trata como información no confiable al volver a
           sincronizarse con el servidor. Las credenciales sensibles de conectores
           privados no deben guardarse como texto legible en localStorage. Las
@@ -177,11 +187,13 @@ export default function PrivacyPage() {
       <section>
         <h2>12. Menores y capacidad para utilizar el servicio</h2>
         <p>
-          Global Stock está orientado a la gestión de actividades comerciales y
-          no está dirigido específicamente a niños. Quien cree o administre una
-          cuenta debe tener capacidad legal suficiente para hacerlo o contar con
-          la autorización de su representante cuando la legislación aplicable lo
-          exija.
+          Global Stock está orientado a actividades comerciales y no está
+          destinado a menores. En la versión móvil actual exigimos una
+          declaración de que la persona tiene 18 años o más antes del uso.
+          Esta declaración no equivale a una comprobación documental de edad.
+          Las exigencias de verificación, consentimiento o protección de
+          menores pueden variar por país y deben evaluarse antes de cada
+          lanzamiento regional.
         </p>
       </section>
 

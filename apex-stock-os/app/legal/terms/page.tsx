@@ -12,7 +12,7 @@ export default function TermsPage() {
     <LegalArticle
       eyebrow="Términos"
       title="Términos de uso"
-      intro="Estos términos regulan el acceso y uso de Global Stock. Al crear una cuenta, instalar la aplicación o conectar un negocio, la persona usuaria acepta estas reglas en la medida permitida por la normativa aplicable."
+      intro="Versión 2026-10-11. Estos términos regulan el acceso y uso de Global Stock. La app móvil registra la aceptación expresa antes del primer uso. La publicación de esta página no habilita automáticamente operaciones comerciales o fiscales en todas las jurisdicciones."
     >
       <section>
         <h2>1. Operador</h2>
@@ -44,12 +44,14 @@ export default function TermsPage() {
       <section>
         <h2>3. Capacidad y cuentas</h2>
         <p>
-          Quien cree o administre una cuenta debe tener capacidad legal
-          suficiente o la autorización necesaria conforme a la legislación que le
-          resulte aplicable. La persona usuaria es responsable de mantener seguras
-          sus credenciales y de impedir accesos no autorizados. No deben
-          compartirse contraseñas, claves de servicio ni tokens fuera de los
-          canales previstos por la plataforma.
+          Para el registro y uso de la aplicación móvil en esta etapa,
+          Global Stock exige que la persona tenga al menos 18 años y capacidad
+          legal suficiente para contratar o administrar un negocio. El acceso
+          mediante una cuenta de una persona adulta no habilita su transferencia
+          a menores de edad. La confirmación de edad en la app es una
+          declaración de la persona usuaria y no una verificación documental
+          de identidad o edad. La persona usuaria debe proteger sus credenciales
+          y no compartir contraseñas ni tokens fuera de los canales previstos.
         </p>
       </section>
 
@@ -79,7 +81,10 @@ export default function TermsPage() {
       <section>
         <h2>6. Inteligencia artificial</h2>
         <p>
-          Global Intelligence puede utilizar proveedores externos de IA. Sus
+          Global Intelligence puede utilizar proveedores externos de IA.
+          En la aplicación móvil, antes de enviar una consulta y contexto del
+          inventario al proveedor, se solicita una autorización independiente
+          que puede revocarse desde Configuración. Las
           respuestas son asistencia operativa y pueden contener errores. Las
           decisiones comerciales, contables, fiscales, jurídicas, financieras o
           de otra naturaleza profesional siguen siendo responsabilidad de la
