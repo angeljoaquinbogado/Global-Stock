@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
 import type { Business } from "../lib/data";
 import NativeFxCenter from "./NativeFxCenter";
+import NativeAccountDeletion from "./NativeAccountDeletion";
 
 type Props = {
   client: SupabaseClient;
@@ -261,7 +262,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       {action("Términos de uso",()=>openLegal("/legal/terms"))}
       {action("Política de privacidad",()=>openLegal("/legal/privacy"))}
       {action("Información de seguridad",()=>openLegal("/legal/security"))}
-      {action("Solicitar eliminación de cuenta",()=>openLegal("/support"))}
+      <NativeAccountDeletion client={client} onDeleted={onSignOut} dark={dark} />
       <View style={st.line}><Text style={st.label}>Contexto del negocio compartido con Global Intelligence</Text><Text style={st.value}>{aiSharing===null?"Verificando":aiSharing?"Permitido":"No permitido"}</Text></View>
       {aiSharing===true?action(aiSaving?"Revocando…":"Revocar autorización de IA",()=>Alert.alert("Revocar datos para IA","Global Intelligence dejará de utilizar el contexto de este negocio desde la app.",[{text:"Cancelar",style:"cancel"},{text:"Revocar",style:"destructive",onPress:()=>void revokeAiSharing()}])):null}
       <Text style={st.help}>La confirmación de edad en la app es una declaración, no una verificación de identidad. La disponibilidad legal y fiscal puede variar según el país.</Text>
