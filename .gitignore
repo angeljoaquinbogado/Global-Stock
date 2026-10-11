@@ -73,3 +73,11 @@ app.*.map.json
 **/*.db-journal
 **/*.db-wal
 **/*.db-shm
+
+# An independent Expo starter created locally. Preserve it on disk but do not
+# accidentally include it in the Global Stock application repository.
+/mi-app/
+
+# Playwright's generated HTML reports, screenshots, traces and run state.
+/playwright-report/
+/test-results/
