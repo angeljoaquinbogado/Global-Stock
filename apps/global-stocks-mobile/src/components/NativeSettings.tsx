@@ -269,7 +269,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
     </View>
     </> : null}
     {saving?<ActivityIndicator color="#C91827"/>:null}
-    {!!error&&<Text style={[st.help,{color:"#E8A975"}]}>{error}</Text>}
+    {!!error&&<Text style={[st.help,{color:dark?"#B8B8C3":"#686877"}]}>{error}</Text>}
     {!!notice&&<Text style={[st.help,{color:"#58C99A"}]}>{notice}</Text>}
   </View>;
 }
