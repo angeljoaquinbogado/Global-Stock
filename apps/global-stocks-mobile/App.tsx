@@ -443,16 +443,17 @@ function MobileApp() {
           onPress: () => {
             void (async () => {
               try {
-                const { data: { user: authenticatedUser }, error: userError } = await supabase.auth.getUser();
-                if (userError || !authenticatedUser?.id) {
-                  Alert.alert("No se pudo verificar la sesión", "Comprobá tu conexión y volvé a intentarlo. No se borró ningún archivo.");
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                if (sessionError || !session?.user?.id) {
+                  Alert.alert("No se encontró una sesión local", "No se borró ningún archivo. Volvé a intentar.");
                   return;
                 }
-                // Do not change authentication before completing local cleanup.
-                await purgeLocalAccountData(authenticatedUser.id);
-                const { error: signOutError } = await supabase.auth.signOut();
+                // Sign out of this device even when temporarily offline.
+                // This does not revoke other devices' independent sessions.
+                await purgeLocalAccountData(session.user.id);
+                const { error: signOutError } = await supabase.auth.signOut({ scope: "local" });
                 if (signOutError) {
-                  Alert.alert("No se pudo cerrar la sesión", "La copia local se borró, pero el servidor no confirmó el cierre de sesión. Reintentá.");
+                  Alert.alert("No se pudo cerrar la sesión", "La copia local se borró, pero la sesión sigue abierta. Reintentá.");
                 }
               } catch (error) {
                 Alert.alert("No se pudo borrar la copia local", error instanceof Error ? error.message : "Error de almacenamiento. Reintentá el cierre de sesión.");
