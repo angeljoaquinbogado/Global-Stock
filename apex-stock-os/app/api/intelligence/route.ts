@@ -5,6 +5,7 @@ import {
   generateIntelligenceAnswer,
   getIntelligenceProvider,
   IntelligenceNotConfiguredError,
+  IntelligenceProviderError,
   isIntelligenceConfigured,
   type IntelligenceHistoryMessage,
   type IntelligenceRuntimeContext
@@ -212,12 +213,18 @@ export async function POST(request: Request) {
       );
     }
 
+    // Safe, actionable failures with no upstream text or credentials exposed.
+    const status = error instanceof IntelligenceProviderError ? error.status : undefined;
+    const code = status === 429 ? "AI_PROVIDER_RATE_LIMIT"
+      : status === 401 || status === 403 ? "AI_PROVIDER_AUTH"
+      : status === 404 ? "AI_PROVIDER_MODEL_UNAVAILABLE"
+      : status !== undefined && status >= 500 ? "AI_PROVIDER_UPSTREAM"
+      : error instanceof Error && error.name === "AbortError" ? "AI_PROVIDER_TIMEOUT"
+      : "AI_PROVIDER_ERROR";
+    console.error("[Global Intelligence] provider failure", { code, status: status ?? null });
     return NextResponse.json(
-      {
-        code: "AI_PROVIDER_ERROR",
-        configured: true
-      },
-      { status: 502, headers: noStoreHeaders() }
+      { code, configured: true },
+      { status: code === "AI_PROVIDER_RATE_LIMIT" ? 503 : 502, headers: noStoreHeaders() }
     );
   }
 }
