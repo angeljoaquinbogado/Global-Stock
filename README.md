@@ -36,9 +36,21 @@ and starts Expo specifically for Expo Go with a fresh QR code.
 with its dark/red dashboard, demo inventory and functioning camera scanner.
 It does not connect to real business data or process payments.
 
-**Real login/inventory:** Configure the two public `EXPO_PUBLIC_SUPABASE_*`
-values in `apps/global-stocks-mobile/.env`, restart Expo, and sign in with
-your existing account. Never put service-role keys in a mobile app or git.
+**Real login/inventory:** Global Stock Mobile automatically loads the public
+Supabase client configuration from the existing web app's
+`/api/mobile-config` endpoint. This endpoint only exposes the same public
+client settings already present in the browser and refuses legacy JWTs
+without the `anon` role. **No local `.env` is needed** if the latest web
+deployment is ready and internet is available. Existing `.env` settings
+remain an optional fallback for independent development.
+
+Sign in with the same Supabase account as the web, or create a new account.
+If your user has no business, create one in Expo Go. The app can save new
+products atomically to the shared products table and the web workspace;
+refresh the PC page to read them. This initial integration does not provide
+live push updates or offline point-of-sale settlements.
+
+Never put service-role keys in a mobile app or git.
 
 Detailed mobile instructions: [mobile README](apps/global-stocks-mobile/README.md).
 

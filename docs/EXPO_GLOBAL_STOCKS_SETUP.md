@@ -52,3 +52,11 @@ Install **Expo Go** on the device from the Play Store or App Store. Start Expo f
 - Decide which Global Stock capabilities are shared with the existing Next.js/PWA version; avoid silently replacing the web app.
 - Never commit Expo credentials, tokens, signing certificates or private environment variables.
 - Confirm package versions and Expo/EAS project settings when actually initializing the mobile app.
+
+## Automated mobile connection (October 2026)
+
+- Expo's source is [apps/global-stocks-mobile](../apps/global-stocks-mobile/README.md).
+- Mobile resolves the same public Supabase URL and anon/publishable key through `https://globalstocks.vercel.app/api/mobile-config`, after Vercel deploys the route. The route never serves service-role credentials.
+- A local Expo `.env` with `EXPO_PUBLIC_SUPABASE_*` is optional, not required after that deployment.
+- The user can create their first business and product directly on mobile; products are persisted atomically in Supabase and the web workspace, respecting RLS.
+- Data synchronization is currently **pull-on-refresh**, not realtime; sale/payment synchronization is not implemented.

@@ -8,9 +8,10 @@ the production website.
 
 **Mobile foundation / internal preview, not production-ready point of sale.**
 
-- ✅ Native authentication with the existing Supabase account (encrypted session storage).
-- ✅ Business membership / ownership selection (respects Supabase RLS).
+- ✅ Automatic public client configuration from the web app; native authentication with the existing Supabase account (encrypted session storage).
+- ✅ Business membership / ownership selection, creating the first real business and its principal location (respects Supabase RLS).
 - ✅ Live product inventory, scoped by business, with SQLite last-known cache.
+- ✅ Atomic product creation in Supabase, updating both product records and the Next.js workspace. Manual refresh is still needed to see cross-device changes; there is no push/realtime subscription yet.
 - ✅ Camera scanning for EAN/UPC/Code128/QR via `expo-camera`.
 - ✅ Offline sale **drafts only**, stored on the current device.
 - ✅ Clearly marked offline UI demonstration if Supabase has not been configured.
@@ -42,12 +43,17 @@ packages the first time and starts Expo in **Expo Go mode**. Do not run
    stop the server with Ctrl+C, then from the mobile folder use:
    `npx expo start --go --clear --tunnel`.
 
-Without a configured `.env`, the app shows a clearly marked **Global Stock
-DEMO** dashboard with sample inventory and the native scanner. That is
-normal. Demo data is not real stock and demo actions cannot charge money.
+After the web deploys the `/api/mobile-config` endpoint, the app automatically
+connects to the **existing Global Stock Supabase project** and shows the
+real login. No local `.env` or EAS CLI setup is necessary for Expo Go.
 
-To connect the real Supabase account, create `apps/global-stocks-mobile/.env`
-from `.env.example` and set these **public client configuration** values:
+If the web endpoint is unavailable yet, it shows the clearly marked
+**Global Stock DEMO** with sample inventory and a retry button. Wait for
+the web deploy to finish, then press **Conectar con mi Global Stock real**.
+
+Alternatively, for a local developer override, create
+`apps/global-stocks-mobile/.env` from `.env.example` and set these
+**public client configuration** values:
 
 ```dotenv
 EXPO_PUBLIC_SUPABASE_URL=https://YOUR-SUPABASE-PROJECT.supabase.co
@@ -55,7 +61,22 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=YOUR_PUBLIC_ANON_OR_PUBLISHABLE_KEY
 ```
 
 Do not commit `.env`, and **never** use `service_role`. Restart Expo after
-editing `.env`. Then the real Global Stock sign-in screen will appear.
+editing `.env`.
+
+**Real workflow (first-time use):** log in with the same credentials as the
+Global Stock website, create the business if none exists, and add a test
+product from Inventory. The product is committed to Supabase and the web
+workspace in one database transaction; refresh the PC web page to see it.
+You can also add a product in the web UI and tap **Actualizar** on mobile.
+If the web page is in its explicit DEMO mode, switch to your real account:
+demo browser state is deliberately isolated and does not sync.
+
+No sensitive keys are returned from `/api/mobile-config`; only the public
+Supabase publishable/anon key and Supabase URL are sent to the native
+client. Database access remains restricted by Supabase RLS.
+
+Do not create **actual** offline sales or accept payments via drafts; the
+offline sale queue is explicitly disabled on mobile.
 
 This project is pinned to **Expo SDK 57 / React Native 0.86.3**, using the
 compatible official Expo `sdk-57` TypeScript template and native-module list.
