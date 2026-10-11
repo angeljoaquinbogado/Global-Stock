@@ -25,6 +25,7 @@ import NativeLegalGate from "./src/components/NativeLegalGate";
 import NativeAuthLanding from "./src/components/NativeAuthLanding";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
+import { SUPPORT_EMAIL, supportEmailUrl } from "./src/lib/support";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
 import { cacheBusinesses, cacheProducts, loadOfflineDrafts, purgeLocalAccountData, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
 
@@ -465,7 +466,7 @@ function MobileApp() {
           maxLength={100}
         />
         <Button title={creatingBusiness ? "Creando..." : "Crear negocio real"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
-        {notice ? <Text style={st.warning}>{notice}</Text> : null}
+        {notice ? <View style={{gap:5}}><Text style={st.warning}>{notice}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda para crear un negocio"))}><Text style={{color:C.red,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
         {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
           if (!supabase || !user) return;
           setBusinessLoading(true);
