@@ -464,7 +464,7 @@ export default function NativeWorkspace({
     </Modal>
 
     <NativeAssistant visible={showAi} onClose={() => setShowAi(false)}
-      client={client} business={business} products={products} dark={dark} />
+      client={client} business={business} userId={userId} products={products} dark={dark} />
   </SafeAreaView>;
 }
 
