@@ -32,7 +32,10 @@ export default function PrivacyPage() {
           datos de cuenta, nombre y perfil del negocio, configuración de idioma y
           moneda, productos, códigos de barras, costos, precios, cantidades de
           stock, ventas, actividad operativa, clientes, proveedores, notas,
-          comprobantes internos y datos recibidos desde integraciones autorizadas.
+          comprobantes internos, datos fiscales que el comerciante decida aportar
+          (incluidos razón social, CUIT, condición impositiva, domicilio y punto
+          de venta), solicitudes de vinculación con dominios públicos de tiendas
+          y datos recibidos desde integraciones autorizadas.
           Los proveedores de infraestructura también pueden registrar datos
           técnicos necesarios para operar y proteger el servicio, como dirección
           IP, agente de usuario, fecha, ruta solicitada y registros de errores.

@@ -66,3 +66,38 @@ La persona responsable debe marcar y documentar cada evidencia, no aprobar en bl
 - [ ] Cámara, accesibilidad, iOS/Android físicos, reinicio, sin red y dispositivo de gama baja.
 - [ ] Alertas, soporte, registro de errores, backups/restauración, respuesta a incidentes.
 - [ ] Revisión jurídica y requisitos de publicación para Argentina confirmados.
+
+## Canales de venta: solicitudes y conexiones verificadas
+
+El móvil muestra **Tienda online** con:
+- Mercado Libre (OAuth), Shopify (OAuth), Tiendanube (OAuth), WooCommerce (API), Wix (API/app), PrestaShop (API), VTEX (API), tienda propia/web personal y **Otra plataforma**.
+- Nombre opcional/obligatorio según plataforma y URL pública HTTPS; rechaza URLs locales, IP, protocolos inseguros y contraseñas embebidas.
+- **Solicitar vinculación** inserta un estado `requested` en `global_stock_integration_requests` para el negocio activo. No descarga productos ni pedidos. Sólo dueños/administradores tienen INSERT; el RLS permite a miembros leer sus solicitudes.
+- **Conexión activa** se muestra solamente desde `global_stock_integration_accounts` cuando su estado es `connected`. No se puede convertir una solicitud en `verified` desde el cliente.
+- Los proveedores OAuth necesitan registro de aplicación, secretos sólo del servidor, scopes mínimos, consentimiento del titular, callback firmado, webhooks idempotentes, cuota y reconciliación; los conectores custom necesitan demostrar administración/control técnico de la tienda.
+- **No existe conexión universal por pegar un enlace.** El objetivo es una arquitectura extensible por adaptadores; debe evaluarse cada tienda según API/permiso/contrato. No rastrear datos privados ni guardar claves sin autorización.
+
+### Pruebas de integraciones pendientes
+
+- [ ] Probar que negocio A no puede leer/escribir solicitudes de negocio B, incluso con membresía revocada.
+- [ ] Verificar el estado OAuth real de Shopify, Tiendanube y Mercado Libre con usuarios de prueba y cuentas oficiales antes de mostrar «Conectado».
+- [ ] Probar entrada maliciosa de URL: IPv4/IPv6, loopback, red privada, URL con credenciales, puertos, phishing y duplicados.
+- [ ] Implementar protocolo de autorización y verificación para tiendas propias, con permisos explícitos y revocación.
+- [ ] Respetar términos de uso y límites de API de cada plataforma, incluidos alcances de datos de compradores.
+
+## ARCA (ex AFIP): qué está hecho y qué NO
+
+**Hecho:** el módulo `ARCA · Facturación` permite guardar por negocio razón social, CUIT con validación de dígito verificador, condición tributaria, domicilio fiscal y punto de venta. El formulario sólo usa Supabase y sus RLS; no pide clave fiscal, certificados ni claves privadas. Para nuevos perfiles usa entorno `testing`, `enabled=false`. Informa si el servidor fiscal tiene un proveedor configurado, lo cual NO acredita que esté certificado ni que emita realmente.
+
+**No habilitado:** autenticación de contribuyentes, certificados, servicio fiscal contratado, intercambio con WSAA/WSFEv1 u otras API correspondientes, homologación aprobada, autorización de comprobantes o emisión real de CAE. Los comprobantes internos nunca son facturas electrónicas oficiales.
+
+Antes de facturar:
+1. Identificar condición tributaria, CUIT, sucursal/punto de venta y tipo de comprobantes del contribuyente con un profesional matriculado.
+2. Confirmar documentación y habilitaciones oficiales vigentes de ARCA, incluidas autorizaciones del titular y certificados adecuados.
+3. Integrar un proveedor fiscal seguro o servicios oficiales desde **backend**, con credenciales cifradas por empresa, auditoría, revocación y pruebas en homologación.
+4. Probar idempotencia y consultas de autorización tras timeouts; no reintentar ciegamente solicitudes que puedan haber emitido un CAE.
+5. Revisar obligaciones de factura, AFIP/ARCA, IVA, ingresos brutos, protección de datos, requisitos provinciales y procesos de soporte antes de operar en producción.
+6. Recién entonces, con la aprobación expresa del titular, habilitar el servicio por negocio.
+
+**Estos pasos requieren documentación oficial vigente y asesoramiento fiscal.** No es posible garantizar hoy cumplimiento de todas las obligaciones argentinas sin esa verificación.
+

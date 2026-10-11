@@ -4,6 +4,25 @@ Native mobile prototype kept **independent** of the existing Next.js/PWA site
 (`apex-stock-os/`) and the older Flutter root app. Changes here do not deploy to
 the production website.
 
+## Nuevos módulos de beta Argentina (11/10/2026)
+
+Desde **Menú → Tienda online** podés seleccionar Mercado Libre, Shopify,
+Tiendanube, WooCommerce, Wix, PrestaShop, VTEX, **Tienda propia** u
+**Otra plataforma**, e indicar un sitio HTTPS público. La acción disponible
+registra una **solicitud pendiente** con Supabase RLS; **NO** equivale a
+conexión, autenticación ni sincronización. Solamente una autorización real del
+titular a través de OAuth/API/conector verificado puede habilitar el acceso.
+La app muestra conexiones reales ya autorizadas por separado.
+
+Desde **Menú → ARCA · Facturación** podés registrar razón social, CUIT,
+condición fiscal, domicilio y punto de venta para el negocio activo.
+Se trata de **preparación**: no genera ni autoriza comprobantes/CAE,
+no pide claves fiscales y deja deshabilitada la emisión en nuevas cuentas.
+Solo Argentina durante la beta.
+
+El plan, obligaciones argentinas y bloqueos de lanzamiento están documentados
+en [ARGENTINA_BETA_LAUNCH_2026.md](../../docs/ARGENTINA_BETA_LAUNCH_2026.md).
+
 ## Status
 
 **Mobile foundation / internal preview, not production-ready point of sale.**
