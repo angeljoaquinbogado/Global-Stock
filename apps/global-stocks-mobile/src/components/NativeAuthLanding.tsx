@@ -7,7 +7,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as SecureStore from "expo-secure-store";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
-import Svg, { Circle, Defs, RadialGradient, Stop } from "react-native-svg";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff,
   Globe2, LockKeyhole, Moon, ShieldCheck, Sun
@@ -112,9 +111,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   const p = dark ? palette.dark : palette.light;
   const t = content[language];
   const compact = height < 730;
-  const logoSize = Math.min(compact ? 116 : 154, Math.floor(width * 0.405));
-  // Fixed-height logo area, separated from copy and never clipped.
-  const welcomeVisualHeight = compact ? 192 : 228;
+  const logoSize = Math.min(compact ? 116 : 146, Math.floor(width * 0.39));
   const signup = stage === "signup";
   const form = stage !== "welcome";
   const styles = createStyles(p);
@@ -157,22 +154,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
   return (
     <SafeAreaView edges={["top","bottom"]} style={{ flex: 1, backgroundColor: p.bg }}>
       <StatusBar style={dark ? "light" : "dark"} />
-      {/* One continuous page-wide glow. No separate clipped panel under the toolbar. */}
-      <Svg pointerEvents="none" width="100%" height="100%" viewBox="0 0 380 800"
-        preserveAspectRatio="none" style={StyleSheet.absoluteFillObject}>
-        <Defs>
-          <RadialGradient id="pageGlow" cx="50%" cy="50%" r="50%">
-            <Stop offset="0%" stopColor={dark ? "#A80E24" : "#C94B62"} stopOpacity={dark ? "0.23" : "0.11"} />
-            <Stop offset="58%" stopColor="#B0243D" stopOpacity="0.045" />
-            <Stop offset="100%" stopColor="#B0243D" stopOpacity="0" />
-          </RadialGradient>
-        </Defs>
-        <Circle cx="190" cy="237" r="218" fill="url(#pageGlow)" />
-      </Svg>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={form && Platform.OS === "ios" ? "padding" : undefined}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
-          key={form ? "auth-fields" : "welcome"}
-          keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18 }]}
@@ -216,32 +199,28 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
             ) : null}
           </View>
 
-          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 8 : (compact ? 6 : 14) }]}>
-            <View style={[styles.logoStage, { height: form ? 108 : welcomeVisualHeight }]}>
+          <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 12 : (compact ? 10 : 22) }]}>
+            <View style={[styles.logoStage, { height: form ? 112 : (compact ? 194 : 216) }]}>
+              <View pointerEvents="none" style={[styles.logoHalo,{ backgroundColor: dark ? "rgba(180,18,42,0.14)" : "rgba(194,29,65,0.075)" }]} />
               <Image source={require("../../assets/brand-mark.png")}
-                style={{
-                  position: "absolute", left: "50%",
-                  marginLeft: -(form ? 44 : logoSize / 2),
-                  top: form ? 10 : Math.round((welcomeVisualHeight - logoSize) / 2),
-                  width: form ? 88 : logoSize, height: form ? 88 : logoSize
-                }}
+                style={{ width: form ? 88 : logoSize, height: form ? 88 : logoSize }}
                 resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
             </View>
             {!form ? (
-              <View style={styles.welcomeCopy}>
+              <>
                 <Text style={styles.heroOverline}>{t.welcome}</Text>
                 <Text style={styles.heroName}>
                   Global <Text style={{ color: dark ? "#FF515C" : "#B90D22" }}>Stock</Text>
                 </Text>
                 <Text style={styles.tagline}>{t.tagline}</Text>
                 <Text style={styles.heroDescription}>{t.small}</Text>
-              </View>
+              </>
             ) : (
-              <View style={styles.welcomeCopy}>
+              <>
                 <Text style={styles.formOverline}>{t.access}</Text>
                 <Text style={styles.formHeroTitle}>{signup ? t.signUpTitle : t.signTitle}</Text>
                 <Text style={styles.formSubtitle}>{signup ? t.signUpSubtitle : t.signSubtitle}</Text>
-              </View>
+              </>
             )}
           </View>
 
@@ -373,8 +352,8 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
     compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
-    logoStage: { position:"relative",width:"100%",alignItems:"center",justifyContent:"flex-start",marginBottom:12,flexShrink:0,overflow:"visible" },
-    welcomeCopy: { width:"100%",alignItems:"center",justifyContent:"flex-start",flexShrink:0,paddingHorizontal:1 },
+    logoStage: { position:"relative",width:"100%",alignItems:"center",justifyContent:"center",marginBottom:22,flexShrink:0,overflow:"visible" },
+    logoHalo: { position:"absolute",width:174,height:174,borderRadius:87,shadowColor:"#C71C35",shadowOpacity:0.17,shadowRadius:44,shadowOffset:{width:0,height:0} },
     heroOverline: { color:p.secondary,fontSize:14,fontWeight:"600",marginTop:0,textAlign:"center",flexShrink:0 },
     heroName: { color:p.title,fontSize:40,fontWeight:"900",letterSpacing:-1.9,textAlign:"center",marginTop:5,flexShrink:0 },
     tagline: { color:p.title,fontSize:19,fontWeight:"700",textAlign:"center",marginTop:13,letterSpacing:-0.2 },
