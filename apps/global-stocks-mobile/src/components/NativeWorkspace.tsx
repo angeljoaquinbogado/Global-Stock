@@ -160,11 +160,15 @@ export default function NativeWorkspace({
   useEffect(() => {
     let alive = true;
     setCanManageInventory(false);
-    client.from("global_stock_members").select("role")
-      .eq("business_id", business.id).eq("user_id", userId).eq("active", true).maybeSingle()
-      .then(({ data }) => {
+    void (async () => {
+      try {
+        const { data } = await client.from("global_stock_members").select("role")
+          .eq("business_id", business.id).eq("user_id", userId).eq("active", true).maybeSingle();
         if (alive) setCanManageInventory(["owner", "admin", "manager", "warehouse"].includes(String(data?.role ?? "")));
-      });
+      } catch {
+        if (alive) setCanManageInventory(false);
+      }
+    })();
     return () => { alive = false; };
   }, [client, business.id, userId]);
 
@@ -503,7 +507,7 @@ function stylesFor(p: Palette) {
     pageTitle: { fontSize:23,fontWeight:"800",letterSpacing:-0.75,color:p.text,lineHeight:29 },
     pageSubtitle: { color:p.muted,fontSize:11.5,lineHeight:18 },
     metricsGrid: { flexDirection:"row",flexWrap:"wrap",columnGap:9,rowGap:9 },
-    metric: { width:"48.65%",minHeight:111,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,borderRadius:17,padding:13,justifyContent:"space-between" },
+    metric: { width:"48%",minHeight:111,borderWidth:1,borderColor:p.border,backgroundColor:p.surface,borderRadius:17,padding:13,justifyContent:"space-between" },
     metricIcon: { width:31,height:31,borderRadius:12,backgroundColor:p.red+"24",alignItems:"center",justifyContent:"center",marginBottom:8 },
     metricLabel: { color:p.muted,fontSize:10.5 },
     metricValue: { color:p.text,fontWeight:"800",fontSize:14.5,letterSpacing:-0.35,marginTop:4 },
