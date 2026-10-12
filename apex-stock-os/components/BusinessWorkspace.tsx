@@ -5984,6 +5984,14 @@ function SettingsModule({
           </h3>
           <div className="mt-4 flex flex-wrap items-center gap-3">
             <InstallAppButton language={language} />
+            {typeof window !== "undefined" &&
+              Boolean((window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView) && (
+              <button type="button"
+                onClick={() => (window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView?.postMessage(JSON.stringify({type:"open_legacy_recovery"}))}
+                className="rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-xs font-semibold text-[var(--apex-muted)]">
+                Recuperar borradores de Expo anterior
+              </button>
+            )}
             <button
               type="button"
               onClick={onSignOut}
