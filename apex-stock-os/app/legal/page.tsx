@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { FileText, LockKeyhole, Scale, ShieldCheck } from "lucide-react";
+import { FileText, LockKeyhole, Scale, ShieldCheck, Cookie } from "lucide-react";
 
 import { PublicPage } from "@/components/PublicSiteChrome";
 
@@ -22,6 +22,12 @@ const cards = [
     icon: Scale,
     title: "Términos de uso",
     body: "Reglas de uso de la plataforma, cuentas, responsabilidades e integraciones."
+  },
+  {
+    href: "/legal/cookies",
+    icon: Cookie,
+    title: "Cookies y almacenamiento",
+    body: "Cuáles son los datos técnicos necesarios, las analíticas opcionales y cómo eliminarlos."
   },
   {
     href: "/legal/security",
@@ -48,7 +54,7 @@ export default function LegalHubPage() {
           de uso de la plataforma.
         </p>
 
-        <div className="mt-10 grid gap-3 md:grid-cols-3">
+        <div className="mt-10 grid gap-3 md:grid-cols-2">
           {cards.map(({ href, icon: Icon, title, body }) => (
             <Link
               key={href}
@@ -74,11 +80,11 @@ export default function LegalHubPage() {
                 creado y operado por <strong className="text-white">Angel Joaquin Bogado</strong>,
                 con base en la Provincia de Buenos Aires, Argentina. Global Stock
                 no constituye hoy una sociedad separada del operador. Soporte:{" "}
-                <a className="text-white" href="mailto:angeljoaquinbogado@gmail.com">
-                  angeljoaquinbogado@gmail.com
+                <a className="text-white" href="mailto:support.globalstock@gmail.com">
+                  support.globalstock@gmail.com
                 </a>. Contacto legal y de privacidad:{" "}
-                <a className="text-white" href="mailto:joaquinbogado555@gmail.com">
-                  joaquinbogado555@gmail.com
+                <a className="text-white" href="mailto:support.globalstock@gmail.com">
+                  support.globalstock@gmail.com
                 </a>.
               </p>
             </div>
