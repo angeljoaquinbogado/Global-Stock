@@ -28,6 +28,7 @@ export default function UnifiedApp() {
   const currentUrlRef = useRef(WEB_ORIGIN + "/");
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [darkTheme, setDarkTheme] = useState(true);
   const [nativeRecovery, setNativeRecovery] = useState(false);
   const [webKey, setWebKey] = useState(0);
   const [canGoBack, setCanGoBack] = useState(false);
@@ -160,6 +161,8 @@ export default function UnifiedApp() {
       closeScanner();
     } else if (message.type === "open_legacy_recovery") {
       setNativeRecovery(true);
+    } else if (message.type === "theme_changed") {
+      if (typeof (message as { dark?: unknown }).dark === "boolean") setDarkTheme(Boolean((message as { dark?: boolean }).dark));
     } else if (message.type === "session_cleared") {
       savedLegacySessionRef.current = null;
       migrationSentRef.current = true;
@@ -196,8 +199,8 @@ export default function UnifiedApp() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={["top", "bottom"]} style={s.root}>
-        <StatusBar style="light" />
+      <SafeAreaView edges={["top", "bottom"]} style={[s.root,!darkTheme && {backgroundColor:"#F5F5F7"}]}>
+        <StatusBar style={cameraOpen || darkTheme ? "light" : "dark"} />
         <WebView
           key={webKey}
           ref={webRef}
