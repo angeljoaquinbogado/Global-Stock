@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { ShieldCheck, ExternalLink, Loader2 } from "lucide-react";
 
 export const TERMS_VERSION = "2026-10-11-ar-beta";
-export const PRIVACY_VERSION = "2026-10-12-v4";
+export const PRIVACY_VERSION = "2026-10-12-v5";
 
 type Props = {
   client: SupabaseClient;
