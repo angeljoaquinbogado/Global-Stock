@@ -41,14 +41,14 @@ CREATE OR REPLACE FUNCTION public.global_stock_newsletter_unsubscribe(p_token uu
 RETURNS boolean
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public
 AS $$
-DECLARE v_changed boolean;
+DECLARE v_changed bigint;
 BEGIN
   UPDATE public.global_stock_newsletter_preferences
    SET subscribed=false, unsubscribed_at=now(), updated_at=now(),
        unsubscribe_token=gen_random_uuid()
    WHERE unsubscribe_token=p_token AND subscribed=true;
   GET DIAGNOSTICS v_changed = ROW_COUNT;
-  RETURN v_changed;
+  RETURN v_changed > 0;
 END;
 $$;
 REVOKE ALL ON FUNCTION public.global_stock_newsletter_unsubscribe(uuid) FROM PUBLIC;
