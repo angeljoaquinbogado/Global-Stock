@@ -223,6 +223,8 @@ export default function NativeAssistant({ visible, onClose, client, business, us
         if (data.code === "AI_NOT_CONNECTED") throw new Error("Global Intelligence está pendiente de conexión en el servidor. Intentá más tarde.");
         if (data.code === "AI_PROVIDER_MODEL_UNAVAILABLE") throw new Error("El modelo de IA configurado ya no está disponible. Necesita actualizarse en el servidor.");
         if (data.code === "AI_PROVIDER_AUTH") throw new Error("El proveedor de IA rechazó las credenciales del servidor. Necesita revisar su configuración.");
+        if (data.code === "AI_USAGE_PROTECTION_UNAVAILABLE") throw new Error("La protección de uso de Global Intelligence no está disponible. Probá más tarde o contactá soporte.");
+        if (data.code === "AI_RATE_LIMIT") throw new Error("Hiciste varias consultas seguidas. Esperá un momento antes de enviar otra.");
         if (data.code === "AI_PROVIDER_RATE_LIMIT") throw new Error("El servicio de IA alcanzó su límite temporal de solicitudes. Probá en unos minutos.");
         if (data.code === "AI_PROVIDER_TIMEOUT") throw new Error("El servicio de IA tardó demasiado en responder. Podés intentarlo nuevamente.");
         if (data.code === "AI_PROVIDER_UPSTREAM") throw new Error("El proveedor de IA está teniendo inconvenientes. Probá más tarde.");
