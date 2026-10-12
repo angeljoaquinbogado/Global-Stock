@@ -181,6 +181,9 @@ export function PublicFooter({
               <Link href="/legal/privacy" className="transition-colors hover:text-white">
                 Privacidad
               </Link>
+              <Link href="/legal/cookies" className="transition-colors hover:text-white">
+                Cookies y almacenamiento
+              </Link>
               <Link href="/legal/terms" className="transition-colors hover:text-white">
                 Términos
               </Link>
