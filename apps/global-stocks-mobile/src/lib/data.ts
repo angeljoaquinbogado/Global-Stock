@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 export type BusinessKind =
-  | "retail" | "wholesale" | "restaurant" | "services" | "manufacturing" | "other";
+  | "retail" | "wholesale" | "restaurant" | "services" | "industry" | "ecommerce" | "advisory" | "other";
 
 export type Business = {
   id: string;
@@ -70,7 +70,7 @@ export async function createBusiness(
 ): Promise<Business> {
   const name = rawName.trim();
   if (name.length < 2 || name.length > 100) throw new Error("Escribí un nombre de negocio de 2 a 100 caracteres.");
-  const businessTypes: BusinessKind[] = ["retail", "wholesale", "restaurant", "services", "manufacturing", "other"];
+  const businessTypes: BusinessKind[] = ["retail", "wholesale", "restaurant", "services", "industry", "ecommerce", "advisory", "other"];
   if (!businessTypes.includes(type)) throw new Error("Seleccioná un tipo de negocio válido.");
 
   const { data, error } = await client
