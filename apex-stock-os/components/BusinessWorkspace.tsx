@@ -1,7 +1,7 @@
 "use client";
 
 import { ApexSelect } from "@/components/ui/ApexSelect";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
   Activity as ActivityIcon,
@@ -1174,6 +1174,7 @@ export function BusinessWorkspace({
 }: BusinessWorkspaceProps) {
   const labels = copy[language];
   const locale = localeByLanguage[language];
+  const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [products, setProducts] = useState<Product[]>([]);
@@ -3879,9 +3880,16 @@ export function BusinessWorkspace({
                   Global Stock
                 </p>
               </div>
-              <h1 className="mt-1 truncate text-lg font-semibold tracking-[-0.03em]">
+              <motion.h1
+                key={activeModule}
+                layoutId="global-stock-active-module-title"
+                initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: reduceMotion ? 0 : 0.18 }}
+                className="mt-1 truncate text-lg font-semibold tracking-[-0.03em]"
+              >
                 {labels.nav[activeModule]}
-              </h1>
+              </motion.h1>
             </div>
 
             <div className="ml-auto flex items-center gap-2">
@@ -3919,6 +3927,15 @@ export function BusinessWorkspace({
         </header>
 
         <div className="mx-auto w-full min-w-0 max-w-[1500px] px-4 py-5 sm:px-6 lg:px-6 xl:px-8 lg:py-7">
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={activeModule}
+              initial={reduceMotion ? false : { opacity: 0, y: 8, filter: "blur(5px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, filter: "blur(5px)" }}
+              transition={{ duration: reduceMotion ? 0 : 0.20, ease: "easeOut" }}
+              className="min-w-0"
+            >
             {activeModule === "overview" && (
               <OverviewModule
                 labels={labels}
@@ -4139,10 +4156,12 @@ export function BusinessWorkspace({
                 locale={locale}
               />
             )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </section>
 
-      <nav className="fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg lg:hidden">
+      <nav className="gs-mobile-dock fixed inset-x-0 bottom-0 z-50 border-t border-[var(--apex-border)] bg-[var(--apex-surface)]/96 px-2 pb-[max(8px,env(safe-area-inset-bottom))] pt-2 backdrop-blur-lg lg:hidden">
         <div className="grid grid-cols-5 items-end gap-1">
           <MobileNavButton
             active={activeModule === "overview"}
