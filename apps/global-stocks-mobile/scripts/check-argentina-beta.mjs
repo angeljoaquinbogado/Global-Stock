@@ -20,6 +20,7 @@ const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
 const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
 const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
+const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
@@ -63,13 +64,27 @@ must(
   "Manual barcode lookup must support read-only searches and permission-gated cloud product creation."
 );
 must(
-  app.includes("MOBILE_BUSINESS_TYPES") &&
+  app.includes("MOBILE_BUSINESS_CATEGORIES") &&
   app.includes("newBusinessType") &&
   app.includes("newBusinessName, newBusinessType") &&
   mobileData.includes("business_type: type") &&
   mobileData.includes("Seleccioná un tipo de negocio válido."),
   "Mobile business onboarding must not assume every business is retail."
 );
+// The mobile Expo and browser marketing lists must use the same human
+// readable sector IDs; formatting/line endings are deliberately irrelevant.
+const readSectorIds = (source) => [...source.matchAll(/\{\s*id:\s*"([^"]+)"\s*,\s*(?:label|icon):/g)]
+  .map(match => match[1]);
+const nativeSectorIds = readSectorIds(app);
+const webSectorIds = readSectorIds(sectorsWeb);
+must(nativeSectorIds.length === 21 &&
+  JSON.stringify(nativeSectorIds) === JSON.stringify(webSectorIds),
+  "Expo and web must keep all 21 natural business sectors aligned.");
+must(legal.includes("/legal/cookies") &&
+  privacy.includes("/legal/cookies") &&
+  mobileData.includes('"industry"') &&
+  mobileData.includes('"ecommerce"'),
+  "Legal disclosures and business type IDs must stay aligned across platforms.");
 must(route.includes("authorizeBusinessRequest(request, businessId)") && route.includes("AI_CONSENT_REQUIRED"), "The server must enforce tenant membership and AI consent.");
 must(offline.includes("AUTOMATIC_SALE_SYNC_ENABLED = false"), "Automatic offline checkout must remain disabled.");
 must(!offline.includes("service_role"), "Mobile storage must not include a service-role secret.");
