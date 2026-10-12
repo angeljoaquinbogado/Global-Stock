@@ -3261,3 +3261,18 @@ textarea:focus-visible {
     scroll-margin-top: 84px;
   }
 }
+
+/* Shared Global Stock navigation magnification. Transform-only interactions
+   avoid layout shifts and remain disabled for reduced-motion visitors. */
+@media (hover: hover) and (pointer: fine) {
+  .gs-mobile-dock button { transition: transform 180ms cubic-bezier(.2,.8,.2,1), opacity 180ms ease; transform-origin: bottom center; }
+  .gs-mobile-dock button:hover { transform: translateY(-4px) scale(1.12); }
+  .gs-mobile-dock button:hover + button,
+  .gs-mobile-dock button:has(+ button:hover) { transform: scale(1.045); }
+  .gs-sector-card { transition: transform 180ms cubic-bezier(.2,.8,.2,1), background-color 180ms ease, box-shadow 180ms ease; }
+  .gs-sector-card:hover { transform: scale(1.035); }
+}
+.gs-mobile-dock button:active, .gs-sector-card:active { transform: scale(1.035); }
+@media (prefers-reduced-motion: reduce) {
+  .gs-mobile-dock button, .gs-sector-card { transition-duration: 0ms !important; transform: none !important; }
+}
