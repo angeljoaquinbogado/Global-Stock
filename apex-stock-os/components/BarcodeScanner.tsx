@@ -40,6 +40,8 @@ type NativeBarcodeDetectorConstructor = {
 declare global {
   interface Window {
     BarcodeDetector?: NativeBarcodeDetectorConstructor;
+    ReactNativeWebView?: { postMessage: (message: string) => void };
+    __GLOBAL_STOCK_EXPO__?: boolean;
   }
 }
 
@@ -289,8 +291,8 @@ export const BarcodeScanner = forwardRef<
   const liveCameraAvailable = useMemo(() => {
     if (typeof window === "undefined") return false;
     return (
-      window.isSecureContext &&
-      Boolean(navigator.mediaDevices?.getUserMedia)
+      (Boolean(window.ReactNativeWebView) ||
+        (window.isSecureContext && Boolean(navigator.mediaDevices?.getUserMedia)))
     );
   }, []);
 
@@ -364,6 +366,15 @@ export const BarcodeScanner = forwardRef<
     stopCameraOnly();
     setProduct(null);
     resolvedRef.current = false;
+
+    // Inside Expo, use Expo Camera rather than an embedded WKWebView camera
+    // permission flow. Native returns only the barcode; API requests stay here.
+    if (window.ReactNativeWebView) {
+      setStatus("requesting");
+      setMessage(copy.requesting);
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: "open_scanner" }));
+      return;
+    }
 
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
       setStatus("idle");
@@ -488,6 +499,28 @@ export const BarcodeScanner = forwardRef<
       URL.revokeObjectURL(url);
     }
   }
+
+  useEffect(() => {
+    const receiveBarcode = (event: Event) => {
+      const payload = (event as CustomEvent<{ barcode?: string }>).detail;
+      if (typeof payload?.barcode === "string") {
+        void resolveBarcode(payload.barcode);
+      }
+    };
+    const cancelled = () => {
+      resolvedRef.current = false;
+      setStatus("idle");
+      setMessage(copy.idle);
+    };
+    window.addEventListener("globalstock:native-barcode", receiveBarcode);
+    window.addEventListener("globalstock:native-scanner-cancelled", cancelled);
+    return () => {
+      window.removeEventListener("globalstock:native-barcode", receiveBarcode);
+      window.removeEventListener("globalstock:native-scanner-cancelled", cancelled);
+    };
+    // Each mount/locale/business binds the current authenticated lookup closure.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [businessId, language, onProduct]);
 
   function submitManual(event: FormEvent) {
     event.preventDefault();
