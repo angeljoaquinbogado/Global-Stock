@@ -4,16 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "23 11 * * *"
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/global-stock-browser-qa.yml"
-      - "apex-stock-os/tests/e2e/**"
-      - "apex-stock-os/playwright.config.ts"
-      - "apex-stock-os/components/**"
-      - "apex-stock-os/app/download/**"
-      - "apex-stock-os/app/globals.css"
-
 permissions:
   contents: read
 
