@@ -16,6 +16,7 @@ export type Product = {
   name: string;
   sku: string | null;
   barcode: string | null;
+  client_key?: string | null;
   category: string | null;
   price: number;
   stock: number;
@@ -153,7 +154,7 @@ export async function loadProducts(client: SupabaseClient, businessId: string): 
   for (let offset = 0; ; offset += pageSize) {
     const { data, error } = await client
       .from("global_stock_products")
-      .select("id,business_id,name,sku,barcode,category,price,cost,stock,min_stock,active")
+      .select("id,business_id,name,sku,barcode,client_key,category,price,cost,stock,min_stock,active")
       .eq("business_id", businessId)
       .eq("active", true)
       .order("name")
