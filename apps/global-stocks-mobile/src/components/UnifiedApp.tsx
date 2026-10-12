@@ -24,6 +24,7 @@ export default function UnifiedApp() {
   const scannedRef = useRef(false);
   const savedLegacySessionRef = useRef<{access_token: string; refresh_token: string} | null>(null);
   const migrationSentRef = useRef(false);
+  const webReadyRef = useRef(false);
   const currentUrlRef = useRef(WEB_ORIGIN + "/");
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -49,7 +50,7 @@ export default function UnifiedApp() {
         access_token: session.access_token,
         refresh_token: session.refresh_token
       };
-      if (pageReady) migrateSecureSession();
+      if (webReadyRef.current) migrateSecureSession();
     })().catch(() => { /* Normal on new installs without a prior Expo login. */ });
     return () => { mounted = false; };
     // The readiness callback handles the reverse race with web initialization.
@@ -96,6 +97,7 @@ export default function UnifiedApp() {
   function reload() {
     setError("");
     setPageReady(false);
+    webReadyRef.current = false;
     setLoading(true);
     setCameraOpen(false);
     setPageStartedAt(Date.now());
@@ -147,6 +149,7 @@ export default function UnifiedApp() {
       return;
     }
     if (message.type === "app_ready") {
+      webReadyRef.current = true;
       setPageReady(true);
       migrateSecureSession();
       setLoading(false);
