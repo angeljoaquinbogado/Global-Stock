@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalArticle
       eyebrow="Privacidad"
       title="Política de privacidad"
-      intro="Versión 2026-10-11-v3. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
+      intro="Versión 2026-10-12-v4. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
     >
       <section>
         <h2>1. Responsable y alcance</h2>
