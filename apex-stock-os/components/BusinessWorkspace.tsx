@@ -3869,8 +3869,16 @@ export function BusinessWorkspace({
       <section className="min-w-0 pb-28 lg:pb-0">
         <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-lg">
           <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:px-8">
-            <div className="lg:hidden">
+            <div className="min-w-0 lg:hidden">
               <Logo withWordmark />
+              <motion.p
+                key={activeModule}
+                layoutId={"gs-mobile-shared-title-" + activeModule}
+                className="mt-1 truncate text-[10px] font-bold tracking-[.04em] text-[var(--apex-muted)]"
+                transition={{ duration: reduceMotion ? 0 : .26, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {labels.nav[activeModule]}
+              </motion.p>
             </div>
 
             <div className="hidden min-w-0 lg:block">
@@ -4312,9 +4320,13 @@ export function BusinessWorkspace({
                               >
                                 <Icon size={17} />
                               </span>
-                              <span className="min-w-0 leading-tight">
+                              <motion.span
+                                layoutId={"gs-mobile-shared-title-" + id}
+                                className="min-w-0 leading-tight"
+                                transition={{ duration: reduceMotion ? 0 : .26, ease: [0.22, 1, 0.36, 1] }}
+                              >
                                 {labels.nav[id]}
-                              </span>
+                              </motion.span>
                             </button>
                           );
                         })}
