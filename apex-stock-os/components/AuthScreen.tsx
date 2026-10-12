@@ -78,15 +78,15 @@ const copy: Record<
 > = {
   es: {
     intro:
-      "Tu negocio conectado al mundo. Stock, ventas, rentabilidad e inteligencia en una sola plataforma.",
+      "Consultá tus productos, ventas y stock. Todo lo que necesitás del negocio, a mano.",
     network: "Red global activa",
     signIn: "Iniciar sesión",
     signUp: "Crear cuenta",
     ready: "Global Intelligence activa",
-    signInTitle: "Volvé al control.",
+    signInTitle: "Qué bueno verte de nuevo.",
     signUpTitle: "Creá tu cuenta.",
     signInDescription:
-      "Entrá a tu operación global desde cualquier dispositivo.",
+      "Entrá para ver cómo viene el negocio.",
     signUpDescription:
       "Empezá gratis y configurá tu negocio, moneda y stock en pocos pasos.",
     name: "Nombre",
@@ -379,6 +379,7 @@ export function AuthScreen({
   const configured = useMemo(() => isSupabaseConfigured(), []);
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
+  const [adultConsent, setAdultConsent] = useState(false);
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [industry, setIndustry] = useState<BusinessTypeValue>("retail");
@@ -417,6 +418,7 @@ export function AuthScreen({
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
+    if (nextMode === "signup") setAdultConsent(false);
     setError("");
     setShowPassword(false);
   }
@@ -460,6 +462,10 @@ export function AuthScreen({
 
     if (mode === "signup" && businessName.trim().length < 2) {
       setError(signupLabels.invalidBusinessName);
+      return;
+    }
+    if (mode === "signup" && !adultConsent) {
+      setError("Para crear la cuenta necesitás tener 18 años o más y aceptar las condiciones de la beta argentina.");
       return;
     }
 
@@ -952,6 +958,27 @@ export function AuthScreen({
                       </div>
                     </label>
 
+                    {mode === "signup" && (
+                      <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-3.5">
+                        <label className="flex cursor-pointer items-start gap-3 text-xs leading-5">
+                          <input type="checkbox" checked={adultConsent}
+                            onChange={event => setAdultConsent(event.target.checked)}
+                            required className="mt-1 h-4 w-4 shrink-0 accent-[#8F0000]"
+                            aria-label="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
+                          />
+                          <span className={mutedClass}>
+                            Declaro que tengo al menos 18 años, que el negocio opera en Argentina y que leí y acepto los{" "}
+                            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Términos</a>
+                            {" "}y la{" "}
+                            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Política de privacidad</a>.
+                            {" "}Consultá las{" "}
+                            <a href="/legal/cookies" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">cookies y el almacenamiento</a>.
+                          </span>
+                        </label>
+                        <p className={"mt-2 text-[11px] leading-5 " + mutedClass}>Es una declaración, no una verificación documental de edad. La beta actual no permite cuentas de menores.</p>
+                      </div>
+                    )}
+
                     {error && (
                       <div
                         role="alert"
@@ -963,7 +990,7 @@ export function AuthScreen({
 
                     <button
                       type="submit"
-                      disabled={pending}
+                      disabled={pending || (mode === "signup" && !adultConsent)}
                       className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {pending ? (
@@ -974,14 +1001,14 @@ export function AuthScreen({
                       {mode === "signin" ? labels.enter : labels.create}
                     </button>
 
-                    <GoogleIdentityButton
+                    {(mode !== "signup" || adultConsent) && <GoogleIdentityButton
                       dark={dark}
                       label={labels.google}
                       language={language}
                       currency={currency}
                       onAuthenticated={() => onAuthenticated()}
                       onError={() => setError(labels.authError)}
-                    />
+                    />}
                   </form>
                 </motion.div>
               </AnimatePresence>
