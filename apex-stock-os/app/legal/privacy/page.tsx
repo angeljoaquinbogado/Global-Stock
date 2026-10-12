@@ -132,6 +132,30 @@ export default function PrivacyPage() {
       </section>
 
       <section>
+        <h2>Cookies, servicios externos y medición</h2>
+        <p>
+          Además de los registros técnicos de los proveedores de infraestructura,
+          el navegador puede conservar sesión, preferencias, datos temporales y
+          recursos de funcionamiento sin conexión. La página{" "}
+          <a href="/legal/cookies">Cookies y almacenamiento</a>{" "}
+          detalla las finalidades y las opciones disponibles. Las herramientas
+          opcionales de medición o publicidad no deben activarse sin ofrecer los
+          controles y la información correspondientes.
+        </p>
+      </section>
+      <section>
+        <h2>Correos de novedades</h2>
+        <p>
+          Los correos necesarios para iniciar sesión, seguridad o soporte son
+          distintos de los boletines de novedades. El boletín comercial no se
+          encuentra habilitado en esta etapa: no incorporaremos a nadie a una
+          lista por crear una cuenta. Antes de ponerlo en marcha implementaremos
+          una suscripción voluntaria verificable, información sobre la frecuencia
+          y finalidad, una baja gratuita y sencilla en cada correo y el registro
+          de revocaciones.
+        </p>
+      </section>
+      <section>
         <h2>8. Seguridad</h2>
         <p>
           Se aplican medidas técnicas y organizativas razonables para reducir el
