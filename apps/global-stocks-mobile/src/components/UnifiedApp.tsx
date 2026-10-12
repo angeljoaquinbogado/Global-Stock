@@ -158,6 +158,8 @@ export default function UnifiedApp() {
       void openScanner();
     } else if (message.type === "close_scanner") {
       closeScanner();
+    } else if (message.type === "open_legacy_recovery") {
+      setNativeRecovery(true);
     } else if (message.type === "session_cleared") {
       savedLegacySessionRef.current = null;
       migrationSentRef.current = true;
@@ -176,7 +178,21 @@ export default function UnifiedApp() {
     return false;
   }
 
-  if (nativeRecovery) return <LegacyNativeApp />;
+  if (nativeRecovery) return (
+    <SafeAreaProvider>
+      <SafeAreaView edges={["top", "bottom"]} style={s.root}>
+        <StatusBar style="light" />
+        <View style={s.recoveryBar}>
+          <Text style={s.recoveryTitle}>Borradores de la versión anterior</Text>
+          <Pressable accessibilityRole="button" onPress={() => setNativeRecovery(false)} style={s.recoveryBack}>
+            <ArrowLeft size={16} color="#FFFFFF"/>
+            <Text style={s.primaryText}>Volver a Global Stock</Text>
+          </Pressable>
+        </View>
+        <View style={{flex:1}}><LegacyNativeApp/></View>
+      </SafeAreaView>
+    </SafeAreaProvider>
+  );
 
   return (
     <SafeAreaProvider>
@@ -275,6 +291,9 @@ export default function UnifiedApp() {
 }
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#09090B" },
+  recoveryBar: {backgroundColor:"#111114",borderBottomWidth:1,borderBottomColor:"#35353A",padding:12,gap:6,flexDirection:"row",alignItems:"center",justifyContent:"space-between"},
+  recoveryTitle: {color:"#F5F5F7",fontSize:11,fontWeight:"600",flexShrink:1},
+  recoveryBack: {backgroundColor:"#900014",minHeight:39,borderRadius:11,paddingHorizontal:11,flexDirection:"row",alignItems:"center",gap:7},
   web: { flex: 1, backgroundColor: "#09090B" },
   overlay: { ...StyleSheet.absoluteFill, backgroundColor: "#09090B", justifyContent: "center", alignItems: "center", padding: 28, gap: 16 },
   title: { color: "#F7F7F9", fontSize: 22, fontWeight: "800", textAlign: "center" },
