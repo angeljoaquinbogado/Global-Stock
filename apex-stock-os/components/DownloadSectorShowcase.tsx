@@ -1,102 +1,39 @@
 "use client";
 
 import {
-  BriefcaseBusiness,
-  Building2,
-  Factory,
-  ShoppingBag,
-  Store,
-  UtensilsCrossed,
-  Warehouse
+  Beef, BookOpen, BriefcaseBusiness, Carrot, Croissant, Eye,
+  Factory, Gem, Hammer, Laptop, Leaf, PawPrint, Pill,
+  Scissors, Shirt, ShoppingBag, Store, UtensilsCrossed, Warehouse
 } from "lucide-react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useState } from "react";
 
 const sectors = [
-  {
-    id: "retail",
-    icon: Store,
-    label: "Comercios",
-    group: "Sector",
-    title: "Vendé y controlá stock sin separar caja e inventario.",
-    body: "Punto de venta, códigos, clientes, sucursales y stock conectados.",
-    accent: "#8F0000",
-    surface: "rgba(143,0,0,.12)"
-  },
-  {
-    id: "gastronomy",
-    icon: UtensilsCrossed,
-    label: "Gastronomía",
-    group: "Sector",
-    title: "Compras, costos y caja con una operación más ordenada.",
-    body: "Proveedores, gastos, equipo y movimientos diarios en el mismo lugar.",
-    accent: "#f6b95b",
-    surface: "rgba(246,185,91,.10)"
-  },
-  {
-    id: "ecommerce",
-    icon: ShoppingBag,
-    label: "Ecommerce",
-    group: "Sector",
-    title: "Prepará tu tienda online para trabajar con el stock del negocio.",
-    body: "Catálogo, pedidos y existencias en una misma vista. La sincronización real requiere integrar cada canal con autorización.",
-    accent: "#6ea8ff",
-    surface: "rgba(110,168,255,.10)"
-  },
-  {
-    id: "wholesale",
-    icon: Warehouse,
-    label: "Distribución",
-    group: "Sector",
-    title: "Manejá volumen, compras y ubicaciones sin perder trazabilidad.",
-    body: "Reposición, proveedores, stock y sucursales pensados para movimiento constante.",
-    accent: "#b989ff",
-    surface: "rgba(185,137,255,.10)"
-  },
-  {
-    id: "industry",
-    icon: Factory,
-    label: "Industria",
-    group: "Sector",
-    title: "Seguí insumos, costos y existencias desde una misma base.",
-    body: "Una estructura preparada para controlar inventario y abastecimiento.",
-    accent: "#50c7d9",
-    surface: "rgba(80,199,217,.10)"
-  },
-  {
-    id: "solo",
-    icon: BriefcaseBusiness,
-    label: "Autónomos",
-    group: "Tipo de negocio",
-    title: "Una operación simple que puede crecer cuando la necesites.",
-    body: "Ventas, stock, agenda y control sin cargar la pantalla de herramientas innecesarias.",
-    accent: "#34d399",
-    surface: "rgba(52,211,153,.10)"
-  },
-  {
-    id: "smb",
-    icon: Building2,
-    label: "Pymes",
-    group: "Tipo de negocio",
-    title: "Más responsables, roles y procesos trabajando sobre los mismos datos.",
-    body: "Equipo, finanzas, compras y sucursales conectados en una sola operación.",
-    accent: "#fb7185",
-    surface: "rgba(251,113,133,.10)"
-  },
-  {
-    id: "advisory",
-    icon: BriefcaseBusiness,
-    label: "Asesorías",
-    group: "Tipo de negocio",
-    title: "Clientes, documentos y seguimiento organizados por operación.",
-    body: "Comprobantes, finanzas, agenda y CRM sin convertir la pantalla en una lista interminable.",
-    accent: "#67e8f9",
-    surface: "rgba(103,232,249,.10)"
-  }
+  { id: "almacen", icon: Store, label: "Almacén / Kiosco", group: "Rubro", title: "Productos de todos los días", body: "Llevá los precios y el stock del negocio sin una planilla aparte.", accent: "#B2182B", surface: "#B2182B22" },
+  { id: "indumentaria", icon: Shirt, label: "Indumentaria", group: "Rubro", title: "Ropa, calzado y accesorios", body: "Revisá cuántas unidades tenés y prepará reposiciones por producto.", accent: "#1C62C2", surface: "#1C62C222" },
+  { id: "carniceria", icon: Beef, label: "Carnicería", group: "Rubro", title: "Carnes y embutidos", body: "Registrá insumos, cantidades y costos desde el inventario.", accent: "#7F3FC2", surface: "#7F3FC222" },
+  { id: "verduleria", icon: Carrot, label: "Verdulería", group: "Rubro", title: "Frutas y verduras", body: "Controlá productos y ajustá existencias cuando entra mercadería.", accent: "#C27124", surface: "#C2712422" },
+  { id: "panaderia", icon: Croissant, label: "Panadería", group: "Rubro", title: "Pan, facturas y pastelería", body: "Organizá ingredientes, productos y compras en el mismo negocio.", accent: "#286C9A", surface: "#286C9A22" },
+  { id: "farmacia", icon: Pill, label: "Farmacia", group: "Rubro", title: "Medicamentos y perfumería", body: "Consultá productos y existencias. No reemplaza controles sanitarios ni trazabilidad regulatoria.", accent: "#AF3A57", surface: "#AF3A5722" },
+  { id: "libreria", icon: BookOpen, label: "Librería", group: "Rubro", title: "Libros, útiles y papelería", body: "Encontrá cada artículo por nombre o código y revisá existencias.", accent: "#369C79", surface: "#369C7922" },
+  { id: "ferreteria", icon: Hammer, label: "Ferretería", group: "Rubro", title: "Herramientas y materiales", body: "Buscá repuestos, piezas y materiales por código y stock.", accent: "#B2182B", surface: "#B2182B22" },
+  { id: "electronica", icon: Laptop, label: "Electrónica", group: "Rubro", title: "Celulares y accesorios", body: "Mantené organizado el catálogo de equipos, accesorios y precios.", accent: "#1C62C2", surface: "#1C62C222" },
+  { id: "dietetica", icon: Leaf, label: "Dietética", group: "Rubro", title: "Productos naturales", body: "Revisá lo disponible y prepará una lista de reposición.", accent: "#7F3FC2", surface: "#7F3FC222" },
+  { id: "estetica", icon: Scissors, label: "Estética", group: "Rubro", title: "Cosmética y tratamientos", body: "Llevá los insumos que usás y sus costos de compra.", accent: "#C27124", surface: "#C2712422" },
+  { id: "optica", icon: Eye, label: "Óptica", group: "Rubro", title: "Anteojos y lentes", body: "Buscá modelos y accesorios. No reemplaza registros sanitarios.", accent: "#286C9A", surface: "#286C9A22" },
+  { id: "veterinaria", icon: PawPrint, label: "Veterinaria", group: "Rubro", title: "Alimentos y productos para mascotas", body: "Organizá alimentos y productos, con alertas de stock bajo.", accent: "#AF3A57", surface: "#AF3A5722" },
+  { id: "joyeria", icon: Gem, label: "Joyería", group: "Rubro", title: "Joyas, relojes y accesorios", body: "Consultá existencias y precios de cada artículo.", accent: "#369C79", surface: "#369C7922" },
+  { id: "peluqueria", icon: Scissors, label: "Peluquería", group: "Rubro", title: "Cuidado del cabello", body: "Tené a mano cuánto queda de cada producto e insumo.", accent: "#B2182B", surface: "#B2182B22" },
+  { id: "restaurante", icon: UtensilsCrossed, label: "Restaurante", group: "Rubro", title: "Cocina e ingredientes", body: "Revisá ingredientes, compras y mercadería que necesitás.", accent: "#1C62C2", surface: "#1C62C222" },
+  { id: "mayorista", icon: Warehouse, label: "Mayorista / Depósito", group: "Rubro", title: "Distribución y almacenamiento", body: "Llevá existencias y movimientos de distintos productos.", accent: "#7F3FC2", surface: "#7F3FC222" },
+  { id: "fabricacion", icon: Factory, label: "Taller / Fábrica", group: "Rubro", title: "Materiales y repuestos", body: "Controlá insumos y componentes para trabajar sin faltantes.", accent: "#C27124", surface: "#C2712422" },
+  { id: "tienda-online", icon: ShoppingBag, label: "Tienda online", group: "Rubro", title: "Productos y pedidos", body: "Mantené tu catálogo organizado. La sincronización exige conectar la tienda.", accent: "#286C9A", surface: "#286C9A22" },
+  { id: "servicios", icon: BriefcaseBusiness, label: "Servicios", group: "Rubro", title: "Insumos de trabajo", body: "Registrá los materiales que usás para prestar tus servicios.", accent: "#AF3A57", surface: "#AF3A5722" },
+  { id: "otro", icon: Store, label: "Otro negocio", group: "Rubro", title: "Tu actividad", body: "Arrancá con un catálogo simple y sumá funciones según las necesites.", accent: "#369C79", surface: "#369C7922" }
 ];
 
 export function DownloadSectorShowcase() {
-  const [active, setActive] = useState("retail");
+  const [active, setActive] = useState("almacen");
   const reduceMotion = useReducedMotion();
   const current = sectors.find((item) => item.id === active) ?? sectors[0];
   const CurrentIcon = current.icon;
@@ -118,8 +55,8 @@ export function DownloadSectorShowcase() {
               <span className="block text-white/34">necesitan control.</span>
             </h2>
             <p className="mt-5 max-w-xl text-base leading-7 text-[#a8a8b0]">
-              Comercios, gastronomía, ecommerce, distribución, industria, autónomos,
-              pymes y asesorías pueden adaptar Global Stock a su forma de trabajar.
+              Almacenes, ferreterías, restaurantes, talleres y otros negocios pueden empezar
+              con productos y stock. Después suman las herramientas que necesitan.
             </p>
           </div>
 
@@ -165,12 +102,14 @@ export function DownloadSectorShowcase() {
               })}
             </div>
 
+            <AnimatePresence initial={false} mode="popLayout">
             <motion.div
               key={current.id}
-              initial={{ opacity: 0, y: reduceMotion ? 0 : 8 }}
+              initial={{ opacity: 0, y: reduceMotion ? 0 : 6 }}
               animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: reduceMotion ? 0 : -6 }}
               transition={{
-                duration: reduceMotion ? 0.1 : 0.2,
+                duration: reduceMotion ? 0 : 0.23,
                 ease: [0.23, 1, 0.32, 1]
               }}
               className="mt-4 overflow-hidden rounded-[30px] bg-[#111217] p-6 shadow-[0_24px_64px_rgba(0,0,0,.22)] sm:p-7"
@@ -205,6 +144,7 @@ export function DownloadSectorShowcase() {
                 </div>
               </div>
             </motion.div>
+            </AnimatePresence>
           </div>
         </div>
       </div>
