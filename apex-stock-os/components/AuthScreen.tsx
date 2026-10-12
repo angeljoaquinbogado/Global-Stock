@@ -383,6 +383,7 @@ export function AuthScreen({
   const [name, setName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [industry, setIndustry] = useState<BusinessTypeValue>("retail");
+  const [businessCategory, setBusinessCategory] = useState("almacen");
   const [country, setCountry] = useState("");
   const [businessDescription, setBusinessDescription] = useState("");
   const [email, setEmail] = useState(() =>
@@ -429,6 +430,7 @@ export function AuthScreen({
       businessName.trim()
     );
     localStorage.setItem("global-stock-business-type", industry);
+    localStorage.setItem("global-stock-business-category", businessCategory);
     localStorage.setItem(
       "global-stock-business-country",
       country.trim()
@@ -551,6 +553,7 @@ export function AuthScreen({
             full_name: name.trim(),
             business_name: businessName.trim(),
             industry,
+            business_category: businessCategory,
             country: country.trim(),
             business_description: businessDescription.trim(),
             default_currency: currency,
@@ -843,6 +846,8 @@ export function AuthScreen({
                             language={language}
                             value={industry}
                             onChange={setIndustry}
+                            categoryId={businessCategory}
+                            onCategoryChange={setBusinessCategory}
                           />
                         </label>
 
