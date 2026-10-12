@@ -148,6 +148,7 @@ function SceneGlyph({ screen }: { screen: DemoScreen }) {
 
 function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
   const enterX = scene.side === "left" ? -44 : 44;
+  const reduceMotion = useReducedMotion();
 
   return (
     <div
@@ -209,8 +210,17 @@ function StoryCopy({ scene, index }: { scene: StoryScene; index: number }) {
             />
           </div>
 
-          <p className="gs-cinematic-body mt-5 max-w-[38rem] text-[14px] font-medium leading-6 text-[var(--gs-download-muted)] sm:text-[16px] sm:leading-7">
-            {scene.body}
+          <p aria-label={scene.body} className="gs-cinematic-body mt-5 max-w-[38rem] text-[14px] font-medium leading-6 text-[var(--gs-download-muted)] sm:text-[16px] sm:leading-7">
+            {scene.body.split(" ").map((word, i) => (
+              <motion.span
+                key={scene.id + "-word-" + i}
+                aria-hidden="true"
+                className="inline-block whitespace-pre"
+                initial={reduceMotion ? false : { opacity: .36, filter: "blur(5px)", y: 2 }}
+                animate={{ opacity: 1, filter: "blur(0px)", y: 0 }}
+                transition={{ duration: reduceMotion ? 0 : .38, delay: reduceMotion ? 0 : i * .035, ease: "easeOut" }}
+              >{word + " "}</motion.span>
+            ))}
           </p>
 
           <div className="mt-5 hidden flex-wrap gap-2 sm:flex">
