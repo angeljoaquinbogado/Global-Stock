@@ -105,6 +105,27 @@ export function ApexShell() {
   const [legalApprovedUserId, setLegalApprovedUserId] = useState<string | null>(null);
 
   useEffect(() => {
+    // One-time Expo Keychain-to-WebView migration. Tokens are transferred only
+    // by the native shell on the pinned, HTTPS Global Stock origin.
+    const acceptSession = (event: Event) => {
+      const payload = (event as CustomEvent<{
+        access_token?: string; refresh_token?: string;
+      }>).detail;
+      if (!payload || typeof payload.access_token !== "string" ||
+          typeof payload.refresh_token !== "string" ||
+          payload.access_token.length > 16000 || payload.refresh_token.length > 16000) return;
+      const client = getSupabaseBrowserClient();
+      if (!client) return;
+      void client.auth.setSession({
+        access_token: payload.access_token,
+        refresh_token: payload.refresh_token
+      }).catch(() => { /* Invalid or revoked old sessions fall back to sign-in. */ });
+    };
+    window.addEventListener("globalstock:native-session", acceptSession);
+    return () => window.removeEventListener("globalstock:native-session", acceptSession);
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     const storedTheme = window.localStorage.getItem("global-stock-theme");
@@ -271,6 +292,8 @@ export function ApexShell() {
     setAuthenticated(false);
     setAuthUserId(null);
     setLegalApprovedUserId(null);
+    const bridge = (window as typeof window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView;
+    bridge?.postMessage(JSON.stringify({ type: "session_cleared" }));
   }
 
   if (!ready) {
