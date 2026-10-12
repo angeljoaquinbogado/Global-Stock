@@ -224,6 +224,8 @@ export function ApexShell() {
       "global-stock-theme",
       dark ? "dark" : "light"
     );
+    const bridge = (window as typeof window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView;
+    bridge?.postMessage(JSON.stringify({ type: "theme_changed", dark }));
   }, [dark, ready]);
 
   useEffect(() => {
