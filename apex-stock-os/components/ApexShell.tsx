@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 import { AuthScreen } from "./AuthScreen";
+import { UnifiedLegalGate } from "./UnifiedLegalGate";
 
 const BusinessWorkspace = dynamic(
   () =>
@@ -100,6 +101,8 @@ export function ApexShell() {
   const [language, setLanguage] = useState<LanguageCode>("es");
   const [currency, setCurrency] = useState("ARS");
   const [ready, setReady] = useState(false);
+  const [authUserId, setAuthUserId] = useState<string | null>(null);
+  const [legalApprovedUserId, setLegalApprovedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -158,6 +161,7 @@ export function ApexShell() {
     void client.auth.getSession().then(({ data }) => {
       if (!active) return;
       setAuthenticated(Boolean(data.session));
+      setAuthUserId(data.session?.user.id ?? null);
       setReady(true);
     });
 
@@ -166,6 +170,7 @@ export function ApexShell() {
     } = client.auth.onAuthStateChange((_event, session) => {
       if (!active) return;
       setAuthenticated(Boolean(session));
+      setAuthUserId(session?.user.id ?? null);
       setReady(true);
     });
 
@@ -174,6 +179,14 @@ export function ApexShell() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    // Expo Go and PC are the same web application. Tell its native shell when
+    // the authenticated/web entry has finished initializing.
+    const bridge = (window as typeof window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView;
+    bridge?.postMessage(JSON.stringify({ type: "app_ready" }));
+  }, [ready, authenticated]);
 
   useEffect(() => {
     if (!ready) return;
@@ -233,6 +246,11 @@ export function ApexShell() {
 
     setDemoMode(false);
     setAuthenticated(true);
+    if (isSupabaseConfigured()) {
+      void getSupabaseBrowserClient()?.auth.getUser().then(({ data }) => {
+        setAuthUserId(data.user?.id ?? null);
+      });
+    }
   }
 
   async function handleSignOut() {
@@ -251,6 +269,8 @@ export function ApexShell() {
     }
 
     setAuthenticated(false);
+    setAuthUserId(null);
+    setLegalApprovedUserId(null);
   }
 
   if (!ready) {
@@ -277,6 +297,23 @@ export function ApexShell() {
         />
       </MotionConfig>
     );
+  }
+
+  if (!demoMode && isSupabaseConfigured()) {
+    if (!authUserId) return (
+      <div role="status" className="grid min-h-[100dvh] place-items-center bg-[#09090b] text-sm text-white/70">
+        Verificando tu cuenta…
+      </div>
+    );
+    if (legalApprovedUserId !== authUserId) {
+      const client = getSupabaseBrowserClient();
+      if (!client) return <p role="alert">No se pudo establecer la conexión de sesión.</p>;
+      return (
+        <UnifiedLegalGate client={client} userId={authUserId}
+          onReady={() => setLegalApprovedUserId(authUserId)}
+          onSignOut={() => void handleSignOut()} />
+      );
+    }
   }
 
   return (
