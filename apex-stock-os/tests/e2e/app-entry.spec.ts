@@ -19,6 +19,14 @@ for (const screen of [
       await expect(create).toBeVisible({ timeout: 25000 });
       await create.click();
       await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
+      // Real business sector cards, not the old generic "retail" options.
+      const chooseSector = page.getByRole("button", { name: /Tipo de negocio: Almacén \/ Kiosco/ });
+      await chooseSector.click();
+      const sectors = page.getByRole("dialog", { name: "Tipo de negocio" });
+      await expect(sectors.locator("button")).toHaveCount(21);
+      await sectors.getByRole("button", { name: /Ferretería/ }).click();
+      await expect(page.getByRole("button", { name: /Tipo de negocio: Ferretería/ })).toBeVisible();
+
       const adultBox = page.getByRole("checkbox", { name: "Declaro ser mayor de 18 años y aceptar los términos y la privacidad" });
       await expect(adultBox).toBeVisible();
       await expect(adultBox).not.toBeChecked();
