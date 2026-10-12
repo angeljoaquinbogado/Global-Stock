@@ -6,7 +6,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 // Version changes must be reviewed with updated public legal text.
 export const LEGAL_TERMS_VERSION = "2026-10-11-ar-beta";
-export const LEGAL_PRIVACY_VERSION = "2026-10-11-v3";
+export const LEGAL_PRIVACY_VERSION = "2026-10-12-v4";
 const BASE = "https://globalstocks.vercel.app";
 
 type Props = { client: SupabaseClient; userId: string; onReady: () => void; onSignOut: () => void };
@@ -65,6 +65,7 @@ export default function NativeLegalGate({ client, userId, onReady, onSignOut }: 
           <Text style={s.panelTitle}>Documentos importantes</Text>
           <Pressable accessibilityRole="link" onPress={()=>open("/legal/terms")} style={s.link}><Text style={s.linkText}>Términos de uso</Text><ExternalLink size={15} color="#E56370"/></Pressable>
           <Pressable accessibilityRole="link" onPress={()=>open("/legal/privacy")} style={s.link}><Text style={s.linkText}>Política de privacidad</Text><ExternalLink size={15} color="#E56370"/></Pressable>
+          <Pressable accessibilityRole="link" onPress={()=>open("/legal/cookies")} style={s.link}><Text style={s.linkText}>Cookies y almacenamiento</Text><ExternalLink size={15} color="#E56370"/></Pressable>
           <Pressable accessibilityRole="link" onPress={()=>open("/legal/security")} style={s.link}><Text style={s.linkText}>Información de seguridad</Text><ExternalLink size={15} color="#E56370"/></Pressable>
         </View>
         <Pressable onPress={()=>setAdult(v=>!v)} accessibilityRole="checkbox" accessibilityState={{checked:adult}} style={s.consent}>
