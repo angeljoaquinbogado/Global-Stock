@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalArticle
       eyebrow="Privacidad"
       title="Política de privacidad"
-      intro="Versión 2026-10-12-v4. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
+      intro="Versión 2026-10-12-v5. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
     >
       <section>
         <h2>1. Responsable y alcance</h2>
@@ -146,13 +146,18 @@ export default function PrivacyPage() {
       <section>
         <h2>Correos de novedades</h2>
         <p>
-          Los correos necesarios para iniciar sesión, seguridad o soporte son
-          distintos de los boletines de novedades. El boletín comercial no se
-          encuentra habilitado en esta etapa: no incorporaremos a nadie a una
-          lista por crear una cuenta. Antes de ponerlo en marcha implementaremos
-          una suscripción voluntaria verificable, información sobre la frecuencia
-          y finalidad, una baja gratuita y sencilla en cada correo y el registro
-          de revocaciones.
+          Los correos de inicio de sesión, seguridad y soporte son
+          independientes de los boletines de novedades. Desde Configuración,
+          una persona autenticada puede registrar voluntariamente si desea
+          recibir noticias sobre funciones nuevas de Global Stock. Se
+          almacena el correo de su cuenta, su decisión, la fecha de aceptación
+          o baja y un token aleatorio usado exclusivamente para tramitar bajas
+          sin iniciar sesión. Nadie es suscripto automáticamente por registrarse.
+          El sistema de envío de campañas todavía no está activado; cuando
+          exista un remitente verificado, cada correo incluirá un enlace visible
+          de baja gratuita y un mecanismo de cancelación de un clic.
+          Revocar la suscripción no afecta la cuenta ni los avisos necesarios
+          para la seguridad del servicio.
         </p>
       </section>
       <section>
