@@ -49,9 +49,9 @@ const scenes: StoryScene[] = [
     id: "control",
     screen: "dashboard",
     kicker: "Global Stock",
-    title: "Controlá tu negocio. Desde un solo lugar.",
+    title: "Sabé qué se vendió. Y qué queda por reponer.",
     body:
-      "Ventas, stock, caja, compras, clientes y actividad se conectan en una misma operación para que tengas una vista clara de lo que pasa.",
+      "Abrí tu negocio y encontrá los productos, movimientos y números que necesitás. Sin buscar en cinco planillas.",
     tags: ["Ventas", "Caja", "Inventario"],
     accent: "#8F0000",
     lightBackground:
@@ -69,7 +69,7 @@ const scenes: StoryScene[] = [
     id: "venta",
     screen: "pos",
     kicker: "Ventas y caja",
-    title: "Vendé una vez. El resto se sincroniza.",
+    title: "Una venta registrada. El stock al día.",
     body:
       "Registrás la operación y Global Stock actualiza caja, stock e historial sin repetir datos ni saltar entre pantallas.",
     tags: ["Punto de venta", "Cobros", "Historial"],
@@ -109,7 +109,7 @@ const scenes: StoryScene[] = [
     id: "intelligence",
     screen: "ai",
     kicker: "Global Intelligence",
-    title: "Entendé el negocio antes de que el problema aparezca.",
+    title: "Detectá lo que falta antes de la próxima venta.",
     body:
       "La IA usa el contexto disponible de ventas, costos, margen, inventario y actividad para ayudarte a decidir con información real.",
     tags: ["IA contextual", "Márgenes", "Escenarios"],
