@@ -373,6 +373,10 @@ export function ApexIntelligence({
   const [pending, setPending] = useState(false);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<AiStatus>("checking");
+  const [aiConsent, setAiConsent] = useState(demoMode);
+  const [aiConsentLoading, setAiConsentLoading] = useState(!demoMode);
+  const [aiConsentSaving, setAiConsentSaving] = useState(false);
+  const [aiConsentError, setAiConsentError] = useState("");
   const [mobileViewport, setMobileViewport] = useState<{
     compact: boolean;
     height: number;
@@ -391,6 +395,77 @@ export function ApexIntelligence({
   const lastTouchSendRef = useRef(0);
 
   useEffect(() => setMounted(true), []);
+
+  // Identical, revocable AI data consent for PC and Expo Go. A prior legal
+  // acceptance does NOT authorize sharing merchant records with a model.
+  useEffect(() => {
+    if (demoMode) { setAiConsent(true); setAiConsentLoading(false); return; }
+    setAiConsent(false);
+    setAiConsentError("");
+    if (!businessId) { setAiConsentLoading(false); return; }
+    let live = true;
+    setAiConsentLoading(true);
+    void (async () => {
+      const client = getSupabaseBrowserClient();
+      if (!client) throw new Error("Ingresá a una cuenta para autorizar la IA.");
+      const { data: verified, error: userError } = await client.auth.getUser();
+      if (userError || !verified.user) throw new Error("Tu sesión venció. Volvé a entrar.");
+      const { data, error } = await client.from("global_stock_ai_data_consents")
+        .select("approved")
+        .eq("user_id", verified.user.id)
+        .eq("business_id", businessId)
+        .maybeSingle();
+      if (error) throw error;
+      if (live) setAiConsent(data?.approved === true);
+    })().catch(reason => {
+      if (live) setAiConsentError(reason instanceof Error ? reason.message : "No pudimos comprobar el permiso de IA.");
+    }).finally(() => { if (live) setAiConsentLoading(false); });
+    return () => { live = false; };
+  }, [demoMode, businessId]);
+
+  async function revokeAiConsent() {
+    if (!businessId || demoMode || aiConsentSaving) return;
+    setAiConsentSaving(true);
+    try {
+      const client = getSupabaseBrowserClient();
+      if (!client) throw new Error("Iniciá sesión nuevamente.");
+      const { data: verified, error: userError } = await client.auth.getUser();
+      if (userError || !verified.user) throw new Error("Tu sesión cambió.");
+      const { error } = await client.from("global_stock_ai_data_consents").upsert({
+        user_id: verified.user.id, business_id: businessId,
+        approved: false, updated_at: new Date().toISOString()
+      }, { onConflict: "user_id,business_id" });
+      if (error) throw error;
+      setAiConsent(false);
+      setAiConsentError("");
+    } catch (reason) {
+      setAiConsentError(reason instanceof Error ? reason.message : "No pudimos revocar el permiso.");
+    } finally {
+      setAiConsentSaving(false);
+    }
+  }
+
+  async function approveAiConsent() {
+    if (aiConsentSaving || demoMode || !businessId) return;
+    setAiConsentSaving(true);
+    setAiConsentError("");
+    try {
+      const client = getSupabaseBrowserClient();
+      if (!client) throw new Error("Ingresá a tu cuenta para continuar.");
+      const { data: verified, error: userError } = await client.auth.getUser();
+      if (userError || !verified.user) throw new Error("Tu sesión venció. Volvé a entrar.");
+      const { error } = await client.from("global_stock_ai_data_consents").upsert({
+        user_id: verified.user.id, business_id: businessId,
+        approved: true, updated_at: new Date().toISOString()
+      }, { onConflict: "user_id,business_id" });
+      if (error) throw error;
+      setAiConsent(true);
+    } catch (reason) {
+      setAiConsentError(reason instanceof Error ? reason.message : "No pudimos guardar tu permiso.");
+    } finally {
+      setAiConsentSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (demoMode) {
@@ -478,7 +553,7 @@ export function ApexIntelligence({
 
   async function ask(message: string) {
     const text = message.trim();
-    if (!text || pending) return;
+    if (!text || pending || (!demoMode && !aiConsent) || text.length > 4000) return;
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -592,6 +667,9 @@ export function ApexIntelligence({
             clientTimeZone: timeZone,
             appContext: {
               ...appContext,
+              businessId,
+              platform: typeof window !== "undefined" && window.ReactNativeWebView
+                ? "Global Stock React Native" : "Global Stock Web",
               ...localModules
             }
           }
@@ -780,6 +858,31 @@ export function ApexIntelligence({
               />
             </div>
 
+            {!demoMode && (
+              <div className="shrink-0 border-b border-[var(--apex-border)] px-4 py-3">
+                {aiConsentLoading ? (
+                  <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando autorización de datos para la IA…</p>
+                ) : !aiConsent ? (
+                  <div className="space-y-2 rounded-2xl border border-[#8F0000]/25 bg-[#8F0000]/[.06] p-3">
+                    <p className="text-sm font-semibold">Antes de compartir datos del negocio</p>
+                    <p className="text-xs leading-5 text-[var(--apex-muted)]">
+                      Global Intelligence puede enviar al proveedor de IA la consulta y datos necesarios del inventario, ventas, márgenes y actividad.
+                      Es opcional y podés revocarlo desde Configuración o solicitándolo a soporte.
+                    </p>
+                    {aiConsentError && <p role="alert" className="text-xs text-red-500">{aiConsentError}</p>}
+                    <button type="button" onClick={() => void approveAiConsent()}
+                      disabled={aiConsentSaving || !businessId}
+                      className="min-h-10 rounded-xl bg-[#8F0000] px-4 text-xs font-bold text-white disabled:opacity-40">
+                      {aiConsentSaving ? "Guardando permiso…" : "Permitir compartir datos con Global Intelligence"}
+                    </button>
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-[var(--apex-muted)]">
+                    Datos autorizados para este negocio · <button type="button" className="underline" onClick={() => void revokeAiConsent()}>Revocar permiso</button>
+                  </p>
+                )}
+              </div>
+            )}
             <div className="apex-scrollbar min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain px-3 py-4 sm:px-4 sm:py-5">
               {messages.map((message) => (
                 <motion.div
@@ -831,6 +934,8 @@ export function ApexIntelligence({
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
+                  disabled={aiConsentLoading || (!demoMode && !aiConsent)}
+                  maxLength={4000}
                   rows={1}
                   enterKeyHint="send"
                   placeholder={copy.placeholder}
@@ -838,7 +943,7 @@ export function ApexIntelligence({
                 />
                 <button
                   type="button"
-                  disabled={!input.trim() || pending}
+                  disabled={!input.trim() || pending || aiConsentLoading || (!demoMode && !aiConsent)}
                   onClick={() => {
                     if (
                       performance.now() - lastTouchSendRef.current <
