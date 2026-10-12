@@ -145,6 +145,20 @@ export async function POST(request: Request) {
     );
   }
 
+  // Use the caller's JWT for revocable consent and the database-backed
+  // quota. An in-memory rate limit alone is not shared across Vercel instances.
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const bearerToken = request.headers.get("authorization")?.trim();
+  if (!supabaseUrl || !publishableKey || !bearerToken?.startsWith("Bearer ")) {
+    return NextResponse.json({ code: "AUTH_NOT_CONFIGURED" },
+      { status: 503, headers: noStoreHeaders() });
+  }
+  const merchantClient = createClient(supabaseUrl, publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    global: { headers: { Authorization: bearerToken } }
+  });
+
   // Native mobile requests require valid business membership and a
   // server-verified, revocable per-business AI context authorization.
   // This does not alter the existing web chat authorization flow.
@@ -162,18 +176,6 @@ export async function POST(request: Request) {
       { code: businessAuth.code }, { status: businessAuth.status, headers: noStoreHeaders() }
     );
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-    const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-    const bearer = request.headers.get("authorization")?.trim();
-    if (!url || !key || !bearer?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { code: "AUTH_NOT_CONFIGURED" }, { status: 503, headers: noStoreHeaders() }
-      );
-    }
-    const merchantClient = createClient(url, key, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-      global: { headers: { Authorization: bearer } }
-    });
     const { data: consent, error: consentError } = await merchantClient
       .from("global_stock_ai_data_consents")
       .select("approved")
@@ -186,6 +188,21 @@ export async function POST(request: Request) {
         { code: "AI_CONSENT_REQUIRED" }, { status: 403, headers: noStoreHeaders() }
       );
     }
+  }
+
+  // All authenticated callers share fixed per-user minute/hour/day windows,
+  // enforced atomically by Supabase. Fail closed if the quota guard is down.
+  const { data: quota, error: quotaError } = await merchantClient.rpc("global_stock_ai_allow_request");
+  if (quotaError || !quota || typeof quota !== "object") {
+    console.error("[Global Intelligence] atomic quota guard unavailable", { enabled: false });
+    return NextResponse.json({ code: "AI_USAGE_PROTECTION_UNAVAILABLE" },
+      { status: 503, headers: noStoreHeaders() });
+  }
+  const quotaState = quota as { allowed?: boolean; retryAfter?: number };
+  if (quotaState.allowed !== true) {
+    const retryAfter = Math.max(1,Math.min(86400,Math.trunc(Number(quotaState.retryAfter) || 60)));
+    return NextResponse.json({ code: "AI_RATE_LIMIT", retryAfter },
+      { status: 429, headers: { ...noStoreHeaders(), "Retry-After": String(retryAfter) } });
   }
 
   try {
