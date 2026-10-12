@@ -136,7 +136,7 @@ export default function UnifiedApp() {
   return (
     <SafeAreaProvider>
       <SafeAreaView edges={["top", "bottom"]} style={s.root}>
-        <StatusBar style="light" backgroundColor="#09090B" />
+        <StatusBar style="light" />
         <WebView
           key={webKey}
           ref={webRef}
@@ -212,7 +212,7 @@ export default function UnifiedApp() {
             <CameraView
               style={s.camera}
               facing="back"
-              barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "qr", "itf", "codabar"] }}
+              barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e", "code128", "code39", "qr", "codabar"] }}
               onBarcodeScanned={({ data }) => onBarcode(data)}
             />
             <View pointerEvents="none" style={s.reticle}/>
@@ -231,14 +231,14 @@ export default function UnifiedApp() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: "#09090B" },
   web: { flex: 1, backgroundColor: "#09090B" },
-  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: "#09090B", justifyContent: "center", alignItems: "center", padding: 28, gap: 16 },
+  overlay: { ...StyleSheet.absoluteFill, backgroundColor: "#09090B", justifyContent: "center", alignItems: "center", padding: 28, gap: 16 },
   title: { color: "#F7F7F9", fontSize: 22, fontWeight: "800", textAlign: "center" },
   muted: { color: "#B6B6BE", fontSize: 14, lineHeight: 21, textAlign: "center" },
   primary: { backgroundColor: "#990010", paddingHorizontal: 20, minHeight: 50, borderRadius: 14, flexDirection: "row", alignItems: "center", gap: 10, marginTop: 12 },
   primaryText: { color: "#fff", fontSize: 13, fontWeight: "700" },
   secondary: { padding: 12 },
   secondaryText: { color: "#BABAC4", textAlign: "center", fontSize: 12, textDecorationLine: "underline" },
-  cameraOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 20, backgroundColor: "#070708" },
+  cameraOverlay: { ...StyleSheet.absoluteFill, zIndex: 20, backgroundColor: "#070708" },
   cameraHeader: { height: 68, paddingHorizontal: 17, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   cameraClose: { flexDirection: "row", gap: 8, alignItems: "center" },
   cameraTitle: { color: "#fff", fontSize: 14, fontWeight: "700" },
