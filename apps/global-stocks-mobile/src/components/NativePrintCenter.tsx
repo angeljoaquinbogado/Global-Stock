@@ -115,8 +115,8 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
    let active=true;setError("");
    setDocumentList([]);
    setLoading(true);
-   void client.from("global_stock_fiscal_documents").select("id,kind,letter,status,local_reference,total_amount,created_at,issued_at,authorization_code,voucher_number,point_of_sale,qr_url,customer_name,currency")
-     .eq("business_id",business.id).order("created_at",{ascending:false}).limit(50)
+   void Promise.resolve(client.from("global_stock_fiscal_documents").select("id,kind,letter,status,local_reference,total_amount,created_at,issued_at,authorization_code,voucher_number,point_of_sale,qr_url,customer_name,currency")
+     .eq("business_id",business.id).order("created_at",{ascending:false}).limit(50))
      .then(({data,error})=>{if(!active)return;if(error)throw error;setDocumentList((data??[]) as FiscalDocument[]);})
      .catch((err:unknown)=>{if(active){setError("No pudimos actualizar los documentos fiscales. Revisá tu conexión e intentá otra vez.");console.warn("Fiscal documents query failed",err instanceof Error?err.name:"query-error");}})
      .finally(()=>{if(active)setLoading(false)});
