@@ -46,7 +46,7 @@ must(unifiedShell.includes('type: "open_scanner"') === false &&
   "Expo barcode bridge must call the same web lookup and confirm web readiness.");
 must(webShell.includes("UnifiedLegalGate") &&
   webLegal.includes("global_stock_legal_acceptances") &&
-  webLegal.includes("2026-10-12-v4") &&
+  webLegal.includes("2026-10-12-v5") &&
   webLegal.includes("2026-10-11-ar-beta"),
   "Both PC and Expo must run the same versioned legal consent gate.");
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
@@ -65,8 +65,8 @@ must(
 );
 must(legal.includes("adult_18_attested:true") && legal.includes("operates_in_ar_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Adult and Argentina eligibility with legal versions must be recorded.");
 must(legal.includes("LEGAL_TERMS_VERSION = \"2026-10-11-ar-beta\"") && legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
-must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-12-v4"') &&
-  privacy.includes("Versión 2026-10-12-v4") &&
+must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-12-v5"') &&
+  privacy.includes("Versión 2026-10-12-v5") &&
   privacy.includes("CUIT"),
   "Fiscal-data privacy notice must trigger a new versioned mobile acceptance.");
 must(ai.includes("global_stock_ai_data_consents") && ai.includes("approved: true"), "AI context requires explicit opt-in.");
