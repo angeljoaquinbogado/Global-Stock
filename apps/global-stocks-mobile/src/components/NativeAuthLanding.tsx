@@ -365,7 +365,7 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     primary: { minHeight:54,borderRadius:17,backgroundColor:p.red,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:11,paddingHorizontal:18,shadowColor:p.shadow,shadowOffset:{width:0,height:7},shadowOpacity:0.21,shadowRadius:14,elevation:4 },
     primaryText: { color:"#fff",fontWeight:"800",fontSize:15 },
     secondaryButton: { minHeight:52,borderWidth:1,borderColor:p.border,borderRadius:17,backgroundColor:p.surface,alignItems:"center",justifyContent:"center" },
-    secondaryText: { color:p.title,fontWeight:"750",fontSize:14 },
+    secondaryText: { color:p.title,fontWeight:"700",fontSize:14 },
     pressed: { opacity:0.78,transform:[{scale:0.99}] },
     authFields: { gap:14,paddingTop:8,paddingBottom:11 },
     fieldGroup: { gap:7 },
