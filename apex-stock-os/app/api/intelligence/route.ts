@@ -159,10 +159,10 @@ export async function POST(request: Request) {
     global: { headers: { Authorization: bearerToken } }
   });
 
-  // Native mobile requests require valid business membership and a
-  // server-verified, revocable per-business AI context authorization.
-  // This does not alter the existing web chat authorization flow.
-  if (body.runtime?.appContext?.platform === "Global Stock React Native") {
+  // The Expo shell and desktop now share one workspace. Require the SAME
+  // server-side tenant membership and revocable consent for either client.
+  // The demo never calls this endpoint for model-generated answers.
+  {
     const businessId = body.runtime?.appContext?.businessId;
     if (
       typeof businessId !== "string" ||
