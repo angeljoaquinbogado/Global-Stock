@@ -6,8 +6,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import WebView, { type WebViewMessageEvent, type WebViewNavigation } from "react-native-webview";
-import type { WebView as NativeWebView } from "react-native-webview";
+import WebView from "react-native-webview";
 import { ArrowLeft, Camera, RefreshCw, WifiOff, X } from "lucide-react-native";
 import LegacyNativeApp from "../../App";
 
@@ -20,7 +19,7 @@ const isSafePage = (url: string) => url === "about:blank" ||
 const injection = "window.__GLOBAL_STOCK_EXPO__=true;true;";
 
 export default function UnifiedApp() {
-  const webRef = useRef<NativeWebView>(null);
+  const webRef = useRef<React.ElementRef<typeof WebView>>(null);
   const scannedRef = useRef(false);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [cameraOpen, setCameraOpen] = useState(false);
@@ -103,7 +102,7 @@ export default function UnifiedApp() {
     emitToPage("barcode", raw);
   }
 
-  function onBridgeMessage(event: WebViewMessageEvent) {
+  function onBridgeMessage(event: { nativeEvent: { data: string } }) {
     let message: BridgeMessage;
     try {
       message = JSON.parse(event.nativeEvent.data) as BridgeMessage;
@@ -121,12 +120,11 @@ export default function UnifiedApp() {
     }
   }
 
-  function navigate(nav: WebViewNavigation) {
-    setCanGoBack(nav.canGoBack);
-    if (nav.url === "about:blank") return true;
-    if (isSafePage(nav.url)) return true;
-    if (nav.url.startsWith("https://")) {
-      void Linking.openURL(nav.url).catch(() => {
+  function navigate(url: string) {
+    if (url === "about:blank") return true;
+    if (isSafePage(url)) return true;
+    if (url.startsWith("https://")) {
+      void Linking.openURL(url).catch(() => {
         Alert.alert("No se pudo abrir el enlace", "Probá abrirlo desde el navegador.");
       });
     }
@@ -158,7 +156,7 @@ export default function UnifiedApp() {
           incognito={false}
           injectedJavaScriptBeforeContentLoaded={injection}
           onMessage={onBridgeMessage}
-          onShouldStartLoadWithRequest={navigate}
+          onShouldStartLoadWithRequest={request => navigate(request.url)}
           onNavigationStateChange={state => setCanGoBack(state.canGoBack)}
           onLoadStart={() => {
             if (!pageReady) {
