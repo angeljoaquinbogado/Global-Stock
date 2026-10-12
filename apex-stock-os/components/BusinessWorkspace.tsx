@@ -70,6 +70,7 @@ import { demoProducts, demoTrend } from "@/lib/demo-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 import { ApexIntelligence } from "./ApexIntelligence";
+import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
@@ -5974,6 +5975,8 @@ function SettingsModule({
             defaultCurrency={currency}
           />
         </div>
+
+        <NewsletterPreferences />
 
         <section className="apex-card p-5 xl:col-span-2">
           <h3 className="text-sm font-semibold">
