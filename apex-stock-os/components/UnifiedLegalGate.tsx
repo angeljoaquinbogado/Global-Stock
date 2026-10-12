@@ -16,7 +16,7 @@ type Props = {
 
 export function UnifiedLegalGate({ client, userId, onReady, onSignOut }: Props) {
   const readyCallback = useRef(onReady);
-  readyCallback.current = onReady;
+  useEffect(() => { readyCallback.current = onReady; }, [onReady]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [adult, setAdult] = useState(false);
