@@ -5789,6 +5789,36 @@ function SettingsModule({
   saveBusinessName: () => void;
   locale: string;
 }) {
+  const [businessCategoryId, setBusinessCategoryId] = useState(() =>
+    typeof window === "undefined" ? "almacen" :
+    window.localStorage.getItem("global-stock-business-category") || "almacen"
+  );
+
+  useEffect(() => {
+    const client = getSupabaseBrowserClient();
+    if (!client) return;
+    let live = true;
+    void client.auth.getUser().then(({data}) => {
+      const category = data.user?.user_metadata?.business_category;
+      if (live && typeof category === "string" && category.length < 60) {
+        setBusinessCategoryId(category);
+        window.localStorage.setItem("global-stock-business-category",category);
+      }
+    }).catch(() => null);
+    return () => { live = false; };
+  }, []);
+
+  function chooseBusinessCategory(id:string) {
+    setBusinessCategoryId(id);
+    window.localStorage.setItem("global-stock-business-category",id);
+    const client = getSupabaseBrowserClient();
+    if (client) {
+      void client.auth.updateUser({ data: {business_category:id} }).then(({error}) => {
+        if (error) console.warn("No se pudo sincronizar la categoría del perfil");
+      }).catch(() => null);
+    }
+  }
+
   const settingsCopy = {
     es: {
       profile: "Perfil operativo",
@@ -5896,6 +5926,8 @@ function SettingsModule({
               <BusinessTypePicker
                 language={language}
                 value={businessType}
+                categoryId={businessCategoryId}
+                onCategoryChange={chooseBusinessCategory}
                 onChange={(value) => setBusinessType(value as BusinessType)}
                 className="mt-2"
               />
