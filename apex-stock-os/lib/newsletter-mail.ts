@@ -33,9 +33,10 @@ export async function sendNewsletterUpdate({
   unsubscribe.searchParams.set("token", recipient.unsubscribeToken);
 
   // Escape user-visible copy; recipients must never render arbitrary HTML.
-  const escapeHtml = (text: string) => text.replace(/[&<>"']/g, ch => ({
+  const replacements: Record<string, string> = {
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-  }[ch] || ch));
+  };
+  const escapeHtml = (text: string) => text.replace(/[&<>"']/g, ch => replacements[ch] || ch);
 
   const html = `<div style="font:15px/1.7 system-ui,sans-serif;max-width:610px;margin:auto;color:#16161a">
     <p style="font-weight:bold;color:#8F0000">GLOBAL STOCK</p>
