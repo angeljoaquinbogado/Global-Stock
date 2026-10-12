@@ -117,8 +117,11 @@ function extractUpdatedAt(text: string) {
 async function getDolarHoyQuote(
   market: Market
 ): Promise<DolarQuote> {
+  // Public market page: revalidate centrally instead of fetching on every user request.
+  // The deadline also bounds provider outages (two providers per cross-rate).
   const response = await fetch("https://dolarhoy.com/", {
-    cache: "no-store",
+    next: { revalidate: 120 },
+    signal: AbortSignal.timeout(7000),
     headers: {
       Accept: "text/html,application/xhtml+xml",
       "User-Agent":
@@ -163,7 +166,8 @@ async function getGlobalRates(base: Currency) {
   const response = await fetch(
     `https://open.er-api.com/v6/latest/${encodeURIComponent(base)}`,
     {
-      cache: "no-store",
+      next: { revalidate: 300 },
+      signal: AbortSignal.timeout(7000),
       headers: { Accept: "application/json" }
     }
   );
