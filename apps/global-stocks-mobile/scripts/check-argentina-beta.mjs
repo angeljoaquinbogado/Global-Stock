@@ -9,6 +9,11 @@ const read = (path) => readFileSync(resolve(repo, path), "utf8").replace(/\r\n?/
 const must = (condition, explanation) => { if (!condition) throw new Error("BETA GATE FAILED: " + explanation); };
 
 const app = read("apps/global-stocks-mobile/App.tsx");
+const mobileEntry = read("apps/global-stocks-mobile/index.ts");
+const unifiedShell = read("apps/global-stocks-mobile/src/components/UnifiedApp.tsx");
+const webShell = read("apex-stock-os/components/ApexShell.tsx");
+const webScanner = read("apex-stock-os/components/BarcodeScanner.tsx");
+const webLegal = read("apex-stock-os/components/UnifiedLegalGate.tsx");
 const legal = read("apps/global-stocks-mobile/src/components/NativeLegalGate.tsx");
 const privacy = read("apex-stock-os/app/legal/privacy/page.tsx");
 const ai = read("apps/global-stocks-mobile/src/components/NativeAssistant.tsx");
@@ -24,6 +29,26 @@ const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
+must(mobileEntry.includes('import App from "./src/components/UnifiedApp"') &&
+  unifiedShell.includes('https://globalstocks.vercel.app') &&
+  unifiedShell.includes("onShouldStartLoadWithRequest={request => navigate(request.url)}") &&
+  unifiedShell.includes("thirdPartyCookiesEnabled={false}") &&
+  unifiedShell.includes('type: "app_ready"') === false &&
+  unifiedShell.includes('message.type === "app_ready"'),
+  "Expo must render the canonical web workspace through the origin-restricted native shell.");
+must(unifiedShell.includes('type: "open_scanner"') === false &&
+  unifiedShell.includes('message.type === "open_scanner"') &&
+  unifiedShell.includes("CameraView") &&
+  unifiedShell.includes("globalstock:native-barcode") &&
+  webScanner.includes("globalstock:native-barcode") &&
+  webScanner.includes('type: "open_scanner"') &&
+  webShell.includes('type: "app_ready"'),
+  "Expo barcode bridge must call the same web lookup and confirm web readiness.");
+must(webShell.includes("UnifiedLegalGate") &&
+  webLegal.includes("global_stock_legal_acceptances") &&
+  webLegal.includes("2026-10-12-v4") &&
+  webLegal.includes("2026-10-11-ar-beta"),
+  "Both PC and Expo must run the same versioned legal consent gate.");
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
 must(
   landing.includes('<SafeAreaView edges={["top","bottom"]}') &&
