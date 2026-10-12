@@ -32,6 +32,8 @@ jobs:
           node-version: "22"
       - name: Install Expo project
         run: npm install --no-audit --no-fund
+      - name: Validate native TypeScript/JSX syntax
+        run: npm run check:syntax
       - name: Check tracked secrets, app identity and launcher
         run: npm run check:repo
       - name: Argentina beta safety gates
