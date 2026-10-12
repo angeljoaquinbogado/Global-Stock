@@ -116,7 +116,7 @@ test("sector buttons switch the corresponding panel", async ({ page }) => {
   await visit(page);
   const area = page.locator("#download-sectors");
   await area.evaluate((node) => node.scrollIntoView({ block: "center", behavior: "instant" }));
-  const selection = area.getByRole("button", { name: "Gastronomía" });
+  const selection = area.getByRole("button", { name: "Restaurante" });
   await selection.click();
   await expect(selection).toHaveAttribute("aria-pressed", "true");
   await expect(area.locator("h3")).toBeVisible();
