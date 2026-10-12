@@ -17,6 +17,7 @@ import {
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
+import { Shirt, Beef, Store, Carrot, Croissant, Pill, BookOpen, Hammer, Laptop, Leaf, Scissors, Eye, PawPrint, Gem, UtensilsCrossed, Warehouse, Factory, BriefcaseBusiness, ShoppingBag, Check } from "lucide-react-native";
 import PreviewMode from "./src/components/PreviewMode";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
@@ -31,13 +32,29 @@ import { cacheBusinesses, cacheProducts, loadOfflineDrafts, purgeLocalAccountDat
 
 type Tab = "dashboard" | "inventory" | "pos" | "scanner";
 type CartLine = SaleLine;
-const MOBILE_BUSINESS_TYPES: Array<{ value: BusinessKind; label: string }> = [
-  { value: "retail", label: "Comercio / kiosco" },
-  { value: "wholesale", label: "Mayorista / depósito" },
-  { value: "restaurant", label: "Gastronomía" },
-  { value: "manufacturing", label: "Producción / taller" },
-  { value: "services", label: "Servicios con insumos" },
-  { value: "other", label: "Otro tipo de negocio" }
+type BusinessCategory = { id: string; label: string; description: string; kind: BusinessKind; icon: typeof Store };
+const MOBILE_BUSINESS_CATEGORIES: BusinessCategory[] = [
+  { id: "almacen", label: "Almacén / Kiosco", description: "Productos de todos los días", kind: "retail", icon: Store },
+  { id: "indumentaria", label: "Indumentaria", description: "Ropa, calzado y accesorios", kind: "retail", icon: Shirt },
+  { id: "carniceria", label: "Carnicería", description: "Carnes y embutidos", kind: "retail", icon: Beef },
+  { id: "verduleria", label: "Verdulería", description: "Frutas y verduras", kind: "retail", icon: Carrot },
+  { id: "panaderia", label: "Panadería", description: "Pan, facturas y pastelería", kind: "retail", icon: Croissant },
+  { id: "farmacia", label: "Farmacia", description: "Medicamentos y perfumería", kind: "retail", icon: Pill },
+  { id: "libreria", label: "Librería", description: "Libros, útiles y papelería", kind: "retail", icon: BookOpen },
+  { id: "ferreteria", label: "Ferretería", description: "Herramientas y materiales", kind: "retail", icon: Hammer },
+  { id: "electronica", label: "Electrónica", description: "Celulares y accesorios", kind: "retail", icon: Laptop },
+  { id: "dietetica", label: "Dietética", description: "Productos naturales", kind: "retail", icon: Leaf },
+  { id: "estetica", label: "Estética", description: "Cosmética y tratamientos", kind: "services", icon: Scissors },
+  { id: "optica", label: "Óptica", description: "Anteojos y lentes", kind: "retail", icon: Eye },
+  { id: "veterinaria", label: "Veterinaria", description: "Alimentos y productos para mascotas", kind: "services", icon: PawPrint },
+  { id: "joyeria", label: "Joyería", description: "Joyas, relojes y accesorios", kind: "retail", icon: Gem },
+  { id: "peluqueria", label: "Peluquería", description: "Cuidado del cabello", kind: "services", icon: Scissors },
+  { id: "restaurante", label: "Restaurante", description: "Cocina, ingredientes y comedor", kind: "restaurant", icon: UtensilsCrossed },
+  { id: "mayorista", label: "Mayorista / Depósito", description: "Distribución y almacenamiento", kind: "wholesale", icon: Warehouse },
+  { id: "fabricacion", label: "Taller / Fábrica", description: "Materiales, repuestos e insumos", kind: "industry", icon: Factory },
+  { id: "tienda-online", label: "Tienda online", description: "Productos y pedidos", kind: "ecommerce", icon: ShoppingBag },
+  { id: "servicios", label: "Servicios", description: "Insumos y materiales de trabajo", kind: "services", icon: BriefcaseBusiness },
+  { id: "otro", label: "Otro negocio", description: "Organizá tus productos a tu manera", kind: "other", icon: Store }
 ];
 
 const C = {
@@ -155,6 +172,7 @@ function MobileApp() {
   const [businessLoading, setBusinessLoading] = useState(false);
   const [newBusinessName, setNewBusinessName] = useState("");
   const [newBusinessType, setNewBusinessType] = useState<BusinessKind>("retail");
+  const [newBusinessCategory, setNewBusinessCategory] = useState("almacen");
   const [creatingBusiness, setCreatingBusiness] = useState(false);
   const [showProductForm, setShowProductForm] = useState(false);
   const [products, setProducts] = useState<Product[]>([]);
@@ -357,6 +375,7 @@ function MobileApp() {
       setBusiness(created);
       setNewBusinessName("");
       setNewBusinessType("retail");
+      setNewBusinessCategory("almacen");
       setNotice("Negocio real creado y conectado. Ya podés agregar productos.");
       await cacheBusinesses(user.id, [created]).catch(() => null);
     } catch (error) {
@@ -505,20 +524,29 @@ function MobileApp() {
           style={st.input}
           maxLength={100}
         />
-        <Text style={[st.helper,{fontWeight:"700",color:C.white}]}>¿Qué tipo de negocio manejás?</Text>
-        <View style={{flexDirection:"row",flexWrap:"wrap",gap:9}}>
-          {MOBILE_BUSINESS_TYPES.map(item => (
-            <Pressable key={item.value} accessibilityRole="button"
-              accessibilityLabel={item.label} accessibilityState={{selected:newBusinessType===item.value}}
-              onPress={() => setNewBusinessType(item.value)}
-              style={{paddingVertical:11,paddingHorizontal:12,borderRadius:12,
-                borderWidth:1,borderColor:newBusinessType===item.value?C.red:C.border,
-                backgroundColor:newBusinessType===item.value?"#32161C":C.surface}}>
-              <Text style={{color:C.white,fontWeight:newBusinessType===item.value?"800":"600",fontSize:12}}>{item.label}</Text>
-            </Pressable>
-          ))}
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>¿A qué se dedica tu negocio?</Text>
+        <Text style={st.helper}>Elegí lo que más se parezca. Después podés cargar cualquier producto o insumo.</Text>
+        <View style={{flexDirection:"row",flexWrap:"wrap",justifyContent:"space-between",rowGap:10}}>
+          {MOBILE_BUSINESS_CATEGORIES.map(item => {
+            const Icon = item.icon;
+            const selected = newBusinessCategory === item.id;
+            return <Pressable key={item.id} accessibilityRole="button"
+              accessibilityLabel={item.label} accessibilityState={{selected}}
+              onPress={() => {setNewBusinessType(item.kind);setNewBusinessCategory(item.id);}}
+              style={{width:"48.5%",minHeight:121,padding:13,borderRadius:15,
+                borderWidth:1.5,borderColor:selected?"#E02D40":C.border,
+                backgroundColor:selected?"#381018":C.raised,justifyContent:"space-between"}}>
+              <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between"}}>
+                <Icon size={23} color={selected?"#FF6575":"#F2F2F7"} strokeWidth={1.9}/>
+                {selected?<Check size={16} color="#FF7783"/>:null}
+              </View>
+              <View style={{gap:4}}>
+                <Text style={{color:C.white,fontSize:13,fontWeight:"800"}}>{item.label}</Text>
+                <Text style={{color:selected?"#F3B6C0":C.secondary,fontSize:11,lineHeight:15}}>{item.description}</Text>
+              </View>
+            </Pressable>;
+          })}
         </View>
-        <Text style={st.helper}>Usá Global Stock para mercadería, materias primas, repuestos, ingredientes o insumos. Cada negocio conserva su inventario independiente.</Text>
         <Button title={creatingBusiness ? "Creando..." : "Crear negocio real"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
         {notice ? <View style={{gap:5}}><Text style={st.warning}>{notice}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda para crear un negocio"))}><Text style={{color:C.red,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
         {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
