@@ -9,6 +9,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import WebView from "react-native-webview";
 import { ArrowLeft, Camera, RefreshCw, WifiOff, X } from "lucide-react-native";
 import LegacyNativeApp from "../../App";
+import { loadMobileSupabase } from "../lib/supabase";
 
 const WEB_ORIGIN = "https://globalstocks.vercel.app";
 const READY_TIMEOUT_MS = 30000;
@@ -21,6 +22,9 @@ const injection = "window.__GLOBAL_STOCK_EXPO__=true;true;";
 export default function UnifiedApp() {
   const webRef = useRef<React.ElementRef<typeof WebView>>(null);
   const scannedRef = useRef(false);
+  const savedLegacySessionRef = useRef<{access_token: string; refresh_token: string} | null>(null);
+  const migrationSentRef = useRef(false);
+  const currentUrlRef = useRef(WEB_ORIGIN + "/");
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [cameraOpen, setCameraOpen] = useState(false);
   const [nativeRecovery, setNativeRecovery] = useState(false);
@@ -30,6 +34,39 @@ export default function UnifiedApp() {
   const [pageReady, setPageReady] = useState(false);
   const [error, setError] = useState("");
   const [pageStartedAt, setPageStartedAt] = useState(Date.now());
+
+  useEffect(() => {
+    let mounted = true;
+    // Transfer a previously authenticated Expo Keychain session ONCE to the
+    // single canonical web app. Do not persist access tokens in React state.
+    void (async () => {
+      const client = await loadMobileSupabase();
+      const { data: { session } } = await client.auth.getSession();
+      if (!session) return;
+      const { data: verified, error } = await client.auth.getUser();
+      if (error || verified.user?.id !== session.user.id || !mounted) return;
+      savedLegacySessionRef.current = {
+        access_token: session.access_token,
+        refresh_token: session.refresh_token
+      };
+      if (pageReady) migrateSecureSession();
+    })().catch(() => { /* Normal on new installs without a prior Expo login. */ });
+    return () => { mounted = false; };
+    // The readiness callback handles the reverse race with web initialization.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function migrateSecureSession() {
+    if (migrationSentRef.current || !isSafePage(currentUrlRef.current) ||
+        !savedLegacySessionRef.current) return;
+    const session = savedLegacySessionRef.current;
+    savedLegacySessionRef.current = null;
+    migrationSentRef.current = true;
+    webRef.current?.injectJavaScript(
+      "window.dispatchEvent(new CustomEvent('globalstock:native-session'," +
+      "{detail:" + JSON.stringify(session) + "}));true;"
+    );
+  }
 
   useEffect(() => {
     if (!loading || pageReady || nativeRecovery) return;
@@ -111,18 +148,23 @@ export default function UnifiedApp() {
     }
     if (message.type === "app_ready") {
       setPageReady(true);
+      migrateSecureSession();
       setLoading(false);
       setError("");
     } else if (message.type === "open_scanner") {
       void openScanner();
     } else if (message.type === "close_scanner") {
       closeScanner();
+    } else if (message.type === "session_cleared") {
+      savedLegacySessionRef.current = null;
+      migrationSentRef.current = true;
+      void loadMobileSupabase().then(client => client.auth.signOut({ scope: "local" })).catch(() => null);
     }
   }
 
   function navigate(url: string) {
     if (url === "about:blank") return true;
-    if (isSafePage(url)) return true;
+    if (isSafePage(url)) { currentUrlRef.current = url; return true; }
     if (url.startsWith("https://")) {
       void Linking.openURL(url).catch(() => {
         Alert.alert("No se pudo abrir el enlace", "Probá abrirlo desde el navegador.");
@@ -157,7 +199,7 @@ export default function UnifiedApp() {
           injectedJavaScriptBeforeContentLoaded={injection}
           onMessage={onBridgeMessage}
           onShouldStartLoadWithRequest={request => navigate(request.url)}
-          onNavigationStateChange={state => setCanGoBack(state.canGoBack)}
+          onNavigationStateChange={state => {setCanGoBack(state.canGoBack); if(isSafePage(state.url))currentUrlRef.current=state.url;}}
           onLoadStart={() => {
             if (!pageReady) {
               setLoading(true);
@@ -169,7 +211,7 @@ export default function UnifiedApp() {
             setLoading(false);
           }}
           onHttpError={e => {
-            if (e.nativeEvent.statusCode >= 500) {
+            if (e.nativeEvent.statusCode >= 500 && !pageReady && isSafePage(e.nativeEvent.url)) {
               setError("Global Stock está temporalmente fuera de servicio. Intentá de nuevo.");
               setLoading(false);
             }
