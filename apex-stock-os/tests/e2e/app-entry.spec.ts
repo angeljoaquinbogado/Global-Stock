@@ -19,10 +19,18 @@ for (const screen of [
       await expect(create).toBeVisible({ timeout: 25000 });
       await create.click();
       await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
+      const adultBox = page.getByRole("checkbox", { name: "Declaro ser mayor de 18 años y aceptar los términos y la privacidad" });
+      await expect(adultBox).toBeVisible();
+      await expect(adultBox).not.toBeChecked();
+      await expect(page.getByRole("button", { name: "Crear cuenta gratis" })).toBeDisabled();
+      await adultBox.check();
+      await expect(page.getByRole("button", { name: "Crear cuenta gratis" })).toBeEnabled();
+      await expect(page.getByRole("link", { name: "Política de privacidad" })).toHaveAttribute("href", "/legal/privacy");
+      await expect(page.getByRole("link", { name: "cookies y el almacenamiento" })).toHaveAttribute("href", "/legal/cookies");
 
       const signIn = page.getByRole("button", { name: "Iniciar sesión", exact: true }).first();
       await signIn.click();
-      await expect(page.getByText("Volvé al control.", { exact: true })).toBeVisible();
+      await expect(page.getByText("Qué bueno verte de nuevo.", { exact: true })).toBeVisible();
 
       // It must be possible to switch without submitting user information.
       await expect(page.locator('input[type="email"]')).toBeVisible();
