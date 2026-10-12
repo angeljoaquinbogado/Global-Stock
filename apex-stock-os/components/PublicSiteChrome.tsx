@@ -253,7 +253,7 @@ export function LegalArticle({
           {intro}
         </p>
         <p className="mt-4 text-xs text-white/38">
-          Última actualización: 4 de octubre de 2026.
+          Última revisión de los documentos: 12 de octubre de 2026.
         </p>
 
         <article className="mt-12 space-y-10 text-sm leading-7 text-white/72 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-[-0.03em] [&_h2]:text-white [&_strong]:font-semibold [&_strong]:text-white">
