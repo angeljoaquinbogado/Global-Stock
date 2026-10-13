@@ -73,8 +73,9 @@ export function AuthSplitMotion({
     : "polygon(0% 0%,100% 0%,100% 100%,0% 100%)";
 
   return (
-    <div className={`relative mx-auto my-auto flex w-full max-w-[1110px] flex-col overflow-hidden rounded-[27px] border shadow-[0_34px_110px_rgba(0,0,0,.48)] lg:block lg:h-[min(840px,93dvh)] lg:min-h-[570px] ${dark ? "border-white/15 bg-[#131116]" : "border-black/10 bg-[#FFFDFB]"}`}>
+    <div data-testid="auth-split-stage" className={`relative mx-auto my-auto flex w-full max-w-[1110px] flex-col overflow-hidden rounded-[27px] border shadow-[0_34px_110px_rgba(0,0,0,.48)] lg:block lg:h-[min(840px,93dvh)] lg:min-h-[570px] ${dark ? "border-white/15 bg-[#131116]" : "border-black/10 bg-[#FFFDFB]"}`}>
       <motion.aside
+        data-testid="auth-diagonal-panel"
         initial={false}
         animate={{ x: wide && mode === "signin" ? "86%" : "0%", clipPath: mask }}
         transition={slide}
@@ -113,6 +114,7 @@ export function AuthSplitMotion({
         </div>
       </motion.aside>
       <motion.div
+        data-testid="auth-form-panel"
         initial={false}
         animate={{ x: wide && mode === "signup" ? "86%" : "0%" }}
         transition={slide}
