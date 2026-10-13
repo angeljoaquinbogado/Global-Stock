@@ -18,19 +18,23 @@ for (const screen of [
       const diagonal = page.getByTestId("auth-diagonal-panel");
       const form = page.getByTestId("auth-form-panel");
       await expect(shell).toBeVisible({ timeout: 30000 });
-      await expect(diagonal).toBeVisible();
+      if (screen.width >= 1024) {
+        await expect(diagonal).toBeVisible();
+      } else {
+        await expect(diagonal).toBeHidden();
+      }
       await expect(form).toBeVisible();
-      await expect(page.getByText("Qué bueno verte de nuevo.", { exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
 
       await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-      await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
       await expect(page.getByRole("checkbox", {
         name: "Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
       })).toBeVisible();
 
       // A reverse click must restore the original form, without a reload.
       await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-      await expect(page.getByText("Qué bueno verte de nuevo.", { exact: true })).toBeVisible();
+      await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
       await expect(page.locator('input[type="email"]')).toBeVisible();
       await expect(page.locator('input[type="password"]')).toBeVisible();
       const overflow = await page.evaluate(() =>
@@ -45,7 +49,7 @@ test("auth transition respects the reduce-motion preference", async ({ page }) =
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("auth-split-stage")).toBeVisible({ timeout: 30000 });
   await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-  await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-  await expect(page.getByText("Qué bueno verte de nuevo.", { exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
 });
