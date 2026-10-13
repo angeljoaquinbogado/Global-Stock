@@ -14,19 +14,18 @@ type Props = {
   onSaveDraft: () => void;
   onCompleted: (sale: CompletedMobileSale) => void;
 };
-type Promotion = {
-  kind: "percentage" | "fixed"; value: number; active: boolean;
-  starts_at: string | null; ends_at: string | null;
+type ServerQuote = {
+  subtotal: number; discount: number; total: number;
+  currency: string; lines: number;
 };
 const amount = (n: number, currency: string) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency, maximumFractionDigits: 2 }).format(n);
-const roundCents = (n: number) => Math.round(n * 100) / 100;
-function calculatePromotion(subtotal: number, promotions: Promotion[]): number {
-  return Math.min(subtotal, Math.max(0, ...promotions.map(p =>
-    p.kind === "percentage" ?
-      subtotal * Math.min(100, Math.max(0, Number(p.value) || 0)) / 100 :
-      Math.min(subtotal, Math.max(0, Number(p.value) || 0))
-  )));
+function validQuote(value: unknown, currency: string, lines: number): value is ServerQuote {
+  if (!value || typeof value !== "object") return false;
+  const quote = value as Partial<ServerQuote>;
+  return quote.currency === currency && quote.lines === lines &&
+    [quote.subtotal, quote.discount, quote.total].every(number =>
+      typeof number === "number" && Number.isFinite(number) && number >= 0);
 }
 export default function NativeCashRegister({
   client, business, products, cart, dark, online, refreshToken,
@@ -35,11 +34,9 @@ export default function NativeCashRegister({
   const [search, setSearch] = useState("");
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
-  const [promotions, setPromotions] = useState<Promotion[]>([]);
-  const [quoteLoading, setQuoteLoading] = useState(true);
+  const [quote, setQuote] = useState<ServerQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
-  const [canSell, setCanSell] = useState(false);
-  const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [promoRefresh, setPromoRefresh] = useState(0);
   const [recentSales, setRecentSales] = useState<Array<{
     id: string; total: number; created_at: string;
@@ -51,9 +48,10 @@ export default function NativeCashRegister({
     { surface: "#171719", tile: "#202024", line: "#323238", text: "#FAFAFA", muted: "#A3A3AE", red: "#BD101D" } :
     { surface: "#FFF", tile: "#F1F1F4", line: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#A40A14" }, [dark]);
   const s = useMemo(() => styles(palette), [palette]);
-  const subtotal = roundCents(cart.reduce((sum, line) => sum + line.quantity * line.unit_price, 0));
-  const promoDiscount = roundCents(calculatePromotion(subtotal, promotions));
-  const total = Math.max(0, roundCents(subtotal - promoDiscount));
+  const cartSubtotal = cart.reduce((sum, line) => sum + line.quantity * line.unit_price, 0);
+  const subtotal = quote?.subtotal ?? cartSubtotal;
+  const promoDiscount = quote?.discount ?? 0;
+  const total = quote?.total ?? cartSubtotal;
   const totalItems = cart.reduce((sum, line) => sum + line.quantity, 0);
   const matches = products.filter(item => [item.name, item.barcode, item.sku].some(
     text => text?.toLowerCase().includes(search.trim().toLowerCase())
@@ -63,50 +61,49 @@ export default function NativeCashRegister({
     if (cart.length > 0) setSaleSuccess(false);
   }, [cart.length]);
 
+  // One server preview replaces separate permission + promotion requests.
+  // It uses the same catalog/pricing rules as the final atomic sales RPC.
+  const linesSignature = JSON.stringify(cart.map(line => [
+    products.find(item => item.id === line.product_id)?.client_key ?? null,
+    line.quantity
+  ]));
   useEffect(() => {
     let live = true;
-    setCanSell(false); setPermissionsLoaded(false);
-    void Promise.resolve(client.rpc("global_stock_can_write", { target_business_id: business.id, domain: "sales" }))
-      .then(({ data, error }) => {
-        if (live) setCanSell(!error && data === true);
-      }).catch(() => {
-        if (live) setCanSell(false);
-      }).finally(() => {
-        if (live) setPermissionsLoaded(true);
-      });
-    return () => { live = false; };
-  }, [client, business.id, refreshToken]);
-
-  useEffect(() => {
-    let live = true;
-    setQuoteLoading(true);
+    setQuote(null);
     setQuoteError("");
-    setPromotions([]);
-    const now = new Date().toISOString();
-    void Promise.resolve(client.from("global_stock_promotions")
-      .select("kind,value,active,starts_at,ends_at")
-      .eq("business_id", business.id).eq("active", true)
-      .in("kind", ["percentage", "fixed"])
-      .order("created_at", { ascending: false })
-      .limit(150))
-      .then(({ data, error }) => {
-        if (!live) return;
-        if (error) { setQuoteError("No pudimos comprobar los descuentos activos. Actualizá Caja."); return; }
-        const result = (data ?? []) as Promotion[];
-        if (result.length >= 150) {
-          setQuoteError("Hay demasiadas promociones para calcular el precio de manera segura.");
-          return;
-        }
-        setPromotions(result.filter(item =>
-          (!item.starts_at || item.starts_at <= now) &&
-          (!item.ends_at || item.ends_at >= now) &&
-          Number.isFinite(Number(item.value))
-        ));
-      }).catch(() => {
-        if (live) setQuoteError("No pudimos cargar las promociones. Comprobá la conexión.");
-      }).finally(() => { if (live) setQuoteLoading(false); });
+    if (!cart.length) { setQuoteLoading(false); return () => { live = false; }; }
+    const lines = cart.map(line => {
+      const product = products.find(item => item.id === line.product_id);
+      return { productKey: product?.client_key ?? "", quantity: line.quantity };
+    });
+    if (lines.some(line => !line.productKey || !Number.isInteger(line.quantity) || line.quantity < 1)) {
+      setQuoteError("Actualizá los productos del carrito.");
+      setQuoteLoading(false);
+      return () => { live = false; };
+    }
+    setQuoteLoading(true);
+    void Promise.resolve(client.rpc("global_stock_preview_cash_sale", {
+      target_business_id: business.id, sale_lines: lines
+    })).then(({data,error}) => {
+      if (!live) return;
+      if (error) {
+        setQuoteError(/not authorized/i.test(error.message)
+          ? "No tenés permiso para cobrar."
+          : /product|quantity|cart|price/i.test(error.message)
+            ? "El carrito cambió. Actualizá Caja."
+            : "No se pudo consultar el total. Tocá Actualizar.");
+        return;
+      }
+      if (!validQuote(data, business.base_currency, lines.length)) {
+        setQuoteError("No pudimos comprobar el importe de esta venta.");
+        return;
+      }
+      setQuote(data);
+    }).catch(() => {
+      if (live) setQuoteError("No se pudo conectar para calcular el total.");
+    }).finally(() => { if (live) setQuoteLoading(false); });
     return () => { live = false; };
-  }, [client, business.id, refreshToken, promoRefresh]);
+  }, [client, business.id, business.base_currency, linesSignature, promoRefresh, refreshToken]);
 
   useEffect(() => {
     let live = true;
@@ -233,9 +230,9 @@ export default function NativeCashRegister({
       })}
       <View style={s.divider}/>
       <View style={s.between}><Text style={s.subtitle}>Subtotal</Text><Text style={s.value}>{amount(subtotal, business.base_currency)}</Text></View>
-      <View style={s.between}><Text style={s.subtitle}>Descuentos activos</Text>
+      {promoDiscount > 0 && <View style={s.between}><Text style={s.subtitle}>Descuento</Text>
         <Text style={[s.value, { color: "#58CFA2" }]}>− {amount(promoDiscount, business.base_currency)}</Text>
-      </View>
+      </View>}
       <View style={s.between}><Text style={s.totalLabel}>Total a cobrar</Text><Text style={s.total}>{amount(total, business.base_currency)}</Text></View>
 
       <Pressable accessibilityRole="button" onPress={() => { setPromoRefresh(v => v + 1); onRefresh(); }}
@@ -246,9 +243,9 @@ export default function NativeCashRegister({
     </View>
     <NativeCashCheckout key={business.id} client={client} business={business}
       products={products} cart={cart} dark={dark} online={online}
-      quoteReady={!quoteLoading && !quoteError && permissionsLoaded}
+      quoteReady={!quoteLoading && !quoteError && quote !== null}
       quoteError={quoteError}
-      canSell={canSell} expectedTotal={total} discount={promoDiscount}
+      canSell={quote !== null} expectedTotal={quote?.total ?? 0} discount={promoDiscount}
       onCompleted={(sale) => { setSaleSuccess(true); onCompleted(sale); }}/>
     {saleSuccess && <Text accessibilityRole="alert" style={s.success}>Venta registrada · stock actualizado.</Text>}
     <View style={s.card}>
