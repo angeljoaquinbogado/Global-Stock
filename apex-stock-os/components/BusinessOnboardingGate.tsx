@@ -271,7 +271,7 @@ export function BusinessOnboardingGate({
   return (
     <main className={`h-[100dvh] overflow-hidden ${dark ? "bg-[#09080B]" : "bg-[#EDE9E6]"}`}>
       <section className="flex h-full w-full items-center overflow-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-[14px] lg:py-[14px]">
-        <AuthSplitMotion mode="signup" language={language} dark={dark}>
+        <AuthSplitMotion mode="signup" language={language} dark={dark} scrollable>
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: .3 }}
             className={`min-w-0 px-5 py-6 sm:px-7 lg:px-[clamp(26px,3vw,52px)] ${text}`}>
