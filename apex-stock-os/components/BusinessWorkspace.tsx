@@ -52,6 +52,8 @@ import {
   ensureCloudBusiness,
   flushOfflineBusinessOperations,
   loadCloudWorkspace,
+  loadCanonicalProducts,
+  mergeCanonicalProducts,
   mirrorProductsToCloud,
   recordPosSale,
   recordStockAdjustment,
@@ -1222,6 +1224,8 @@ export function BusinessWorkspace({
   );
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
+  const lastMirroredProductsRef = useRef<Map<string,string>>(new Map());
+  const productSyncQueueRef = useRef<Promise<void>>(Promise.resolve());
   const cloudSaveTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
@@ -2190,16 +2194,29 @@ export function BusinessWorkspace({
         cachedState = null;
       }
 
-      const remote = await loadCloudWorkspace(business.id);
+      const [remote, canonical] = await Promise.all([
+        loadCloudWorkspace(business.id),
+        loadCanonicalProducts(business.id)
+      ]);
 
       if (cancelled) return;
+      if (canonical === null) {
+        setNotice("No se pudo leer el inventario compartido. Tus datos locales siguen disponibles; actualizá cuando vuelva la conexión.");
+        return; // Fail closed: do not overwrite unknown server stock.
+      }
 
       const resolvedState = remote?.state ?? cachedState;
+      const savedProducts = Array.isArray(resolvedState?.products)
+        ? resolvedState.products : products;
+      const mergedProducts = mergeCanonicalProducts(savedProducts, canonical);
+      lastMirroredProductsRef.current = new Map(canonical.map(
+        product => [product.id, JSON.stringify(product)]
+      ));
+      setProducts(mergedProducts);
 
       if (resolvedState) {
         const state = resolvedState;
 
-        if (Array.isArray(state.products)) setProducts(state.products);
         if (Array.isArray(state.trend)) setTrend(state.trend);
         if (typeof state.businessName === "string") {
           setBusinessName(state.businessName);
@@ -2237,7 +2254,7 @@ export function BusinessWorkspace({
         }
       } else {
         await saveCloudWorkspace(business.id, {
-          products,
+          products: mergedProducts,
           trend,
           businessName: businessName || business.name,
           businessType,
@@ -2273,6 +2290,27 @@ export function BusinessWorkspace({
   // Initial cloud hydration must happen once after local cache is ready.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageReady, demoMode]);
+
+  // Only write changed products. Another device's stock must not be
+  // overwritten simply because this user edited a note or preference.
+  function enqueueChangedProductSync(businessId: string, items: Product[]) {
+    const snapshot = items.map(product => ({ product, fingerprint: JSON.stringify(product) }));
+    productSyncQueueRef.current = productSyncQueueRef.current.catch(() => {}).then(async () => {
+      const changed = snapshot.filter(entry =>
+        lastMirroredProductsRef.current.get(entry.product.id) !== entry.fingerprint
+      );
+      if (!changed.length) return;
+      const success = await mirrorProductsToCloud(businessId, changed.map(entry => entry.product));
+      if (!success) {
+        console.warn("[Global Stock] Product sync deferred; cloud inventory stays authoritative");
+        return;
+      }
+      for (const entry of changed) {
+        lastMirroredProductsRef.current.set(entry.product.id, entry.fingerprint);
+      }
+    });
+    return productSyncQueueRef.current;
+  }
 
   useEffect(() => {
     if (
@@ -2318,7 +2356,7 @@ export function BusinessWorkspace({
 
       void Promise.all([
         saveCloudWorkspace(cloudBusinessId, state),
-        mirrorProductsToCloud(cloudBusinessId, products),
+        enqueueChangedProductSync(cloudBusinessId, products),
         updateCloudBusiness(cloudBusinessId, {
           name: businessName,
           businessType,
@@ -2370,7 +2408,7 @@ export function BusinessWorkspace({
           fxHistory,
           fxMarket
         }),
-        mirrorProductsToCloud(cloudBusinessId, products),
+        enqueueChangedProductSync(cloudBusinessId, products),
         flushOfflineBusinessOperations(cloudBusinessId),
         flushConnectedProductWrites()
       ]);
