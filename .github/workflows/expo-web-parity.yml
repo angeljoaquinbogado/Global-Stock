@@ -59,3 +59,24 @@ jobs:
       - name: Build combined web site and Expo app
         working-directory: apex-stock-os
         run: npm run build
+      - name: Install real Chromium for parity checks
+        working-directory: apex-stock-os
+        run: |
+          npm install --no-save --no-audit --no-fund playwright
+          npx playwright install --with-deps chromium
+      - name: Render Expo welcome at iPhone and desktop sizes
+        working-directory: apex-stock-os
+        run: |
+          npm run start -- --port 3000 >/tmp/gs-expo-next.log 2>&1 &
+          for i in $(seq 1 45); do
+            if curl -fsS http://127.0.0.1:3000/native-app/index.html >/dev/null; then break; fi
+            sleep 2
+          done
+          node scripts/expo-parity-smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: expo-web-screenproof
+          path: apex-stock-os/test-results/expo-parity
+          if-no-files-found: ignore
+          retention-days: 4
