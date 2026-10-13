@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AlertTriangle, Trash2 } from "lucide-react-native";
 
@@ -61,7 +62,7 @@ export default function NativeAccountDeletion({ client, onDeleted, dark }: Props
       <TextInput accessibilityLabel="Correo para confirmar eliminación" value={confirmEmail} onChangeText={setConfirmEmail} autoCapitalize="none" keyboardType="email-address" placeholder={email} placeholderTextColor={muted} style={[st.input,{color:fg,borderColor:border}]}/>
       <Text style={{color:fg,fontWeight:"700",fontSize:12}}>Escribí exactamente {PHRASE}</Text>
       <TextInput accessibilityLabel="Frase para confirmar eliminación" value={phrase} onChangeText={setPhrase} autoCapitalize="characters" placeholder={PHRASE} placeholderTextColor={muted} style={[st.input,{color:fg,borderColor:border}]}/>
-      <Pressable accessibilityRole="button" disabled={!canDelete} onPress={()=>Alert.alert("Confirmar eliminación definitiva","Tu cuenta y los datos que correspondan se eliminarán. Esto no se puede deshacer.",[{text:"Cancelar",style:"cancel"},{text:"Eliminar definitivamente",style:"destructive",onPress:()=>void remove()}])} style={[st.button,{backgroundColor:"#A00011",opacity:canDelete?1:0.4}]}>
+      <Pressable accessibilityRole="button" disabled={!canDelete} onPress={()=>appAlerts.alert("Confirmar eliminación definitiva","Tu cuenta y los datos que correspondan se eliminarán. Esto no se puede deshacer.",[{text:"Cancelar",style:"cancel"},{text:"Eliminar definitivamente",style:"destructive",onPress:()=>void remove()}])} style={[st.button,{backgroundColor:"#A00011",opacity:canDelete?1:0.4}]}>
         {deleting?<ActivityIndicator color="#FFF"/>:<Text style={{color:"#FFF",fontSize:12,fontWeight:"800"}}>Eliminar definitivamente mi cuenta</Text>}
       </Pressable>
       <Pressable disabled={deleting} accessibilityRole="button" onPress={()=>{setOpen(false);setError("");}} style={st.button}><Text style={{color:fg,fontWeight:"700"}}>Cancelar</Text></Pressable>
