@@ -154,3 +154,57 @@ test("language and theme stay clear of the diagonal edge on desktop", async ({ p
   expect(prefs!.x).toBeGreaterThan(logo!.x + logo!.width + 8);
   await expect(page.getByRole("button", { name: "Cambiar tema" })).toBeVisible();
 });
+
+
+for (const viewport of [
+  { name: "desktop", width: 1366, height: 768 },
+  { name: "mobile", width: 390, height: 844 }
+]) {
+  test("language dropdown is readable and changes language on " + viewport.name, async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "Custom language menu checked in Chromium.");
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    const trigger = page.getByTestId("auth-language-trigger");
+    await expect(trigger).toBeVisible({ timeout: 30_000 });
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await trigger.click();
+    const menu = page.getByTestId("auth-language-menu");
+    await expect(menu).toBeVisible();
+    await expect(trigger).toHaveAttribute("aria-expanded", "true");
+    await expect(menu.getByRole("option")).toHaveCount(5);
+
+    const menuBox = await menu.boundingBox();
+    const viewportWidth = await page.evaluate(() => document.documentElement.clientWidth);
+    expect(menuBox).not.toBeNull();
+    expect(menuBox!.width).toBeGreaterThanOrEqual(195);
+    expect(menuBox!.x).toBeGreaterThanOrEqual(0);
+    expect(menuBox!.x + menuBox!.width).toBeLessThanOrEqual(viewportWidth);
+    await expect(page.getByTestId("auth-language-option-es")).toHaveAttribute("aria-selected", "true");
+
+    await page.getByTestId("auth-language-option-de").click();
+    await expect(page.getByRole("heading", { name: "Anmelden", exact: true })).toBeVisible();
+    await expect(trigger).toHaveText(/DE/);
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+
+    await trigger.click();
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toBeHidden();
+    await expect(trigger).toBeFocused();
+
+    await trigger.focus();
+    await page.keyboard.press("ArrowDown");
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Home");
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+    await expect(menu).toBeHidden();
+    await expect(trigger).toHaveText(/ES/);
+
+    await trigger.click();
+    await page.getByTestId("auth-password-input").click();
+    await expect(menu).toBeHidden();
+    expect(await page.evaluate(() => document.documentElement.scrollHeight - document.documentElement.clientHeight)).toBeLessThanOrEqual(2);
+  });
+}
