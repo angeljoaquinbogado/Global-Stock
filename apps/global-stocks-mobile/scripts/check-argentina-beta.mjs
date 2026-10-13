@@ -39,7 +39,8 @@ must(mobileEntry.includes('import App from "./App"') &&
   app.includes("NativeWorkspace") &&
   app.includes("NativeAuthLanding") &&
   workspace.includes('module: "charts"') &&
-  workspace.includes('module: "rates"') &&
+  workspace.includes('module: "cash"') &&
+  !workspace.includes('module: "rates"') &&
   workspace.includes('active==="scan"') &&
   workspace.includes('accessibilityLabel="Escanear"') &&
   workspace.includes('module: "settings"') &&
