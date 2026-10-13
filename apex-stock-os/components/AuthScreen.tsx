@@ -443,9 +443,9 @@ export function AuthScreen({
       <section className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-3 py-3 sm:px-5 sm:py-5 lg:px-7 lg:py-6">
         <div className="mx-auto h-full min-h-0 w-full max-w-[1480px]">
           <AuthSplitMotion mode={mode} language={language} dark={dark}>
-            <div className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(30px,5.2vw,88px)]">
-              <div className="gs-auth-brand-row mb-7 flex items-center justify-between gap-3">
-                <Logo withWordmark />
+            <div className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(25px,4.3vw,72px)]">
+              <div className="gs-auth-brand-row mb-8 flex items-center justify-between gap-3">
+                <Logo withWordmark className="gs-auth-reference-logo [&>img]:!h-11 [&>img]:!w-11 [&>div>div]:!text-[16px]" />
                 <div className="flex shrink-0 items-center gap-1.5">
                   <select
                     aria-label={language === "es" ? "Idioma" : "Language"}
@@ -474,53 +474,60 @@ export function AuthScreen({
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -7 }}
                   transition={{ duration: reduceMotion ? 0 : .24, delay: reduceMotion ? 0 : .24 }}
                 >
-                  <div className="mb-6">
-                    <h1 className="text-[clamp(1.35rem,2vw,1.85rem)] font-semibold tracking-[-.048em]">
+                  <div className="mb-7">
+                    <h1 className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">
                       {mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
                     <div aria-hidden="true" className="mt-2 h-[2px] w-7 rounded-full bg-[#8F0000]"/>
                   </div>
-                  <form onSubmit={submit} className="gs-auth-reference-fields space-y-4">
+                  <form onSubmit={submit} className="gs-auth-reference-fields space-y-[18px]">
                     {mode === "signup" && (
                       <label className="block">
-                        <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{micro.username}</span>
+                        <span className={`mb-1 block text-[12px] font-medium ${muted}`}>{micro.username}</span>
                         <span className="relative block">
                           <UserRound className={`pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 ${icons}`} size={15}/>
                           <input
                             value={name} onChange={event => setName(event.target.value)}
                             type="text" autoComplete="name" required minLength={2}
                             placeholder={labels.namePlaceholder}
-                            className={`h-10 w-full border-0 border-b bg-transparent pr-8 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
+                            className={`h-11 w-full border-0 border-b bg-transparent pr-8 text-[14px] outline-none transition-colors ${fieldStyle}`}/>
                         </span>
                       </label>
                     )}
                     <label className="block">
-                      <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{labels.email}</span>
+                      <span className={`mb-1 block text-[12px] font-medium ${muted}`}>{labels.email}</span>
                       <span className="relative block">
                         <Mail className={`pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 ${icons}`} size={15}/>
                         <input value={email} onChange={event => setEmail(event.target.value)}
                           type="email" inputMode="email" autoComplete="email" required
                           placeholder={labels.emailPlaceholder}
-                          className={`h-10 w-full border-0 border-b bg-transparent pr-8 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
+                          className={`h-11 w-full border-0 border-b bg-transparent pr-8 text-[14px] outline-none transition-colors ${fieldStyle}`}/>
                       </span>
                     </label>
-                    <label className="block">
-                      <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{labels.password}</span>
+                    <div className="block">
+                      <label htmlFor="global-stock-auth-password" className={`mb-1 block text-[12px] font-medium ${muted}`}>{labels.password}</label>
                       <span className="relative block">
-                        <input value={password} onChange={event => setPassword(event.target.value)}
+                        <input id="global-stock-auth-password" value={password} onChange={event => setPassword(event.target.value)}
                           type={showPassword ? "text" : "password"}
                           autoComplete={mode === "signin" ? "current-password" : "new-password"}
                           required minLength={8}
                           placeholder={labels.passwordPlaceholder}
-                          className={`h-10 w-full border-0 border-b bg-transparent pr-9 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
-                        <button type="button" onClick={() => setShowPassword(value => !value)}
+                          data-testid="auth-password-input"
+                          className={`h-11 w-full border-0 border-b bg-transparent pr-12 text-[14px] outline-none transition-colors ${fieldStyle}`}/>
+                        <button type="button"
+                          data-testid="auth-password-visibility"
+                          onPointerDown={event => event.preventDefault()}
+                          onClick={event => { event.preventDefault(); event.stopPropagation(); setShowPassword(value => !value); }}
+                          aria-pressed={showPassword}
+                          aria-controls="global-stock-auth-password"
                           aria-label={showPassword ? labels.hidePassword : labels.showPassword}
-                          className={`absolute right-0 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full ${muted}`}>
-                          {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                          title={showPassword ? labels.hidePassword : labels.showPassword}
+                          className={`absolute right-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 cursor-pointer touch-manipulation place-items-center rounded-full transition-colors hover:bg-[#8F0000]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[#8F0000] ${muted}`}>
+                          {showPassword ? <EyeOff size={18} aria-hidden="true"/> : <Eye size={18} aria-hidden="true"/>}
                         </button>
                       </span>
                       {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
-                    </label>
+                    </div>
 
                     {mode === "signup" && (
                       <label className="flex cursor-pointer items-start gap-2.5">
@@ -550,7 +557,7 @@ export function AuthScreen({
                     )}
 
                     <button type="submit" disabled={pending || (mode === "signup" && !adultConsent)}
-                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
+                      className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
                       {mode === "signin" ? labels.signIn : labels.signUp}
                     </button>
@@ -566,7 +573,7 @@ export function AuthScreen({
                     </div>
                   )}
 
-                  <p className={`mt-4 text-center text-[11px] leading-5 ${muted}`}>
+                  <p className={`mt-4 text-center text-[12px] leading-5 ${muted}`}>
                     {mode === "signin" ? micro.first : micro.existing}{" "}
                     <button type="button" onClick={() => selectMode(mode === "signin" ? "signup" : "signin")}
                       className={`font-semibold underline decoration-[#8F0000]/40 underline-offset-[3px] transition-colors hover:text-[#8F0000] ${dark ? "text-white" : "text-[#322729]"}`}>
