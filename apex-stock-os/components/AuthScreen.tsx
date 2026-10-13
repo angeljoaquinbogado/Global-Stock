@@ -95,7 +95,7 @@ const copy: Record<
     invalidPassword: "La contraseña debe tener al menos 8 caracteres.",
     invalidName: "Ingresá tu nombre.",
     accountCreated:
-      "Cuenta creada. Revisá tu correo para confirmar el acceso antes de iniciar sesión.",
+      "Cuenta creada. Si recibís un correo de confirmación, verificá tu dirección e iniciá sesión. Después vas a completar los datos de tu negocio.",
     authError: "No se pudo completar la autenticación.",
     oauthSetup: "Google requiere configurar Supabase antes de usar OAuth.",
     showPassword: "Mostrar contraseña",
@@ -671,7 +671,7 @@ export function AuthScreen({
                       {mode === "signin" ? labels.enter : labels.create}
                     </button>
 
-                    {(mode !== "signup" || adultConsent) && <GoogleIdentityButton
+                    {mode === "signin" && <GoogleIdentityButton
                       dark={dark}
                       label={labels.google}
                       language={language}
