@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Barcode, Minus, Plus, RefreshCw, ScanLine, Search, ShoppingCart, Trash2 } from "lucide-react-native";
 import type { Business, Product, SaleLine } from "../lib/data";
@@ -45,6 +45,8 @@ export default function NativeCashRegister({
     id: string; total: number; created_at: string;
   }>>([]);
   const [salesError, setSalesError] = useState("");
+  const [showHistory, setShowHistory] = useState(false);
+  const [saleSuccess, setSaleSuccess] = useState(false);
   const palette = useMemo(() => dark ?
     { surface: "#171719", tile: "#202024", line: "#323238", text: "#FAFAFA", muted: "#A3A3AE", red: "#BD101D" } :
     { surface: "#FFF", tile: "#F1F1F4", line: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#A40A14" }, [dark]);
@@ -55,7 +57,11 @@ export default function NativeCashRegister({
   const totalItems = cart.reduce((sum, line) => sum + line.quantity, 0);
   const matches = products.filter(item => [item.name, item.barcode, item.sku].some(
     text => text?.toLowerCase().includes(search.trim().toLowerCase())
-  )).slice(0, search.trim() ? 40 : 12);
+  )).slice(0, search.trim() ? 16 : 0);
+
+  useEffect(() => {
+    if (cart.length > 0) setSaleSuccess(false);
+  }, [cart.length]);
 
   useEffect(() => {
     let live = true;
@@ -141,23 +147,18 @@ export default function NativeCashRegister({
     const current = cart.find(line => line.product_id === item.id)?.quantity ?? 0;
     if (current >= item.stock) { setMessage("Ya agregaste todas las unidades disponibles de ese producto."); return; }
     onAdd(item);
-    setMessage("Agregado a Caja: " + item.name);
+    setMessage("");
     setCode("");
   }
   function clearCart() {
-    if (!cart.length) return;
-    Alert.alert("Vaciar Caja", "¿Querés quitar todos los artículos de esta venta sin registrar ningún cobro?", [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Vaciar carrito", style: "destructive",
-        onPress: () => cart.forEach(line => onAdjust(line.product_id, -line.quantity)) }
-    ]);
+    for (const line of cart) onAdjust(line.product_id, -line.quantity);
+    setMessage("");
   }
 
   return <View style={s.container}>
     <View style={{ gap: 5 }}>
-      <Text style={s.kicker}>GLOBAL STOCK · VENTAS PRESENCIALES</Text>
-      <Text style={s.heading}>Caja registradora</Text>
-      <Text style={s.subtitle}>Escaneá productos, prepará el cobro y calculá el vuelto.</Text>
+      <Text style={s.heading}>Caja</Text>
+      <Text style={s.subtitle}>Escaneá o buscá productos para cobrar.</Text>
     </View>
 
     <View style={s.card}>
@@ -191,7 +192,7 @@ export default function NativeCashRegister({
           <Pressable accessibilityRole="button"
             accessibilityLabel={"Agregar " + product.name + " a Caja"}
             disabled={product.stock <= selected || product.stock <= 0}
-            onPress={() => { onAdd(product); setMessage("Agregado: " + product.name); }}
+            onPress={() => { onAdd(product); setMessage(""); }}
             style={[s.plus, (product.stock <= selected || product.stock <= 0) && { opacity: .4 }]}>
             <Plus size={19} color="#FFF"/>
           </Pressable>
@@ -207,7 +208,7 @@ export default function NativeCashRegister({
       </View>
       {cart.length === 0 ? <View style={s.empty}>
         <ShoppingCart size={27} color={palette.muted}/>
-        <Text style={s.subtitle}>Todavía no agregaste artículos. Escaneá el primero o buscalo por nombre.</Text>
+        <Text style={s.subtitle}>Agregá el primer producto.</Text>
       </View> : cart.map(line => {
         const product = products.find(item => item.id === line.product_id);
         return <View key={line.product_id} style={s.saleRow}>
@@ -236,10 +237,9 @@ export default function NativeCashRegister({
         <Text style={[s.value, { color: "#58CFA2" }]}>− {amount(promoDiscount, business.base_currency)}</Text>
       </View>
       <View style={s.between}><Text style={s.totalLabel}>Total a cobrar</Text><Text style={s.total}>{amount(total, business.base_currency)}</Text></View>
-      {quoteLoading ? <View style={s.between}><ActivityIndicator color={palette.red}/><Text style={s.subtitle}>Consultando promociones…</Text></View> : null}
-      {quoteError ? <Text accessibilityRole="alert" style={s.message}>{quoteError}</Text> : null}
+
       <Pressable accessibilityRole="button" onPress={() => { setPromoRefresh(v => v + 1); onRefresh(); }}
-        style={s.smallButton}><RefreshCw size={15} color={palette.muted}/><Text style={s.smallButtonText}>Actualizar stock y descuentos</Text></Pressable>
+        style={s.smallButton}><RefreshCw size={15} color={palette.muted}/><Text style={s.smallButtonText}>Actualizar</Text></Pressable>
       {cart.length > 0 && <Pressable accessibilityRole="button" onPress={onSaveDraft} style={s.secondary}>
         <Text style={s.smallButtonText}>Guardar presupuesto sin cobrar</Text>
       </Pressable>}
@@ -247,23 +247,23 @@ export default function NativeCashRegister({
     <NativeCashCheckout key={business.id} client={client} business={business}
       products={products} cart={cart} dark={dark} online={online}
       quoteReady={!quoteLoading && !quoteError && permissionsLoaded}
+      quoteError={quoteError}
       canSell={canSell} expectedTotal={total} discount={promoDiscount}
-      onCompleted={onCompleted}/>
+      onCompleted={(sale) => { setSaleSuccess(true); onCompleted(sale); }}/>
+    {saleSuccess && <Text accessibilityRole="alert" style={s.success}>Venta registrada · stock actualizado.</Text>}
     <View style={s.card}>
-      <Text style={s.section}>Últimas ventas de Caja</Text>
-      {salesError ? <Text style={s.message}>{salesError}</Text> : null}
-      {recentSales.length === 0 && !salesError ?
-        <Text style={s.subtitle}>Todavía no hay ventas confirmadas para mostrar.</Text> :
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: showHistory }}
+        onPress={() => setShowHistory(value => !value)} style={s.between}>
+        <Text style={s.section}>Últimas ventas</Text>
+        <Text style={s.smallButtonText}>{showHistory ? "Ocultar" : "Ver"}</Text>
+      </Pressable>
+      {showHistory && (salesError ? <Text style={s.message}>{salesError}</Text> :
+        recentSales.length === 0 ? <Text style={s.subtitle}>Sin ventas recientes.</Text> :
         recentSales.map(sale => <View key={sale.id} style={s.between}>
-          <View style={{ flex: 1 }}>
-            <Text style={s.productName}>{new Date(sale.created_at).toLocaleString("es-AR")}</Text>
-            <Text style={s.productInfo}>Venta registrada · {sale.id.slice(0, 8)}</Text>
-          </View>
+          <Text style={s.productInfo}>{new Date(sale.created_at).toLocaleString("es-AR")}</Text>
           <Text style={s.value}>{amount(sale.total, business.base_currency)}</Text>
-        </View>)
-      }
+        </View>))}
     </View>
-    <Text style={s.legal}>Descuentos: se aplica la mejor promoción activa configurada en el negocio. El servidor comprueba el importe final al registrar la venta. La caja no emite facturas fiscales.</Text>
   </View>;
 }
 function styles(p: { surface: string; tile: string; line: string; text: string; muted: string; red: string }) {
@@ -296,6 +296,7 @@ function styles(p: { surface: string; tile: string; line: string; text: string; 
     totalLabel: { color: p.text, fontSize: 14, fontWeight: "800" },
     total: { color: p.text, fontSize: 20, fontWeight: "800" },
     secondary: { borderRadius: 11, padding: 13, borderWidth: 1, borderColor: p.line, backgroundColor: p.tile, alignItems: "center" },
-    legal: { color: p.muted, fontSize: 10.5, lineHeight: 17 }
+    legal: { color: p.muted, fontSize: 10.5, lineHeight: 17 },
+    success: { color: "#53C79A", fontWeight: "700", fontSize: 12, lineHeight: 19 }
   });
 }
