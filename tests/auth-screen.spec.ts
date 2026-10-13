@@ -95,3 +95,41 @@ test("Google remains available in light and dark theme without Apple", async ({ 
   await expect(google).toBeVisible();
   await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
 });
+
+
+for (const viewport of [
+  { width: 1366, height: 640, name: "notebook" },
+  { width: 390, height: 844, name: "phone" }
+]) {
+  test("password eye toggles masking without altering the secret on " + viewport.name, async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "Input visibility and keyboard behavior checked in Chromium.");
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    const password = page.getByTestId("auth-password-input");
+    const toggle = page.getByTestId("auth-password-visibility");
+    await expect(password).toBeVisible({ timeout: 30_000 });
+    await password.fill("Prueba123!2026");
+    await expect(password).toHaveAttribute("type", "password");
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await toggle.click();
+    await expect(password).toHaveAttribute("type", "text");
+    await expect(password).toHaveValue("Prueba123!2026");
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await toggle.click();
+    await expect(password).toHaveAttribute("type", "password");
+    await expect(password).toHaveValue("Prueba123!2026");
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await page.getByRole("button", { name: "Crear cuenta", exact: true }).click();
+    await expect(password).toHaveAttribute("type", "password");
+    await toggle.click();
+    await expect(password).toHaveAttribute("type", "text");
+    await expect(password).toHaveValue("Prueba123!2026");
+    const bounds = await toggle.boundingBox();
+    expect(bounds?.width).toBeGreaterThanOrEqual(39);
+    expect(bounds?.height).toBeGreaterThanOrEqual(39);
+    const panel = page.getByTestId("auth-form-panel");
+    expect(await panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(2);
+  });
+}
