@@ -148,6 +148,11 @@ const OperationsCenter = dynamic(
   { ssr: false, loading: LazyModuleFallback }
 );
 
+const BusinessLocationsCenter = dynamic(
+  () => import("./BusinessLocationsCenter").then(mod => mod.BusinessLocationsCenter),
+  { ssr: false }
+);
+
 const BusinessSuite = dynamic(
   () =>
     import("./BusinessSuite").then(
@@ -4242,6 +4247,8 @@ export function BusinessWorkspace({
                 onSignOut={onSignOut}
                 saveBusinessName={saveBusinessName}
                 locale={locale}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
               />
             )}
             </motion.div>
@@ -5858,7 +5865,9 @@ function SettingsModule({
   onToggleTheme,
   onSignOut,
   saveBusinessName,
-  locale
+  locale,
+  businessId,
+  demoMode
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -5878,6 +5887,8 @@ function SettingsModule({
   onSignOut: () => void;
   saveBusinessName: () => void;
   locale: string;
+  businessId: string | null;
+  demoMode: boolean;
 }) {
   const [businessCategoryId, setBusinessCategoryId] = useState(() =>
     typeof window === "undefined" ? "almacen" :
@@ -6097,6 +6108,8 @@ function SettingsModule({
             defaultCurrency={currency}
           />
         </div>
+
+        {!demoMode && businessId ? <BusinessLocationsCenter businessId={businessId} currency={currency} /> : null}
 
         <NewsletterPreferences />
 
