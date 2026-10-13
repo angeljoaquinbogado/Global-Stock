@@ -56,7 +56,7 @@ export default function NativeCashRegister({
   useEffect(() => {
     let live = true;
     setCanSell(false); setPermissionsLoaded(false);
-    void client.rpc("global_stock_can_write", { target_business_id: business.id, domain: "sales" })
+    void Promise.resolve(client.rpc("global_stock_can_write", { target_business_id: business.id, domain: "sales" }))
       .then(({ data, error }) => {
         if (live) setCanSell(!error && data === true);
       }).catch(() => {
@@ -73,12 +73,12 @@ export default function NativeCashRegister({
     setQuoteError("");
     setPromotions([]);
     const now = new Date().toISOString();
-    void client.from("global_stock_promotions")
+    void Promise.resolve(client.from("global_stock_promotions")
       .select("kind,value,active,starts_at,ends_at")
       .eq("business_id", business.id).eq("active", true)
       .in("kind", ["percentage", "fixed"])
       .order("created_at", { ascending: false })
-      .limit(150)
+      .limit(150))
       .then(({ data, error }) => {
         if (!live) return;
         if (error) { setQuoteError("No pudimos comprobar los descuentos activos. Actualizá Caja."); return; }
