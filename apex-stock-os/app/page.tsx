@@ -1,8 +1,10 @@
-import { redirect } from "next/navigation";
+import { ApexShell } from "@/components/ApexShell";
 
-/** Production uses the SAME React Native / Expo components that power Expo Go.
- * Next.js continues serving API, legal pages and the optional /classic rollback.
+/**
+ * Desktop and notebook use their own responsive Global Stock dashboard.
+ * Expo Go keeps its native screen/layout; both share Supabase businesses,
+ * inventory, permissions and server APIs. Do not redirect desktop to Expo Web.
  */
 export default function HomePage() {
-  redirect("/native-app/index.html");
+  return <ApexShell />;
 }
