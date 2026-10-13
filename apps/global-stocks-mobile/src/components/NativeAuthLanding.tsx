@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  AccessibilityInfo, ActivityIndicator, Animated, Easing, Image, KeyboardAvoidingView, Linking, Platform, Pressable,
+  AccessibilityInfo, ActivityIndicator, Animated, Easing, Image, Keyboard, KeyboardAvoidingView, Linking, Platform, Pressable,
   ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -128,6 +128,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   const [dark, setDark] = useState(true);
   const [language, setLanguage] = useState<Language>("es");
   const [openLanguages, setOpenLanguages] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -203,6 +204,12 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
     };
   }, [wipe]);
 
+  useEffect(() => {
+    const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardOpen(true));
+    const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardOpen(false));
+    return () => { shown.remove(); hidden.remove(); };
+  }, []);
+
   function changeTheme(next: boolean) {
     setDark(next);
     void SecureStore.setItemAsync(THEME_KEY, next ? "dark" : "light").catch(() => null);
@@ -260,7 +267,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
       <StatusBar style={dark ? "light" : "dark"} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
-          scrollEnabled={!form || compact}
+          scrollEnabled={!form || compact || keyboardOpen}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18, width: "100%", maxWidth: Platform.OS === "web" && width >= 900 ? 640 : undefined, alignSelf: "center" }]}
