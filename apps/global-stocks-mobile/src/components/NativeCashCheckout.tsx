@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { Check, CircleCheck, CreditCard, ShieldCheck, Wallet } from "lucide-react-native";
+import { CreditCard, ShieldCheck, Wallet } from "lucide-react-native";
 import type { Business, Product, SaleLine } from "../lib/data";
 
 export type CompletedMobileSale = {
@@ -34,7 +34,6 @@ export default function NativeCashCheckout({
   expectedTotal, discount, quoteReady, canSell
 }: Props) {
   const [method, setMethod] = useState<"cash" | "transfer">("cash");
-  const [confirmedPayment, setConfirmedPayment] = useState(false);
   const [received, setReceived] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -50,21 +49,25 @@ export default function NativeCashCheckout({
   const tendered = parseTendered(received);
   const change = tendered == null ? null : cents(tendered - total);
   const validCash = method !== "cash" || (change !== null && change >= 0);
-  const signature = JSON.stringify({
+  const cartSignature = JSON.stringify({
     business: business.id, lines: cart.map(item =>
       [item.product_id, item.quantity, item.unit_price]), method, total, discount
   });
+  const signature = JSON.stringify({cartSignature, receivedAmount: method === "cash" ? tendered : total});
   const uncertainChanged = uncertain && operation.current?.signature !== signature;
   const valid = cart.length > 0 && online && canSell && quoteReady &&
-    Number.isFinite(total) && total > 0 && validCash && confirmedPayment &&
-    !uncertainChanged;
+    Number.isFinite(total) && total > 0 && validCash && !uncertainChanged;
+  const blockReason = !cart.length ? "" : !online ? "Actualizá el stock para cobrar." :
+    !quoteReady ? "Comprobando Caja…" :
+    !canSell ? "Esta cuenta no tiene permiso para cobrar." :
+    total <= 0 ? "El importe debe ser mayor que cero." :
+    uncertainChanged ? "Cobro pendiente de verificación. Revisá el historial." :
+    !validCash ? "Ingresá el dinero recibido." : "";
 
   useEffect(() => {
-    setConfirmedPayment(false);
     setReceived("");
     setError("");
-    // A changed cart requires a fresh confirmation and amount.
-  }, [signature]);
+  }, [cartSignature]);
 
   async function completeSale() {
     if (busy || !valid) return;
@@ -101,47 +104,34 @@ export default function NativeCashCheckout({
       if (!/^[a-f0-9-]{36}$/i.test(id)) throw new Error("No se pudo verificar la venta registrada.");
       operation.current = null;
       setUncertain(false);
-      setConfirmedPayment(false);
       setReceived("");
       onCompleted({ id, lines: cart.map(line => ({ ...line })),
         method, total, createdAt: new Date().toISOString() });
-      Alert.alert("Venta registrada", "El servidor confirmó la venta y el descuento de stock. El comprobante interno no reemplaza una factura fiscal.");
     } catch (reason) {
-      const message = reason instanceof Error ? reason.message : "No se pudo confirmar el cobro.";
+      const message = reason instanceof Error ? reason.message : "No se pudo registrar el cobro.";
       const connectionLost = /network|fetch|timeout|abort|connection|socket/i.test(message);
       if (connectionLost) setUncertain(true);
       else { operation.current = null; setUncertain(false); }
-      setError(connectionLost
-        ? "No se pudo confirmar si la venta se registró. No cambies el carrito; podés reintentar con la misma operación o consultar el historial."
-        : "La venta no fue registrada: " + message +
-          ". Si el precio o la promoción cambió, actualizá Caja antes de volver a confirmar.");
+      const lower = message.toLowerCase();
+      setError(connectionLost ? "Conexión interrumpida. Revisá el historial antes de reintentar." :
+        /stock|insufficient|inventory/i.test(lower) ? "Stock insuficiente. Actualizá el inventario." :
+        /mismatch|price|promotion|total/i.test(lower) ? "Cambió el importe. Actualizá Caja." :
+        /product not found|invalid sale line/i.test(lower) ? "No encontramos el producto. Actualizá Caja." :
+        /permission|authorized|policy/i.test(lower) ? "Tu cuenta no tiene permiso para cobrar." :
+        /quantity|cantidad/i.test(lower) ? "Revisá las cantidades del carrito." :
+        "No se pudo registrar el cobro. Actualizá e intentá otra vez.");
+      if (!connectionLost) console.warn("[Global Stock Caja] Sale rejected", message);
     } finally {
       setBusy(false);
     }
   }
 
-  function requestConfirmation() {
-    if (!valid) return;
-    Alert.alert("Confirmar cobro",
-      "¿Recibiste y verificaste " + money(total, business.base_currency) +
-      (method === "cash" ? " en efectivo?" : " mediante transferencia acreditada?") +
-      " Esto registra la venta y descuenta el stock.", [
-        { text: "Cancelar", style: "cancel" },
-        { text: "Confirmar venta", onPress: () => void completeSale() }
-      ]);
-  }
-
   return <View style={s.panel}>
-    <View style={s.row}><Wallet size={19} color="#D52C3A"/><Text style={s.heading}>Cobrar venta</Text></View>
-    <View style={[s.amountBox, { backgroundColor: colors.tile }]}>
-      <Text style={s.small}>Total a cobrar</Text>
-      <Text style={s.big}>{money(total, business.base_currency)}</Text>
-      {discount > 0 && <Text style={s.savings}>Descuento automático: − {money(discount, business.base_currency)}</Text>}
-    </View>
+    <View style={s.row}><Wallet size={19} color="#D52C3A"/><Text style={s.heading}>Cobro</Text></View>
     <View style={s.row}>
       {([["cash", "Efectivo"], ["transfer", "Transferencia"]] as const).map(([id, label]) =>
         <Pressable key={id} accessibilityRole="radio" accessibilityState={{ checked: method === id }}
-          onPress={() => { setMethod(id); setConfirmedPayment(false); setError(""); }}
+          onPress={() => { setMethod(id); setError(""); }}
           style={[s.option, method === id && s.selected]}>
           <Text style={[s.optionText, method === id && { color: "#FFF" }]}>{label}</Text>
         </Pressable>)}
@@ -172,26 +162,15 @@ export default function NativeCashCheckout({
       <CreditCard size={16} color="#E5B073"/>
       <Text style={s.small}>Comprobá que la transferencia esté acreditada en tu cuenta. Global Stock no la verifica automáticamente.</Text>
     </View>}
-    {!quoteReady && <Text style={s.error}>Revisando promociones y permisos de Caja. No se habilitará el cobro hasta terminar.</Text>}
-    {!canSell && <Text style={s.error}>Tu usuario no tiene permisos para registrar ventas en este negocio.</Text>}
-    {!online && <Text style={s.error}>Sin inventario actualizado. Conectate y actualizá antes de confirmar.</Text>}
-    {uncertainChanged && <Text style={s.error}>El carrito cambió después de una conexión interrumpida. Revisá el historial antes de otra operación.</Text>}
-    {Boolean(error) && <Text accessibilityRole="alert" style={s.error}>{error}</Text>}
-    <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: confirmedPayment }}
-      onPress={() => setConfirmedPayment(value => !value)} style={s.row}>
-      <View style={[s.checkbox, confirmedPayment && { backgroundColor: "#9B0013", borderColor: "#9B0013" }]}>
-        {confirmedPayment && <Check size={14} color="#FFF"/>}
-      </View>
-      <Text style={[s.small, { flex: 1 }]}>Confirmo que el cliente pagó y que verifiqué el dinero recibido.</Text>
-    </Pressable>
-    <Pressable accessibilityRole="button" accessibilityLabel="Confirmar venta cobrada"
-      disabled={!valid || busy} onPress={requestConfirmation}
+    {(error || blockReason) ? <Text accessibilityRole={error ? "alert" : undefined} style={s.error}>{error || blockReason}</Text> : null}
+    <Pressable accessibilityRole="button" accessibilityLabel="Confirmar cobro y registrar venta"
+      disabled={!valid || busy} onPress={() => void completeSale()}
       style={[s.confirm, (!valid || busy) && { opacity: .4 }]}>
       {busy ? <ActivityIndicator color="#FFF"/> : <>
-        <ShieldCheck size={18} color="#FFF"/><Text style={s.confirmText}>Registrar venta y descontar stock</Text>
+        <ShieldCheck size={18} color="#FFF"/><Text style={s.confirmText}>Confirmar cobro · {money(total, business.base_currency)}</Text>
       </>}
     </Pressable>
-    <Text style={s.tiny}>La venta se registra una sola vez y actualiza inventario y movimientos. No cobra tarjetas ni emite facturas fiscales.</Text>
+    <Text style={s.tiny}>Presioná solo cuando hayas recibido el pago. El stock se actualiza al confirmar.</Text>
   </View>;
 }
 function styles(p: { surface: string; tile: string; border: string; text: string; muted: string }) {
