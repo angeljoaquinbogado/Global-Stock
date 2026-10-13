@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { printClient as Print } from "../lib/print-client";
 import { shareClient as Sharing } from "../lib/share-client";
@@ -127,7 +127,7 @@ export default function NativePrintCenter({ client,business,products,drafts,cart
    if(working)return;
    setWorking(true);setError("");
    try{
-     if(mode==="print")await Print.printAsync({html});
+     if(mode==="print" || Platform.OS==="web")await Print.printAsync({html});
      else{
        const {uri}=await Print.printToFileAsync({html});
        const possible=await Sharing.isAvailableAsync();
