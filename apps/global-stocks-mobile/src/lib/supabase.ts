@@ -66,7 +66,8 @@ export function loadMobileSupabase(): Promise<SupabaseClient> {
           storage: secureSessionStorage,
           autoRefreshToken: true,
           persistSession: true,
-          detectSessionInUrl: false
+          detectSessionInUrl: false,
+          flowType: "pkce"
         }
       });
     })().catch((error: unknown) => {
