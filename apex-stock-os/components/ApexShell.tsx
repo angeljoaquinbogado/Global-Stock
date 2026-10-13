@@ -10,6 +10,7 @@ import {
 } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 import { AuthScreen } from "./AuthScreen";
+import { BusinessOnboardingGate } from "./BusinessOnboardingGate";
 import { UnifiedLegalGate } from "./UnifiedLegalGate";
 
 const BusinessWorkspace = dynamic(
@@ -103,6 +104,7 @@ export function ApexShell() {
   const [ready, setReady] = useState(false);
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [legalApprovedUserId, setLegalApprovedUserId] = useState<string | null>(null);
+  const [onboardedUserId, setOnboardedUserId] = useState<string | null>(null);
 
   useEffect(() => {
     // One-time Expo Keychain-to-WebView migration. Tokens are transferred only
@@ -296,6 +298,7 @@ export function ApexShell() {
     setAuthenticated(false);
     setAuthUserId(null);
     setLegalApprovedUserId(null);
+    setOnboardedUserId(null);
     const bridge = (window as typeof window & { ReactNativeWebView?: { postMessage: (value: string) => void } }).ReactNativeWebView;
     bridge?.postMessage(JSON.stringify({ type: "session_cleared" }));
   }
@@ -332,9 +335,21 @@ export function ApexShell() {
         Verificando tu cuenta…
       </div>
     );
+    const client = getSupabaseBrowserClient();
+    if (!client) return <p role="alert">No se pudo establecer la conexión de sesión.</p>;
+    if (onboardedUserId !== authUserId) {
+      return (
+        <BusinessOnboardingGate client={client} userId={authUserId}
+          dark={dark} language={language} currency={currency}
+          onToggleTheme={() => setDark(value => !value)}
+          onReady={(legalAccepted) => {
+            setOnboardedUserId(authUserId);
+            if (legalAccepted) setLegalApprovedUserId(authUserId);
+          }}
+          onSignOut={() => void handleSignOut()} />
+      );
+    }
     if (legalApprovedUserId !== authUserId) {
-      const client = getSupabaseBrowserClient();
-      if (!client) return <p role="alert">No se pudo establecer la conexión de sesión.</p>;
       return (
         <UnifiedLegalGate client={client} userId={authUserId}
           onReady={() => setLegalApprovedUserId(authUserId)}
