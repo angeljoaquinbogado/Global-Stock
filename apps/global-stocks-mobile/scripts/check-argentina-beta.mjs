@@ -26,6 +26,7 @@ const fiscal = read("apps/global-stocks-mobile/src/components/NativeFiscalArca.t
 const integrationSql = read("apex-stock-os/supabase/migrations/20261011_mobile_argentina_integrations_fiscal_access.sql");
 const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
+const localDemo = read("apps/global-stocks-mobile/src/components/PreviewMode.tsx");
 const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
 const nativeRestock = read("apps/global-stocks-mobile/src/components/NativeRestockPanel.tsx");
 const atomicRestockSql = read("apex-stock-os/supabase/migrations/20261013_add_product_stock_atomic.sql");
@@ -72,6 +73,19 @@ must(
   !landing.includes("StyleSheet.absoluteFillObject") &&
   !landing.includes('overflow:"hidden"'),
   "The restored welcome must show its navigation, brand, login options and no full-screen SVG layer."
+);
+must(
+  app.includes('email.trim().toLowerCase() === "demo@globalstock.app"') &&
+  app.includes('password === "GlobalStock2026!"') &&
+  app.includes('setDemoMode(true)') &&
+  app.indexOf('setDemoMode(true);', app.indexOf('async function login')) <
+    app.indexOf('supabase.auth.signInWithPassword', app.indexOf('async function login')) &&
+  app.includes('<PreviewMode demoActive onExit=') &&
+  landing.includes('accessibilityLabel={t.demoButton}') &&
+  landing.includes('onPress={onDemo}') &&
+  localDemo.includes('demoActive ? "MODO DEMOSTRACIÓN"') &&
+  localDemo.includes('onPress={onExit}'),
+  "Legacy demo credentials must open a safe, reversible local sandbox, not Supabase auth."
 );
 must(legal.includes("adult_18_attested:true") && legal.includes("operates_in_ar_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Adult and Argentina eligibility with legal versions must be recorded.");
 must(legal.includes("LEGAL_TERMS_VERSION = \"2026-10-11-ar-beta\"") && legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
