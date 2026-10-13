@@ -41,6 +41,10 @@ export default function NativeCashRegister({
   const [canSell, setCanSell] = useState(false);
   const [permissionsLoaded, setPermissionsLoaded] = useState(false);
   const [promoRefresh, setPromoRefresh] = useState(0);
+  const [recentSales, setRecentSales] = useState<Array<{
+    id: string; total: number; created_at: string;
+  }>>([]);
+  const [salesError, setSalesError] = useState("");
   const palette = useMemo(() => dark ?
     { surface: "#171719", tile: "#202024", line: "#323238", text: "#FAFAFA", muted: "#A3A3AE", red: "#BD101D" } :
     { surface: "#FFF", tile: "#F1F1F4", line: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#A40A14" }, [dark]);
@@ -97,6 +101,31 @@ export default function NativeCashRegister({
       }).finally(() => { if (live) setQuoteLoading(false); });
     return () => { live = false; };
   }, [client, business.id, refreshToken, promoRefresh]);
+
+  useEffect(() => {
+    let live = true;
+    setRecentSales([]);
+    setSalesError("");
+    void Promise.resolve(client.from("global_stock_sales")
+      .select("id,total,created_at")
+      .eq("business_id", business.id)
+      .eq("channel", "pos")
+      .eq("status", "completed")
+      .order("created_at", { ascending: false })
+      .limit(8))
+      .then(({ data, error }) => {
+        if (!live) return;
+        if (error) { setSalesError("No se pudo consultar el historial de Caja."); return; }
+        setRecentSales((data ?? []).map(sale => ({
+          id: String(sale.id),
+          total: Number(sale.total) || 0,
+          created_at: String(sale.created_at)
+        })));
+      }).catch(() => {
+        if (live) setSalesError("No se pudo actualizar el historial.");
+      });
+    return () => { live = false; };
+  }, [client, business.id, refreshToken]);
 
   function findCode() {
     const codeValue = code.trim();
@@ -220,6 +249,20 @@ export default function NativeCashRegister({
       quoteReady={!quoteLoading && !quoteError && permissionsLoaded}
       canSell={canSell} expectedTotal={total} discount={promoDiscount}
       onCompleted={onCompleted}/>
+    <View style={s.card}>
+      <Text style={s.section}>Últimas ventas de Caja</Text>
+      {salesError ? <Text style={s.message}>{salesError}</Text> : null}
+      {recentSales.length === 0 && !salesError ?
+        <Text style={s.subtitle}>Todavía no hay ventas confirmadas para mostrar.</Text> :
+        recentSales.map(sale => <View key={sale.id} style={s.between}>
+          <View style={{ flex: 1 }}>
+            <Text style={s.productName}>{new Date(sale.created_at).toLocaleString("es-AR")}</Text>
+            <Text style={s.productInfo}>Venta registrada · {sale.id.slice(0, 8)}</Text>
+          </View>
+          <Text style={s.value}>{amount(sale.total, business.base_currency)}</Text>
+        </View>)
+      }
+    </View>
     <Text style={s.legal}>Descuentos: se aplica la mejor promoción activa configurada en el negocio. El servidor comprueba el importe final al registrar la venta. La caja no emite facturas fiscales.</Text>
   </View>;
 }
