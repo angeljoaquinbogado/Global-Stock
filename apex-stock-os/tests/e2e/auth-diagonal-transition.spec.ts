@@ -12,7 +12,7 @@ for (const screen of [
       test.skip(browserName !== "chromium", "Full responsive login animation is exercised in Chromium.");
       test.setTimeout(75000);
       await page.setViewportSize({ width: screen.width, height: screen.height });
-      await page.goto("/classic", { waitUntil: "domcontentloaded" });
+      await page.goto("/", { waitUntil: "domcontentloaded" });
 
       const shell = page.getByTestId("auth-split-stage");
       const diagonal = page.getByTestId("auth-diagonal-panel");
@@ -42,7 +42,7 @@ for (const screen of [
 test("auth transition respects the reduce-motion preference", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.setViewportSize({ width: 1280, height: 800 });
-  await page.goto("/classic", { waitUntil: "domcontentloaded" });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
   await expect(page.getByTestId("auth-split-stage")).toBeVisible({ timeout: 30000 });
   await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
   await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
