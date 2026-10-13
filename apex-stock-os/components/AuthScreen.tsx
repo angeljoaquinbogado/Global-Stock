@@ -11,7 +11,7 @@ import {
   Sun,
   UserRound
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -273,6 +273,21 @@ export function AuthScreen({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    // Supabase sends provider failures back to the allowed site URL.
+    // Show an actionable message and remove error parameters from the address.
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has("error") && !params.has("error_description")) return;
+    const description = (params.get("error_description") ?? "").slice(0, 400);
+    setError(/provider.*(not enabled|disabled|not supported)|unsupported.provider/i.test(description)
+      ? "El acceso con Apple necesita activarse en Supabase Auth y Apple Developer."
+      : "No se pudo completar el acceso con Apple. Intentá nuevamente o ingresá con tu correo.");
+    const cleaned = new URL(window.location.href);
+    for (const key of ["error", "error_code", "error_description"]) cleaned.searchParams.delete(key);
+    window.history.replaceState(window.history.state, "", cleaned.pathname + cleaned.search + cleaned.hash);
+  }, []);
+
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
     if (nextMode === "signup") setAdultConsent(false);
