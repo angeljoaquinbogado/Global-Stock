@@ -24,6 +24,8 @@ const integrationSql = read("apex-stock-os/supabase/migrations/20261011_mobile_a
 const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
 const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
+const nativeRestock = read("apps/global-stocks-mobile/src/components/NativeRestockPanel.tsx");
+const atomicRestockSql = read("apex-stock-os/supabase/migrations/20261013_add_product_stock_atomic.sql");
 const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
 const cash = read("apps/global-stocks-mobile/src/components/NativeCashRegister.tsx");
 const checkout = read("apps/global-stocks-mobile/src/components/NativeCashCheckout.tsx");
@@ -92,6 +94,20 @@ must(
   productForm.includes("currency =") &&
   mobileData.includes('global_stock_create_mobile_product'),
   "Manual barcode lookup must support read-only searches and permission-gated cloud product creation."
+);
+must(
+  workspace.includes('accessibilityLabel={"Sumar stock a " + product.name}') &&
+  workspace.includes('accessibilityLabel={"Agregar " + product.name + " al presupuesto"}') &&
+  workspace.includes("NativeRestockPanel") &&
+  workspace.includes('domain: "inventory"') &&
+  nativeRestock.includes('client.rpc("global_stock_add_product_stock"') &&
+  nativeRestock.includes("client_operation_id: pending.current.key") &&
+  nativeRestock.includes("onSaved(confirmed)") &&
+  atomicRestockSql.includes("global_stock_stock_movements") &&
+  atomicRestockSql.includes("FOR UPDATE") &&
+  atomicRestockSql.includes("REVOKE ALL ON FUNCTION public.global_stock_add_product_stock") &&
+  atomicRestockSql.includes("GRANT EXECUTE ON FUNCTION public.global_stock_add_product_stock"),
+  "Native stock additions must update confirmed cloud stock once, not add products to a sales cart."
 );
 must(
   app.includes("MOBILE_BUSINESS_CATEGORIES") &&
