@@ -55,6 +55,7 @@ import {
   loadCloudWorkspace,
   loadCanonicalProducts,
   mergeCanonicalProducts,
+  addProductStockToCloud,
   mirrorProductsToCloud,
   recordPosSale,
   recordStockAdjustment,
@@ -75,6 +76,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { ApexIntelligence } from "./ApexIntelligence";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
+import { StockQuantityCell } from "./StockQuantityCell";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
@@ -3411,6 +3413,34 @@ export function BusinessWorkspace({
     }
   }
 
+  async function addStock(id: string, quantity: number, operationId: string): Promise<number> {
+    const product = products.find(item => item.id === id);
+    if (!product) throw new Error("El producto ya no está disponible.");
+    if (demoMode) {
+      const confirmed = Math.round((product.stock + quantity) * 1000) / 1000;
+      setProducts(current => current.map(item =>
+        item.id === id ? { ...item, stock: confirmed } : item
+      ));
+      return confirmed;
+    }
+    if (!cloudBusinessId) throw new Error("Conectá el negocio para agregar stock.");
+    const confirmed = await addProductStockToCloud({
+      businessId: cloudBusinessId,
+      productKey: product.id,
+      quantity,
+      operationId
+    });
+    const updatedProduct = { ...product, stock: confirmed };
+    // This server-confirmed stock is already stored in inventory_levels and
+    // stock_movements. Do NOT mirror the same stock increase a second time.
+    lastMirroredProductsRef.current.set(product.id, JSON.stringify(updatedProduct));
+    setProducts(current => current.map(item =>
+      item.id === id ? { ...item, stock: confirmed } : item
+    ));
+    setNotice("Stock actualizado.");
+    return confirmed;
+  }
+
   function updatePrice(id: string, nextPrice: number) {
     const safeListPrice = Math.max(0, Number(nextPrice) || 0);
     const product = products.find((item) => item.id === id);
@@ -4064,6 +4094,7 @@ export function BusinessWorkspace({
                 products={products}
                 money={money}
                 updateStock={updateStock}
+                addStock={addStock}
                 updatePrice={updatePrice}
                 updateCost={updateCost}
                 updateMinStock={updateMinStock}
@@ -5404,6 +5435,7 @@ function InventoryModule({
   products,
   money,
   updateStock,
+  addStock,
   updatePrice,
   updateCost,
   updateMinStock,
@@ -5418,6 +5450,7 @@ function InventoryModule({
   products: Product[];
   money: (value: number) => string;
   updateStock: (id: string, stock: number) => void;
+  addStock: (id: string, quantity: number, operationId: string) => Promise<number>;
   updatePrice: (id: string, price: number) => void;
   updateCost: (id: string, value: string) => void;
   updateMinStock: (id: string, minStock: number) => void;
@@ -5541,17 +5574,11 @@ function InventoryModule({
                           {product.stock}
                         </span>
                       ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.stock}
-                          onChange={(event) =>
-                            updateStock(
-                              product.id,
-                              Number(event.target.value)
-                            )
-                          }
-                          className="apex-input w-20 px-3 py-2 text-xs"
+                        <StockQuantityCell
+                          productId={product.id}
+                          stock={product.stock}
+                          onSetStock={updateStock}
+                          onAddStock={addStock}
                         />
                       )}
                     </td>
