@@ -13,7 +13,8 @@
     "check:repo": "node scripts/check-mobile-repo.mjs",
     "check:beta": "node scripts/check-argentina-beta.mjs",
     "check:deps": "node scripts/check-native-dependencies.mjs --installed",
-    "check:manifest": "node scripts/check-native-dependencies.mjs"
+    "check:manifest": "node scripts/check-native-dependencies.mjs",
+    "export:web": "expo export --platform web --output-dir ../../apex-stock-os/public/native-app"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.57.0",
