@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator, Alert, Image, Linking, Pressable, ScrollView,
+  ActivityIndicator, Image, Linking, Pressable, ScrollView,
   StyleSheet, Text, TextInput, View
 } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import * as SecureStore from "expo-secure-store";
+import { preferenceStorage as SecureStore } from "../lib/preference-storage";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import Svg, { Defs, LinearGradient, Stop, Line, Path } from "react-native-svg";
@@ -301,19 +302,19 @@ export default function NativeWorkspace({
   }
   function addCart(product: Product) {
     if (product.stock <= 0) {
-      Alert.alert("Sin existencias", "No se puede seleccionar un producto sin stock.");
+      appAlerts.alert("Sin existencias", "No se puede seleccionar un producto sin stock.");
       return;
     }
     const existing = cart.find((item) => item.product_id === product.id)?.quantity ?? 0;
     if (existing >= product.stock) {
-      Alert.alert("Stock alcanzado", "El borrador no puede superar el stock consultado.");
+      appAlerts.alert("Stock alcanzado", "El borrador no puede superar el stock consultado.");
       return;
     }
     onAdd(product);
     open("pos");
   }
   function openWebsite() {
-    void Linking.openURL(fullWebsite).catch(() => Alert.alert("No se pudo abrir la web", fullWebsite));
+    void Linking.openURL(fullWebsite).catch(() => appAlerts.alert("No se pudo abrir la web", fullWebsite));
   }
 
   function heading(title: string, subtitle: string) {
@@ -459,7 +460,7 @@ export default function NativeWorkspace({
           <Text style={s.quantity}>{line.quantity}</Text>
           <Pressable accessibilityRole="button" accessibilityLabel={"Agregar una unidad de "+line.name} onPress={() => {
             const product = products.find((p) => p.id === line.product_id);
-            if (product && line.quantity >= product.stock) { Alert.alert("Stock máximo", "No quedan suficientes unidades."); return; }
+            if (product && line.quantity >= product.stock) { appAlerts.alert("Stock máximo", "No quedan suficientes unidades."); return; }
             onAdjust(line.product_id,1);
           }} style={s.quantityButton}><Plus size={14} color={p.text}/></Pressable>
         </View>)}
