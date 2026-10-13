@@ -46,7 +46,7 @@ export default function NativeCashCheckout({
   }, [dark]);
   const s = useMemo(() => styles(colors), [colors]);
   const total = cents(expectedTotal);
-  const tendered = parseTendered(received);
+  const tendered = received.trim() ? parseTendered(received) : total;
   const change = tendered == null ? null : cents(tendered - total);
   const validCash = method !== "cash" || (change !== null && change >= 0);
   const cartSignature = JSON.stringify({
@@ -138,9 +138,9 @@ export default function NativeCashCheckout({
         </Pressable>)}
     </View>
     {method === "cash" ? <View style={{ gap: 9 }}>
-      <Text style={s.small}>Dinero recibido ({business.base_currency})</Text>
+      <Text style={s.small}>Recibido ({business.base_currency}) · vacío = exacto</Text>
       <TextInput style={s.input} value={received} maxLength={18} keyboardType="decimal-pad"
-        accessibilityLabel="Dinero recibido en efectivo" placeholder="Ej.: 20000"
+        accessibilityLabel="Dinero recibido en efectivo" placeholder={money(total, business.base_currency)}
         placeholderTextColor={colors.muted} onChangeText={setReceived}/>
       <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap" }}>
         {[total, Math.ceil(total / 1000) * 1000, Math.ceil(total / 5000) * 5000]
