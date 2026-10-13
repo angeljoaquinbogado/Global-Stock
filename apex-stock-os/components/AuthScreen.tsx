@@ -446,7 +446,7 @@ export function AuthScreen({
             <div className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(25px,4.3vw,72px)]">
               <div className="gs-auth-brand-row mb-8 flex items-center justify-between gap-3">
                 <Logo withWordmark className="gs-auth-reference-logo [&>img]:!h-11 [&>img]:!w-11 [&>div>div]:!text-[16px]" />
-                <div className="flex shrink-0 items-center gap-1.5">
+                <div data-testid="auth-header-preferences" className={`flex shrink-0 items-center gap-1.5 ${mode === "signin" ? "lg:mr-[clamp(48px,4.8vw,72px)]" : ""}`}>
                   <select
                     aria-label={language === "es" ? "Idioma" : "Language"}
                     value={language}
