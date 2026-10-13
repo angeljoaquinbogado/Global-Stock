@@ -494,7 +494,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
       </KeyboardAvoidingView>
       {introVisible && (
         <Animated.View pointerEvents="auto" accessibilityLabel="Intro de Global Stock"
-          style={[StyleSheet.absoluteFillObject, { zIndex:100, backgroundColor:p.bg,
+          style={[StyleSheet.absoluteFill, { zIndex:100, backgroundColor:p.bg,
             alignItems:"center", justifyContent:"center", opacity:introFade }]}>
           <Animated.Image source={require("../../assets/brand-mark.png")} resizeMode="contain"
             style={{width:Math.min(width*.48,195),height:Math.min(width*.48,195),
