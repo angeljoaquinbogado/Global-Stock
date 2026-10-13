@@ -151,11 +151,27 @@ test("online connection management parity preserves server-side authorization", 
     assert.match(source,/global_stock_integration_requests/);
     assert.match(source,/global_stock_integration_accounts/);
     assert.match(source,/global_stock_manage_integration_request/);
-    assert.match(source,/global_stock_disconnect_integration/);
+    assert.match(source,/global_stock_disconnect_integration_account/);
   }
   assert.match(shell,/OnlineConnectionRequests/);
   assert.match(web,/client\.auth\.getUser\(\)/);
   assert.match(web,/\.eq\("business_id",businessId\)/);
   assert.match(web,/owner.*admin/);
   assert.match(web,/No hay conexiones ni solicitudes guardadas/);
+});
+
+test("disconnect a single online store and preserve other accounts on its provider", () => {
+  const sql=file("apex-stock-os/supabase/migrations/20261013_disconnect_single_online_account.sql");
+  const mobile=file("apps/global-stocks-mobile/src/components/NativeCommerceConnect.tsx");
+  const web=file("apex-stock-os/components/OnlineConnectionRequests.tsx");
+  assert.match(sql,/target_account_id uuid/);
+  assert.match(sql,/AND id = target_account_id/);
+  assert.match(sql,/v_remaining = 0/);
+  assert.match(sql,/connection_key = v_account.external_account_id/);
+  assert.match(sql,/NOT IN \('owner', 'admin'\)/);
+  assert.match(sql,/REVOKE ALL ON FUNCTION public.global_stock_disconnect_integration_account/);
+  for(const source of [mobile,web]){
+    assert.match(source,/target_account_id:account.id/);
+    assert.doesNotMatch(source,/target_provider:account.provider/);
+  }
 });
