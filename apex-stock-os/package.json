@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/ensure-expo-web-for-dev.mjs",
     "dev": "next dev",
     "prebuild": "npm run qa:smoke && node scripts/export-expo-to-web.mjs",
     "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs scripts/fiscal-validation.test.mjs",
@@ -10,6 +11,7 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
+    "predev:lan": "node scripts/ensure-expo-web-for-dev.mjs",
     "dev:lan": "next dev -H 0.0.0.0",
     "start:lan": "next start -H 0.0.0.0",
     "ui:audit": "node scripts/ui-contract-check.mjs"
