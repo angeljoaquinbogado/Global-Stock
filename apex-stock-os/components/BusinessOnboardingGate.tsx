@@ -129,8 +129,25 @@ export function BusinessOnboardingGate({
       if (authError || verified.user?.id !== userId) throw new Error("La sesión cambió. Volvé a iniciar sesión.");
 
       const metadata = verified.user.user_metadata ?? {};
-      // Existing accounts, demo users and OAuth logins keep their existing flow.
+      // Existing accounts and OAuth logins keep their existing flow.
+      // For a completed registration, restore the business identity when
+      // entering from another PC or phone (not just the device of signup).
       if (metadata.global_stock_onboarding !== "pending") {
+        if (metadata.global_stock_onboarding === "complete") {
+          const { data: profile } = await client
+            .from("global_stock_profiles")
+            .select("business_name, industry, country, business_description")
+            .eq("user_id", userId)
+            .maybeSingle();
+          if (!alive) return;
+          if (typeof profile?.business_name === "string" && profile.business_name.trim()) {
+            localStorage.setItem("global-stock-business-name", profile.business_name);
+            if (typeof profile.industry === "string") localStorage.setItem("global-stock-business-type", profile.industry);
+            if (typeof profile.country === "string") localStorage.setItem("global-stock-business-country", profile.country);
+            if (typeof profile.business_description === "string") localStorage.setItem("global-stock-business-description", profile.business_description);
+            if (typeof metadata.business_category === "string") localStorage.setItem("global-stock-business-category", metadata.business_category);
+          }
+        }
         if (alive) readyRef.current(false);
         return;
       }
