@@ -1,4 +1,19 @@
+import { dirname } from "node:path";
+import { fileURLToPath } from "node:url";
+import { networkInterfaces } from "node:os";
+
 const isProduction = process.env.NODE_ENV === "production";
+const projectRoot = dirname(fileURLToPath(import.meta.url));
+
+// Only trust the user's own LAN addresses for local Next.js HMR.
+// This does not make production CORS permissive.
+const lanHosts = Object.values(networkInterfaces())
+  .flat()
+  .filter(entry => entry && entry.family === "IPv4" && !entry.internal)
+  .map(entry => entry.address)
+  .filter(ip => /^10\\.|^192\\.168\\.|^172\\.(1[6-9]|2\\d|3[01])\\./.test(ip));
+const allowedDevOrigins = [...new Set([...lanHosts, "192.168.0.7"])];
+
 // The checked-out production build is also exercised on a loopback HTTP server
 // in GitHub Actions. Only there, do not force HTTP assets to HTTPS. Web-facing
 // deployments continue to send their original CSP upgrade and HSTS policies.
@@ -52,6 +67,8 @@ const securityHeaders = [
 
 const nextConfig = {
   reactStrictMode: true,
+  turbopack: { root: projectRoot },
+  ...(!isProduction ? { allowedDevOrigins } : {}),
   poweredByHeader: false,
   compress: true,
   headers: async () => [
