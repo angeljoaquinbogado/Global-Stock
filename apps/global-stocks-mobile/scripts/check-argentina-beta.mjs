@@ -19,6 +19,9 @@ const privacy = read("apex-stock-os/app/legal/privacy/page.tsx");
 const ai = read("apps/global-stocks-mobile/src/components/NativeAssistant.tsx");
 const offline = read("apps/global-stocks-mobile/src/lib/offline.ts");
 const commerce = read("apps/global-stocks-mobile/src/components/NativeCommerceConnect.tsx");
+const businessManager = read("apps/global-stocks-mobile/src/components/NativeBusinessManager.tsx");
+const branchMigration = read("apex-stock-os/supabase/migrations/20261013_mobile_branches_and_connections.sql");
+const archiveGuard = read("apex-stock-os/supabase/migrations/20261013_guard_branch_archives.sql");
 const fiscal = read("apps/global-stocks-mobile/src/components/NativeFiscalArca.tsx");
 const integrationSql = read("apex-stock-os/supabase/migrations/20261011_mobile_argentina_integrations_fiscal_access.sql");
 const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
@@ -200,6 +203,20 @@ must(integrationSql.includes("enable row level security") &&
   integrationSql.includes("status = 'requested'") &&
   !integrationSql.includes("encrypted_access_token"),
   "Tenant RLS and pending-only integration requests must be enforced.");
+must(workspace.includes("<NativeBusinessManager") &&
+  workspace.includes("onReloadBusinesses") &&
+  app.includes("onReloadBusinesses={async () =>") &&
+  businessManager.includes("global_stock_archive_location") &&
+  businessManager.includes("global_stock_execute_transfer") &&
+  businessManager.includes("global_stock_inventory_levels") &&
+  branchMigration.includes("global_stock_manage_integration_request") &&
+  archiveGuard.includes("global_stock_guard_branch_archive"),
+  "Expo needs secure multi-business, location-specific stock and safe branch archive controls.");
+must(commerce.includes("global_stock_disconnect_integration") &&
+  commerce.includes("global_stock_manage_integration_request") &&
+  commerce.includes("deleteRequest") &&
+  commerce.includes("saveRequest"),
+  "Native store connections must support edit, deletion and credential-safe disconnect.");
 must(fiscal.includes('enabled:profile?.enabled===true') &&
   fiscal.includes('environment:profile?.environment==="production"?"production":"testing"') &&
   !fiscal.includes('ARCA_FISCAL_PROVIDER_API_KEY'),
