@@ -613,6 +613,46 @@ export async function recordPosSale({
   }
 }
 
+/** Receive units into the shared inventory. Server locks the product, records a
+ * stock movement, updates location levels and rejects cross-tenant access.
+ * Caller keeps the same operationId while retrying a possibly lost response.
+ */
+export async function addProductStockToCloud({
+  businessId, productKey, quantity, operationId
+}: {
+  businessId: string;
+  productKey: string;
+  quantity: number;
+  operationId: string;
+}): Promise<number> {
+  if (!Number.isFinite(quantity) || quantity <= 0 || quantity > 1_000_000 ||
+      Math.abs(quantity - Math.round(quantity * 1000) / 1000) > 1e-9)
+    throw new Error("Ingresá una cantidad positiva de hasta tres decimales.");
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) throw new Error("Iniciá sesión para agregar stock.");
+
+  const { data: row, error: lookupError } = await supabase.from("global_stock_products")
+    .select("id")
+    .eq("business_id", businessId)
+    .eq("client_key", productKey)
+    .eq("active", true)
+    .maybeSingle();
+  if (lookupError) throw new Error("No se pudo consultar el producto. Actualizá el inventario.");
+  if (!row?.id) throw new Error("No encontramos el producto en este negocio.");
+
+  const { data, error } = await supabase.rpc("global_stock_add_product_stock", {
+    target_business_id: businessId,
+    target_product_id: row.id,
+    added_quantity: quantity,
+    client_operation_id: operationId
+  });
+  if (error) throw new Error(error.message || "No se pudo agregar stock.");
+  const confirmed = Number(data);
+  if (!Number.isFinite(confirmed) || confirmed < 0)
+    throw new Error("Supabase no confirmó el nuevo stock.");
+  return confirmed;
+}
+
 export async function recordStockAdjustment({
   businessId,
   product,
