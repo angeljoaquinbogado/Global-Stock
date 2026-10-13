@@ -69,7 +69,7 @@ export function AuthSplitMotion({
       data-testid="auth-split-stage"
       className={
         "relative isolate mx-auto w-full min-w-0 overflow-hidden rounded-[22px] border shadow-[0_32px_90px_rgba(0,0,0,.28)] sm:rounded-[28px] " +
-        "min-h-[calc(100dvh-24px)] lg:h-[calc(100dvh-28px)] lg:min-h-[560px] " +
+        "h-[calc(100dvh-24px)] min-h-0 lg:h-[calc(100dvh-28px)] " +
         (dark
           ? "border-white/10 bg-[#171318]"
           : "border-[#E8E2DF] bg-[#F9F6F2]")
@@ -129,16 +129,17 @@ export function AuthSplitMotion({
       <div
         data-testid="auth-form-panel"
         className={
-          "relative z-20 flex min-h-[calc(100dvh-24px)] w-full min-w-0 flex-col " +
-          "lg:absolute lg:inset-y-0 lg:left-0 lg:min-h-0 lg:w-1/2 lg:overflow-x-hidden " +
-          "lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-width:thin] " +
-          (isSignIn ? "lg:translate-x-0" : "lg:translate-x-full") +
+          "relative z-20 flex h-full min-h-0 w-full min-w-0 flex-col overflow-x-hidden " +
+          "lg:absolute lg:inset-y-0 lg:left-0 lg:w-1/2 " +
+          (isSignIn
+            ? "gs-auth-panel-fixed overflow-y-hidden lg:translate-x-0"
+            : "gs-auth-panel-scroll overscroll-contain overflow-y-auto lg:translate-x-full") +
           (reducedMotion
             ? ""
             : " lg:transition-transform lg:duration-[760ms] lg:ease-[cubic-bezier(0.76,0,0.24,1)]")
         }
       >
-        <div className="mx-auto flex w-full max-w-[570px] flex-1 flex-col justify-center px-0 py-2 sm:px-3 lg:max-w-[530px] lg:py-6">
+        <div className="mx-auto flex w-full max-w-[570px] min-h-full shrink-0 flex-col justify-center px-0 py-2 sm:px-3 lg:max-w-[530px] lg:py-6">
           {children}
         </div>
       </div>
