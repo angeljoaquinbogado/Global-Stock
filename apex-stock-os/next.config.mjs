@@ -71,6 +71,12 @@ const nextConfig = {
   ...(!isProduction ? { allowedDevOrigins } : {}),
   poweredByHeader: false,
   compress: true,
+  // Previous /native-app URLs served the native Expo interface as a separate
+  // website. The desktop app is /; do not publish Expo bundles in this project.
+  redirects: async () => [
+    { source: "/native-app", destination: "/", permanent: false },
+    { source: "/native-app/:path*", destination: "/", permanent: false }
+  ],
   headers: async () => [
     {
       source: "/api/:path*",
