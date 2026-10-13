@@ -25,7 +25,9 @@ const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
 const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
 const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
-const nativeRates = read("apps/global-stocks-mobile/src/components/NativeCurrencies.tsx");
+const cash = read("apps/global-stocks-mobile/src/components/NativeCashRegister.tsx");
+const checkout = read("apps/global-stocks-mobile/src/components/NativeCashCheckout.tsx");
+const mobileSettings = read("apps/global-stocks-mobile/src/components/NativeSettings.tsx");
 const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
@@ -105,12 +107,18 @@ const webSectorIds = readSectorIds(sectorsWeb);
 must(nativeSectorIds.length === 21 &&
   JSON.stringify(nativeSectorIds) === JSON.stringify(webSectorIds),
   "Expo and web must keep all 21 natural business sectors aligned.");
-must(workspace.includes('<NativeCurrencies p={p} />') &&
-  nativeRates.includes('/api/fx?') &&
-  nativeRates.includes('AbortController') &&
-  nativeRates.includes('CACHE_TTL = 120_000') &&
-  nativeRates.includes('accessibilityLabel="Actualizar cotización"'),
-  "Expo must include live native currency quotes and retain its own controls.");
+must(!workspace.includes('module: "rates"') &&
+  !workspace.includes('NativeCurrencies p={p}') &&
+  mobileSettings.includes('["rates","Cotizaciones"]') &&
+  workspace.includes('module: "cash"') &&
+  workspace.includes('active==="cash" ? <NativeCashRegister') &&
+  cash.includes('onScan={') === false &&
+  cash.includes('onScan: () => void') &&
+  cash.includes('global_stock_promotions') &&
+  checkout.includes('global_stock_record_pos_sale') &&
+  checkout.includes('Dinero recibido') &&
+  checkout.includes('Vuelto automático'),
+  "Caja must be native with barcode cart, server promotions and verified change; cotizaciones stays inside Settings only.");
 must(legal.includes("/legal/cookies") &&
   privacy.includes("/legal/cookies") &&
   mobileData.includes('"industry"') &&
