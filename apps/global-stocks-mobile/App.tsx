@@ -164,6 +164,7 @@ function MobileApp() {
   const [starting, setStarting] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [demoMode, setDemoMode] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [loginViewVersion, setLoginViewVersion] = useState(0);
   const signOutLock = useRef(false);
@@ -341,6 +342,12 @@ function MobileApp() {
   const currency = business?.base_currency || "ARS";
 
   async function login(email: string, password: string) {
+    // Public demo credentials open a local-only sandbox, NEVER a Supabase session.
+    if (email.trim().toLowerCase() === "demo@globalstock.app" && password === "GlobalStock2026!") {
+      setAuthError("");
+      setDemoMode(true);
+      return;
+    }
     if (!supabase) return;
     setAuthLoading(true);
     setAuthError("");
@@ -348,7 +355,7 @@ function MobileApp() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
         setAuthError(error.message.toLowerCase().includes("invalid login credentials")
-          ? "Correo o contraseña incorrectos. La cuenta de demostración no sirve para iniciar sesión: usá tu cuenta real."
+          ? "Correo o contraseña incorrectos. Revisá los datos o elegí Probar demo."
           : error.message);
       }
     } catch (error) {
@@ -511,7 +518,9 @@ function MobileApp() {
   if (configLoading || (supabase && starting) || loggingOut) return <BrandedBootScreen />;
   if (!supabase) return <PreviewMode connectionError={configError} onRetry={() => setConnectionRetry((n) => n + 1)} />;
 
-  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} loading={authLoading} error={authError} />;
+  if (demoMode) return <PreviewMode demoActive onExit={() => { setDemoMode(false); setAuthError(""); setLoginViewVersion(v => v + 1); }} />;
+
+  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} onDemo={() => { setAuthError(""); setDemoMode(true); }} loading={authLoading} error={authError} />;
 
   if (legalUserId !== user.id) {
     return <NativeLegalGate
