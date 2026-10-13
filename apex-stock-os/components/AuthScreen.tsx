@@ -6,16 +6,15 @@ import {
   Eye,
   EyeOff,
   Loader2,
-  LockKeyhole,
   Mail,
   Moon,
   Sun,
   UserRound
 } from "lucide-react";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
-import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
+import type { LanguageCode } from "./GlobalPreferences";
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
 import { AuthSplitMotion } from "./AuthSplitMotion";
@@ -250,11 +249,9 @@ export function AuthScreen({
   currency,
   onToggleTheme,
   onLanguageChange,
-  onCurrencyChange,
   onAuthenticated
 }: AuthScreenProps) {
   const labels = copy[language];
-  const configured = useMemo(() => isSupabaseConfigured(), []);
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
   const [adultConsent, setAdultConsent] = useState(false);
@@ -268,10 +265,12 @@ export function AuthScreen({
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
     if (nextMode === "signup") setAdultConsent(false);
     setError("");
+    setNotice("");
     setShowPassword(false);
   }
 
@@ -399,7 +398,7 @@ export function AuthScreen({
         onAuthenticated();
       } else {
         setMode("signin");
-        setError(labels.accountCreated);
+        setNotice(labels.accountCreated);
       }
     } catch {
       setError(labels.authError);
@@ -408,288 +407,177 @@ export function AuthScreen({
     }
   }
 
-  const surfaceClass = dark
-    ? "bg-[#171318] text-white"
-    : "bg-[#F9F6F2] text-[#231B1C]";
 
-  const mutedClass = dark ? "text-white/65" : "text-[#5F6068]";
-  const fieldClass = dark
-    ? "border-white/25 bg-transparent text-white placeholder:text-white/35 focus:border-[#D64B58]"
-    : "border-[#B9A8A3] bg-transparent text-[#231B1C] placeholder:text-[#8A807D] focus:border-[#8F0000]";
-  const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
+  const muted = dark ? "text-white/60" : "text-[#726D70]";
+  const fieldStyle = dark
+    ? "border-white/25 text-white placeholder:text-white/40 focus:border-[#E35865]"
+    : "border-[#B7A6A3] text-[#2A2223] placeholder:text-[#989092] focus:border-[#8F0000]";
+  const icons = dark ? "text-white/50" : "text-[#84777B]";
+
+  const switchText: Record<LanguageCode, {
+    first: string; openAccount: string; existing: string;
+    back: string; username: string; legal: string;
+  }> = {
+    es: { first: "¿Todavía no tenés cuenta?", openAccount: "Crear cuenta",
+      existing: "¿Ya tenés una cuenta?", back: "Iniciar sesión",
+      username: "Nombre completo",
+      legal: "Tengo 18 años o más, opero en Argentina y acepto los" },
+    en: { first: "New to Global Stock?", openAccount: "Create account",
+      existing: "Already have an account?", back: "Sign in",
+      username: "Full name", legal: "I am 18 or older, operate in Argentina and accept the" },
+    pt: { first: "Novo no Global Stock?", openAccount: "Criar conta",
+      existing: "Já tem uma conta?", back: "Entrar",
+      username: "Nome completo", legal: "Tenho mais de 18 anos, opero na Argentina e aceito os" },
+    fr: { first: "Nouveau sur Global Stock ?", openAccount: "Créer un compte",
+      existing: "Vous avez déjà un compte ?", back: "Se connecter",
+      username: "Nom complet", legal: "J’ai 18 ans ou plus, j’opère en Argentine et j’accepte les" },
+    de: { first: "Neu bei Global Stock?", openAccount: "Konto erstellen",
+      existing: "Bereits ein Konto?", back: "Anmelden",
+      username: "Vollständiger Name", legal: "Ich bin mindestens 18, arbeite in Argentinien und akzeptiere die" }
+  };
+  const micro = switchText[language];
 
   return (
-    <main className={`gs-auth-viewport relative h-[100dvh] overflow-hidden ${dark ? "bg-[#09080B]" : "bg-[#EDE9E6]"}`}>
-      <motion.section
-        key="auth-ui"
-        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: reduceMotion ? 0 : 0.32 }}
-        className="relative z-10 flex h-full min-h-0 w-full items-center overflow-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-[14px] lg:py-[14px]"
-      >
-            <div className="mx-auto flex w-full min-w-0 items-center justify-center">
-            <AuthSplitMotion mode={mode} language={language} dark={dark}>
-            <motion.div
-              key={dark ? "dark-auth" : "light-auth"}
-              initial={{
-                opacity: 0,
-                transform: "translate3d(0,18px,0) scale(.985)"
-              }}
-              animate={{
-                opacity: 1,
-                transform: "translate3d(0,0,0) scale(1)"
-              }}
-              transition={{
-                duration: 0.28,
-                ease: [0.23, 1, 0.32, 1]
-              }}
-              className={`relative w-full min-w-0 border-0 p-5 shadow-none sm:p-7 lg:px-[clamp(26px,3vw,52px)] lg:py-5 lg:!bg-transparent ${surfaceClass}`}
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
+    <main className="gs-auth-viewport fixed inset-0 h-[100dvh] overflow-hidden bg-[radial-gradient(ellipse_at_75%_15%,#2C0913_0%,#0E0C0E_62%,#080809_100%)]">
+      <section className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-3 py-3 sm:px-5 sm:py-5 lg:px-7 lg:py-6">
+        <div className="mx-auto h-full min-h-0 w-full max-w-[1480px]">
+          <AuthSplitMotion mode={mode} language={language} dark={dark}>
+            <div className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(30px,5.2vw,88px)]">
+              <div className="gs-auth-brand-row mb-7 flex items-center justify-between gap-3">
                 <Logo withWordmark />
-                <button
-                  type="button"
-                  onClick={onToggleTheme}
-                  className={
-                    "grid h-10 w-10 shrink-0 place-items-center rounded-full border transition active:scale-[.97] " +
-                    (dark
-                      ? "border-white/12 bg-white/[0.07] text-white hover:bg-white/[0.12]"
-                      : "border-black/10 bg-[#F5F5F7] text-[#111114] hover:bg-[#ECECEF]")
-                  }
-                  aria-label={labels.theme}
-                >
-                  {dark ? <Sun size={17} /> : <Moon size={17} />}
-                </button>
-              </div>
-
-              <div className="mb-4">
-                <GlobalPreferences
-                  language={language}
-                  currency={currency}
-                  onLanguageChange={onLanguageChange}
-                  onCurrencyChange={onCurrencyChange}
-                />
-              </div>
-
-              <div
-                className={
-                  "mb-7 grid grid-cols-2 rounded-2xl border p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,.05)] " +
-                  (dark
-                    ? "border-white/10 bg-white/[0.05]"
-                    : "border-[#DDD8D5] bg-[#F0EDEB]")
-                }
-              >
-                {(["signin", "signup"] as const).map((item) => {
-                  const active = mode === item;
-                  return (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => selectMode(item)}
-                      aria-pressed={active}
-                      className={
-                        "relative min-h-10 rounded-xl px-4 py-2 text-[13px] font-semibold transition-colors duration-150 " +
-                        (active
-                          ? "text-white"
-                          : dark
-                            ? "text-white/65 hover:text-white"
-                            : "text-[#554E4E] hover:text-[#111114]")
-                      }
-                    >
-                      {active && (
-                        <motion.span
-                          layoutId="gs-auth-active-tab"
-                          transition={{ duration: reduceMotion ? 0 : 0.36, ease: [0.22, 1, 0.36, 1] }}
-                          className="absolute inset-0 rounded-xl bg-[#8F0000] shadow-[0_6px_18px_rgba(143,0,0,.25)]"
-                          aria-hidden="true"
-                        />
-                      )}
-                      <span className="relative z-10">
-                        {item === "signin" ? labels.signIn : labels.signUp}
-                      </span>
-                    </button>
-                  );
-                })}
+                <div className="flex shrink-0 items-center gap-1.5">
+                  <select
+                    aria-label={language === "es" ? "Idioma" : "Language"}
+                    value={language}
+                    onChange={event => onLanguageChange(event.target.value as LanguageCode)}
+                    className={`h-8 max-w-[56px] cursor-pointer rounded-lg border border-current/10 bg-transparent px-1 text-[11px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#8F0000] ${muted}`}
+                  >
+                    <option value="es">ES</option>
+                    <option value="en">EN</option>
+                    <option value="pt">PT</option>
+                    <option value="fr">FR</option>
+                    <option value="de">DE</option>
+                  </select>
+                  <button type="button" onClick={onToggleTheme} aria-label={labels.theme}
+                    className="grid h-8 w-8 place-items-center rounded-full border border-current/10 bg-black/[.025] transition-colors hover:bg-[#8F0000]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000]">
+                    {dark ? <Sun size={15}/> : <Moon size={15}/>}
+                  </button>
+                </div>
               </div>
 
               <AnimatePresence mode="wait" initial={false}>
                 <motion.div
-                  key={`${mode}-${language}`}
-                  initial={{
-                    opacity: 0,
-                    transform:
-                      mode === "signup"
-                        ? "translate3d(12px,0,0)"
-                        : "translate3d(-12px,0,0)"
-                  }}
-                  animate={{
-                    opacity: 1,
-                    transform: "translate3d(0,0,0)"
-                  }}
-                  exit={{
-                    opacity: 0,
-                    transform:
-                      mode === "signup"
-                        ? "translate3d(-8px,0,0)"
-                        : "translate3d(8px,0,0)"
-                  }}
-                  transition={{
-                    duration: 0.18,
-                    ease: [0.23, 1, 0.32, 1]
-                  }}
+                  key={mode}
+                  initial={reduceMotion ? false : { opacity: 0, y: 9 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -7 }}
+                  transition={{ duration: reduceMotion ? 0 : .24, delay: reduceMotion ? 0 : .24 }}
                 >
                   <div className="mb-6">
-                    <h1 className={`text-[1.6rem] font-semibold leading-tight tracking-[-0.045em] sm:text-[1.85rem] ${dark ? "text-white" : "text-[#251A1C]"}`}>
+                    <h1 className="text-[clamp(1.35rem,2vw,1.85rem)] font-semibold tracking-[-.048em]">
                       {mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
-                    <p className={`mt-1.5 text-[12px] leading-5 ${mutedClass}`}>
-                      {mode === "signin"
-                        ? labels.signInDescription
-                        : labels.signUpDescription}
-                    </p>
+                    <div aria-hidden="true" className="mt-2 h-[2px] w-7 rounded-full bg-[#8F0000]"/>
                   </div>
-
-                  <form onSubmit={submit} className="space-y-5">
+                  <form onSubmit={submit} className="gs-auth-reference-fields space-y-4">
                     {mode === "signup" && (
                       <label className="block">
-                        <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
-                          {labels.name}
-                        </span>
-                        <div className="relative">
-                          <UserRound
-                            size={17}
-                            className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
-                          />
+                        <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{micro.username}</span>
+                        <span className="relative block">
+                          <UserRound className={`pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 ${icons}`} size={15}/>
                           <input
-                            value={name}
-                            onChange={(event) => setName(event.target.value)}
-                            className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
+                            value={name} onChange={event => setName(event.target.value)}
+                            type="text" autoComplete="name" required minLength={2}
                             placeholder={labels.namePlaceholder}
-                            autoComplete="name"
-                          />
-                        </div>
+                            className={`h-10 w-full border-0 border-b bg-transparent pr-8 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
+                        </span>
+                      </label>
+                    )}
+                    <label className="block">
+                      <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{labels.email}</span>
+                      <span className="relative block">
+                        <Mail className={`pointer-events-none absolute right-1 top-1/2 -translate-y-1/2 ${icons}`} size={15}/>
+                        <input value={email} onChange={event => setEmail(event.target.value)}
+                          type="email" inputMode="email" autoComplete="email" required
+                          placeholder={labels.emailPlaceholder}
+                          className={`h-10 w-full border-0 border-b bg-transparent pr-8 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
+                      </span>
+                    </label>
+                    <label className="block">
+                      <span className={`mb-1 block text-[11px] font-medium ${muted}`}>{labels.password}</span>
+                      <span className="relative block">
+                        <input value={password} onChange={event => setPassword(event.target.value)}
+                          type={showPassword ? "text" : "password"}
+                          autoComplete={mode === "signin" ? "current-password" : "new-password"}
+                          required minLength={8}
+                          placeholder={labels.passwordPlaceholder}
+                          className={`h-10 w-full border-0 border-b bg-transparent pr-9 text-[13px] outline-none transition-colors ${fieldStyle}`}/>
+                        <button type="button" onClick={() => setShowPassword(value => !value)}
+                          aria-label={showPassword ? labels.hidePassword : labels.showPassword}
+                          className={`absolute right-0 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-full ${muted}`}>
+                          {showPassword ? <EyeOff size={16}/> : <Eye size={16}/>}
+                        </button>
+                      </span>
+                      {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
+                    </label>
+
+                    {mode === "signup" && (
+                      <label className="flex cursor-pointer items-start gap-2.5">
+                        <input
+                          type="checkbox" checked={adultConsent} required
+                          onChange={event => setAdultConsent(event.target.checked)}
+                          aria-label="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
+                          className="mt-0.5 h-4 w-4 shrink-0 accent-[#8F0000]"/>
+                        <span className={`text-[11px] leading-[1.5] ${muted}`}>
+                          {micro.legal}{" "}
+                          <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#8F0000]">
+                            {language === "es" ? "Términos" : "Terms"}
+                          </a>{" "}
+                          {language === "es" ? "y la" : "&"}{" "}
+                          <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#8F0000]">
+                            {language === "es" ? "Privacidad" : "Privacy"}
+                          </a>.
+                        </span>
                       </label>
                     )}
 
-                    <label className="block">
-                      <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
-                        {labels.email}
-                      </span>
-                      <div className="relative">
-                        <Mail
-                          size={17}
-                          className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
-                        />
-                        <input
-                          value={email}
-                          onChange={(event) => setEmail(event.target.value)}
-                          className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
-                          placeholder={labels.emailPlaceholder}
-                          type="email"
-                          autoComplete="email"
-                          inputMode="email"
-                        />
-                      </div>
-                    </label>
-
-                    <label className="block">
-                      <span className={`mb-2 block text-xs font-semibold ${mutedClass}`}>
-                        {labels.password}
-                      </span>
-                      <div className="relative">
-                        <LockKeyhole
-                          size={17}
-                          className={`pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 ${iconMutedClass}`}
-                        />
-                        <input
-                          value={password}
-                          onChange={(event) => setPassword(event.target.value)}
-                          className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-12 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
-                          placeholder={labels.passwordPlaceholder}
-                          type={showPassword ? "text" : "password"}
-                          autoComplete={
-                            mode === "signin"
-                              ? "current-password"
-                              : "new-password"
-                          }
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword((value) => !value)}
-                          className={`absolute right-3 top-1/2 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full transition ${mutedClass}`}
-                          aria-label={
-                            showPassword
-                              ? labels.hidePassword
-                              : labels.showPassword
-                          }
-                        >
-                          {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                        </button>
-                      </div>
-                    </label>
-
-                    {mode === "signup" && (
-                      <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-3.5">
-                        <label className="flex cursor-pointer items-start gap-3 text-xs leading-5">
-                          <input type="checkbox" checked={adultConsent}
-                            onChange={event => setAdultConsent(event.target.checked)}
-                            required className="mt-1 h-4 w-4 shrink-0 accent-[#8F0000]"
-                            aria-label="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
-                          />
-                          <span className={mutedClass}>
-                            Declaro que tengo al menos 18 años, que el negocio opera en Argentina y que leí y acepto los{" "}
-                            <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Términos</a>
-                            {" "}y la{" "}
-                            <a href="/legal/privacy" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">Política de privacidad</a>.
-                            {" "}Consultá las{" "}
-                            <a href="/legal/cookies" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">cookies y el almacenamiento</a>.
-                          </span>
-                        </label>
-                        <p className={"mt-2 text-[11px] leading-5 " + mutedClass}>Es una declaración, no una verificación documental de edad. La beta actual no permite cuentas de menores.</p>
-                      </div>
-                    )}
-
                     {error && (
-                      <div
-                        role="alert"
-                        className="rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-xs leading-5 text-red-600 dark:text-red-100"
-                      >
-                        {error}
-                      </div>
+                      <div role="alert" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-[#BC1D31] dark:text-red-200">{error}</div>
+                    )}
+                    {notice && (
+                      <div role="status" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
                     )}
 
-                    <button
-                      type="submit"
-                      disabled={pending || (mode === "signup" && !adultConsent)}
-                      className="flex w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {pending ? (
-                        <Loader2 size={17} className="animate-spin" />
-                      ) : (
-                        <ArrowRight size={17} />
-                      )}
-                      {mode === "signin" ? labels.enter : labels.create}
+                    <button type="submit" disabled={pending || (mode === "signup" && !adultConsent)}
+                      className="flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[13px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
+                      {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
+                      {mode === "signin" ? labels.signIn : labels.signUp}
                     </button>
-
-                    {mode === "signin" && <GoogleIdentityButton
-                      dark={dark}
-                      label={labels.google}
-                      language={language}
-                      currency={currency}
-                      onAuthenticated={() => onAuthenticated()}
-                      onError={() => setError(labels.authError)}
-                    />}
                   </form>
+
+                  {mode === "signin" && (
+                    <div className="gs-auth-google mt-3">
+                      <GoogleIdentityButton
+                        dark={dark} label={labels.google} language={language} currency={currency}
+                        onAuthenticated={() => onAuthenticated()}
+                        onError={() => setError(labels.authError)}
+                      />
+                    </div>
+                  )}
+
+                  <p className={`mt-4 text-center text-[11px] leading-5 ${muted}`}>
+                    {mode === "signin" ? micro.first : micro.existing}{" "}
+                    <button type="button" onClick={() => selectMode(mode === "signin" ? "signup" : "signin")}
+                      className={`font-semibold underline decoration-[#8F0000]/40 underline-offset-[3px] transition-colors hover:text-[#8F0000] ${dark ? "text-white" : "text-[#322729]"}`}>
+                      {mode === "signin" ? micro.openAccount : micro.back}
+                    </button>
+                  </p>
                 </motion.div>
               </AnimatePresence>
-
-              <p className={`mt-4 text-center text-[9px] leading-4 ${mutedClass}`}>
-                {configured ? labels.configured : labels.demo}
-              </p>
-            </motion.div>
-            </AuthSplitMotion>
             </div>
-      </motion.section>
+          </AuthSplitMotion>
+        </div>
+      </section>
     </main>
   );
 }
