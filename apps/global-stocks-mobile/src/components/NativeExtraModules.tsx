@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CalendarDays, Check, ChevronLeft, ChevronRight, ClipboardList, FileText, Globe2, Package, Plus, RefreshCw, Store, Trash2, Truck, Users } from "lucide-react-native";
 import type { Business, Product } from "../lib/data";
@@ -132,13 +133,13 @@ export default function NativeExtraModules({ client, business, userId, products,
     await write({notes:tasks.map(t=>t.id===id?{...t,done:!t.done}:t)});
   }
   function deleteNote(id:string) {
-    Alert.alert("Eliminar nota","¿Querés eliminar esta nota?",[
+    appAlerts.alert("Eliminar nota","¿Querés eliminar esta nota?",[
       {text:"Cancelar",style:"cancel"},
       {text:"Eliminar",style:"destructive",onPress:()=>void write({freeNotes:notes.filter(n=>n.id!==id)})}
     ]);
   }
   function deleteTask(id:string){
-    Alert.alert("Eliminar recordatorio","¿Eliminar este recordatorio?",[
+    appAlerts.alert("Eliminar recordatorio","¿Eliminar este recordatorio?",[
       {text:"Cancelar",style:"cancel"},
       {text:"Eliminar",style:"destructive",onPress:()=>void write({notes:tasks.filter(n=>n.id!==id)})}
     ]);
@@ -162,7 +163,7 @@ export default function NativeExtraModules({ client, business, userId, products,
     if(await write({supplierProfiles:next}))resetSupplier();
   }
   function deleteSupplier(id:string){
-    Alert.alert("Eliminar proveedor","Se quitará del directorio, pero no borrará productos.",[
+    appAlerts.alert("Eliminar proveedor","Se quitará del directorio, pero no borrará productos.",[
       {text:"Cancelar",style:"cancel"},
       {text:"Eliminar",style:"destructive",onPress:()=>void write({supplierProfiles:suppliers.filter(s=>s.id!==id)})}
     ]);
