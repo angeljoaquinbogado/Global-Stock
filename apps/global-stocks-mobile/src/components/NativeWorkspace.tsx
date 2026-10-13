@@ -21,6 +21,7 @@ import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import ProductForm from "./ProductForm";
 import NativeRestockPanel from "./NativeRestockPanel";
 import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
+import NativeBusinessManager from "./NativeBusinessManager";
 import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
 import NativeCashRegister from "./NativeCashRegister";
@@ -47,6 +48,7 @@ type Props = {
   refreshToken: number;
   onRefresh: () => void;
   onBusiness: (business: Business) => void;
+  onReloadBusinesses: () => Promise<void>;
   onSignOut: () => void;
   onAdd: (product: Product) => void;
   onAdjust: (productId: string, delta: number) => void;
@@ -122,7 +124,7 @@ const fullWebsite = "https://globalstocks.vercel.app";
 
 export default function NativeWorkspace({
   client, userId, business, businesses, products, source, notice, drafts, cart,
-  refreshToken, onRefresh, onBusiness, onSignOut, onAdd, onAdjust, onSaveDraft
+  refreshToken, onRefresh, onBusiness, onReloadBusinesses, onSignOut, onAdd, onAdjust, onSaveDraft
 }: Props) {
   const [active, setActive] = useState<Module>("overview");
   const [dark, setDark] = useState(true);
@@ -654,7 +656,11 @@ export default function NativeWorkspace({
       </> : null}
       {active==="documents" ? <NativePrintCenter client={client} business={business} products={products}
         drafts={drafts} cart={cart} dark={dark} onFiscal={() => open("fiscal")} /> : null}
-      {["notes","purchases","suppliers","online","fiscal","operations"].includes(active) ? (
+      {active==="operations" ? <NativeBusinessManager
+        client={client} business={business} businesses={businesses} userId={userId}
+        products={products} dark={dark} onBusiness={onBusiness}
+        onReload={onReloadBusinesses} /> : null}
+      {["notes","purchases","suppliers","online","fiscal"].includes(active) ? (
         <NativeExtraModules
           client={client} business={business} userId={userId} products={products}
           module={active as ExtraModule} dark={dark}
