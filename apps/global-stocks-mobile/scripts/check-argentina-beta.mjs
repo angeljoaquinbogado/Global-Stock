@@ -38,7 +38,8 @@ must(mobileEntry.includes('import App from "./App"') &&
   app.includes("NativeAuthLanding") &&
   workspace.includes('module: "charts"') &&
   workspace.includes('module: "rates"') &&
-  workspace.includes('module: "scan"') &&
+  workspace.includes('active==="scan"') &&
+  workspace.includes('accessibilityLabel="Escanear"') &&
   workspace.includes('module: "settings"') &&
   workspace.includes('module: "pos"'),
   "Expo must use the complete native UI, not replace it with a web wrapper.");
