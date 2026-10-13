@@ -19,7 +19,20 @@ try {
     }));
     const response=await page.goto(origin+"/native-app/index.html",{waitUntil:"domcontentloaded",timeout:30000});
     if(!response?.ok())throw Error(viewport.name+": failed to load Expo export");
-    await page.getByText("Bienvenido a",{exact:false}).first().waitFor({state:"visible",timeout:30000});
+    try {
+      await page.getByText("Bienvenido a",{exact:false}).first().waitFor({state:"visible",timeout:30000});
+    } catch (err) {
+      mkdirSync("test-results/expo-parity",{recursive:true});
+      await page.screenshot({path:"test-results/expo-parity/"+viewport.name+"-diagnostic.png",fullPage:true}).catch(()=>null);
+      console.error("Expo welcome diagnostics", {
+        viewport:viewport.name,
+        errors,
+        title:await page.title().catch(()=>"<unavailable>"),
+        content:(await page.locator("body").innerText().catch(()=>"")).slice(0,1700),
+        path:await page.evaluate(()=>location.href).catch(()=>"")
+      });
+      throw err;
+    }
     await page.getByText("Comenzar",{exact:false}).first().waitFor({state:"visible",timeout:10000});
     mkdirSync("test-results/expo-parity",{recursive:true});
     await page.screenshot({path:"test-results/expo-parity/"+viewport.name+".png",fullPage:true});
