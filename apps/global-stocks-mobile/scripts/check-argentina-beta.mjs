@@ -27,6 +27,8 @@ const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.t
 const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
 const cash = read("apps/global-stocks-mobile/src/components/NativeCashRegister.tsx");
 const checkout = read("apps/global-stocks-mobile/src/components/NativeCashCheckout.tsx");
+const promoGrant = read("apex-stock-os/supabase/migrations/20261013_cash_promotions_read_grant.sql");
+const relatedGrants = read("apex-stock-os/supabase/migrations/20261013_pos_customer_recipe_read_roles.sql");
 const mobileSettings = read("apps/global-stocks-mobile/src/components/NativeSettings.tsx");
 const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
@@ -118,8 +120,18 @@ must(!workspace.includes('module: "rates"') &&
   cash.includes('global_stock_promotions') &&
   checkout.includes('global_stock_record_pos_sale') &&
   checkout.includes('Dinero recibido') &&
-  checkout.includes('Vuelto automático'),
-  "Caja must be native with barcode cart, server promotions and verified change; cotizaciones stays inside Settings only.");
+  checkout.includes('Vuelto automático') &&
+  checkout.includes('client.rpc("global_stock_record_pos_sale"') &&
+  checkout.includes('Confirmar cobro') &&
+  checkout.includes('receivedAmount: method === "cash" ? tendered : total') &&
+  !checkout.includes('Alert.alert(') &&
+  !checkout.includes("confirmedPayment"),
+  "Caja must allow one-step confirmed collection and stock deduction without stacked alerts.");
+must(promoGrant.includes("GRANT SELECT ON TABLE public.global_stock_promotions TO authenticated") &&
+  promoGrant.includes("REVOKE SELECT ON TABLE public.global_stock_promotions FROM anon") &&
+  relatedGrants.includes("global_stock_can_write(business_id, 'customers')") &&
+  relatedGrants.includes("global_stock_can_write(business_id, 'inventory')"),
+  "Checkout related table grants must retain RLS and per-business permissions.");
 must(legal.includes("/legal/cookies") &&
   privacy.includes("/legal/cookies") &&
   mobileData.includes('"industry"') &&
