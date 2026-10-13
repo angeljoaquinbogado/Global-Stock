@@ -208,6 +208,87 @@ export async function updateCloudBusiness(
   return !error;
 }
 
+/** Canonical inventory rows are shared by native Expo, desktop and web.
+ * Read the entire authorized business inventory, never Supabase's first
+ * 1000 records only. The shared table takes precedence over stale snapshots.
+ * A failed fetch returns null rather than an empty inventory.
+ */
+export async function loadCanonicalProducts(
+  businessId: string
+): Promise<Product[] | null> {
+  const supabase = getSupabaseBrowserClient();
+  if (!supabase) return null;
+  const collected: Product[] = [];
+  const pageSize = 400;
+  for (let offset = 0; offset < 100000; offset += pageSize) {
+    const { data, error } = await supabase
+      .from("global_stock_products")
+      .select("id,client_key,barcode,name,category,supplier,stock,min_stock,cost,price,source,external_id,description,brand,active,metadata,updated_at")
+      .eq("business_id", businessId)
+      .order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) {
+      console.warn("[Global Stock] Canonical inventory could not be loaded", error.code);
+      return null;
+    }
+    for (const item of data ?? []) {
+      const meta = item.metadata && typeof item.metadata === "object" &&
+        !Array.isArray(item.metadata) ? item.metadata as Record<string, unknown> : {};
+      const images = Array.isArray(meta.images)
+        ? meta.images.filter((value): value is string => typeof value === "string").slice(0, 10)
+        : [];
+      collected.push({
+        id: String(item.client_key || item.id),
+        name: String(item.name || ""),
+        barcode: String(item.barcode || ""),
+        category: String(item.category || ""),
+        supplier: String(item.supplier || ""),
+        stock: Number(item.stock) || 0,
+        minStock: Number(item.min_stock) || 0,
+        cost: item.cost == null ? 0 : Number(item.cost) || 0,
+        costKnown: item.cost != null,
+        price: Number(item.price) || 0,
+        sold30d: Number(meta.sold30d) || 0,
+        source: item.source === "connected" ? "connected" : "local",
+        externalId: item.external_id || undefined,
+        description: item.description || undefined,
+        brand: item.brand || undefined,
+        active: item.active !== false,
+        image: typeof meta.image === "string" ? meta.image : undefined,
+        images,
+        originalPrice: typeof meta.originalPrice === "number" ? meta.originalPrice : undefined,
+        discountPercent: typeof meta.discountPercent === "number" ? meta.discountPercent : undefined,
+        updatedAt: item.updated_at || null
+      });
+    }
+    if ((data?.length ?? 0) < pageSize) return collected;
+  }
+  // Prevent a silently truncated inventory from becoming the new truth.
+  console.error("[Global Stock] Inventory exceeded the 100000-item read guard");
+  return null;
+}
+
+/** Preserve local-only, unsynchronized products while using the authoritative
+ * table for records that exist in Supabase. Never drop a draft due to a
+ * transient network error. */
+export function mergeCanonicalProducts(
+  saved: Product[],
+  canonical: Product[]
+): Product[] {
+  const byId = new Map(saved.map(product => [product.id, product]));
+  const seen = new Set<string>();
+  const result: Product[] = [];
+  for (const cloud of canonical) {
+    const local = byId.get(cloud.id);
+    seen.add(cloud.id);
+    result.push(local ? { ...local, ...cloud } : cloud);
+  }
+  for (const local of saved) {
+    if (!seen.has(local.id)) result.push(local);
+  }
+  return result;
+}
+
 export async function mirrorProductsToCloud(
   businessId: string,
   products: Product[]
