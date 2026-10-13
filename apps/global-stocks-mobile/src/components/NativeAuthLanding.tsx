@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ActivityIndicator, Image, KeyboardAvoidingView, Linking, Platform, Pressable,
+  AccessibilityInfo, ActivityIndicator, Animated, Easing, Image, KeyboardAvoidingView, Linking, Platform, Pressable,
   ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -104,6 +104,11 @@ const palette = {
 export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loading, error }: Props) {
   const { height, width } = useWindowDimensions();
   const [stage, setStage] = useState<Stage>("welcome");
+  const wipe = useRef(new Animated.Value(0)).current;
+  const switchingRef = useRef(false);
+  const [switching, setSwitching] = useState(false);
+  const [wipeDirection, setWipeDirection] = useState<1 | -1>(1);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [dark, setDark] = useState(true);
   const [language, setLanguage] = useState<Language>("es");
   const [openLanguages, setOpenLanguages] = useState(false);
@@ -119,6 +124,10 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
   const signup = stage === "signup";
   const form = stage !== "welcome";
   const styles = createStyles(p);
+  const wipeX = wipe.interpolate({
+    inputRange: [0, 1, 2],
+    outputRange: [-width * 1.55, 0, width * 1.55]
+  });
 
   useEffect(() => {
     let alive = true;
@@ -133,6 +142,21 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
     return () => { alive = false; };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    void AccessibilityInfo.isReduceMotionEnabled()
+      .then(value => { if (mounted) setReducedMotion(value); })
+      .catch(() => null);
+    const listener = AccessibilityInfo.addEventListener(
+      "reduceMotionChanged", setReducedMotion
+    );
+    return () => {
+      mounted = false;
+      listener.remove();
+      wipe.stopAnimation();
+    };
+  }, [wipe]);
+
   function changeTheme(next: boolean) {
     setDark(next);
     void SecureStore.setItemAsync(THEME_KEY, next ? "dark" : "light").catch(() => null);
@@ -142,12 +166,41 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
     setOpenLanguages(false);
     void SecureStore.setItemAsync(LANGUAGE_KEY, next).catch(() => null);
   }
-  function show(stage: Stage) {
-    setStage(stage);
+  function show(next: Stage) {
+    if (switchingRef.current || loading || next === stage) return;
     setOpenLanguages(false);
+    if (stage === "welcome" || next === "welcome" || reducedMotion) {
+      setStage(next);
+      return;
+    }
+    // The diagonal brand panel covers the previous form before switching its
+    // content; reversing the direction reveals the original login again.
+    const forward = next === "signup";
+    setWipeDirection(forward ? 1 : -1);
+    switchingRef.current = true;
+    setSwitching(true);
+    wipe.setValue(forward ? 0 : 2);
+    Animated.timing(wipe, {
+      toValue: 1, duration: 310, easing: Easing.inOut(Easing.cubic),
+      useNativeDriver: true
+    }).start(({ finished }) => {
+      if (!finished) {
+        switchingRef.current = false;
+        setSwitching(false);
+        return;
+      }
+      setStage(next);
+      Animated.timing(wipe, {
+        toValue: forward ? 2 : 0, duration: 350,
+        easing: Easing.inOut(Easing.cubic), useNativeDriver: true
+      }).start(() => {
+        switchingRef.current = false;
+        setSwitching(false);
+      });
+    });
   }
   function submit() {
-    if (loading || !email.trim() || !password.trim() || (signup && (!adultConfirmed || !termsConfirmed))) return;
+    if (loading || switchingRef.current || !email.trim() || !password.trim() || (signup && (!adultConfirmed || !termsConfirmed))) return;
     if (signup) onRegister(email.trim(), password);
     else onSubmit(email.trim(), password);
   }
@@ -203,6 +256,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
             ) : null}
           </View>
 
+          <View style={styles.switchStage}>
           <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 12 : (compact ? 10 : 22) }]}>
             <View style={[styles.logoStage, { height: form ? 112 : (compact ? 194 : 216) }]}>
               <View pointerEvents="none" style={[styles.logoHalo,{ backgroundColor: dark ? "rgba(180,18,42,0.14)" : "rgba(194,29,65,0.075)" }]} />
@@ -333,6 +387,28 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
             </View>
           )}
 
+          {switching ? (
+            <Animated.View pointerEvents="auto" accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              style={[styles.switchCurtain, {
+                width: width * 1.22,
+                transform: [
+                  { translateX: wipeX },
+                  { skewX: wipeDirection === 1 ? "-12deg" : "12deg" }
+                ]
+              }]}>
+              <Image source={require("../../assets/brand-mark.png")}
+                style={{ width: 58, height: 58 }} resizeMode="contain" />
+              <Text style={styles.switchBrand}>GLOBAL STOCK</Text>
+              <Text style={styles.switchBrandSub}>
+                {language === "es" ? "Tu negocio, en orden." :
+                  language === "pt" ? "Seu negócio em ordem." :
+                  "Your business, organized."}
+              </Text>
+            </Animated.View>
+          ) : null}
+          </View>
+
           <View style={styles.bottomNote}>
             <View style={styles.betaPill}>
               <View style={styles.betaDot}/>
@@ -365,6 +441,14 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageOption: { flexDirection:"row",justifyContent:"space-between",alignItems:"center",paddingVertical:10,paddingHorizontal:10,borderRadius:10 },
     languageSelected: { backgroundColor:p.elevated },
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
+    switchStage: { position:"relative", overflow:"hidden", borderRadius:20 },
+    switchCurtain: {
+      position:"absolute", top:0, bottom:0, left:0, zIndex:45,
+      backgroundColor:"#840015", justifyContent:"center", alignItems:"center",
+      gap:10, borderColor:"#B50A25", borderWidth:1
+    },
+    switchBrand: { color:"#FFFFFF", fontSize:19, fontWeight:"900", letterSpacing:2.4 },
+    switchBrandSub: { color:"#FFD9DF", fontSize:12, fontWeight:"600" },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
     compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
     logoStage: { position:"relative",width:"100%",alignItems:"center",justifyContent:"center",marginBottom:22,flexShrink:0,overflow:"visible" },
