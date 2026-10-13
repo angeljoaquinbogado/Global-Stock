@@ -3341,7 +3341,19 @@ textarea:focus-visible {
     margin-top: .5rem;
   }
   .gs-auth-reference-form input:not([type="checkbox"]) {
-    height: 2.1rem;
+    height: 2.55rem;
+  }
+}
+@media (max-height: 580px) {
+  /* Keep controls reachable on very short browser windows without scrollbars. */
+  .gs-auth-reference-form input:not([type="checkbox"]) {
+    height: 2.15rem;
+  }
+  .gs-auth-reference-form .gs-auth-brand-row {
+    margin-bottom: .75rem;
+  }
+  .gs-auth-reference-form .gs-auth-reference-fields > :not([hidden]) ~ :not([hidden]) {
+    margin-top: .4rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {
