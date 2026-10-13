@@ -1,5 +1,8 @@
-import { ApexShell } from "@/components/ApexShell";
+import { redirect } from "next/navigation";
 
+/** Production uses the SAME React Native / Expo components that power Expo Go.
+ * Next.js continues serving API, legal pages and the optional /classic rollback.
+ */
 export default function HomePage() {
-  return <ApexShell />;
+  redirect("/native-app/index.html");
 }
