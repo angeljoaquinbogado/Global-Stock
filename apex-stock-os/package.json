@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "prebuild": "npm run qa:smoke",
-    "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs",
+    "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs scripts/fiscal-validation.test.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
