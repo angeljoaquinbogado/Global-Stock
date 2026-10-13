@@ -229,7 +229,7 @@ export function BusinessLocationsCenter({ businessId, currency }: {
     {canManage&&<div className="mt-3 flex flex-wrap items-center gap-2">
       <input className={inputs+" max-w-xs"} maxLength={100}
         aria-label="Nombre del nuevo negocio" placeholder="Nombre de otro negocio"
-        value={newBusiness} onChange={e=>setNewBusiness(e.target.value}/>
+        value={newBusiness} onChange={e=>setNewBusiness(e.target.value)}/>
       <button type="button" className={action} disabled={busy} onClick={addBusiness}>
         <Plus size={15}/>Crear negocio
       </button>
