@@ -17,6 +17,7 @@ import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
+import { AppleIdentityButton } from "./AppleIdentityButton";
 import { AuthSplitMotion } from "./AuthSplitMotion";
 import { TERMS_VERSION, PRIVACY_VERSION } from "./UnifiedLegalGate";
 
@@ -53,6 +54,7 @@ const copy: Record<
     enter: string;
     create: string;
     google: string;
+    apple: string;
     configured: string;
     demo: string;
     invalidEmail: string;
@@ -88,6 +90,7 @@ const copy: Record<
     enter: "Entrar a Global Stock",
     create: "Crear cuenta gratis",
     google: "Continuar con Google",
+    apple: "Continuar con Apple",
     configured: "Autenticación protegida por Supabase Auth.",
     demo: "Modo demo para pruebas. Supabase habilita cuentas y datos reales.",
     invalidEmail: "Ingresá un correo electrónico válido.",
@@ -123,6 +126,7 @@ const copy: Record<
     enter: "Enter Global Stock",
     create: "Create free account",
     google: "Continue with Google",
+    apple: "Continue with Apple",
     configured: "Authentication protected by Supabase Auth.",
     demo: "Demo mode for testing. Supabase enables real accounts and data.",
     invalidEmail: "Enter a valid email address.",
@@ -158,6 +162,7 @@ const copy: Record<
     enter: "Entrar no Global Stock",
     create: "Criar conta grátis",
     google: "Continuar com Google",
+    apple: "Continuar com Apple",
     configured: "Autenticação protegida pelo Supabase Auth.",
     demo: "Modo demo para testes. Supabase habilita contas e dados reais.",
     invalidEmail: "Digite um e-mail válido.",
@@ -193,6 +198,7 @@ const copy: Record<
     enter: "Entrer dans Global Stock",
     create: "Créer un compte gratuit",
     google: "Continuer avec Google",
+    apple: "Continuer avec Apple",
     configured: "Authentification protégée par Supabase Auth.",
     demo: "Mode démo. Supabase active les comptes et données réels.",
     invalidEmail: "Saisissez une adresse e-mail valide.",
@@ -228,6 +234,7 @@ const copy: Record<
     enter: "Global Stock öffnen",
     create: "Kostenloses Konto erstellen",
     google: "Mit Google fortfahren",
+    apple: "Mit Apple fortfahren",
     configured: "Authentifizierung durch Supabase Auth geschützt.",
     demo: "Demo-Modus zum Testen. Supabase aktiviert echte Konten und Daten.",
     invalidEmail: "Gib eine gültige E-Mail-Adresse ein.",
@@ -556,11 +563,15 @@ export function AuthScreen({
                   </form>
 
                   {mode === "signin" && (
-                    <div className="gs-auth-google mt-3">
+                    <div className="gs-auth-social mt-3 grid gap-2">
                       <GoogleIdentityButton
                         dark={dark} label={labels.google} language={language} currency={currency}
                         onAuthenticated={() => onAuthenticated()}
                         onError={() => setError(labels.authError)}
+                      />
+                      <AppleIdentityButton
+                        dark={dark} label={labels.apple}
+                        onError={(message) => setError(message)}
                       />
                     </div>
                   )}
