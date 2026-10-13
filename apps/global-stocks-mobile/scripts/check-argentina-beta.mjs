@@ -71,7 +71,9 @@ must(
   landing.includes("styles.languagePicker") &&
   !landing.includes("<Svg") &&
   !landing.includes("StyleSheet.absoluteFillObject") &&
-  !landing.includes('overflow:"hidden"'),
+  landing.includes('switchStage: { position:"relative", overflow:"hidden"') &&
+  landing.includes('Animated.timing(wipe') &&
+  landing.includes('AccessibilityInfo.isReduceMotionEnabled()'),
   "The restored welcome must show its navigation, brand, login options and no full-screen SVG layer."
 );
 must(
