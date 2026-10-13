@@ -13,8 +13,7 @@ import {
   Moon,
   Sparkles,
   Sun,
-  UserRound,
-  Zap
+  UserRound
 } from "lucide-react";
 import { FormEvent, useMemo, useState } from "react";
 
