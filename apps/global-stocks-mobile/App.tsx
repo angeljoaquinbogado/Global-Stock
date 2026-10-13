@@ -342,6 +342,29 @@ function MobileApp() {
   const total = cart.reduce((sum, line) => sum + line.quantity * line.unit_price, 0);
   const currency = business?.base_currency || "ARS";
 
+  useEffect(() => {
+    if (!supabase) return;
+    let alive = true;
+    const callback = async (url: string) => {
+      if (!/^globalstocks:\/\/auth\/callback(?:[?#]|$)/i.test(url)) return;
+      const code = /[?&]code=([^&#]+)/.exec(url)?.[1];
+      const errorMessage = /[?&]error_description=([^&#]+)/.exec(url)?.[1];
+      if (errorMessage) {
+        if (alive) setAuthError(decodeURIComponent(errorMessage.replace(/\+/g, " ")));
+        return;
+      }
+      if (!code) {
+        if (alive) setAuthError("La autorización no devolvió un código seguro. Intentá nuevamente.");
+        return;
+      }
+      const result = await supabase.auth.exchangeCodeForSession(decodeURIComponent(code));
+      if (result.error && alive) setAuthError(result.error.message);
+    };
+    const subscription = Linking.addEventListener("url", event => { void callback(event.url); });
+    void Linking.getInitialURL().then(url => { if (url && alive) void callback(url); }).catch(()=>null);
+    return () => { alive = false; subscription.remove(); };
+  }, [supabase]);
+
   async function login(email: string, password: string) {
     // Public demo credentials open a local-only sandbox, NEVER a Supabase session.
     if (email.trim().toLowerCase() === "demo@globalstock.app" && password === "GlobalStock2026!") {
@@ -361,6 +384,41 @@ function MobileApp() {
       }
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "No se pudo iniciar sesión.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
+
+  async function loginSocial(provider: "google" | "apple") {
+    if (!supabase || authLoading) return;
+    setAuthError("");
+    setAuthLoading(true);
+    try {
+      // Expo Go launches using exp:// and does not own our OAuth callback
+      // scheme. A development/production build can receive globalstocks://.
+      const launchUrl = await Linking.getInitialURL();
+      if (launchUrl?.startsWith("exp://") || launchUrl?.startsWith("exps://")) {
+        appAlerts.alert("Acceso con " + (provider === "apple" ? "Apple" : "Google"),
+          "En Expo Go el retorno seguro de Apple y Google no está disponible. Para probar este acceso en la app instalá una development build; mientras tanto podés iniciar con correo o usar la web.",
+          [
+            {text:"Cerrar",style:"cancel"},
+            {text:"Abrir Global Stock web",onPress:()=>{void Linking.openURL("https://globalstocks.vercel.app").catch(()=>null);}}
+          ]);
+        return;
+      }
+      const {data,error} = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: "globalstocks://auth/callback",
+          skipBrowserRedirect: true,
+          scopes: provider === "google" ? "email profile" : undefined
+        }
+      });
+      if (error) throw error;
+      if (!data.url) throw new Error("No se obtuvo el enlace seguro de acceso.");
+      await Linking.openURL(data.url);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : "No se pudo iniciar sesión.");
     } finally {
       setAuthLoading(false);
     }
