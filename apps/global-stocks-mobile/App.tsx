@@ -22,7 +22,7 @@ import PreviewMode from "./src/components/PreviewMode";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
 import NativeWorkspace from "./src/components/NativeWorkspace";
-import NativeLegalGate from "./src/components/NativeLegalGate";
+import NativeLegalGate, { LEGAL_TERMS_VERSION, LEGAL_PRIVACY_VERSION } from "./src/components/NativeLegalGate";
 import NativeAuthLanding from "./src/components/NativeAuthLanding";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
@@ -172,6 +172,7 @@ function MobileApp() {
   const [business, setBusiness] = useState<Business | null>(null);
   const [businessLoading, setBusinessLoading] = useState(false);
   const [newBusinessName, setNewBusinessName] = useState("");
+  const [newBusinessDescription, setNewBusinessDescription] = useState("");
   const [newBusinessType, setNewBusinessType] = useState<BusinessKind>("retail");
   const [newBusinessCategory, setNewBusinessCategory] = useState("almacen");
   const [creatingBusiness, setCreatingBusiness] = useState(false);
@@ -365,12 +366,33 @@ function MobileApp() {
     }
   }
 
-  async function register(email: string, password: string) {
+  async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt") {
     if (!supabase) return;
     setAuthLoading(true);
     setAuthError("");
     try {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      if (fullName.trim().length < 2 || password.length < 8) {
+        setAuthError("Completá tu nombre y una contraseña de al menos 8 caracteres.");
+        return;
+      }
+      const { data, error } = await supabase.auth.signUp({
+        email, password,
+        options: {
+          emailRedirectTo: "https://globalstocks.vercel.app",
+          data: {
+            app: "global_stock",
+            full_name: fullName.trim(),
+            global_stock_onboarding: "pending",
+            global_stock_legal_accepted: true,
+            global_stock_terms_version: LEGAL_TERMS_VERSION,
+            global_stock_privacy_version: LEGAL_PRIVACY_VERSION,
+            adult_18_attested: true,
+            operates_in_ar_attested: true,
+            default_currency: "ARS",
+            language
+          }
+        }
+      });
       if (error) setAuthError(error.message);
       else if (!data.session) setAuthError("Revisá tu correo para confirmar el registro; después iniciá sesión.");
     } catch (error) {
@@ -385,10 +407,48 @@ function MobileApp() {
     setCreatingBusiness(true);
     setNotice("");
     try {
-      const created = await createBusiness(supabase, user.id, newBusinessName, newBusinessType);
+      if (newBusinessName.trim().length < 2) throw new Error("Ingresá el nombre de tu negocio.");
+      // Retry safely: an earlier attempt may have created the company before a
+      // profile or consent write failed. Reuse it instead of duplicating it.
+      const alreadyLinked = business ?? (await loadBusinesses(supabase,user.id))[0];
+      const created = alreadyLinked ?? await createBusiness(supabase, user.id, newBusinessName, newBusinessType);
+      const {data: verified, error: verifyError} = await supabase.auth.getUser();
+      if (verifyError || verified.user?.id !== user.id) throw new Error("La sesión cambió, volvé a iniciar sesión.");
+      const metadata = verified.user.user_metadata ?? {};
+      const {error: profileError} = await supabase.from("global_stock_profiles").upsert({
+        user_id:user.id,
+        full_name:typeof metadata.full_name === "string" ? metadata.full_name : null,
+        business_name:newBusinessName.trim(),
+        industry:newBusinessType,
+        country:"Argentina",
+        business_description:newBusinessDescription.trim(),
+        default_currency:"ARS",
+        language:typeof metadata.language === "string" ? metadata.language : "es"
+      },{onConflict:"user_id"});
+      if (profileError) throw profileError;
+      const {error: updateError} = await supabase.auth.updateUser({data:{
+        global_stock_onboarding:"complete",
+        business_name:newBusinessName.trim(),
+        industry:newBusinessType,
+        business_category:newBusinessCategory,
+        country:"Argentina",
+        business_description:newBusinessDescription.trim()
+      }});
+      if (updateError) throw updateError;
+      if (metadata.global_stock_legal_accepted === true &&
+          metadata.adult_18_attested === true && metadata.operates_in_ar_attested === true &&
+          metadata.global_stock_terms_version === LEGAL_TERMS_VERSION &&
+          metadata.global_stock_privacy_version === LEGAL_PRIVACY_VERSION) {
+        const {error: consentError} = await supabase.from("global_stock_legal_acceptances").upsert({
+          user_id:user.id,terms_version:LEGAL_TERMS_VERSION,privacy_version:LEGAL_PRIVACY_VERSION,
+          adult_18_attested:true,operates_in_ar_attested:true
+        },{onConflict:"user_id,terms_version,privacy_version",ignoreDuplicates:true});
+        if (!consentError) setLegalUserId(user.id);
+      }
       setBusinesses((list) => [...list.filter((b) => b.id !== created.id), created]);
       setBusiness(created);
       setNewBusinessName("");
+      setNewBusinessDescription("");
       setNewBusinessType("retail");
       setNewBusinessCategory("almacen");
       setNotice("Negocio real creado y conectado. Ya podés agregar productos.");
@@ -520,9 +580,10 @@ function MobileApp() {
 
   if (demoMode) return <PreviewMode demoActive onExit={() => { setDemoMode(false); setAuthError(""); setLoginViewVersion(v => v + 1); }} />;
 
-  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} onDemo={() => { setAuthError(""); setDemoMode(true); }} loading={authLoading} error={authError} />;
+  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} onSocial={loginSocial} onDemo={() => { setAuthError(""); setDemoMode(true); }} loading={authLoading} error={authError} />;
 
-  if (legalUserId !== user.id) {
+  const pendingBusinessOnboarding = user.user_metadata?.global_stock_onboarding === "pending";
+  if (!pendingBusinessOnboarding && legalUserId !== user.id) {
     return <NativeLegalGate
       client={supabase} userId={user.id}
       onReady={() => setLegalUserId(user.id)}
@@ -530,7 +591,7 @@ function MobileApp() {
     />;
   }
 
-  if (!business) {
+  if (pendingBusinessOnboarding || !business) {
     return (
       <SafeAreaView style={[st.base, { paddingHorizontal: 23 }]}>
         <StatusBar style="light" />
@@ -538,7 +599,7 @@ function MobileApp() {
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 16, paddingVertical: 25 }}>
         <Image source={require("./assets/brand-mark.png")} style={{width:80,height:80}} resizeMode="contain"/>
         <Text style={[st.heading,{fontSize:24}]}>Configurá tu negocio</Text>
-        <Text style={st.helper}>Todavía no hay negocios vinculados con tu cuenta. Creá uno para usar la misma información desde PC y celular.</Text>
+        <Text style={st.helper}>Paso 2 de 2 · Completá la información de tu negocio para empezar. Estos datos se guardan en tu cuenta y pueden recuperarse desde otros dispositivos.</Text>
         <TextInput
           value={newBusinessName}
           onChangeText={setNewBusinessName}
@@ -548,6 +609,8 @@ function MobileApp() {
           style={st.input}
           maxLength={100}
         />
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>País de operación</Text>
+        <View style={[st.input,{justifyContent:"center"}]}><Text style={{color:C.white,fontSize:14}}>Argentina · Beta gratuita</Text></View>
         <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>¿A qué se dedica tu negocio?</Text>
         <Text style={st.helper}>Elegí lo que más se parezca. Después podés cargar cualquier producto o insumo.</Text>
         <View style={{flexDirection:"row",flexWrap:"wrap",justifyContent:"space-between",rowGap:10}}>
@@ -571,7 +634,13 @@ function MobileApp() {
             </Pressable>;
           })}
         </View>
-        <Button title={creatingBusiness ? "Creando..." : "Crear negocio real"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>Descripción del negocio</Text>
+        <TextInput value={newBusinessDescription} onChangeText={setNewBusinessDescription}
+          placeholder="Ej.: venta de artículos de pesca en local físico y online"
+          placeholderTextColor={C.secondary} multiline maxLength={400}
+          accessibilityLabel="Descripción del negocio"
+          style={[st.input,{minHeight:76,textAlignVertical:"top"}]}/>
+        <Button title={creatingBusiness ? "Guardando..." : "Guardar y entrar a Global Stock"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
         {notice ? <View style={{gap:5}}><Text style={st.warning}>{notice}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda para crear un negocio"))}><Text style={{color:C.red,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
         {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
           if (!supabase || !user) return;
