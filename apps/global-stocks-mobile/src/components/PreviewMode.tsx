@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
@@ -37,7 +38,12 @@ function FormatPrice({ amount }: { amount: number }) {
   return <Text style={styles.price}>{"$ " + amount.toLocaleString("es-AR")}</Text>;
 }
 
-export default function PreviewMode({ connectionError, onRetry }: { connectionError?: string; onRetry?: () => void }) {
+export default function PreviewMode({ connectionError, onRetry, demoActive = false, onExit }: {
+  connectionError?: string;
+  onRetry?: () => void;
+  demoActive?: boolean;
+  onExit?: () => void;
+}) {
   const [page, setPage] = useState<Page>("inicio");
   const [query, setQuery] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
@@ -64,6 +70,12 @@ export default function PreviewMode({ connectionError, onRetry }: { connectionEr
           <Text style={styles.brand}>Global <Text style={styles.brandRed}>Stock</Text></Text>
           <Text style={styles.headerSub}>App móvil · React Native + Expo</Text>
         </View>
+        {demoActive && onExit ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Cerrar demostración"
+            onPress={onExit} style={styles.demoExit}>
+            <Text style={styles.demoExitText}>Salir</Text>
+          </Pressable>
+        ) : null}
         <View style={styles.previewPill}><Text style={styles.previewText}>DEMO</Text></View>
       </View>
 
@@ -73,10 +85,11 @@ export default function PreviewMode({ connectionError, onRetry }: { connectionEr
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.notice}>
-          <Text style={styles.noticeHead}>ESTÁS EN NUESTRA APP</Text>
+          <Text style={styles.noticeHead}>{demoActive ? "MODO DEMOSTRACIÓN" : "VISTA PREVIA SIN CONEXIÓN"}</Text>
           <Text style={styles.noticeText}>
-            Esta es la vista previa con datos ficticios. La conexión real se obtiene automáticamente
-            desde globalstocks.vercel.app cuando el sitio termina de desplegarse.
+            {demoActive
+              ? "Entraste a la demo de Global Stock. Los productos son ficticios y las pruebas no afectan datos, ventas ni stock de negocios reales."
+              : "No pudimos conectar la cuenta real. Esta vista temporal utiliza productos de ejemplo y no almacena operaciones."}
           </Text>
           {connectionError ? <Text style={styles.noticeText}>{connectionError}</Text> : null}
           {onRetry ? <Pressable onPress={onRetry} accessibilityRole="button" style={styles.primaryButton}><Text style={styles.primaryButtonText}>Conectar con mi Global Stock real →</Text></Pressable> : null}
@@ -119,14 +132,19 @@ export default function PreviewMode({ connectionError, onRetry }: { connectionEr
               <Text style={styles.secondaryButtonText}>Abrir lector de códigos →</Text>
             </Pressable>
 
-            <View style={styles.card}>
-              <Text style={styles.cardHeading}>Para conectar tu cuenta real</Text>
-              <Text style={styles.cardBody}>
-                Configurá EXPO_PUBLIC_SUPABASE_URL y EXPO_PUBLIC_SUPABASE_ANON_KEY
-                en el archivo .env de la app móvil. Reiniciá Expo después.
-                Nunca agregues service_role ni secretos privados.
-              </Text>
-            </View>
+            {demoActive ? (
+              <View style={styles.card}>
+                <Text style={styles.cardHeading}>Para probar más funciones</Text>
+                <Text style={styles.cardBody}>
+                  La demostración completa del panel web está disponible aparte.
+                  Para guardar ventas reales o configurar negocios, necesitás tu propia cuenta.
+                </Text>
+                <Pressable accessibilityRole="link" style={styles.secondaryButton}
+                  onPress={() => void Linking.openURL("https://globalstocks.vercel.app/classic")}>
+                  <Text style={styles.secondaryButtonText}>Abrir demo web completa ↗</Text>
+                </Pressable>
+              </View>
+            ) : null}
           </>
         ) : null}
 
@@ -257,6 +275,8 @@ const styles = StyleSheet.create({
   brandRed: { color: "#FC626C" },
   headerSub: { color: colors.muted, fontSize: 10, marginTop: 2 },
   previewPill: { paddingVertical: 6, paddingHorizontal: 9, backgroundColor: "#2B1820", borderRadius: 7, borderWidth: 1, borderColor: "#7A3540" },
+  demoExit: { borderWidth: 1, borderColor: colors.line, paddingHorizontal: 11, minHeight: 36, borderRadius: 11, justifyContent: "center" },
+  demoExitText: { color: colors.text, fontWeight: "700", fontSize: 12 },
   previewText: { color: "#FF969B", fontSize: 10, fontWeight: "900", letterSpacing: 1 },
   scrollContent: { paddingHorizontal: 18, paddingVertical: 20, gap: 16, paddingBottom: 35 },
   notice: { borderColor: "#67424A", borderWidth: 1, borderRadius: 13, padding: 13, gap: 7, backgroundColor: "#21161B" },
