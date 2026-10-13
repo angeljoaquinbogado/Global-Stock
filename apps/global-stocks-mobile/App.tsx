@@ -694,20 +694,20 @@ function MobileApp() {
         </View>
         <Text style={{color:"#B80C20",fontSize:10,fontWeight:"800",letterSpacing:2}}>PASO 2 DE 2 · TU NEGOCIO</Text>
         <Text style={[st.heading,{fontSize:24,color:onboardingDark?"#F7F7FA":"#251B1F"}]}>Configurá tu negocio</Text>
-        <Text style={st.helper}>Paso 2 de 2 · Completá la información de tu negocio para empezar. Estos datos se guardan en tu cuenta y pueden recuperarse desde otros dispositivos.</Text>
+        <Text style={[st.helper,!onboardingDark&&{color:"#71666A"}]}>Paso 2 de 2 · Completá la información de tu negocio para empezar. Estos datos se guardan en tu cuenta y pueden recuperarse desde otros dispositivos.</Text>
         <TextInput
           value={newBusinessName}
           onChangeText={setNewBusinessName}
           placeholder="Nombre del negocio"
           placeholderTextColor={C.secondary}
           accessibilityLabel="Nombre del negocio"
-          style={st.input}
+          style={[st.input,!onboardingDark&&{color:"#231C1F",backgroundColor:"#F4EEEB",borderColor:"#D6C9C5"}]}
           maxLength={100}
         />
-        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>País de operación</Text>
-        <View style={[st.input,{justifyContent:"center"}]}><Text style={{color:C.white,fontSize:14}}>Argentina · Beta gratuita</Text></View>
-        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>¿A qué se dedica tu negocio?</Text>
-        <Text style={st.helper}>Elegí lo que más se parezca. Después podés cargar cualquier producto o insumo.</Text>
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:onboardingDark?C.white:"#251C1E"}]}>País de operación</Text>
+        <View style={[st.input,{justifyContent:"center"},!onboardingDark&&{backgroundColor:"#F4EEEB",borderColor:"#D6C9C5"}]}><Text style={{color:onboardingDark?C.white:"#241C1F",fontSize:14}}>Argentina · Beta gratuita</Text></View>
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:onboardingDark?C.white:"#251C1E"}]}>¿A qué se dedica tu negocio?</Text>
+        <Text style={[st.helper,!onboardingDark&&{color:"#71666A"}]}>Elegí lo que más se parezca. Después podés cargar cualquier producto o insumo.</Text>
         <View style={{flexDirection:"row",flexWrap:"wrap",justifyContent:"space-between",rowGap:10}}>
           {MOBILE_BUSINESS_CATEGORIES.map(item => {
             const Icon = item.icon;
@@ -729,12 +729,12 @@ function MobileApp() {
             </Pressable>;
           })}
         </View>
-        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:C.white}]}>Descripción del negocio</Text>
+        <Text style={[st.helper,{fontWeight:"700",fontSize:16,color:onboardingDark?C.white:"#251C1E"}]}>Descripción del negocio</Text>
         <TextInput value={newBusinessDescription} onChangeText={setNewBusinessDescription}
           placeholder="Ej.: venta de artículos de pesca en local físico y online"
           placeholderTextColor={C.secondary} multiline maxLength={400}
           accessibilityLabel="Descripción del negocio"
-          style={[st.input,{minHeight:76,textAlignVertical:"top"}]}/>
+          style={[st.input,{minHeight:76,textAlignVertical:"top"},!onboardingDark&&{color:"#231C1F",backgroundColor:"#F4EEEB",borderColor:"#D6C9C5"}]}/>
         <Button title={creatingBusiness ? "Guardando..." : "Guardar y entrar a Global Stock"} disabled={creatingBusiness || newBusinessName.trim().length < 2} onPress={() => void createFirstBusiness()} />
         {notice ? <View style={{gap:5}}><Text style={st.warning}>{notice}</Text><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Ayuda para crear un negocio"))}><Text style={{color:C.red,fontWeight:"700"}}>{SUPPORT_EMAIL}</Text></Pressable></View> : null}
         {businessLoading ? <ActivityIndicator color={C.red}/> : <Button title="Volver a comprobar" secondary onPress={() => {
