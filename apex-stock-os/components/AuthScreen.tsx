@@ -18,6 +18,7 @@ import type { LanguageCode } from "./GlobalPreferences";
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
 import { AuthSplitMotion } from "./AuthSplitMotion";
+import { AuthLanguagePicker } from "./AuthLanguagePicker";
 import { TERMS_VERSION, PRIVACY_VERSION } from "./UnifiedLegalGate";
 
 type AuthScreenProps = {
@@ -447,18 +448,7 @@ export function AuthScreen({
               <div className="gs-auth-brand-row mb-8 flex items-center justify-between gap-3">
                 <Logo withWordmark className="gs-auth-reference-logo [&>img]:!h-11 [&>img]:!w-11 [&>div>div]:!text-[16px]" />
                 <div data-testid="auth-header-preferences" className={`flex shrink-0 items-center gap-1.5 ${mode === "signin" ? "lg:mr-[clamp(48px,4.8vw,72px)]" : ""}`}>
-                  <select
-                    aria-label={language === "es" ? "Idioma" : "Language"}
-                    value={language}
-                    onChange={event => onLanguageChange(event.target.value as LanguageCode)}
-                    className={`h-8 max-w-[56px] cursor-pointer rounded-lg border border-current/10 bg-transparent px-1 text-[11px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-[#8F0000] ${muted}`}
-                  >
-                    <option value="es">ES</option>
-                    <option value="en">EN</option>
-                    <option value="pt">PT</option>
-                    <option value="fr">FR</option>
-                    <option value="de">DE</option>
-                  </select>
+                  <AuthLanguagePicker language={language} dark={dark} onChange={onLanguageChange} />
                   <button type="button" onClick={onToggleTheme} aria-label={labels.theme}
                     className="grid h-8 w-8 place-items-center rounded-full border border-current/10 bg-black/[.025] transition-colors hover:bg-[#8F0000]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000]">
                     {dark ? <Sun size={15}/> : <Moon size={15}/>}
