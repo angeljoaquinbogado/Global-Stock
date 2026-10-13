@@ -1,0 +1,71 @@
+name: Global Stock · Android APK / Play Store AAB
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: "preview = APK for testers, production = signed Play Store AAB"
+        type: choice
+        required: true
+        default: preview
+        options:
+          - preview
+          - production
+
+permissions:
+  contents: read
+
+concurrency:
+  group: global-stock-android-build
+  cancel-in-progress: false
+
+jobs:
+  android-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    defaults:
+      run:
+        working-directory: apps/global-stocks-mobile
+    env:
+      CI: "true"
+      EXPO_NO_TELEMETRY: "1"
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check Expo signing authorization
+        shell: bash
+        run: |
+          if [ -z "$EXPO_TOKEN" ]; then
+            echo "::error::Configure the repository secret EXPO_TOKEN from your own Expo account. Never commit this token."
+            exit 1
+          fi
+      - name: Install app dependencies
+        run: npm install --no-audit --no-fund
+      - name: TypeScript and security checks
+        run: |
+          npm run check:syntax
+          npm run check:repo
+          npm run check:beta
+          npm run check:deps
+          npm run typecheck
+          npx expo install --check
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Build Android in official Expo EAS service
+        shell: bash
+        run: |
+          PROFILE="${{ inputs.profile }}"
+          case "$PROFILE" in
+            preview|production) ;;
+            *) echo "::error::Invalid build profile"; exit 1;;
+          esac
+          eas build --platform android --profile "$PROFILE" --non-interactive --wait
+
+# Building an AAB does not publish an app to Google Play. The owner must
+# set up the Play Console listing, data safety, privacy policy, testing and
+# sign-and-upload approval; nothing here bypasses those steps.
