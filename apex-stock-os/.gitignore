@@ -7,3 +7,5 @@ coverage/
 .env.*.local
 .DS_Store
 .vercel/
+# Generated Expo Web bundle: exported before dev/build, not committed.
+public/native-app/
