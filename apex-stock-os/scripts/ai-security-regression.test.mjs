@@ -107,3 +107,38 @@ test("atomic inventory additions from Expo and PC are tenant-safe and retryable"
   assert.match(web, /addStock=\{addStock\}/);
   assert.match(web, /StockQuantityCell/);
 });
+
+test("web and Expo share authorized business switching, branch isolation and transfers", () => {
+  const native = file("apps/global-stocks-mobile/src/components/NativeBusinessManager.tsx");
+  const desktop = file("apex-stock-os/components/BusinessLocationsCenter.tsx");
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const cloud = file("apex-stock-os/lib/cloud-workspace.ts");
+  for (const source of [native, desktop]) {
+    assert.match(source, /global_stock_locations/);
+    assert.match(source, /global_stock_inventory_levels/);
+    assert.match(source, /global_stock_execute_transfer/);
+    assert.match(source, /global_stock_archive_location/);
+    assert.match(source, /global_stock_members/);
+  }
+  assert.match(cloud, /global-stock-active-business-id/);
+  assert.match(cloud, /memberships\?\.find/);
+  assert.match(workspace, /BusinessLocationsCenter/);
+  assert.match(desktop, /client\.auth\.getUser\(\)/);
+  assert.match(desktop, /\.eq\("business_id",businessId\)/);
+});
+test("Windows install and Android signed release profiles use proper packaging", () => {
+  const manifest=JSON.parse(file("apex-stock-os/public/manifest.webmanifest"));
+  const eas=JSON.parse(file("apps/global-stocks-mobile/eas.json"));
+  const expo=JSON.parse(file("apps/global-stocks-mobile/app.json"));
+  const nativeEntry=file("apps/global-stocks-mobile/index.ts");
+  const workflow=file(".github/workflows/global-stock-android-release.yml");
+  assert.equal(manifest.display,"standalone");
+  assert.ok(Array.isArray(manifest.icons) && manifest.icons.length>=2);
+  assert.equal(eas.build.preview.android.buildType,"apk");
+  assert.equal(eas.build.production.android.buildType,"app-bundle");
+  assert.equal(expo.expo.android.package,"app.globalstocks.mobile");
+  assert.match(nativeEntry, /import App from "\.\/App"/);
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.match(workflow, /EXPO_TOKEN/);
+  assert.doesNotMatch(workflow, /eas submit /);
+});
