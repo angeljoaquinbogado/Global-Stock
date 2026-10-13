@@ -1,0 +1,61 @@
+name: Global Stock Expo to Web Parity
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "apps/global-stocks-mobile/**"
+      - "apex-stock-os/scripts/export-expo-to-web.mjs"
+      - ".github/workflows/expo-web-parity.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: expo-web-parity-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  export-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CI: "true"
+      EXPO_NO_TELEMETRY: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install native source dependencies
+        working-directory: apps/global-stocks-mobile
+        run: npm install --no-audit --no-fund
+      - name: Install Expo SDK-compatible web packages
+        working-directory: apps/global-stocks-mobile
+        run: npx expo install react-dom react-native-web @expo/metro-runtime
+      - name: Check Expo app TypeScript
+        working-directory: apps/global-stocks-mobile
+        run: npm run typecheck
+      - name: Export actual Expo interface to web
+        working-directory: apps/global-stocks-mobile
+        run: npm run export:web
+      - name: Verify exported browser assets and entry
+        run: |
+          test -s apex-stock-os/public/native-app/index.html
+          test -d apex-stock-os/public/native-app/_expo
+          node -e "const fs=require('fs');const html=fs.readFileSync('apex-stock-os/public/native-app/index.html','utf8');if(!html.includes('_expo'))process.exit(1)"
+      - name: Check size and upload browser preview
+        run: du -sh apex-stock-os/public/native-app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: actual-expo-web
+          path: apex-stock-os/public/native-app
+          retention-days: 3
+      - name: Install Next.js app
+        working-directory: apex-stock-os
+        run: npm ci --no-audit --no-fund
+      - name: Build combined web site and Expo app
+        working-directory: apex-stock-os
+        run: npm run build
