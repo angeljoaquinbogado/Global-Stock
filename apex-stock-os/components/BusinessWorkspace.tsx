@@ -25,6 +25,7 @@ import {
   Search,
   Settings2,
   ShoppingCart,
+  Wallet,
   Store,
   Sun,
   Truck,
@@ -156,6 +157,7 @@ const BusinessSuite = dynamic(
 type ModuleId =
   | "overview"
   | "pos"
+  | "cash"
   | "online"
   | "inventory"
   | "charts"
@@ -440,6 +442,7 @@ const copy: Record<
     nav: {
       overview: "Inicio",
       pos: "Punto de venta",
+      cash: "Caja",
       online: "Tienda online",
       inventory: "Almacén",
       charts: "Gráficos",
@@ -547,6 +550,7 @@ const copy: Record<
     nav: {
       overview: "Home",
       pos: "Point of sale",
+      cash: "Cash register",
       online: "Online store",
       inventory: "Warehouse",
       charts: "Charts",
@@ -654,6 +658,7 @@ const copy: Record<
     nav: {
       overview: "Início",
       pos: "Ponto de venda",
+      cash: "Caixa",
       online: "Loja online",
       inventory: "Armazém",
       charts: "Gráficos",
@@ -761,6 +766,7 @@ const copy: Record<
     nav: {
       overview: "Accueil",
       pos: "Point de vente",
+      cash: "Caisse",
       online: "Boutique en ligne",
       inventory: "Entrepôt",
       charts: "Graphiques",
@@ -868,6 +874,7 @@ const copy: Record<
     nav: {
       overview: "Start",
       pos: "Kasse",
+      cash: "Kassenbereich",
       online: "Onlineshop",
       inventory: "Lager",
       charts: "Diagramme",
@@ -1045,6 +1052,7 @@ const workflowHelp: Record<
 const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "overview", icon: Store },
   { id: "pos", icon: ShoppingCart },
+  { id: "cash", icon: Wallet },
   { id: "online", icon: ShoppingBag },
   { id: "inventory", icon: Boxes },
   { id: "charts", icon: BarChart3 },
@@ -1069,7 +1077,7 @@ const navigationGroups: Array<{
 }> = [
   {
     id: "core",
-    modules: ["overview", "pos", "inventory"]
+    modules: ["overview", "pos", "cash", "inventory"]
   },
   {
     id: "business",
@@ -4008,8 +4016,9 @@ export function BusinessWorkspace({
               />
             )}
 
-            {activeModule === "pos" && (
+            {(activeModule === "pos" || activeModule === "cash") && (
               <PosModule
+                cashMode={activeModule === "cash"}
                 labels={labels}
                 language={language}
                 products={filteredPosProducts}
@@ -4462,7 +4471,7 @@ export function BusinessWorkspace({
         demoMode={demoMode}
         businessId={cloudBusinessId}
         raiseOnMobile={
-          activeModule === "pos" && cartLines.length > 0
+          (activeModule === "pos" || activeModule === "cash") && cartLines.length > 0
         }
         appContext={{
           businessName,
