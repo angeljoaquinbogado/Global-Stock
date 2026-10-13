@@ -394,7 +394,7 @@ function MobileApp() {
     }
   }
 
-  async function loginSocial(provider: "google" | "apple") {
+  async function loginSocial(provider: "google") {
     if (!supabase || authLoading) return;
     setAuthError("");
     setAuthLoading(true);
@@ -403,8 +403,8 @@ function MobileApp() {
       // scheme. A development/production build can receive globalstocks://.
       const launchUrl = await Linking.getInitialURL();
       if (launchUrl?.startsWith("exp://") || launchUrl?.startsWith("exps://")) {
-        appAlerts.alert("Acceso con " + (provider === "apple" ? "Apple" : "Google"),
-          "En Expo Go el retorno seguro de Apple y Google no está disponible. Para probar este acceso en la app instalá una development build; mientras tanto podés iniciar con correo o usar la web.",
+        appAlerts.alert("Acceso con Google",
+          "En Expo Go no está disponible el retorno seguro de Google. Para probar este acceso dentro de la app necesitás una development build; mientras tanto podés iniciar con correo o usar la web.",
           [
             {text:"Cerrar",style:"cancel"},
             {text:"Abrir Global Stock web",onPress:()=>{void Linking.openURL("https://globalstocks.vercel.app").catch(()=>null);}}
@@ -416,7 +416,7 @@ function MobileApp() {
         options: {
           redirectTo: "globalstocks://auth/callback",
           skipBrowserRedirect: true,
-          scopes: provider === "google" ? "email profile" : undefined
+          scopes: "email profile"
         }
       });
       if (error) throw error;
