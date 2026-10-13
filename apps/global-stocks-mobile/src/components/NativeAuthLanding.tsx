@@ -17,6 +17,7 @@ type Stage = "welcome" | "signin" | "signup";
 type Props = {
   onSubmit: (email: string, password: string) => void;
   onRegister: (email: string, password: string) => void;
+  onDemo: () => void;
   loading: boolean;
   error: string;
 };
@@ -34,6 +35,7 @@ const content = {
     small: "Gestioná tu negocio desde cualquier lugar.", begin: "Comenzar",
     existing: "Ya tengo una cuenta", login: "Iniciar sesión", create: "Crear cuenta",
     newAccount: "Quiero crear una cuenta", back: "Volver", access: "TU ESPACIO",
+    demoButton: "Probar demo", demoNotice: "Datos de ejemplo · No registra ventas ni modifica negocios reales",
     signTitle: "Volvé a tu negocio.", signSubtitle: "Ingresá con tu cuenta de Global Stock.",
     signUpTitle: "Empezá con Global Stock.", signUpSubtitle: "Creá una cuenta para la beta gratuita en Argentina.",
     email: "Correo electrónico", password: "Contraseña", checking: "Un momento…",
@@ -52,6 +54,7 @@ const content = {
     small: "Manage your business from anywhere.", begin: "Get started",
     existing: "I already have an account", login: "Sign in", create: "Create account",
     newAccount: "Create a new account", back: "Back", access: "YOUR WORKSPACE",
+    demoButton: "Try the demo", demoNotice: "Sample data · No real transactions or stock changes",
     signTitle: "Welcome back.", signSubtitle: "Use your existing Global Stock account.",
     signUpTitle: "Start with Global Stock.", signUpSubtitle: "Create an account for the free Argentina beta.",
     email: "Email address", password: "Password", checking: "Please wait…",
@@ -70,6 +73,7 @@ const content = {
     small: "Gerencie seu negócio de qualquer lugar.", begin: "Começar",
     existing: "Já tenho uma conta", login: "Entrar", create: "Criar conta",
     newAccount: "Criar uma conta", back: "Voltar", access: "SEU ESPAÇO",
+    demoButton: "Testar a demo", demoNotice: "Dados de exemplo · Não altera vendas nem estoques reais",
     signTitle: "Bem-vindo de volta.", signSubtitle: "Use sua conta do Global Stock.",
     signUpTitle: "Comece com o Global Stock.", signUpSubtitle: "Crie uma conta para o beta gratuito na Argentina.",
     email: "E-mail", password: "Senha", checking: "Aguarde…",
@@ -97,7 +101,7 @@ const palette = {
   }
 } as const;
 
-export default function NativeAuthLanding({ onSubmit, onRegister, loading, error }: Props) {
+export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loading, error }: Props) {
   const { height, width } = useWindowDimensions();
   const [stage, setStage] = useState<Stage>("welcome");
   const [dark, setDark] = useState(true);
@@ -310,6 +314,17 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
                   <ArrowRight size={18} color="#fff"/>
                 </>}
               </Pressable>
+              {!signup && (
+                <View style={{ gap: 6 }}>
+                  <Pressable accessibilityRole="button" accessibilityLabel={t.demoButton}
+                    disabled={loading} onPress={onDemo}
+                    style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
+                    <Text style={styles.secondaryText}>{t.demoButton}</Text>
+                    <ArrowRight size={16} color={p.red} />
+                  </Pressable>
+                  <Text style={[styles.explanation, { textAlign: "center" }]}>{t.demoNotice}</Text>
+                </View>
+              )}
               <Pressable accessibilityRole="button"
                 onPress={() => show(signup ? "signin" : "signup")} style={styles.switchLink}>
                 <Text style={styles.switchText}>{signup ? t.existing : t.newAccount}</Text>
