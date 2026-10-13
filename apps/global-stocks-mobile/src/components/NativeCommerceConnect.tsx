@@ -149,16 +149,16 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
   function disconnect(account:VerifiedAccount) {
     if(!canEdit)return;
     Alert.alert("Desconectar tienda",
-      "Se desconectarán las cuentas de "+display(account.provider)+" de este negocio y se borrarán las credenciales de integración guardadas. No borra productos ni pedidos. Si autorizaste el acceso desde la plataforma, revocalo también allí.",[
+      "Se desconectará únicamente esta tienda de "+display(account.provider)+". El resto de las tiendas y sus datos seguirán intactos. Revocá el permiso también desde la plataforma.",[
       {text:"Cancelar",style:"cancel"},
       {text:"Desconectar",style:"destructive",onPress:()=>void (async()=>{
         setWorkingId(account.id);setError("");setSuccess("");
         try{
-          const {error}=await client.rpc("global_stock_disconnect_integration",{
-            target_business_id:business.id,target_provider:account.provider
+          const {error}=await client.rpc("global_stock_disconnect_integration_account",{
+            target_business_id:business.id,target_account_id:account.id
           });
           if(error)throw error;
-          setSuccess("Conexión local eliminada y credenciales revocadas en Global Stock.");
+          setSuccess("Tienda desconectada de Global Stock. Las demás conexiones siguen activas.");
           setVersion(v=>v+1);
         }catch(e){setError(e instanceof Error?e.message:"No se pudo desconectar.");}
         finally{setWorkingId(null);}
