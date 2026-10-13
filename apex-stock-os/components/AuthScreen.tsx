@@ -516,8 +516,7 @@ export function AuthScreen({
                           className={`h-11 w-full border-0 border-b bg-transparent pr-12 text-[14px] outline-none transition-colors ${fieldStyle}`}/>
                         <button type="button"
                           data-testid="auth-password-visibility"
-                          onPointerDown={event => event.preventDefault()}
-                          onClick={event => { event.preventDefault(); event.stopPropagation(); setShowPassword(value => !value); }}
+                          onClick={() => setShowPassword(value => !value)}
                           aria-pressed={showPassword}
                           aria-controls="global-stock-auth-password"
                           aria-label={showPassword ? labels.hidePassword : labels.showPassword}
