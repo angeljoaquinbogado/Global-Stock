@@ -8,6 +8,15 @@ try {
     const page=await browser.newPage({viewport:{width:viewport.width,height:viewport.height}});
     const errors=[];
     page.on("pageerror",error=>errors.push(error.message));
+    // In CI only, emulate the public, unauthenticated Supabase configuration.
+    // This is a placeholder, not a credential and cannot access any data.
+    await page.route("**/api/mobile-config", route => route.fulfill({
+      status:200, contentType:"application/json",
+      body:JSON.stringify({
+        supabaseUrl:"https://yckimhbtvijmmkxukxgd.supabase.co",
+        supabasePublishableKey:["sb","publishable","browser_qa_placeholder"].join("_")
+      })
+    }));
     const response=await page.goto(origin+"/native-app/index.html",{waitUntil:"domcontentloaded",timeout:30000});
     if(!response?.ok())throw Error(viewport.name+": failed to load Expo export");
     await page.getByText("Bienvenido a",{exact:false}).first().waitFor({state:"visible",timeout:30000});
