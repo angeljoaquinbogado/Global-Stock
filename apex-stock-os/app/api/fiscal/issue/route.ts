@@ -2,6 +2,7 @@ import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
 
 import { authorizeApiRequest } from "@/lib/server-auth";
+import { analyzeArcaDraft } from "@/lib/arca-draft-guidance.mjs";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -171,7 +172,26 @@ export async function POST(request: Request) {
   if (document.status === "authorized") {
     return NextResponse.json(
       { document },
-      { headers: { "Cache-Control": "no-store" } }
+      { headers: noStoreHeaders() }
+    );
+  }
+
+  // A pending attempt may already have reached ARCA and generated a CAE,
+  // even if this server never received the response. NEVER reissue it.
+  if (document.status === "pending_authorization") {
+    return NextResponse.json(
+      { code: "FISCAL_RECONCILIATION_REQUIRED" },
+      { status: 409, headers: noStoreHeaders() }
+    );
+  }
+
+  // A production invoice must never be issued by adding a provider key
+  // alone. The merchant/operator must explicitly enable production.
+  if (profile.environment === "production" &&
+      process.env.ARCA_FISCAL_PRODUCTION_ENABLED !== "true") {
+    return NextResponse.json(
+      { code: "FISCAL_PRODUCTION_LOCKED" },
+      { status: 409, headers: noStoreHeaders() }
     );
   }
 
@@ -182,13 +202,72 @@ export async function POST(request: Request) {
     );
   }
 
-  const { data: items } = await supabase
+  const { data: items, error: itemsError } = await supabase
     .from("global_stock_fiscal_document_items")
     .select("*")
     .eq("document_id", documentId)
     .order("created_at", { ascending: true });
+  if (itemsError || !items?.length) {
+    return NextResponse.json(
+      { code: "FISCAL_ITEMS_MISSING" },
+      { status: 422, headers: noStoreHeaders() }
+    );
+  }
 
-  const { error: pendingError } = await supabase
+  // The example FEAFIP payload supplied for reference has inconsistent
+  // item and header totals. Reject discrepancies before contacting a
+  // provider: an electronic invoice must never get an invented CAE.
+  const check = analyzeArcaDraft({
+    issuer: {
+      legalName: profile.legal_name,
+      taxId: profile.tax_id,
+      taxCondition: profile.tax_condition,
+      fiscalAddress: profile.fiscal_address,
+      pointOfSale: profile.point_of_sale
+    },
+    document: {
+      kind: document.kind,
+      letter: document.letter,
+      currency: document.currency,
+      concept: document.concept,
+      relatedDocumentId: document.related_document_id,
+      originalAuthorized: document.kind === "invoice" ? true : undefined
+    },
+    customer: {
+      name: document.customer_name,
+      documentType: document.customer_document_type,
+      documentNumber: document.customer_document_number
+    },
+    amounts: {
+      net: document.net_amount,
+      vat: document.vat_amount,
+      exempt: document.exempt_amount,
+      other: document.other_taxes,
+      total: document.total_amount
+    },
+    providerReady: true
+  });
+  if (!check.readyToReview) {
+    return NextResponse.json(
+      { code: "FISCAL_PREFLIGHT_FAILED", issues: check.blockers.map(item => item.code) },
+      { status: 422, headers: noStoreHeaders() }
+    );
+  }
+  const cents = (value: unknown) => Math.round(Number(value) * 100);
+  const lineCents = items.reduce(
+    (sum, item) => sum + cents(item.line_total), 0
+  );
+  if (items.some(item =>
+    !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 ||
+    !Number.isFinite(Number(item.line_total)) || Number(item.line_total) < 0
+  ) || Math.abs(lineCents - cents(document.total_amount)) > 1) {
+    return NextResponse.json(
+      { code: "FISCAL_LINE_TOTAL_MISMATCH" },
+      { status: 422, headers: noStoreHeaders() }
+    );
+  }
+
+  const { data: lockedDocument, error: pendingError } = await supabase
     .from("global_stock_fiscal_documents")
     .update({
       status: "pending_authorization",
@@ -196,8 +275,16 @@ export async function POST(request: Request) {
     })
     .eq("id", documentId)
     .eq("business_id", businessId)
-    .neq("status", "authorized");
+    .in("status", ["draft", "rejected"])
+    .select("id")
+    .maybeSingle();
 
+  if (!lockedDocument && !pendingError) {
+    return NextResponse.json(
+      { code: "FISCAL_RECONCILIATION_REQUIRED" },
+      { status: 409, headers: noStoreHeaders() }
+    );
+  }
   if (pendingError) {
     return NextResponse.json(
       { code: "FISCAL_STATE_UPDATE_FAILED" },
@@ -291,20 +378,40 @@ export async function POST(request: Request) {
     Number(providerPayload.voucherNumber) > 0;
 
   if (!authorized) {
-    const reason =
-      providerPayload.message?.trim() ||
-      `FISCAL_PROVIDER_REJECTED_${providerStatus || "NETWORK"}`;
+    // Missing responses, timeouts and upstream 5xx are AMBIGUOUS: the
+    // authority may have issued a CAE before the connection failed.
+    // Leave the document pending until an authorized reconciliation query.
+    const explicitRejection = providerPayload.status === "rejected" &&
+      providerStatus >= 400 && providerStatus < 500;
+    if (!explicitRejection) {
+      await supabase.from("global_stock_fiscal_events").insert({
+        business_id: businessId,
+        document_id: documentId,
+        event_type: "authorization_uncertain",
+        status: "pending_authorization",
+        message: "Authorization response uncertain; reconcile with official provider before retry.",
+        payload: { providerStatus },
+        created_by: authorization.userId
+      });
+      return NextResponse.json(
+        { code: "FISCAL_RECONCILIATION_REQUIRED" },
+        { status: 409, headers: noStoreHeaders() }
+      );
+    }
 
+    // Never persist unfiltered third-party objects or echo provider errors
+    // containing customer details, credentials or private response bodies.
     const { data: rejected } = await supabase
       .from("global_stock_fiscal_documents")
       .update({
         status: "rejected",
-        rejection_reason: reason,
-        provider_request_id: providerPayload.requestId || null,
-        provider_response: providerPayload
+        rejection_reason: "FISCAL_PROVIDER_REJECTED",
+        provider_request_id: providerPayload.requestId?.slice(0, 120) || null,
+        provider_response: { providerStatus, providerState: "rejected" }
       })
       .eq("id", documentId)
       .eq("business_id", businessId)
+      .eq("status", "pending_authorization")
       .select("*")
       .single();
 
@@ -313,21 +420,14 @@ export async function POST(request: Request) {
       document_id: documentId,
       event_type: "authorization_rejected",
       status: "rejected",
-      message: reason,
-      payload: {
-        providerStatus,
-        providerRequestId: providerPayload.requestId || null
-      },
+      message: "Explicit provider rejection.",
+      payload: { providerStatus },
       created_by: authorization.userId
     });
 
     return NextResponse.json(
-      {
-        code: "FISCAL_PROVIDER_REJECTED",
-        message: reason,
-        document: rejected ?? null
-      },
-      { status: 422 }
+      { code: "FISCAL_PROVIDER_REJECTED", document: rejected ?? null },
+      { status: 422, headers: noStoreHeaders() }
     );
   }
 
