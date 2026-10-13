@@ -77,7 +77,6 @@ export default function NativeCashRegister({
       .select("kind,value,active,starts_at,ends_at")
       .eq("business_id", business.id).eq("active", true)
       .in("kind", ["percentage", "fixed"])
-      .or("starts_at.is.null,starts_at.lte." + now)
       .order("created_at", { ascending: false })
       .limit(150)
       .then(({ data, error }) => {
@@ -136,7 +135,7 @@ export default function NativeCashRegister({
       <View style={s.between}><Text style={s.section}>Agregar artículos</Text>
         <Pressable accessibilityRole="button" onPress={onScan} style={s.smallButton}>
           <ScanLine size={17} color={palette.text}/><Text style={s.smallButtonText}>Escanear</Text>
-        </Press>
+        </Pressable>
       </View>
       <View style={s.searchBox}><Barcode size={18} color={palette.red}/>
         <TextInput style={s.searchInput} value={code}
