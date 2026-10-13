@@ -411,9 +411,9 @@ export default function NativeWorkspace({
   function pointOfSale() {
     return <>
       {heading("Punto de venta", "Prepará operaciones, presupuestos y comprobantes.")}
-      <View style={s.warnBox}><CreditCard size={16} color="#D7A65C"/><Text style={s.warnText}>Para completar un cobro y descontar stock, confirmá la venta desde Global Stock web. Desde aquí podés preparar y compartir presupuestos.</Text></View>
+      <View style={s.warnBox}><CreditCard size={16} color="#D7A65C"/><Text style={s.warnText}>Desde Punto de venta podés preparar presupuestos. Para registrar una venta presencial, cobrar en efectivo, calcular el vuelto y descontar stock, abrí Caja desde el menú.</Text></View>
       <View style={s.searchBar}><Search size={17} color={p.muted}/><TextInput style={s.searchInput} value={posSearch} onChangeText={setPosSearch} placeholder="Buscar producto" placeholderTextColor={p.muted} accessibilityLabel="Buscar para punto de venta"/></View>
-      <View style={s.rowBetween}><Text style={s.sectionTitle}>Productos</Text><Pressable onPress={() => open("scan")} accessibilityRole="button"><Text style={s.textLink}>Escanear →</Text></Pressable></View>
+      <View style={s.rowBetween}><Text style={s.sectionTitle}>Productos</Text><Pressable onPress={() => open("cash")} accessibilityRole="button"><Text style={s.textLink}>Abrir Caja →</Text></Pressable></View>
       {posProducts.map((product) => <View key={product.id} style={s.product}>
         <View style={{ flex: 1 }}><Text style={s.productName}>{product.name}</Text><Text style={s.productMeta}>{product.stock} disponibles</Text></View>
         <View style={{ alignItems:"flex-end",gap:7 }}><Text style={s.price}>{money(product.price)}</Text><Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="#fff"/><Text style={s.addText}>Agregar</Text></Pressable></View>
