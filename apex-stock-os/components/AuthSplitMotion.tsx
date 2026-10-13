@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import type { ReactNode } from "react";
+import { useLayoutEffect, useRef, type ReactNode } from "react";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Mode = "signin" | "signup";
@@ -63,6 +63,12 @@ export function AuthSplitMotion({
   const lines = isSignIn ? copy.welcome : copy.start;
   const description = isSignIn ? copy.welcomeBody : copy.startBody;
   const duration = reducedMotion ? 0 : 0.76;
+  const formPanelRef = useRef<HTMLDivElement>(null);
+
+  // Returning from the long signup form must never leave login scrolled away.
+  useLayoutEffect(() => {
+    formPanelRef.current?.scrollTo({ top: 0, behavior: "instant" });
+  }, [mode]);
 
   return (
     <div
@@ -127,6 +133,7 @@ export function AuthSplitMotion({
       </motion.aside>
 
       <div
+        ref={formPanelRef}
         data-testid="auth-form-panel"
         className={
           "relative z-20 flex h-full min-h-0 w-full min-w-0 flex-col overflow-x-hidden " +
