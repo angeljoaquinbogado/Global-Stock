@@ -49,9 +49,9 @@ const scenes: StoryScene[] = [
     id: "control",
     screen: "dashboard",
     kicker: "Global Stock",
-    title: "Sabé qué se vendió. Y qué queda por reponer.",
+    title: "Gestión de stock, ventas y caja para tu negocio.",
     body:
-      "Abrí tu negocio y encontrá los productos, movimientos y números que necesitás. Sin buscar en cinco planillas.",
+      "Global Stock permite administrar productos, registrar ventas y consultar resultados desde el celular o la computadora.",
     tags: ["Ventas", "Caja", "Inventario"],
     accent: "#8F0000",
     lightBackground:
@@ -69,9 +69,9 @@ const scenes: StoryScene[] = [
     id: "venta",
     screen: "pos",
     kicker: "Ventas y caja",
-    title: "Una venta registrada. El stock al día.",
+    title: "Ventas y caja, con el inventario actualizado.",
     body:
-      "Registrás la operación y Global Stock actualiza caja, stock e historial sin repetir datos ni saltar entre pantallas.",
+      "Registrá cada operación y consultá sus movimientos de caja, stock e historial desde el mismo sistema.",
     tags: ["Punto de venta", "Cobros", "Historial"],
     accent: "#D97706",
     lightBackground:
@@ -89,9 +89,9 @@ const scenes: StoryScene[] = [
     id: "stock",
     screen: "inventory",
     kicker: "Stock inteligente",
-    title: "Sabé qué tenés, dónde está y cuándo reponer.",
+    title: "Inventario organizado, con alertas de stock.",
     body:
-      "Mínimos, ubicaciones, códigos y alertas trabajan juntos para que el inventario físico y online no se separen.",
+      "Consultá existencias, códigos y niveles mínimos para identificar productos que necesitan reposición.",
     tags: ["Alertas", "Ubicaciones", "Reposición"],
     accent: "#079455",
     lightBackground:
@@ -109,9 +109,9 @@ const scenes: StoryScene[] = [
     id: "intelligence",
     screen: "ai",
     kicker: "Global Intelligence",
-    title: "Detectá lo que falta antes de la próxima venta.",
+    title: "Información de tu negocio, analizada con IA.",
     body:
-      "La IA usa el contexto disponible de ventas, costos, margen, inventario y actividad para ayudarte a decidir con información real.",
+      "Global Intelligence puede analizar las ventas, los costos y el inventario que autorices para aportar información útil.",
     tags: ["IA contextual", "Márgenes", "Escenarios"],
     accent: "#7C3AED",
     lightBackground:
