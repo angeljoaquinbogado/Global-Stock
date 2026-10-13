@@ -38,6 +38,7 @@ for (const viewport of [
     await expect(registrationSubmit).toBeVisible();
     await expect(page.getByRole("button", { name: "Iniciar sesión", exact: true })).toBeVisible();
     await expect(page.getByText("Nombre del negocio", { exact: true })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Continuar con Apple" })).toHaveCount(0);
 
     const dimensionCheck = await page.evaluate(() => {
       const panel = document.querySelector('[data-testid="auth-form-panel"]')!;
@@ -60,6 +61,9 @@ for (const viewport of [
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Continuar con Google" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuar con Apple" })).toBeVisible();
+    // Adding Apple must not introduce a scrollbar into the fixed auth card.
+    expect(await panel.evaluate(el => getComputedStyle(el).overflowY)).toBe("hidden");
     await expect(page.getByRole("button", { name: "Crear cuenta", exact: true })).toBeVisible();
   });
 }
@@ -77,4 +81,16 @@ test("signup asks only for user details and required beta attestation", async ({
   await expect(form.locator("textarea")).toHaveCount(0);
   await expect(page.getByText("Actividad del negocio", { exact: true })).toHaveCount(0);
   await expect(page.getByText("País de operación", { exact: true })).toHaveCount(0);
+});
+
+test("Apple login remains visible in dark mode and does not submit the email form", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Apple identity UI checked in Chromium.");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const apple = page.getByRole("button", { name: "Continuar con Apple" });
+  await expect(apple).toBeVisible();
+  await page.getByRole("button", { name: "Cambiar tema" }).click();
+  await expect(apple).toBeVisible();
+  await expect(apple).toHaveAttribute("type", "button");
+  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
 });
