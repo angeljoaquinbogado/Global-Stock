@@ -133,13 +133,20 @@ export default function NativeFiscalArca({client,business,userId,dark}:Props){
     {!!error&&<Text accessibilityRole="alert" style={st.warning}>{error}</Text>}
     {!!success&&<Text style={st.success}>{success}</Text>}
     <View style={st.card}>
-      <View style={st.heading}><Text style={st.cardTitle}>Estado de preparación</Text><Pressable accessibilityRole="button" accessibilityLabel="Actualizar estado fiscal" onPress={()=>setVersion(v=>v+1)}><RefreshCw size={16} color={p.muted}/></Pressable></View>
+      <View style={st.heading}><Text style={st.cardTitle}>Estado de preparación</Text><Pressable accessibilityRole="button" accessibilityLabel="Comprobar configuración de ARCA" onPress={()=>setVersion(v=>v+1)}><RefreshCw size={16} color={p.muted}/></Pressable></View>
       {readiness.map(([label,ready],i)=><View style={st.row} key={String(label)}>
         {ready?<CheckCircle2 color="#55C99D" size={16}/>:<LockKeyhole color={p.muted} size={16}/>}
         <Text style={[st.text,{flex:1}]}>{label}</Text>
         <Text style={[st.small,{color:ready?"#5FCF9F":p.muted}]}>{ready?"Verificado":i===1&&configured===null?"Sin confirmar":"Pendiente"}</Text>
       </View>)}
       <Text style={st.caption}>Entorno registrado: {profile?.environment==="production"?"Producción (perfil existente)":"Pruebas"}. Guardar datos no activa la emisión automática.</Text>
+      {configured!==true && <View style={{gap:8,padding:12,borderRadius:11,backgroundColor:p.tile}}>
+        <Text style={st.cardTitle}>Para probar homologación</Text>
+        <Text style={st.caption}>1. El titular debe contar con CUIT, punto de venta electrónico y permisos fiscales vigentes.</Text>
+        <Text style={st.caption}>2. Configurá un proveedor que conecte WSAA/WSFEv1 en modo homologación y guardá certificados/credenciales únicamente en el servidor seguro.</Text>
+        <Text style={st.caption}>3. Un contador y el titular verifican comprobantes, CAE, impuestos y numeración antes de solicitar producción.</Text>
+        <Text style={st.caption}>En este momento no hay proveedor fiscal configurado en el servidor. No se emitirá ninguna factura.</Text>
+      </View>}
     </View>
     <Text style={st.footer}>La condición fiscal, tipo de comprobante, impuestos, jurisdicción, punto de venta, autorizaciones y obligaciones del contribuyente deben confirmarse con un contador matriculado. Esta pantalla no certifica cumplimiento ARCA.</Text>
   </View>;
