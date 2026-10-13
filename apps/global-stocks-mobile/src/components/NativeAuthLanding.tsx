@@ -16,7 +16,8 @@ type Language = "es" | "en" | "pt";
 type Stage = "welcome" | "signin" | "signup";
 type Props = {
   onSubmit: (email: string, password: string) => void;
-  onRegister: (email: string, password: string) => void;
+  onRegister: (name: string, email: string, password: string, language: Language) => void;
+  onSocial: (provider: "google" | "apple") => void;
   onDemo: () => void;
   loading: boolean;
   error: string;
@@ -101,7 +102,7 @@ const palette = {
   }
 } as const;
 
-export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loading, error }: Props) {
+export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDemo, loading, error }: Props) {
   const { height, width } = useWindowDimensions();
   const [stage, setStage] = useState<Stage>("welcome");
   const wipe = useRef(new Animated.Value(0)).current;
@@ -113,6 +114,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
   const [language, setLanguage] = useState<Language>("es");
   const [openLanguages, setOpenLanguages] = useState(false);
   const [email, setEmail] = useState("");
+  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [revealPassword, setRevealPassword] = useState(false);
   const [adultConfirmed, setAdultConfirmed] = useState(false);
@@ -200,8 +202,9 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
     });
   }
   function submit() {
-    if (loading || switchingRef.current || !email.trim() || !password.trim() || (signup && (!adultConfirmed || !termsConfirmed))) return;
-    if (signup) onRegister(email.trim(), password);
+    if (loading || switchingRef.current || !email.trim() || password.length < 8 ||
+        (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) return;
+    if (signup) onRegister(fullName.trim(), email.trim(), password, language);
     else onSubmit(email.trim(), password);
   }
   function openLegal(path: "terms" | "privacy") {
@@ -296,6 +299,15 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
             </View>
           ) : (
             <View style={styles.authFields}>
+              {signup && (
+                <View style={styles.fieldGroup}>
+                  <Text style={styles.fieldLabel}>{language === "es" ? "Nombre completo" : language === "pt" ? "Nome completo" : "Full name"}</Text>
+                  <TextInput style={styles.input} value={fullName} onChangeText={setFullName}
+                    accessibilityLabel="Nombre completo" autoComplete="name" textContentType="name"
+                    maxLength={120} autoCapitalize="words"
+                    placeholder={language === "es" ? "Tu nombre" : "Full name"} placeholderTextColor={p.secondary}/>
+                </View>
+              )}
               <View style={styles.fieldGroup}>
                 <Text style={styles.fieldLabel}>{t.email}</Text>
                 <TextInput
@@ -356,11 +368,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
                 </Pressable>
               </View> : null}
               <Pressable accessibilityRole="button" accessibilityLabel={signup ? t.create : t.login}
-                disabled={loading || !email.trim() || !password || (signup && (!adultConfirmed || !termsConfirmed))}
+                disabled={loading || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))}
                 onPress={submit}
                 style={({pressed}) => [
                   styles.primary,
-                  (loading || !email.trim() || !password || (signup && (!adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
+                  (loading || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
                   pressed && styles.pressed
                 ]}>
                 {loading ? <ActivityIndicator color="#fff"/> : <>
@@ -444,8 +456,8 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     switchStage: { position:"relative", overflow:"hidden", borderRadius:20 },
     switchCurtain: {
       position:"absolute", top:0, bottom:0, left:0, zIndex:45,
-      backgroundColor:"#840015", justifyContent:"center", alignItems:"center",
-      gap:10, borderColor:"#B50A25", borderWidth:1
+      backgroundColor:"#250A13", justifyContent:"center", alignItems:"center",
+      gap:10, borderWidth:0
     },
     switchBrand: { color:"#FFFFFF", fontSize:19, fontWeight:"900", letterSpacing:2.4 },
     switchBrandSub: { color:"#FFD9DF", fontSize:12, fontWeight:"600" },
