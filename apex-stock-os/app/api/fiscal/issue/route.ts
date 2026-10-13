@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 
 import { authorizeApiRequest } from "@/lib/server-auth";
 import { analyzeArcaDraft } from "@/lib/arca-draft-guidance.mjs";
+import { validateFiscalTotals } from "@/lib/fiscal-validation.mjs";
 import {
   guardApiRequest,
   noStoreHeaders,
@@ -253,16 +254,10 @@ export async function POST(request: Request) {
       { status: 422, headers: noStoreHeaders() }
     );
   }
-  const cents = (value: unknown) => Math.round(Number(value) * 100);
-  const lineCents = items.reduce(
-    (sum, item) => sum + cents(item.line_total), 0
-  );
-  if (items.some(item =>
-    !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0 ||
-    !Number.isFinite(Number(item.line_total)) || Number(item.line_total) < 0
-  ) || Math.abs(lineCents - cents(document.total_amount)) > 1) {
+  const totals = validateFiscalTotals(document, items);
+  if (!totals.ok) {
     return NextResponse.json(
-      { code: "FISCAL_LINE_TOTAL_MISMATCH" },
+      { code: totals.code },
       { status: 422, headers: noStoreHeaders() }
     );
   }
