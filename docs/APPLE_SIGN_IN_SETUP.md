@@ -1,8 +1,8 @@
 # Global Stock — inicio de sesión con Apple (web)
 
-La interfaz y el flujo de autenticación web están integrados con Supabase Auth:
-`AppleIdentityButton` → `supabase.auth.signInWithOAuth({ provider: "apple" })` →
-Apple → `/auth/v1/callback` de Supabase → `https://globalstocks.vercel.app/`.
+**Postergado:** el propietario decidió no ofrecer inicio de sesión con Apple en la beta gratuita de Global Stock. El botón y su componente se retiraron de la web y de Expo Go. Esta guía se conserva para una implementación futura, cuando exista una cuenta Apple Developer activa.
+
+El flujo futuro previsto será: Supabase Auth (`provider: "apple"`) → Apple → `/auth/v1/callback` de Supabase → `https://globalstocks.vercel.app/`.
 
 **La interfaz por sí sola no activa el proveedor.** Estos pasos requieren la
 cuenta Apple Developer que administra Global Stock y acceso a Auth en Supabase.
@@ -53,8 +53,7 @@ negocios, inventario ni permisos entre IDs de usuarios mediante SQL manual.
 
 ## Estado y limitaciones
 
-- Implementación frontend web: incluida. Apple inicia el flujo mediante
-  Supabase, sin secretos Apple del lado del cliente.
+- Implementación frontend web: **retirada de la beta**; no hay botón de Apple activo. Cuando se reactive, debe usar Supabase OAuth sin secretos Apple en el cliente.
 - Activación real de proveedor en Apple Developer y Supabase: debe comprobarla
   el titular administrador, no está habilitada por un cambio en GitHub.
 - Expo Go: no hereda automáticamente el inicio OAuth web de Apple. El login
