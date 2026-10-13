@@ -19,6 +19,7 @@ import {
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import ProductForm from "./ProductForm";
+import NativeRestockPanel from "./NativeRestockPanel";
 import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
 import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
@@ -139,6 +140,7 @@ export default function NativeWorkspace({
   const [menuOpen, setMenuOpen] = useState(false);
   const [businessPicker, setBusinessPicker] = useState(false);
   const [productForm, setProductForm] = useState(false);
+  const [restockProductId, setRestockProductId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [posSearch, setPosSearch] = useState("");
   const [message, setMessage] = useState("");
@@ -199,20 +201,17 @@ export default function NativeWorkspace({
   useEffect(() => {
     let alive = true;
     setCanManageInventory(false);
-    void (async () => {
-      try {
-        const { data } = await client.from("global_stock_members").select("role")
-          .eq("business_id", business.id).eq("user_id", userId).eq("active", true).maybeSingle();
-        if (alive) setCanManageInventory(["owner", "admin", "manager", "warehouse"].includes(String(data?.role ?? "")));
-      } catch {
-        if (alive) setCanManageInventory(false);
-      }
-    })();
+    void Promise.resolve(client.rpc("global_stock_can_write", {
+      target_business_id: business.id, domain: "inventory"
+    })).then(({ data, error }) => {
+      if (alive) setCanManageInventory(!error && data === true);
+    }).catch(() => { if (alive) setCanManageInventory(false); });
     return () => { alive = false; };
-  }, [client, business.id, userId]);
+  }, [client, business.id, userId, refreshToken]);
 
   useEffect(() => {
     setProductForm(false);
+    setRestockProductId(null);
     setSearch("");
     setPosSearch("");
     setManualBarcode("");
@@ -396,13 +395,46 @@ export default function NativeWorkspace({
       ) : null}
       {productForm ? <ProductForm client={client} businessId={business.id} initialBarcode={pendingBarcode} currency={business.base_currency} onCancel={() => setProductForm(false)} onCreated={() => { setProductForm(false); setPendingBarcode(""); onRefresh(); setMessage("Producto guardado en Supabase."); }}/>:null}
       {source === "loading" ? <ActivityIndicator color={p.redIcon}/> : null}
-      {shownProducts.slice(0, 200).map((product) => <View style={s.product} key={product.id}>
-        <View style={{ flex: 1, minWidth: 0 }}><Text style={s.productName} numberOfLines={2}>{product.name}</Text>
-        <Text style={s.productMeta} numberOfLines={1}>{product.category || product.sku || product.barcode || "Sin categoría"}</Text>
-        <Text style={[s.productMeta, { color: product.stock <= product.min_stock ? p.redIcon : "#65C5A1" }]}>{product.stock} unidades disponibles</Text></View>
-        <View style={{ alignItems: "flex-end", gap: 8 }}><Text style={s.price}>{money(product.price)}</Text>
-        <Pressable onPress={() => addCart(product)} accessibilityRole="button" style={s.addSmall}><Plus size={13} color="white"/><Text style={s.addText}>Agregar</Text></Pressable></View>
-      </View>)}
+      {shownProducts.slice(0, 200).map((product) =>
+        <View key={product.id} style={{ gap: 8 }}>
+          <View style={s.product}>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={s.productName} numberOfLines={2}>{product.name}</Text>
+              <Text style={s.productMeta} numberOfLines={1}>{product.category || product.sku || product.barcode || "Sin categoría"}</Text>
+              <Text style={[s.productMeta, { color: product.stock <= product.min_stock ? p.redIcon : "#65C5A1" }]}>
+                {product.stock.toLocaleString("es-AR")} disponibles
+              </Text>
+            </View>
+            <View style={{ alignItems: "flex-end", gap: 8 }}>
+              <Text style={s.price}>{money(product.price)}</Text>
+              {canManageInventory && <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={"Sumar stock a " + product.name}
+                onPress={() => setRestockProductId(current => current === product.id ? null : product.id)}
+                style={[s.addSmall, { backgroundColor: p.elevated, borderWidth: 1, borderColor: p.border }]}>
+                <PackagePlus size={13} color={p.redIcon}/>
+                <Text style={[s.addText, { color: p.text }]}>+ Stock</Text>
+              </Pressable>}
+              <Pressable onPress={() => addCart(product)} accessibilityRole="button"
+                accessibilityLabel={"Agregar " + product.name + " al presupuesto"}
+                style={s.addSmall}>
+                <ShoppingCart size={13} color="#FFF"/>
+                <Text style={s.addText}>Al carrito</Text>
+              </Pressable>
+            </View>
+          </View>
+          {restockProductId === product.id && canManageInventory &&
+            <NativeRestockPanel key={product.id} client={client} businessId={business.id}
+              product={product} p={p} online={source === "live"}
+              onCancel={() => setRestockProductId(null)}
+              onSaved={(stock) => {
+                setRestockProductId(null);
+                setMessage("Stock actualizado: " + stock.toLocaleString("es-AR") + " unidades.");
+                onRefresh();
+              }}
+            />}
+        </View>
+      )}
       {shownProducts.length > 200 ? <Text style={s.meta}>Mostrando 200 productos. Usá la búsqueda para encontrar los demás.</Text> : null}
       {source !== "loading" && shownProducts.length === 0 ? <View style={s.empty}><Boxes size={26} color={p.muted}/><Text style={s.emptyTitle}>{search.trim() ? "Sin coincidencias" : "Todavía no hay productos"}</Text><Text style={s.meta}>{search.trim() ? "Revisá el código, SKU o categoría. No se creó ni modificó ningún producto." : "Agregá el primero y se sincronizará con Global Stock web."}</Text></View> : null}
     </>;
