@@ -282,7 +282,8 @@ function MobileApp() {
     setProducts([]);
     setDrafts([]);
     setSource("loading");
-    setCart([]);
+    // Refreshing prices or inventory must never discard an in-progress cash sale.
+    // Business changes and sign-out clear the cart in their dedicated handlers.
     (async () => {
       const [cached, localDrafts] = await Promise.all([
         readCachedProducts(userId, businessId).catch(() => null),
@@ -299,6 +300,13 @@ function MobileApp() {
         const live = await loadProducts(supabase!, businessId);
         if (!alive) return;
         setProducts(live);
+        // Apply server prices/stock to the open cart after a refresh.
+        setCart((lines) => lines.flatMap((line) => {
+          const current = live.find((item) => item.id === line.product_id);
+          if (!current || !current.active || current.stock <= 0) return [];
+          return [{ ...line, unit_price: current.price,
+            quantity: Math.min(line.quantity, Math.floor(current.stock)) }];
+        }).filter((line) => line.quantity > 0));
         setSource("live");
         setNotice("Inventario sincronizado");
         await cacheProducts(userId, businessId, live).catch(() => null);
@@ -448,12 +456,19 @@ function MobileApp() {
   }
 
   function add(product: Product) {
+    if (!product.active || !Number.isFinite(product.price) || product.price < 0) return;
     setCart((items) => {
       const existing = items.find((line) => line.product_id === product.id);
-      if (existing) return items.map((line) => line.product_id === product.id ? { ...line, quantity: line.quantity + 1 } : line);
-      return [...items, { product_id: product.id, name: product.name, unit_price: product.price, quantity: 1 }];
+      if (existing) {
+        return items.map((line) => line.product_id === product.id
+          ? { ...line, unit_price: product.price,
+              quantity: Math.min(Math.floor(product.stock), line.quantity + 1) }
+          : line);
+      }
+      if (product.stock < 1) return items;
+      return [...items, { product_id: product.id, name: product.name,
+        unit_price: product.price, quantity: 1 }];
     });
-    setTab("pos");
   }
 
   function adjust(id: string, delta: number) {
