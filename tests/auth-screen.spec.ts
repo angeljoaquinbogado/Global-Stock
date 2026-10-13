@@ -47,3 +47,46 @@ test("mobile auth keeps all controls available without horizontal overflow", asy
   );
   expect(overflow).toBeLessThanOrEqual(2);
 });
+
+test("sign-in has no scrollbars; account creation gets a branded inner scrollbar", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Scrollbar styling is checked in Chromium.");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+
+  const panel = page.getByTestId("auth-form-panel");
+  const state = () => panel.evaluate(el => {
+    const styles = getComputedStyle(el);
+    return {
+      overflowY: styles.overflowY,
+      scrollbarWidth: styles.scrollbarWidth,
+      scrollbarColor: styles.scrollbarColor,
+      scrollHeight: el.scrollHeight,
+      clientHeight: el.clientHeight,
+      scrollTop: el.scrollTop,
+      outerOverflow: document.documentElement.scrollHeight - innerHeight,
+    };
+  });
+
+  await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
+  const signIn = await state();
+  expect(signIn.overflowY).toBe("hidden");
+  expect(signIn.outerOverflow).toBeLessThanOrEqual(2);
+  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
+  await expect(panel).toHaveClass(/gs-auth-panel-scroll/);
+  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
+  const signUp = await state();
+  expect(signUp.overflowY).toBe("auto");
+  expect(signUp.scrollbarWidth).toBe("thin");
+  expect(signUp.scrollbarColor).toContain("143, 0, 0");
+  expect(signUp.scrollHeight).toBeGreaterThan(signUp.clientHeight);
+  expect(signUp.outerOverflow).toBeLessThanOrEqual(2);
+
+  // Exercise the real scrollable registration form before switching back.
+  await panel.evaluate(el => el.scrollTo({ top: el.scrollHeight, behavior: "instant" }));
+  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
+  await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
+  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+  const returned = await state();
+  expect(returned.overflowY).toBe("hidden");
+  expect(returned.scrollTop).toBe(0);
+});
