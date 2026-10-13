@@ -158,7 +158,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, loading, error
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18 }]}
+          contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18, width: "100%", maxWidth: Platform.OS === "web" && width >= 900 ? 640 : undefined, alignSelf: "center" }]}
         >
           <View style={styles.topRow}>
             {form ? (
