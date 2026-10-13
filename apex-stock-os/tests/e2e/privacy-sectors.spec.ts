@@ -52,6 +52,6 @@ test("public content remains readable with reduced motion at mobile width", asyn
 
 test("the public hero avoids the old generic promise", async ({ page }) => {
   await page.goto("/download", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { level: 1 })).toContainText("Sabé qué se vendió.");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("Gestión de stock, ventas y caja para tu negocio.");
   await expect(page.getByRole("heading", { name: "Controlá tu negocio. Desde un solo lugar." })).toHaveCount(0);
 });
