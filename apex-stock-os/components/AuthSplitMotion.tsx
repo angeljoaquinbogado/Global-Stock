@@ -137,12 +137,11 @@ export function AuthSplitMotion({
           "relative z-30 flex h-full min-h-0 w-full min-w-0 flex-col " +
           "lg:absolute lg:inset-y-0 lg:left-0 lg:w-1/2 " +
           (scrollable
-            ? "gs-auth-panel-scroll overflow-y-auto overscroll-contain"
-            : "gs-auth-panel-fixed overflow-hidden")
+            ? "gs-auth-panel-scroll overflow-y-auto overscroll-contain "
+            : "gs-auth-panel-fixed overflow-hidden ") +
+          (isSignIn ? "lg:translate-x-0" : "lg:translate-x-full") +
+          (reduce ? "" : " lg:transition-transform lg:duration-[820ms] lg:ease-[cubic-bezier(0.76,0,0.24,1)]")
         }
-        initial={false}
-        animate={{ x: isSignIn ? "0%" : "100%" }}
-        transition={{ duration: panelMotion, ease: easing }}
       >
         <div className={
           "mx-auto flex w-full max-w-[570px] min-h-full shrink-0 flex-col justify-center " +
