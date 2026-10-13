@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   AppState,
+  LayoutAnimation,
   Image,
   KeyboardAvoidingView,
   Linking,
@@ -17,7 +18,7 @@ import { appAlerts } from "./src/lib/alerts";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
-import { Shirt, Beef, Store, Carrot, Croissant, Pill, BookOpen, Hammer, Laptop, Leaf, Scissors, Eye, PawPrint, Gem, UtensilsCrossed, Warehouse, Factory, BriefcaseBusiness, ShoppingBag, Check } from "lucide-react-native";
+import { Shirt, Beef, Store, Carrot, Croissant, Pill, BookOpen, Hammer, Laptop, Leaf, Scissors, Eye, PawPrint, Gem, UtensilsCrossed, Warehouse, Factory, BriefcaseBusiness, ShoppingBag, Check, Moon, Sun } from "lucide-react-native";
 import PreviewMode from "./src/components/PreviewMode";
 import type { SupabaseClient, User } from "@supabase/supabase-js";
 import ProductForm from "./src/components/ProductForm";
@@ -26,6 +27,7 @@ import NativeLegalGate, { LEGAL_TERMS_VERSION, LEGAL_PRIVACY_VERSION } from "./s
 import NativeAuthLanding from "./src/components/NativeAuthLanding";
 
 import { loadMobileSupabase } from "./src/lib/supabase";
+import { preferenceStorage } from "./src/lib/preference-storage";
 import { SUPPORT_EMAIL, supportEmailUrl } from "./src/lib/support";
 import { createBusiness, loadBusinesses, loadProducts, type Business, type BusinessKind, type Product, type SaleDraft, type SaleLine } from "./src/lib/data";
 import { cacheBusinesses, cacheProducts, loadOfflineDrafts, purgeLocalAccountData, readCachedBusinesses, readCachedProducts, saveOfflineDraft } from "./src/lib/offline";
@@ -173,6 +175,7 @@ function MobileApp() {
   const [businessLoading, setBusinessLoading] = useState(false);
   const [newBusinessName, setNewBusinessName] = useState("");
   const [newBusinessDescription, setNewBusinessDescription] = useState("");
+  const [onboardingDark, setOnboardingDark] = useState(true);
   const [newBusinessType, setNewBusinessType] = useState<BusinessKind>("retail");
   const [newBusinessCategory, setNewBusinessCategory] = useState("almacen");
   const [creatingBusiness, setCreatingBusiness] = useState(false);
@@ -460,6 +463,23 @@ function MobileApp() {
     }
   }
 
+  useEffect(() => {
+    if (!user?.id) return;
+    let active = true;
+    void preferenceStorage.getItemAsync("gs.mobile.theme.v1").then(theme => {
+      if (active && (theme === "light" || theme === "dark")) setOnboardingDark(theme === "dark");
+    }).catch(() => null);
+    return () => { active = false; };
+  }, [user?.id]);
+
+  function toggleBusinessTheme() {
+    setOnboardingDark(value => {
+      const next = !value;
+      void preferenceStorage.setItemAsync("gs.mobile.theme.v1", next ? "dark" : "light").catch(()=>null);
+      return next;
+    });
+  }
+
   async function createFirstBusiness() {
     if (!supabase || !user || creatingBusiness) return;
     setCreatingBusiness(true);
@@ -651,12 +671,23 @@ function MobileApp() {
 
   if (pendingBusinessOnboarding || !business) {
     return (
-      <SafeAreaView style={[st.base, { paddingHorizontal: 23 }]}>
-        <StatusBar style="light" />
+      <SafeAreaView style={[st.base, { paddingHorizontal: 23, backgroundColor:onboardingDark?"#09090C":"#F9F6F2" }]}>
+        <StatusBar style={onboardingDark?"light":"dark"} />
         <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1, justifyContent: "center", gap: 16, paddingVertical: 25 }}>
-        <Image source={require("./assets/brand-mark.png")} style={{width:80,height:80}} resizeMode="contain"/>
-        <Text style={[st.heading,{fontSize:24}]}>Configurá tu negocio</Text>
+        <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+          <View style={{flexDirection:"row",alignItems:"center",gap:8}}>
+            <Image source={require("./assets/brand-mark.png")} style={{width:58,height:58}} resizeMode="contain"/>
+            <Text style={{color:onboardingDark?"#FFFFFF":"#241D20",fontSize:15,fontWeight:"800"}}>Global Stock</Text>
+          </View>
+          <Pressable accessibilityRole="button" accessibilityLabel={onboardingDark?"Usar tema claro":"Usar tema oscuro"}
+            onPress={toggleBusinessTheme}
+            style={{padding:11,borderRadius:12,borderWidth:1,borderColor:onboardingDark?"#41414A":"#D7CBC8"}}>
+            {onboardingDark?<Sun size={18} color="#FFFFFF"/>:<Moon size={18} color="#3B282A"/>}
+          </Pressable>
+        </View>
+        <Text style={{color:"#B80C20",fontSize:10,fontWeight:"800",letterSpacing:2}}>PASO 2 DE 2 · TU NEGOCIO</Text>
+        <Text style={[st.heading,{fontSize:24,color:onboardingDark?"#F7F7FA":"#251B1F"}]}>Configurá tu negocio</Text>
         <Text style={st.helper}>Paso 2 de 2 · Completá la información de tu negocio para empezar. Estos datos se guardan en tu cuenta y pueden recuperarse desde otros dispositivos.</Text>
         <TextInput
           value={newBusinessName}
@@ -677,17 +708,17 @@ function MobileApp() {
             const selected = newBusinessCategory === item.id;
             return <Pressable key={item.id} accessibilityRole="button"
               accessibilityLabel={item.label} accessibilityState={{selected}}
-              onPress={() => {setNewBusinessType(item.kind);setNewBusinessCategory(item.id);}}
+              onPress={() => {LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);setNewBusinessType(item.kind);setNewBusinessCategory(item.id);}}
               style={{width:"48.5%",minHeight:121,padding:13,borderRadius:15,
                 borderWidth:1.5,borderColor:selected?"#E02D40":C.border,
-                backgroundColor:selected?"#381018":C.raised,justifyContent:"space-between"}}>
+                backgroundColor:selected?(onboardingDark?"#381018":"#FBE7E8"):(onboardingDark?C.raised:"#F4EFEC"),justifyContent:"space-between"}}>
               <View style={{flexDirection:"row",alignItems:"center",justifyContent:"space-between"}}>
-                <Icon size={23} color={selected?"#FF6575":"#F2F2F7"} strokeWidth={1.9}/>
+                <Icon size={23} color={selected?(onboardingDark?"#FF6575":"#9F0016"):(onboardingDark?"#F2F2F7":"#322729")} strokeWidth={1.9}/>
                 {selected?<Check size={16} color="#FF7783"/>:null}
               </View>
               <View style={{gap:4}}>
-                <Text style={{color:C.white,fontSize:13,fontWeight:"800"}}>{item.label}</Text>
-                <Text style={{color:selected?"#F3B6C0":C.secondary,fontSize:11,lineHeight:15}}>{item.description}</Text>
+                <Text style={{color:onboardingDark?"#FFFFFF":"#241D20",fontSize:13,fontWeight:"800"}}>{item.label}</Text>
+                <Text style={{color:onboardingDark?(selected?"#F3B6C0":C.secondary):"#76666B",fontSize:11,lineHeight:15}}>{item.description}</Text>
               </View>
             </Pressable>;
           })}
