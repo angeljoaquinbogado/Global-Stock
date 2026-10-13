@@ -142,3 +142,20 @@ test("Windows install and Android signed release profiles use proper packaging",
   assert.match(workflow, /EXPO_TOKEN/);
   assert.doesNotMatch(workflow, /eas submit /);
 });
+
+test("online connection management parity preserves server-side authorization", () => {
+  const web=file("apex-stock-os/components/OnlineConnectionRequests.tsx");
+  const expo=file("apps/global-stocks-mobile/src/components/NativeCommerceConnect.tsx");
+  const shell=file("apex-stock-os/components/BusinessWorkspace.tsx");
+  for (const source of [web,expo]) {
+    assert.match(source,/global_stock_integration_requests/);
+    assert.match(source,/global_stock_integration_accounts/);
+    assert.match(source,/global_stock_manage_integration_request/);
+    assert.match(source,/global_stock_disconnect_integration/);
+  }
+  assert.match(shell,/OnlineConnectionRequests/);
+  assert.match(web,/client\.auth\.getUser\(\)/);
+  assert.match(web,/\.eq\("business_id",businessId\)/);
+  assert.match(web,/owner.*admin/);
+  assert.match(web,/No hay conexiones ni solicitudes guardadas/);
+});
