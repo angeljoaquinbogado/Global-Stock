@@ -166,6 +166,7 @@ function MobileApp() {
   const [starting, setStarting] = useState(true);
   const [authLoading, setAuthLoading] = useState(false);
   const [authError, setAuthError] = useState("");
+  const [registeredNeedsConfirmation, setRegisteredNeedsConfirmation] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [loginViewVersion, setLoginViewVersion] = useState(0);
@@ -369,6 +370,7 @@ function MobileApp() {
   }, [supabase]);
 
   async function login(email: string, password: string) {
+    setRegisteredNeedsConfirmation(false);
     // Public demo credentials open a local-only sandbox, NEVER a Supabase session.
     if (email.trim().toLowerCase() === "demo@globalstock.app" && password === "GlobalStock2026!") {
       setAuthError("");
@@ -428,6 +430,7 @@ function MobileApp() {
   }
 
   async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt") {
+    setRegisteredNeedsConfirmation(false);
     if (!supabase) return;
     setAuthLoading(true);
     setAuthError("");
@@ -455,7 +458,10 @@ function MobileApp() {
         }
       });
       if (error) setAuthError(error.message);
-      else if (!data.session) setAuthError("Revisá tu correo para confirmar el registro; después iniciá sesión.");
+      else if (!data.session) {
+        setRegisteredNeedsConfirmation(true);
+        setAuthError("Cuenta creada. Revisá tu correo, confirmá tu dirección e iniciá sesión para configurar tu negocio.");
+      }
     } catch (error) {
       setAuthError(error instanceof Error ? error.message : "No se pudo crear la cuenta.");
     } finally {
@@ -658,7 +664,7 @@ function MobileApp() {
 
   if (demoMode) return <PreviewMode demoActive onExit={() => { setDemoMode(false); setAuthError(""); setLoginViewVersion(v => v + 1); }} />;
 
-  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} onSocial={loginSocial} onDemo={() => { setAuthError(""); setDemoMode(true); }} loading={authLoading} error={authError} />;
+  if (!user) return <NativeAuthLanding key={`login-${loginViewVersion}`} onSubmit={login} onRegister={register} onSocial={loginSocial} registrationComplete={registeredNeedsConfirmation} onDemo={() => { setAuthError(""); setDemoMode(true); }} loading={authLoading} error={authError} />;
 
   const pendingBusinessOnboarding = user.user_metadata?.global_stock_onboarding === "pending";
   if (!pendingBusinessOnboarding && legalUserId !== user.id) {
