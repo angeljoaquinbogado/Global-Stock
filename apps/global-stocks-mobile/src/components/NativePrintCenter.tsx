@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import * as Print from "expo-print";
-import * as Sharing from "expo-sharing";
+import { printClient as Print } from "../lib/print-client";
+import { shareClient as Sharing } from "../lib/share-client";
 import { Barcode, FileCheck2, FileText, Printer, RefreshCw, Share2, Tag } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
