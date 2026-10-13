@@ -12,7 +12,7 @@ for (const screen of [
         "Core auth entry smoke runs in Chromium; other browser engines cover the public landing.");
       test.setTimeout(65_000);
       await page.setViewportSize(screen);
-      const response = await page.goto("/", { waitUntil: "domcontentloaded" });
+      const response = await page.goto("/classic", { waitUntil: "domcontentloaded" });
       expect(response?.ok()).toBe(true);
 
       const create = page.getByRole("button", { name: "Crear cuenta", exact: true }).first();
