@@ -35,4 +35,10 @@ test("demo credentials open an isolated Expo preview without Supabase login", as
 
   await page.getByRole("button", { name: "Cerrar demostración" }).click();
   await expect(page.getByText("Bienvenido a", { exact: false }).first()).toBeVisible();
+
+  await page.getByRole("button", { name: "Ya tengo una cuenta" }).click();
+  await page.getByPlaceholder("Correo electrónico").fill("demo@globalstock.app");
+  await page.getByPlaceholder("Contraseña").fill("GlobalStock2026!");
+  await page.getByRole("button", { name: "Iniciar sesión" }).click();
+  await expect(page.getByText("MODO DEMOSTRACIÓN")).toBeVisible();
 });
