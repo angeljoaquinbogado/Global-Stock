@@ -95,7 +95,7 @@ function restoreGlobalStockStorage() {
 }
 
 export function ApexShell() {
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(false);
   const [authenticated, setAuthenticated] = useState(false);
   const [demoMode, setDemoMode] = useState(false);
   const [language, setLanguage] = useState<LanguageCode>("es");
@@ -128,6 +128,13 @@ export function ApexShell() {
   useEffect(() => {
     let active = true;
 
+    // Migrate the old automatic dark default once. Explicit choices made
+    // after this migration continue to persist normally across reloads.
+    const themeDefaultKey = "global-stock-default-light-v1";
+    if (!window.localStorage.getItem(themeDefaultKey)) {
+      window.localStorage.setItem("global-stock-theme", "light");
+      window.localStorage.setItem(themeDefaultKey, "1");
+    }
     const storedTheme = window.localStorage.getItem("global-stock-theme");
     const storedLanguage = window.localStorage.getItem(
       "global-stock-demo-language"
@@ -136,12 +143,7 @@ export function ApexShell() {
       "global-stock-demo-currency"
     );
 
-    const nextDark =
-      storedTheme === "light"
-        ? false
-        : storedTheme === "dark"
-          ? true
-          : window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const nextDark = storedTheme === "dark";
 
     setDark(nextDark);
 
@@ -301,8 +303,8 @@ export function ApexShell() {
   if (!ready) {
     return (
       <MotionConfig reducedMotion="user">
-        <div className="grid min-h-[100dvh] place-items-center bg-black">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-white/15 border-t-[#8F0000]" />
+        <div className="grid min-h-[100dvh] place-items-center bg-[#F5F5F7]">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#D8D8E0] border-t-[#8F0000]" />
         </div>
       </MotionConfig>
     );
