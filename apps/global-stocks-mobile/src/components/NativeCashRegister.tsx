@@ -34,7 +34,7 @@ export default function NativeCashRegister({
   const [search, setSearch] = useState("");
   const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
-  const [quote, setQuote] = useState<ServerQuote | null>(null);
+  const [quote, setQuote] = useState<(ServerQuote & { key: string }) | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState("");
   const [promoRefresh, setPromoRefresh] = useState(0);
@@ -49,9 +49,14 @@ export default function NativeCashRegister({
     { surface: "#FFF", tile: "#F1F1F4", line: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#A40A14" }, [dark]);
   const s = useMemo(() => styles(palette), [palette]);
   const cartSubtotal = cart.reduce((sum, line) => sum + line.quantity * line.unit_price, 0);
-  const subtotal = quote?.subtotal ?? cartSubtotal;
-  const promoDiscount = quote?.discount ?? 0;
-  const total = quote?.total ?? cartSubtotal;
+  const quoteKey = JSON.stringify(cart.map(line => [
+    products.find(item => item.id === line.product_id)?.client_key ?? null,
+    line.quantity
+  ]));
+  const currentQuote = quote?.key === quoteKey ? quote : null;
+  const subtotal = currentQuote?.subtotal ?? cartSubtotal;
+  const promoDiscount = currentQuote?.discount ?? 0;
+  const total = currentQuote?.total ?? cartSubtotal;
   const totalItems = cart.reduce((sum, line) => sum + line.quantity, 0);
   const matches = products.filter(item => [item.name, item.barcode, item.sku].some(
     text => text?.toLowerCase().includes(search.trim().toLowerCase())
@@ -63,10 +68,6 @@ export default function NativeCashRegister({
 
   // One server preview replaces separate permission + promotion requests.
   // It uses the same catalog/pricing rules as the final atomic sales RPC.
-  const linesSignature = JSON.stringify(cart.map(line => [
-    products.find(item => item.id === line.product_id)?.client_key ?? null,
-    line.quantity
-  ]));
   useEffect(() => {
     let live = true;
     setQuote(null);
@@ -98,12 +99,12 @@ export default function NativeCashRegister({
         setQuoteError("No pudimos comprobar el importe de esta venta.");
         return;
       }
-      setQuote(data);
+      setQuote({ ...data, key: quoteKey });
     }).catch(() => {
       if (live) setQuoteError("No se pudo conectar para calcular el total.");
     }).finally(() => { if (live) setQuoteLoading(false); });
     return () => { live = false; };
-  }, [client, business.id, business.base_currency, linesSignature, promoRefresh, refreshToken]);
+  }, [client, business.id, business.base_currency, quoteKey, promoRefresh, refreshToken]);
 
   useEffect(() => {
     let live = true;
@@ -243,9 +244,9 @@ export default function NativeCashRegister({
     </View>
     <NativeCashCheckout key={business.id} client={client} business={business}
       products={products} cart={cart} dark={dark} online={online}
-      quoteReady={!quoteLoading && !quoteError && quote !== null}
+      quoteReady={!quoteLoading && !quoteError && currentQuote !== null}
       quoteError={quoteError}
-      canSell={quote !== null} expectedTotal={quote?.total ?? 0} discount={promoDiscount}
+      canSell={currentQuote !== null} expectedTotal={currentQuote?.total ?? 0} discount={promoDiscount}
       onCompleted={(sale) => { setSaleSuccess(true); onCompleted(sale); }}/>
     {saleSuccess && <Text accessibilityRole="alert" style={s.success}>Venta registrada · stock actualizado.</Text>}
     <View style={s.card}>
