@@ -24,6 +24,7 @@ import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
 import { BusinessTypePicker, type BusinessTypeValue } from "./BusinessTypePicker";
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
+import { AuthSplitMotion } from "./AuthSplitMotion";
 
 const AuthScene = dynamic(
   () => import("./AuthScene").then((module) => module.AuthScene),
@@ -580,8 +581,8 @@ export function AuthScreen({
   }
 
   const surfaceClass = dark
-    ? "border-white/12 bg-black/[0.78] text-white shadow-[0_38px_120px_rgba(0,0,0,.62)]"
-    : "border-black/10 bg-white/[0.96] text-[#111114] shadow-[0_32px_90px_rgba(0,0,0,.26)]";
+    ? "bg-[#131116] text-white"
+    : "bg-[#FFFDFB] text-[#111114]";
 
   const mutedClass = dark ? "text-white/65" : "text-[#5F6068]";
   const fieldClass = dark
@@ -697,7 +698,8 @@ export function AuthScreen({
             transition={{ duration: 0.32 }}
             className="absolute inset-0 z-20 overflow-y-auto overscroll-contain px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] sm:px-6 lg:px-8 xl:px-12"
           >
-            <div className="mx-auto flex min-h-full w-full max-w-[1440px] items-center justify-center lg:justify-start">
+            <div className="mx-auto flex min-h-full w-full max-w-[1170px] items-center justify-center py-3">
+            <AuthSplitMotion mode={mode} language={language} dark={dark} onSwitch={selectMode}>
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
               initial={{
@@ -712,7 +714,7 @@ export function AuthScreen({
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              className={`relative mx-auto my-auto w-full max-w-[460px] overflow-visible rounded-[26px] border p-4 backdrop-blur-[12px] sm:rounded-[28px] sm:p-5 sm:backdrop-blur-[16px] lg:mx-0 lg:max-w-[430px] xl:max-w-[440px] ${surfaceClass}`}
+              className={`relative w-full min-w-0 border-0 p-5 shadow-none sm:p-7 lg:p-[clamp(20px,2.8vw,40px)] ${surfaceClass}`}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <Logo withWordmark />
@@ -1022,6 +1024,7 @@ export function AuthScreen({
                 {configured ? labels.configured : labels.demo}
               </p>
             </motion.div>
+            </AuthSplitMotion>
             </div>
           </motion.section>
         )}
