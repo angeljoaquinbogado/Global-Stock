@@ -256,7 +256,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onDemo, loadin
             ) : null}
           </View>
 
-          <View style={styles.switchStage}>
+          <View style={form ? styles.switchStage : undefined}>
           <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 12 : (compact ? 10 : 22) }]}>
             <View style={[styles.logoStage, { height: form ? 112 : (compact ? 194 : 216) }]}>
               <View pointerEvents="none" style={[styles.logoHalo,{ backgroundColor: dark ? "rgba(180,18,42,0.14)" : "rgba(194,29,65,0.075)" }]} />
