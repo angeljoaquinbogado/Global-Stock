@@ -1,114 +1,80 @@
 import { expect, test } from "@playwright/test";
 
-// Runs against the checked-out Next.js build in GitHub CI, without creating
-// accounts or sending credentials to Supabase.
-test("desktop auth fills the viewport and reverses the diagonal transition", async ({ page, browserName }) => {
-  test.skip(browserName !== "chromium", "Animation geometry is checked in Chromium.");
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+// Visual behavior matches the supplied second reference video:
+// mode changes are triggered by a small inline link, NOT an upper tab bar.
+for (const viewport of [
+  { name: "large desktop", width: 1440, height: 900 },
+  { name: "notebook 1366x640", width: 1366, height: 640 },
+  { name: "iPhone", width: 390, height: 844 },
+  { name: "small Android", width: 360, height: 740 }
+]) {
+  test("fixed reference auth switches without bars on " + viewport.name, async ({ page, browserName }) => {
+    test.skip(browserName !== "chromium", "Reference animation geometry is checked in Chromium.");
+    await page.setViewportSize({ width: viewport.width, height: viewport.height });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
 
-  const stage = page.getByTestId("auth-split-stage");
-  const info = page.getByTestId("auth-diagonal-panel");
-  const form = page.getByTestId("auth-form-panel");
-  await expect(stage).toBeVisible({ timeout: 30_000 });
-  await expect(info).toBeVisible();
-  await expect(form).toBeVisible();
-  const bounds = await stage.boundingBox();
-  expect(bounds?.width).toBeGreaterThan(1390);
-  await expect(info.locator("button")).toHaveCount(0);
+    const stage = page.getByTestId("auth-split-stage");
+    const panel = page.getByTestId("auth-form-panel");
+    await expect(stage).toBeVisible({ timeout: 30_000 });
+    await expect(panel).toBeVisible();
 
-  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
-  await expect(page.getByRole("checkbox", {
-    name: "Declaro ser mayor de 18 años y aceptar los términos y la privacidad",
-  })).toBeVisible();
+    // The old coloured tab strip and its animated red selection have gone.
+    await expect(page.locator('[layoutid="gs-auth-active-tab"], .gs-auth-active-tab')).toHaveCount(0);
+    await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Crear cuenta", exact: true })).toHaveCount(1);
+    await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
+    expect(await panel.evaluate(el => getComputedStyle(el).overflowY)).toBe("hidden");
 
-  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
-  await expect(page.locator('input[type="email"]')).toBeVisible();
-  await expect(page.locator('input[type="password"]')).toBeVisible();
-});
+    await page.getByRole("button", { name: "Crear cuenta", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
+    await expect(page.locator("form input[autocomplete=name]")).toBeVisible();
+    await expect(page.getByRole("checkbox", {
+      name: "Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
+    })).toBeVisible();
+    await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
+    expect(await panel.evaluate(el => getComputedStyle(el).overflowY)).toBe("hidden");
 
-test("mobile auth keeps all controls available without horizontal overflow", async ({ page, browserName }) => {
-  test.skip(browserName !== "chromium", "Mobile layout is checked in Chromium.");
-  await page.setViewportSize({ width: 360, height: 740 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
+    const registrationSubmit = page.locator("form button[type=submit]");
+    await expect(registrationSubmit).toBeVisible();
+    await expect(page.getByRole("button", { name: "Iniciar sesión", exact: true })).toBeVisible();
+    await expect(page.getByText("Nombre del negocio", { exact: true })).toHaveCount(0);
 
-  await expect(page.getByTestId("auth-split-stage")).toBeVisible({ timeout: 30_000 });
-  await expect(page.getByTestId("auth-diagonal-panel")).toBeHidden();
-  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+    const dimensionCheck = await page.evaluate(() => {
+      const panel = document.querySelector('[data-testid="auth-form-panel"]')!;
+      const main = document.querySelector('.gs-auth-viewport')!;
+      return {
+        horizontal: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        vertical: document.documentElement.scrollHeight - document.documentElement.clientHeight,
+        panelOverflow: panel.scrollHeight - panel.clientHeight,
+        panelScrollY: panel.scrollTop,
+        mainOverflow: main.scrollHeight - main.clientHeight,
+      };
+    });
+    expect(dimensionCheck.horizontal).toBeLessThanOrEqual(2);
+    expect(dimensionCheck.vertical).toBeLessThanOrEqual(2);
+    expect(dimensionCheck.panelScrollY).toBe(0);
+    expect(dimensionCheck.panelOverflow).toBeLessThanOrEqual(2);
 
-  const overflow = await page.evaluate(
-    () => document.documentElement.scrollWidth - document.documentElement.clientWidth
-  );
-  expect(overflow).toBeLessThanOrEqual(2);
-});
-
-test("sign-in has no scrollbars; account creation gets a branded inner scrollbar", async ({ page, browserName }) => {
-  test.skip(browserName !== "chromium", "Scrollbar styling is checked in Chromium.");
-  await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-
-  const panel = page.getByTestId("auth-form-panel");
-  const state = () => panel.evaluate(el => {
-    const styles = getComputedStyle(el);
-    return {
-      overflowY: styles.overflowY,
-      scrollbarWidth: styles.scrollbarWidth,
-      scrollbarColor: styles.scrollbarColor,
-      scrollHeight: el.scrollHeight,
-      clientHeight: el.clientHeight,
-      scrollTop: el.scrollTop,
-      outerOverflow: document.documentElement.scrollHeight - innerHeight,
-    };
+    await page.getByRole("button", { name: "Iniciar sesión", exact: true }).click();
+    await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.getByRole("button", { name: "Continuar con Google" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Crear cuenta", exact: true })).toBeVisible();
   });
+}
 
-  await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
-  const signIn = await state();
-  expect(signIn.overflowY).toBe("hidden");
-  expect(signIn.outerOverflow).toBeLessThanOrEqual(2);
-  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-  await expect(panel).toHaveClass(/gs-auth-panel-scroll/);
-  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
-  const signUp = await state();
-  expect(signUp.overflowY).toBe("auto");
-  expect(signUp.scrollbarWidth).toBe("thin");
-  expect(signUp.scrollbarColor).toContain("143, 0, 0");
-  expect(signUp.scrollHeight).toBeGreaterThan(signUp.clientHeight);
-  expect(signUp.outerOverflow).toBeLessThanOrEqual(2);
-
-  // Exercise the real scrollable registration form before switching back.
-  await panel.evaluate(el => el.scrollTo({ top: el.scrollHeight, behavior: "instant" }));
-  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-  await expect(panel).toHaveClass(/gs-auth-panel-fixed/);
-  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
-  const returned = await state();
-  expect(returned.overflowY).toBe("hidden");
-  expect(returned.scrollTop).toBe(0);
-});
-
-test("signup starts with identity only, before the business onboarding stage", async ({ page, browserName }) => {
-  test.skip(browserName !== "chromium", "Registration step-one fields are checked in Chromium.");
+test("signup asks only for user details and required beta attestation", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Registration inputs checked in Chromium.");
   await page.setViewportSize({ width: 1366, height: 768 });
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
-
-  const register = page.locator("form").first();
-  await expect(register.locator('input[autocomplete="name"]')).toBeVisible();
-  await expect(register.locator('input[type="email"]')).toBeVisible();
-  await expect(register.locator('input[type="password"]')).toBeVisible();
-  await expect(register.locator('input[type="checkbox"]')).toHaveCount(1);
-  await expect(page.getByText("Nombre del negocio", { exact: true })).toHaveCount(0);
+  await page.goto("/");
+  await page.getByRole("button", { name: "Crear cuenta", exact: true }).click();
+  const form = page.locator("form").first();
+  await expect(form.locator('input[autocomplete="name"]')).toBeVisible();
+  await expect(form.locator('input[type="email"]')).toBeVisible();
+  await expect(form.locator('input[type="password"]')).toBeVisible();
+  await expect(form.locator('input[type="checkbox"]')).toHaveCount(1);
+  await expect(form.locator("textarea")).toHaveCount(0);
   await expect(page.getByText("Actividad del negocio", { exact: true })).toHaveCount(0);
   await expect(page.getByText("País de operación", { exact: true })).toHaveCount(0);
-  await expect(register.locator("textarea")).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "Continuar con Google" })).toHaveCount(0);
-  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
-  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continuar con Google" })).toBeVisible();
 });
