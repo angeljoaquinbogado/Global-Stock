@@ -260,6 +260,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
       <StatusBar style={dark ? "light" : "dark"} />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         <ScrollView
+          scrollEnabled={!form || compact}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.page, { minHeight: Math.max(0, height - (Platform.OS === "ios" ? 100 : 45)), paddingTop: compact ? 12 : 18, width: "100%", maxWidth: Platform.OS === "web" && width >= 900 ? 640 : undefined, alignSelf: "center" }]}
@@ -305,10 +306,10 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
 
           <View style={form ? styles.switchStage : undefined}>
           <View style={[styles.hero, form && styles.compactHero, { paddingTop: form ? 12 : (compact ? 10 : 22) }]}>
-            <View style={[styles.logoStage, { height: form ? 112 : (compact ? 194 : 216) }]}>
+            <View style={[styles.logoStage, { height: form ? 74 : (compact ? 194 : 216) }]}>
               <View pointerEvents="none" style={[styles.logoHalo,{ backgroundColor: dark ? "rgba(180,18,42,0.14)" : "rgba(194,29,65,0.075)" }]} />
               <Image source={require("../../assets/brand-mark.png")}
-                style={{ width: form ? 88 : logoSize, height: form ? 88 : logoSize }}
+                style={{ width: form ? 58 : logoSize, height: form ? 58 : logoSize }}
                 resizeMode="contain" accessibilityLabel="Logo de Global Stock" />
             </View>
             {!form ? (
@@ -383,18 +384,23 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
               </View>
               {signup ? (
                 <View style={styles.consents}>
-                  {([
-                    [adultConfirmed, setAdultConfirmed, t.adults],
-                    [termsConfirmed, setTermsConfirmed, t.terms]
-                  ] as const).map(([checked, setChecked, label], index) => (
-                    <Pressable key={index} accessibilityRole="checkbox"
-                      accessibilityState={{ checked }}
-                      onPress={() => setChecked(!checked)}
-                      style={styles.consentRow}>
-                      <View style={[styles.checkbox, checked && styles.checkboxActive]}>{checked ? <Check size={14} color="#fff"/>:null}</View>
-                      <Text style={styles.consentText}>{label}</Text>
-                    </Pressable>
-                  ))}
+                  <Pressable accessibilityRole="checkbox"
+                    accessibilityLabel="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
+                    accessibilityState={{checked:adultConfirmed && termsConfirmed}}
+                    onPress={() => {
+                      const next = !(adultConfirmed && termsConfirmed);
+                      setAdultConfirmed(next);
+                      setTermsConfirmed(next);
+                    }} style={styles.consentRow}>
+                    <View style={[styles.checkbox,adultConfirmed&&termsConfirmed&&styles.checkboxActive]}>
+                      {adultConfirmed&&termsConfirmed?<Check size={14} color="#FFFFFF"/>:null}
+                    </View>
+                    <Text style={styles.consentText}>
+                      {language==="es" ? "Tengo al menos 18 años, mi negocio opera en Argentina y acepto los términos y la privacidad."
+                        : language==="pt" ? "Tenho 18 anos ou mais, opero na Argentina e aceito os termos e a privacidade."
+                        : "I am at least 18, operate in Argentina, and accept the terms and privacy policy."}
+                    </Text>
+                  </Pressable>
                   <View style={styles.legalLinks}>
                     <Pressable accessibilityRole="link" onPress={() => openLegal("terms")}>
                       <Text style={styles.legalLink}>{t.termsLink} ↗</Text>
@@ -487,7 +493,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
           ) : null}
           </View>
 
-          <View style={styles.bottomNote}>
+          {!form && <View style={styles.bottomNote}>
             <View style={styles.betaPill}>
               <View style={styles.betaDot}/>
               <Text style={styles.betaText}>{t.beta}</Text>
@@ -498,7 +504,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
             </View>
             {t.languageNote ? <Text style={styles.explanation}>{t.languageNote}</Text> : null}
             <Text style={styles.explanation}>{t.legal}</Text>
-          </View>
+          </View>}
         </ScrollView>
       </KeyboardAvoidingView>
       {introVisible && (
@@ -547,7 +553,7 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     switchBrand: { color:"#FFFFFF", fontSize:19, fontWeight:"900", letterSpacing:2.4 },
     switchBrandSub: { color:"#FFD9DF", fontSize:12, fontWeight:"600" },
     hero: { flexGrow:1,alignItems:"center",justifyContent:"flex-start",paddingBottom:18,minHeight:320 },
-    compactHero: { flexGrow:0,minHeight:0,paddingBottom:20,justifyContent:"center" },
+    compactHero: { flexGrow:0,minHeight:0,paddingBottom:10,justifyContent:"center" },
     logoStage: { position:"relative",width:"100%",alignItems:"center",justifyContent:"center",marginBottom:22,flexShrink:0,overflow:"visible" },
     logoHalo: { position:"absolute",width:174,height:174,borderRadius:87,shadowColor:"#C71C35",shadowOpacity:0.17,shadowRadius:44,shadowOffset:{width:0,height:0} },
     heroOverline: { color:p.secondary,fontSize:14,fontWeight:"600",marginTop:0,textAlign:"center",flexShrink:0 },
@@ -558,16 +564,16 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     formHeroTitle: { color:p.title,fontSize:25,fontWeight:"800",letterSpacing:-0.8,marginTop:10,textAlign:"center" },
     formSubtitle: { color:p.secondary,fontSize:12.5,lineHeight:19,marginTop:8,textAlign:"center" },
     welcomeActions: { gap:11,paddingBottom:16 },
-    primary: { minHeight:54,borderRadius:17,backgroundColor:p.red,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:11,paddingHorizontal:18,shadowColor:p.shadow,shadowOffset:{width:0,height:7},shadowOpacity:0.21,shadowRadius:14,elevation:4 },
+    primary: { minHeight:50,borderRadius:29,backgroundColor:p.red,flexDirection:"row",alignItems:"center",justifyContent:"center",gap:11,paddingHorizontal:18,shadowColor:p.shadow,shadowOffset:{width:0,height:7},shadowOpacity:0.21,shadowRadius:14,elevation:4 },
     primaryText: { color:"#fff",fontWeight:"800",fontSize:15 },
-    secondaryButton: { minHeight:52,borderWidth:1,borderColor:p.border,borderRadius:17,backgroundColor:p.surface,alignItems:"center",justifyContent:"center" },
+    secondaryButton: { minHeight:49,borderWidth:1,borderColor:p.border,borderRadius:25,backgroundColor:p.surface,alignItems:"center",justifyContent:"center" },
     secondaryText: { color:p.title,fontWeight:"700",fontSize:14 },
     pressed: { opacity:0.78,transform:[{scale:0.99}] },
-    authFields: { gap:14,paddingTop:8,paddingBottom:11 },
+    authFields: { gap:12,paddingTop:8,paddingBottom:8 },
     fieldGroup: { gap:7 },
     fieldLabel: { color:p.secondary,fontSize:11,fontWeight:"700" },
-    input: { minHeight:52,borderRadius:15,borderColor:p.border,borderWidth:1,backgroundColor:p.input,paddingHorizontal:15,fontSize:14,color:p.title },
-    passwordField: { minHeight:52,borderRadius:15,borderColor:p.border,borderWidth:1,backgroundColor:p.input,flexDirection:"row",alignItems:"center" },
+    input: { minHeight:44,borderRadius:0,borderColor:p.border,borderBottomWidth:1,backgroundColor:"transparent",paddingHorizontal:8,fontSize:14,color:p.title },
+    passwordField: { minHeight:44,borderRadius:0,borderColor:p.border,borderBottomWidth:1,backgroundColor:"transparent",flexDirection:"row",alignItems:"center" },
     passwordInput: { flex:1,paddingHorizontal:15,paddingVertical:13,fontSize:14,color:p.title,minWidth:0 },
     eyeButton: { width:48,height:48,alignItems:"center",justifyContent:"center" },
     consents: { gap:10,paddingVertical:4 },
