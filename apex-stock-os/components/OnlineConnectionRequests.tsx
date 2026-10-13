@@ -104,12 +104,12 @@ export function OnlineConnectionRequests({businessId}:{businessId:string}) {
     });
   }
   function disconnect(account:Account) {
-    if(!canEdit||!window.confirm("¿Desconectar "+(providers[account.provider]||account.provider)+"? Se revocan credenciales de Global Stock; revocá también la autorización desde la plataforma."))return;
-    void modify("Conexión de Global Stock desconectada.",async()=>{
+    if(!canEdit||!window.confirm("¿Desconectar únicamente esta tienda de "+(providers[account.provider]||account.provider)+"? Las demás conexiones se conservan. Revocá su acceso también en la plataforma."))return;
+    void modify("Tienda desconectada; las demás siguen activas.",async()=>{
       const client=getSupabaseBrowserClient();
       if(!client)throw new Error("Iniciá sesión.");
-      const {error:rpcError}=await client.rpc("global_stock_disconnect_integration",{
-        target_business_id:businessId,target_provider:account.provider
+      const {error:rpcError}=await client.rpc("global_stock_disconnect_integration_account",{
+        target_business_id:businessId,target_account_id:account.id
       });
       if(rpcError)throw rpcError;
     });
