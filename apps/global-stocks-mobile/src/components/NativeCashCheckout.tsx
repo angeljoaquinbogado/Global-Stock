@@ -22,7 +22,8 @@ function parseTendered(value: string) {
   const text = value.trim().replace(/\s/g, "");
   if (!text) return null;
   const normalized = text.includes(",")
-    ? text.replace(/\./g, "").replace(",", ".") : text;
+    ? text.replace(/\./g, "").replace(",", ".")
+    : /^\d{1,3}(\.\d{3})+$/.test(text) ? text.replace(/\./g, "") : text;
   if (!/^\d+(?:\.\d{1,2})?$/.test(normalized)) return null;
   const amount = Number(normalized);
   return Number.isFinite(amount) && amount >= 0 && amount <= 1_000_000_000 ? cents(amount) : null;
@@ -109,6 +110,7 @@ export default function NativeCashCheckout({
       const message = reason instanceof Error ? reason.message : "No se pudo confirmar el cobro.";
       const connectionLost = /network|fetch|timeout|abort|connection|socket/i.test(message);
       if (connectionLost) setUncertain(true);
+      else { operation.current = null; setUncertain(false); }
       setError(connectionLost
         ? "No se pudo confirmar si la venta se registró. No cambies el carrito; podés reintentar con la misma operación o consultar el historial."
         : "La venta no fue registrada: " + message +
