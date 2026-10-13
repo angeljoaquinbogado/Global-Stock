@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, Text, TextInput, View } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { Building2, MapPin, Plus, RefreshCw, Store, Trash2, Truck, CheckCircle2 } from "lucide-react-native";
 import { createBusiness, type Business, type BusinessKind, type Product } from "../lib/data";
@@ -123,7 +124,7 @@ export default function NativeBusinessManager({client,business,businesses,userId
     const available=levels.find(l=>l.location_id===source.id&&l.product_id===transferProduct);
     if(!product?.client_key||quantity<=0||quantity>Number(available?.on_hand||0)-Number(available?.reserved||0)||
       source.id===transferTo){setError("No hay unidades disponibles para ese traslado.");return;}
-    Alert.alert("Confirmar traslado",
+    appAlerts.alert("Confirmar traslado",
       `Mover ${quantity} unidades de ${product.name} a otro local. No cambia el total del negocio.`,[
       {text:"Cancelar",style:"cancel"},
       {text:"Confirmar",onPress:()=>void run(async()=>{
@@ -138,7 +139,7 @@ export default function NativeBusinessManager({client,business,businesses,userId
     ]);
   }
   function archiveBranch(item:Branch){
-    Alert.alert("Archivar local",`¿Archivar "${item.name}"? Se conserva el historial. Primero debe quedar sin stock ni reservas y tiene que existir otro local activo.`,[
+    appAlerts.alert("Archivar local",`¿Archivar "${item.name}"? Se conserva el historial. Primero debe quedar sin stock ni reservas y tiene que existir otro local activo.`,[
       {text:"Cancelar",style:"cancel"},
       {text:"Archivar",style:"destructive",onPress:()=>void run(async()=>{
         const {error}=await client.rpc("global_stock_archive_location",{
