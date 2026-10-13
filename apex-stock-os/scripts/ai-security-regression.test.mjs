@@ -69,7 +69,11 @@ test("native and web expose Caja without duplicating Cotizaciones or bypassing s
   assert.match(mobile, /onScan=\{scanToCash\}/);
   assert.doesNotMatch(mobile, /module: "rates"/);
   assert.match(settings, /"rates","Cotizaciones"/);
-  assert.match(cash, /global_stock_promotions/);
+  assert.match(cash, /global_stock_preview_cash_sale/);
+  const quoteMigration = file("apex-stock-os/supabase/migrations/20261013_cash_quote_server.sql");
+  assert.match(quoteMigration, /global_stock_can_write\(target_business_id, 'sales'\)/);
+  assert.match(quoteMigration, /global_stock_promotions/);
+  assert.match(quoteMigration, /GRANT EXECUTE ON FUNCTION public\.global_stock_preview_cash_sale/);
   assert.match(cash, /global_stock_sales/);
   assert.match(checkout, /global_stock_record_pos_sale/);
   assert.match(checkout, /Vuelto automático/);
