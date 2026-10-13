@@ -2209,9 +2209,10 @@ export function BusinessWorkspace({
       const savedProducts = Array.isArray(resolvedState?.products)
         ? resolvedState.products : products;
       const mergedProducts = mergeCanonicalProducts(savedProducts, canonical);
-      lastMirroredProductsRef.current = new Map(canonical.map(
-        product => [product.id, JSON.stringify(product)]
-      ));
+      const canonicalIds = new Set(canonical.map(product => product.id));
+      lastMirroredProductsRef.current = new Map(mergedProducts
+        .filter(product => canonicalIds.has(product.id))
+        .map(product => [product.id, JSON.stringify(product)]));
       setProducts(mergedProducts);
 
       if (resolvedState) {
