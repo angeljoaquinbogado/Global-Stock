@@ -1,5 +1,6 @@
 import { registerRootComponent } from "expo";
 
-import App from "./src/components/UnifiedApp";
+// Keep the complete native Expo experience: the browser app is not a replacement.
+import App from "./App";
 
 registerRootComponent(App);
