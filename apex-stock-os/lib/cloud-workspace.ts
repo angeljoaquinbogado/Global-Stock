@@ -65,17 +65,21 @@ export async function ensureCloudBusiness(
 
   await supabase.rpc("global_stock_accept_pending_invites");
 
-  const { data: memberships } = await supabase
+  const { data: memberships, error: membershipError } = await supabase
     .from("global_stock_members")
     .select("business_id,role,created_at")
     .eq("user_id", user.id)
     .eq("active", true)
     .order("created_at", { ascending: true })
-    .limit(1);
+    .limit(100);
 
-  const membership = memberships?.[0] as
-    | { business_id?: string }
-    | undefined;
+  // Never create another business if membership lookup is unavailable.
+  if (membershipError) return null;
+  const savedBusinessId = typeof window === "undefined" ? null :
+    window.localStorage.getItem("global-stock-active-business-id");
+  const membership = memberships?.find(item =>
+    item.business_id === savedBusinessId
+  ) ?? memberships?.[0];
 
   if (membership?.business_id) {
     const { data: business } = await supabase
