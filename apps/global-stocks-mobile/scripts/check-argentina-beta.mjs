@@ -25,6 +25,7 @@ const workspace = read("apps/global-stocks-mobile/src/components/NativeWorkspace
 const landing = read("apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
 const productForm = read("apps/global-stocks-mobile/src/components/ProductForm.tsx");
 const mobileData = read("apps/global-stocks-mobile/src/lib/data.ts");
+const nativeRates = read("apps/global-stocks-mobile/src/components/NativeCurrencies.tsx");
 const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
@@ -36,6 +37,7 @@ must(mobileEntry.includes('import App from "./App"') &&
   app.includes("NativeWorkspace") &&
   app.includes("NativeAuthLanding") &&
   workspace.includes('module: "charts"') &&
+  workspace.includes('module: "rates"') &&
   workspace.includes('module: "scan"') &&
   workspace.includes('module: "settings"') &&
   workspace.includes('module: "pos"'),
@@ -102,6 +104,12 @@ const webSectorIds = readSectorIds(sectorsWeb);
 must(nativeSectorIds.length === 21 &&
   JSON.stringify(nativeSectorIds) === JSON.stringify(webSectorIds),
   "Expo and web must keep all 21 natural business sectors aligned.");
+must(workspace.includes('<NativeCurrencies p={p} />') &&
+  nativeRates.includes('/api/fx?') &&
+  nativeRates.includes('AbortController') &&
+  nativeRates.includes('CACHE_TTL = 120_000') &&
+  nativeRates.includes('accessibilityLabel="Actualizar cotización"'),
+  "Expo must include live native currency quotes and retain its own controls.");
 must(legal.includes("/legal/cookies") &&
   privacy.includes("/legal/cookies") &&
   mobileData.includes('"industry"') &&
