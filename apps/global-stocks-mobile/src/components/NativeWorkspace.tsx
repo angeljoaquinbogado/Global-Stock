@@ -23,8 +23,9 @@ import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
 import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
 import NativePrintCenter from "./NativePrintCenter";
+import NativeCurrencies from "./NativeCurrencies";
 
-type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "activities" |
+type Module = "overview" | "pos" | "inventory" | "scan" | "charts" | "rates" | "activities" |
   "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings";
 type Palette = { bg: string; surface: string; elevated: string; border: string; text: string; muted: string; red: string; redIcon: string };
 const darkPalette: Palette = { bg: "#09090B", surface: "#171719", elevated: "#202024", border: "#313135", text: "#FAFAFA", muted: "#A3A3AE", red: "#A4000C", redIcon: "#CC1420" };
@@ -104,6 +105,7 @@ const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDash
   { module: "pos", label: "Punto de venta", icon: ShoppingCart, group: "PRINCIPAL", live: true },
   { module: "inventory", label: "Almacén", icon: Warehouse, group: "PRINCIPAL", live: true },
   { module: "charts", label: "Gráficos", icon: BarChart3, group: "ANÁLISIS", live: true },
+  { module: "rates", label: "Cotizaciones", icon: CircleDollarSign, group: "ANÁLISIS", live: true },
   { module: "activities", label: "Actividad", icon: Activity, group: "ANÁLISIS", live: true },
   { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: true },
   { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
@@ -547,6 +549,7 @@ export default function NativeWorkspace({
       {active==="inventory" ? inventory() : null}
       {active==="pos" ? pointOfSale() : null}
       {active==="charts" ? chartScreen() : null}
+      {active==="rates" ? <NativeCurrencies p={p} /> : null}
       {active==="activities" ? activityScreen() : null}
       {active==="settings" ? <NativeSettings
         client={client} business={business} userId={userId} dark={dark}
