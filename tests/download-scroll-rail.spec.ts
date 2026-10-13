@@ -32,6 +32,14 @@ test("download rail has one red indicator with exactly three fixed stops", async
   await expect(marker).toHaveAttribute("data-stage", "0", { timeout: 15_000 });
   await expect(page.getByRole("button", { name: "Subir", exact: true })).toBeDisabled();
 
+  // The arrows share the exact same three stops, not eight section-dot positions.
+  await page.getByRole("button", { name: "Bajar", exact: true }).click();
+  await expect(marker).toHaveAttribute("data-stage", "1", { timeout: 15_000 });
+  await page.getByRole("button", { name: "Bajar", exact: true }).click();
+  await expect(marker).toHaveAttribute("data-stage", "2", { timeout: 15_000 });
+  await page.getByRole("button", { name: "Subir", exact: true }).click();
+  await expect(marker).toHaveAttribute("data-stage", "1", { timeout: 15_000 });
+
   const geometry = await rail.evaluate(element => {
     const box = element.getBoundingClientRect();
     const actualY = box.top + box.height / 2;
