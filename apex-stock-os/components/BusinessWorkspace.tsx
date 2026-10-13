@@ -148,6 +148,11 @@ const OperationsCenter = dynamic(
   { ssr: false, loading: LazyModuleFallback }
 );
 
+const OnlineConnectionRequests = dynamic(
+  () => import("./OnlineConnectionRequests").then(mod => mod.OnlineConnectionRequests),
+  { ssr: false }
+);
+
 const BusinessLocationsCenter = dynamic(
   () => import("./BusinessLocationsCenter").then(mod => mod.BusinessLocationsCenter),
   { ssr: false }
@@ -4083,13 +4088,17 @@ export function BusinessWorkspace({
             )}
 
             {activeModule === "online" && (
-              <ConnectedCommerceHub
-                businessId={cloudBusinessId}
-                language={language}
-                locale={locale}
-                demoMode={demoMode}
-                onCatalogSync={importConnectedCatalog}
-              />
+              <div className="space-y-5">
+                <ConnectedCommerceHub
+                  businessId={cloudBusinessId}
+                  language={language}
+                  locale={locale}
+                  demoMode={demoMode}
+                  onCatalogSync={importConnectedCatalog}
+                />
+                {!demoMode && cloudBusinessId ?
+                  <OnlineConnectionRequests businessId={cloudBusinessId} /> : null}
+              </div>
             )}
 
             {activeModule === "inventory" && (
