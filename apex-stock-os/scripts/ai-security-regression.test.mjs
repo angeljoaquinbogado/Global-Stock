@@ -81,3 +81,29 @@ test("native and web expose Caja without duplicating Cotizaciones or bypassing s
   assert.match(web, /cashMode=\{activeModule === "cash"\}/);
   assert.match(roles, /cash: \["owner", "admin", "manager", "cashier", "sales"\]/);
 });
+
+test("atomic inventory additions from Expo and PC are tenant-safe and retryable", () => {
+  const migration = file("apex-stock-os/supabase/migrations/20261013_add_product_stock_atomic.sql");
+  const native = file("apps/global-stocks-mobile/src/components/NativeRestockPanel.tsx");
+  const workspace = file("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
+  const web = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const browserCell = file("apex-stock-os/components/StockQuantityCell.tsx");
+  const shared = file("apex-stock-os/lib/cloud-workspace.ts");
+  assert.match(migration, /SECURITY DEFINER/);
+  assert.match(migration, /global_stock_can_write\(target_business_id, 'inventory'\)/);
+  assert.match(migration, /FOR UPDATE/);
+  assert.match(migration, /global_stock_stock_movements/);
+  assert.match(migration, /global_stock_record_stock_adjustment\(/);
+  assert.match(migration, /REVOKE ALL ON FUNCTION public\.global_stock_add_product_stock/);
+  assert.match(migration, /TO authenticated/);
+  assert.match(native, /client\.rpc\("global_stock_add_product_stock"/);
+  assert.match(native, /client_operation_id: pending\.current\.key/);
+  assert.match(workspace, /Sumar stock a /);
+  assert.match(workspace, /Al carrito/);
+  assert.match(workspace, /domain: "inventory"/);
+  assert.match(browserCell, /onBlur=\{commitStock\}/);
+  assert.match(browserCell, /onAddStock\(productId, quantity, pending\.current\.key\)/);
+  assert.match(shared, /addProductStockToCloud/);
+  assert.match(web, /addStock=\{addStock\}/);
+  assert.match(web, /StockQuantityCell/);
+});
