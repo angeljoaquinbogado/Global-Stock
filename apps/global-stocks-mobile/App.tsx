@@ -593,6 +593,12 @@ function MobileApp() {
         setCart([]);
         setSearch("");
       }}
+      onReloadBusinesses={async () => {
+        if (!supabase || !user) return;
+        const list = await loadBusinesses(supabase,user.id);
+        setBusinesses(list);
+        await cacheBusinesses(user.id,list).catch(() => null);
+      }}
       onSignOut={() => void performLogout()}
       onAdd={add}
       onAdjust={adjust}
