@@ -460,15 +460,13 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                 </View>
               )}
               {!signup && (
-                <View style={{ gap: 6 }}>
-                  <Pressable accessibilityRole="button" accessibilityLabel={t.demoButton}
-                    disabled={loading} onPress={onDemo}
-                    style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}>
-                    <Text style={styles.secondaryText}>{t.demoButton}</Text>
-                    <ArrowRight size={16} color={p.red} />
-                  </Pressable>
-                  <Text style={[styles.explanation, { textAlign: "center" }]}>{t.demoNotice}</Text>
-                </View>
+                <Pressable accessibilityRole="button" accessibilityLabel={t.demoButton}
+                  disabled={loading} onPress={onDemo}
+                  style={{ alignSelf:"center", paddingVertical:6, paddingHorizontal:10 }}>
+                  <Text style={{ color:p.secondary, fontSize:11, fontWeight:"600" }}>
+                    {t.demoButton} · {language === "es" ? "sin modificar datos reales" : language === "pt" ? "sem alterar dados reais" : "no real data changes"}
+                  </Text>
+                </Pressable>
               )}
               <Pressable accessibilityRole="button"
                 onPress={() => show(signup ? "signin" : "signup")} style={styles.switchLink}>
