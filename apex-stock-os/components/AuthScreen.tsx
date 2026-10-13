@@ -11,7 +11,6 @@ import {
   Mail,
   MapPin,
   Moon,
-  Sparkles,
   Sun,
   UserRound
 } from "lucide-react";
@@ -552,25 +551,25 @@ export function AuthScreen({
   }
 
   const surfaceClass = dark
-    ? "bg-[#131116] text-white"
-    : "bg-[#FFFDFB] text-[#111114]";
+    ? "bg-[#171318] text-white"
+    : "bg-[#F9F6F2] text-[#231B1C]";
 
   const mutedClass = dark ? "text-white/65" : "text-[#5F6068]";
   const fieldClass = dark
-    ? "border-white/12 bg-white/[0.07] text-white placeholder:text-white/35 focus:bg-white/[0.10]"
-    : "border-black/12 bg-white text-[#111114] placeholder:text-[#8A8B91] shadow-[0_1px_0_rgba(0,0,0,.03)] focus:bg-white";
+    ? "border-white/25 bg-transparent text-white placeholder:text-white/35 focus:border-[#D64B58]"
+    : "border-[#B9A8A3] bg-transparent text-[#231B1C] placeholder:text-[#8A807D] focus:border-[#8F0000]";
   const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
 
   return (
-    <main className={`relative min-h-[100dvh] ${dark ? "bg-[#101015]" : "bg-[#F5F5F7]"}`}>
+    <main className={`relative min-h-[100dvh] ${dark ? "bg-[#09080B]" : "bg-[#EDE9E6]"}`}>
       <motion.section
         key="auth-ui"
         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduceMotion ? 0 : 0.32 }}
-        className="relative z-10 flex min-h-[100dvh] w-full items-center px-4 py-5 sm:px-6 lg:px-8 xl:px-12"
+        className="relative z-10 flex min-h-[100dvh] w-full items-center px-3 py-3 sm:px-4 sm:py-4 lg:px-[14px] lg:py-[14px]"
       >
-            <div className="mx-auto flex w-full max-w-[1170px] items-center justify-center">
+            <div className="mx-auto flex w-full min-w-0 items-center justify-center">
             <AuthSplitMotion mode={mode} language={language} dark={dark}>
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
@@ -586,7 +585,7 @@ export function AuthScreen({
                 duration: 0.28,
                 ease: [0.23, 1, 0.32, 1]
               }}
-              className={`relative w-full min-w-0 border-0 p-5 shadow-none sm:p-7 lg:p-[clamp(20px,2.8vw,40px)] ${surfaceClass}`}
+              className={`relative w-full min-w-0 border-0 p-5 shadow-none sm:p-7 lg:px-[clamp(26px,3vw,52px)] lg:py-5 lg:!bg-transparent ${surfaceClass}`}
             >
               <div className="mb-3 flex items-center justify-between gap-3">
                 <Logo withWordmark />
@@ -616,10 +615,10 @@ export function AuthScreen({
 
               <div
                 className={
-                  "mb-5 grid grid-cols-2 rounded-2xl border p-1 " +
+                  "mb-7 grid grid-cols-2 rounded-2xl border p-1 shadow-[inset_0_1px_3px_rgba(0,0,0,.05)] " +
                   (dark
                     ? "border-white/10 bg-white/[0.05]"
-                    : "border-black/10 bg-[#F2F2F4]")
+                    : "border-[#DDD8D5] bg-[#F0EDEB]")
                 }
               >
                 {(["signin", "signup"] as const).map((item) => {
@@ -633,13 +632,21 @@ export function AuthScreen({
                       className={
                         "relative min-h-10 rounded-xl px-4 py-2 text-[13px] font-semibold transition-colors duration-150 " +
                         (active
-                          ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.22)]"
+                          ? "text-white"
                           : dark
-                            ? "text-white/58 hover:text-white"
-                            : "text-[#5F6068] hover:text-[#111114]")
+                            ? "text-white/65 hover:text-white"
+                            : "text-[#554E4E] hover:text-[#111114]")
                       }
                     >
-                      <span>
+                      {active && (
+                        <motion.span
+                          layoutId="gs-auth-active-tab"
+                          transition={{ duration: reduceMotion ? 0 : 0.36, ease: [0.22, 1, 0.36, 1] }}
+                          className="absolute inset-0 rounded-xl bg-[#8F0000] shadow-[0_6px_18px_rgba(143,0,0,.25)]"
+                          aria-hidden="true"
+                        />
+                      )}
+                      <span className="relative z-10">
                         {item === "signin" ? labels.signIn : labels.signUp}
                       </span>
                     </button>
@@ -673,24 +680,18 @@ export function AuthScreen({
                     ease: [0.23, 1, 0.32, 1]
                   }}
                 >
-                  <div className="mb-5">
-                    <div className={`mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.17em] ${dark ? "text-[#FF3B47]" : "text-[#8F0000]"}`}>
-                      <Sparkles size={13} />
-                      {labels.ready}
-                    </div>
-                    <h1 className={`text-[1.7rem] font-semibold leading-tight tracking-[-0.045em] sm:text-[1.85rem] ${dark ? "text-white" : "text-[#111114]"}`}>
-                      {mode === "signin"
-                        ? labels.signInTitle
-                        : labels.signUpTitle}
+                  <div className="mb-6">
+                    <h1 className={`text-[1.6rem] font-semibold leading-tight tracking-[-0.045em] sm:text-[1.85rem] ${dark ? "text-white" : "text-[#251A1C]"}`}>
+                      {mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
-                    <p className={`mt-1.5 text-[13px] leading-5 ${mutedClass}`}>
+                    <p className={`mt-1.5 text-[12px] leading-5 ${mutedClass}`}>
                       {mode === "signin"
                         ? labels.signInDescription
                         : labels.signUpDescription}
                     </p>
                   </div>
 
-                  <form onSubmit={submit} className="space-y-3">
+                  <form onSubmit={submit} className="space-y-5">
                     {mode === "signup" && (
                       <div className="grid gap-3 rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/45 p-3.5">
                         <label className="block">
@@ -705,7 +706,7 @@ export function AuthScreen({
                             <input
                               value={businessName}
                               onChange={(event) => setBusinessName(event.target.value)}
-                              className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                               placeholder={signupLabels.businessNamePlaceholder}
                               autoComplete="organization"
                             />
@@ -737,7 +738,7 @@ export function AuthScreen({
                             <input
                               value={country}
                               onChange={(event) => setCountry(event.target.value)}
-                              className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                              className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                               placeholder={signupLabels.countryPlaceholder}
                               autoComplete="country-name"
                             />
@@ -752,7 +753,7 @@ export function AuthScreen({
                             value={businessDescription}
                             onChange={(event) => setBusinessDescription(event.target.value)}
                             rows={2}
-                            className={`w-full resize-none rounded-2xl border px-4 py-3 text-sm outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            className={`w-full resize-none rounded-none border-0 border-b px-4 py-3 text-sm outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                             placeholder={signupLabels.businessDescriptionPlaceholder}
                           />
                         </label>
@@ -772,7 +773,7 @@ export function AuthScreen({
                           <input
                             value={name}
                             onChange={(event) => setName(event.target.value)}
-                            className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                            className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                             placeholder={labels.namePlaceholder}
                             autoComplete="name"
                           />
@@ -792,7 +793,7 @@ export function AuthScreen({
                         <input
                           value={email}
                           onChange={(event) => setEmail(event.target.value)}
-                          className={`w-full rounded-2xl border py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-4 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                           placeholder={labels.emailPlaceholder}
                           type="email"
                           autoComplete="email"
@@ -813,7 +814,7 @@ export function AuthScreen({
                         <input
                           value={password}
                           onChange={(event) => setPassword(event.target.value)}
-                          className={`w-full rounded-2xl border py-3 pl-11 pr-12 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-4 focus:ring-[#8F0000]/10 ${fieldClass}`}
+                          className={`w-full rounded-none border-0 border-b py-3 pl-11 pr-12 text-[13px] outline-none transition focus:border-[#8F0000] focus:ring-0 ${fieldClass}`}
                           placeholder={labels.passwordPlaceholder}
                           type={showPassword ? "text" : "password"}
                           autoComplete={
@@ -870,7 +871,7 @@ export function AuthScreen({
                     <button
                       type="submit"
                       disabled={pending || (mode === "signup" && !adultConsent)}
-                      className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
+                      className="flex w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-5 py-3 text-[13px] font-semibold text-white shadow-[0_14px_42px_rgba(143,0,0,.28)] transition-colors duration-150 hover:bg-[#a40000] active:scale-[.98] disabled:cursor-not-allowed disabled:opacity-60"
                     >
                       {pending ? (
                         <Loader2 size={17} className="animate-spin" />
