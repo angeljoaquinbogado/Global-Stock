@@ -7,6 +7,7 @@ on:
     paths:
       - "apps/global-stocks-mobile/**"
       - "apex-stock-os/scripts/export-expo-to-web.mjs"
+      - "apex-stock-os/scripts/expo-parity-smoke.mjs"
       - ".github/workflows/expo-web-parity.yml"
 
 permissions:
