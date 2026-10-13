@@ -123,7 +123,7 @@ must(!workspace.includes('module: "rates"') &&
   checkout.includes('Vuelto automático') &&
   checkout.includes('client.rpc("global_stock_record_pos_sale"') &&
   checkout.includes('Confirmar cobro') &&
-  checkout.includes('receivedAmount: method === "cash" ? tendered : total') &&
+  checkout.includes('received_amount: method === "cash" ? tendered : total') &&
   !checkout.includes('Alert.alert(') &&
   !checkout.includes("confirmedPayment"),
   "Caja must allow one-step confirmed collection and stock deduction without stacked alerts.");
