@@ -90,3 +90,25 @@ test("sign-in has no scrollbars; account creation gets a branded inner scrollbar
   expect(returned.overflowY).toBe("hidden");
   expect(returned.scrollTop).toBe(0);
 });
+
+test("signup starts with identity only, before the business onboarding stage", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Registration step-one fields are checked in Chromium.");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.getByRole("button", { name: "Crear cuenta", exact: true }).first().click();
+  await expect(page.getByRole("heading", { name: "Crear cuenta", exact: true })).toBeVisible();
+
+  const register = page.locator("form").first();
+  await expect(register.locator('input[autocomplete="name"]')).toBeVisible();
+  await expect(register.locator('input[type="email"]')).toBeVisible();
+  await expect(register.locator('input[type="password"]')).toBeVisible();
+  await expect(register.locator('input[type="checkbox"]')).toHaveCount(1);
+  await expect(page.getByText("Nombre del negocio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Actividad del negocio", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("País de operación", { exact: true })).toHaveCount(0);
+  await expect(register.locator("textarea")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Continuar con Google" })).toHaveCount(0);
+  await page.getByRole("button", { name: "Iniciar sesión", exact: true }).first().click();
+  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Continuar con Google" })).toBeVisible();
+});
