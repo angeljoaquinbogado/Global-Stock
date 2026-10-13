@@ -62,6 +62,7 @@ for (const viewport of [
     await expect(page.locator('input[type="password"]')).toBeVisible();
     await expect(page.getByRole("button", { name: "Continuar con Google" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Continuar con Apple" })).toBeVisible();
+    expect(await panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(2);
     // Adding Apple must not introduce a scrollbar into the fixed auth card.
     expect(await panel.evaluate(el => getComputedStyle(el).overflowY)).toBe("hidden");
     await expect(page.getByRole("button", { name: "Crear cuenta", exact: true })).toBeVisible();
