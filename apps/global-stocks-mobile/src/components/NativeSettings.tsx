@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { BellRing, Check, CreditCard, Globe2, LockKeyhole, LogOut, Mail, MonitorSmartphone, Moon, RefreshCw, ShieldCheck, Store, Sun, UserRound } from "lucide-react-native";
 import type { Business } from "../lib/data";
@@ -136,7 +137,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
   function chooseLanguage(id: string) {
     setShowLanguage(false);
     if(id === business.locale) return;
-    Alert.alert("Idioma del negocio","Se guardará la preferencia en Supabase. Algunas pantallas nativas todavía se muestran en español mientras completamos las traducciones.",[
+    appAlerts.alert("Idioma del negocio","Se guardará la preferencia en Supabase. Algunas pantallas nativas todavía se muestran en español mientras completamos las traducciones.",[
       {text:"Cancelar",style:"cancel"},
       {text:"Guardar",onPress:()=>void update({locale:id})}
     ]);
@@ -274,7 +275,7 @@ export default function NativeSettings({ client, business, userId, dark, onTheme
       {action("Información de seguridad",()=>openLegal("/legal/security"))}
       <NativeAccountDeletion client={client} onDeleted={onSignOut} dark={dark} />
       <View style={st.line}><Text style={st.label}>Contexto del negocio compartido con Global Intelligence</Text><Text style={st.value}>{aiSharing===null?"Verificando":aiSharing?"Permitido":"No permitido"}</Text></View>
-      {aiSharing===true?action(aiSaving?"Revocando…":"Revocar autorización de IA",()=>Alert.alert("Revocar datos para IA","Global Intelligence dejará de utilizar el contexto de este negocio desde la app.",[{text:"Cancelar",style:"cancel"},{text:"Revocar",style:"destructive",onPress:()=>void revokeAiSharing()}])):null}
+      {aiSharing===true?action(aiSaving?"Revocando…":"Revocar autorización de IA",()=>appAlerts.alert("Revocar datos para IA","Global Intelligence dejará de utilizar el contexto de este negocio desde la app.",[{text:"Cancelar",style:"cancel"},{text:"Revocar",style:"destructive",onPress:()=>void revokeAiSharing()}])):null}
       <Text style={st.help}>La confirmación de edad en la app es una declaración, no una verificación de identidad. La disponibilidad legal y fiscal puede variar según el país.</Text>
     </View>
     </> : null}
