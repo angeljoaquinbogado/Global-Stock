@@ -3307,16 +3307,46 @@ textarea:focus-visible {
 .gs-auth-panel-fixed::-webkit-scrollbar {
   display: none;
 }
-/* On short-height windows or while the mobile keyboard is open, do not
-   trap the login fields: allow invisible emergency scrolling. */
-@media (max-height: 620px) {
-  .gs-auth-panel-fixed {
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-}
 @media (prefers-reduced-motion: reduce) {
   .gs-auth-panel-scroll {
     scroll-behavior: auto;
+  }
+}
+
+/* The video-reference login/register views are fixed: even switching forms
+   may not produce the previous crimson internal scrollbar or a stray seam. */
+.gs-reference-auth .gs-auth-panel-fixed {
+  overflow: hidden !important;
+  scrollbar-width: none !important;
+  overscroll-behavior: none;
+}
+.gs-reference-auth .gs-auth-panel-fixed::-webkit-scrollbar {
+  display: none !important;
+}
+.gs-auth-reference-page,
+.gs-auth-viewport {
+  overscroll-behavior: none;
+}
+@media (max-height: 700px) {
+  .gs-auth-reference-form .gs-auth-brand-row {
+    margin-bottom: 1.25rem;
+  }
+  .gs-auth-reference-form .gs-auth-reference-fields {
+    row-gap: .55rem;
+  }
+  .gs-auth-reference-form .gs-auth-reference-fields > :not([hidden]) ~ :not([hidden]) {
+    margin-top: .65rem;
+  }
+  .gs-auth-reference-form .gs-auth-google {
+    margin-top: .5rem;
+  }
+  .gs-auth-reference-form input:not([type="checkbox"]) {
+    height: 2.1rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-reference-auth,
+  .gs-reference-auth * {
+    scroll-behavior: auto !important;
   }
 }
