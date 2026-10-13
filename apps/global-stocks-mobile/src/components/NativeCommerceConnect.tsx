@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { appAlerts } from "../lib/alerts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CheckCircle2, ChevronDown, ExternalLink, Globe2, Link2, LockKeyhole, RefreshCw, ShieldCheck, Store, WifiOff } from "lucide-react-native";
 import type { Business } from "../lib/data";
@@ -131,7 +132,7 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
   }
   function deleteRequest(item:StoreRequest) {
     if(!canEdit)return;
-    Alert.alert("Eliminar solicitud","Se quitará la solicitud pendiente. No elimina productos ni pedidos.",[
+    appAlerts.alert("Eliminar solicitud","Se quitará la solicitud pendiente. No elimina productos ni pedidos.",[
       {text:"Cancelar",style:"cancel"},
       {text:"Eliminar",style:"destructive",onPress:()=>void (async()=>{
         setWorkingId(item.id);setError("");
@@ -148,7 +149,7 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
   }
   function disconnect(account:VerifiedAccount) {
     if(!canEdit)return;
-    Alert.alert("Desconectar tienda",
+    appAlerts.alert("Desconectar tienda",
       "Se desconectará únicamente esta tienda de "+display(account.provider)+". El resto de las tiendas y sus datos seguirán intactos. Revocá el permiso también desde la plataforma.",[
       {text:"Cancelar",style:"cancel"},
       {text:"Desconectar",style:"destructive",onPress:()=>void (async()=>{
