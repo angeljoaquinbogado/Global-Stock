@@ -118,7 +118,8 @@ must(!workspace.includes('module: "rates"') &&
   cash.includes('onScan={') === false &&
   cash.includes('onScan: () => void') &&
   cash.includes('global_stock_preview_cash_sale') &&
-  cash.includes('setQuote(data)') &&
+  cash.includes('setQuote({ ...data, key: quoteKey })') &&
+  cash.includes('quote?.key === quoteKey') &&
   checkout.includes('global_stock_record_pos_sale') &&
   checkout.includes('Dinero recibido') &&
   checkout.includes('Vuelto automático') &&
