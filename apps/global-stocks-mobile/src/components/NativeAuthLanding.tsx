@@ -26,7 +26,7 @@ type Stage = "welcome" | "signin" | "signup";
 type Props = {
   onSubmit: (email: string, password: string) => void;
   onRegister: (name: string, email: string, password: string, language: Language) => void;
-  onSocial: (provider: "google" | "apple") => void;
+  onSocial: (provider: "google") => void;
   registrationComplete: boolean;
   onDemo: () => void;
   loading: boolean;
@@ -443,13 +443,6 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                     {language === "es" ? "O continuá con" : language === "pt" ? "Ou continue com" : "Or continue with"}
                   </Text>
                   <View style={{ flexDirection: "row", gap: 9 }}>
-                    <Pressable accessibilityRole="button" accessibilityLabel="Continuar con Apple"
-                      disabled={loading} onPress={() => onSocial("apple")}
-                      style={({ pressed }) => [styles.socialButton,
-                        {backgroundColor:dark?"#F9F6F2":"#171318"},pressed&&styles.pressed]}>
-                      <Text style={{fontSize:23,fontWeight:"500",color:dark?"#151216":"#FFFFFF"}}>{Platform.OS === "ios" ? "\uF8FF" : "●"}</Text>
-                      <Text style={{fontSize:13,fontWeight:"800",color:dark?"#151216":"#FFFFFF"}}>Apple</Text>
-                    </Pressable>
                     <Pressable accessibilityRole="button" accessibilityLabel="Continuar con Google"
                       disabled={loading} onPress={() => onSocial("google")}
                       style={({pressed}) => [styles.socialButton,pressed&&styles.pressed]}>
