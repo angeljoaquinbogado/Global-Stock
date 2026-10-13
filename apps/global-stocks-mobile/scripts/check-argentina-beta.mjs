@@ -212,7 +212,7 @@ must(workspace.includes("<NativeBusinessManager") &&
   branchMigration.includes("global_stock_manage_integration_request") &&
   archiveGuard.includes("global_stock_guard_branch_archive"),
   "Expo needs secure multi-business, location-specific stock and safe branch archive controls.");
-must(commerce.includes("global_stock_disconnect_integration") &&
+must(commerce.includes("global_stock_disconnect_integration_account") &&
   commerce.includes("global_stock_manage_integration_request") &&
   commerce.includes("deleteRequest") &&
   commerce.includes("saveRequest"),
