@@ -6,7 +6,7 @@
     "predev": "node scripts/restore-web-entry.mjs",
     "dev": "next dev",
     "prebuild": "npm run qa:smoke && node scripts/restore-web-entry.mjs",
-    "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs scripts/fiscal-validation.test.mjs",
+    "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs scripts/fiscal-validation.test.mjs scripts/web-entry-regression.test.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
