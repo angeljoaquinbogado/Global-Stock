@@ -1500,8 +1500,13 @@ textarea:focus-visible {
   color: #111827 !important;
 }
 
-.gs-download-theme[data-download-theme="light"] .gs-download-scroll-nav > div button:not([class*="bg-[#8F0000]"]) {
-  background: #cfd4dc !important;
+/* The three rail hit areas must stay transparent. Only the single
+   crimson position indicator is visible, never extra grey dot-buttons. */
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-rail > div button {
+  background: transparent !important;
+}
+.gs-download-theme[data-download-theme="light"] .gs-download-scroll-rail > div button:hover {
+  background: rgba(143, 0, 0, .07) !important;
 }
 
 .gs-download-theme[data-download-theme="light"] .gs-public-footer p,
