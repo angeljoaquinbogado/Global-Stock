@@ -57,3 +57,23 @@ test("Argentina beta stays 18+ and public pages explain storage and marketing", 
   assert.match(privacy, /Correos de novedades/);
   assert.match(cookies, /Analíticas y seguimiento/);
 });
+
+test("native and web expose Caja without duplicating Cotizaciones or bypassing sale protection", () => {
+  const mobile = file("apps/global-stocks-mobile/src/components/NativeWorkspace.tsx");
+  const cash = file("apps/global-stocks-mobile/src/components/NativeCashRegister.tsx");
+  const checkout = file("apps/global-stocks-mobile/src/components/NativeCashCheckout.tsx");
+  const settings = file("apps/global-stocks-mobile/src/components/NativeSettings.tsx");
+  const web = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const roles = file("apex-stock-os/lib/access-control.ts");
+  assert.match(mobile, /module: "cash"/);
+  assert.match(mobile, /onScan=\{scanToCash\}/);
+  assert.doesNotMatch(mobile, /module: "rates"/);
+  assert.match(settings, /"rates","Cotizaciones"/);
+  assert.match(cash, /global_stock_promotions/);
+  assert.match(cash, /global_stock_sales/);
+  assert.match(checkout, /global_stock_record_pos_sale/);
+  assert.match(checkout, /Vuelto automático/);
+  assert.match(checkout, /operation\.current\.key/);
+  assert.match(web, /cashMode=\{activeModule === "cash"\}/);
+  assert.match(roles, /cash: \["owner", "admin", "manager", "cashier", "sales"\]/);
+});
