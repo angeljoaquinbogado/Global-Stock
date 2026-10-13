@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowRight,
@@ -17,7 +16,7 @@ import {
   UserRound,
   Zap
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
 import { GlobalPreferences, type LanguageCode } from "./GlobalPreferences";
@@ -25,11 +24,6 @@ import { BusinessTypePicker, type BusinessTypeValue } from "./BusinessTypePicker
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
 import { AuthSplitMotion } from "./AuthSplitMotion";
-
-const AuthScene = dynamic(
-  () => import("./AuthScene").then((module) => module.AuthScene),
-  { ssr: false }
-);
 
 type AuthScreenProps = {
   dark: boolean;
@@ -396,28 +390,6 @@ export function AuthScreen({
   const [showPassword, setShowPassword] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [introComplete, setIntroComplete] = useState(false);
-  const [brandVisible, setBrandVisible] = useState(false);
-
-  useEffect(() => {
-    const brandDelay = reduceMotion ? 80 : 2350;
-    const completeDelay = reduceMotion ? 950 : 6200;
-
-    const brandTimer = window.setTimeout(
-      () => setBrandVisible(true),
-      brandDelay
-    );
-    const completeTimer = window.setTimeout(
-      () => setIntroComplete(true),
-      completeDelay
-    );
-
-    return () => {
-      window.clearTimeout(brandTimer);
-      window.clearTimeout(completeTimer);
-    };
-  }, [reduceMotion]);
-
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
     if (nextMode === "signup") setAdultConsent(false);
@@ -591,115 +563,16 @@ export function AuthScreen({
   const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
 
   return (
-    <main className="relative h-[100dvh] min-h-[100svh] overflow-hidden bg-black">
-      <AuthScene active={!introComplete} panelVisible={introComplete} />
-
-      <AnimatePresence mode="wait">
-        {!introComplete ? (
-          <motion.section
-            key="brand-intro"
-            className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center px-6 text-white"
-            exit={{ opacity: 0, transform: "scale(1.02)" }}
-            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
-          >
-            <AnimatePresence>
-              {brandVisible && (
-                <motion.div
-                  initial={{
-                    opacity: 0,
-                    transform: "translate3d(0,16px,0) scale(.95)"
-                  }}
-                  animate={{
-                    opacity: 1,
-                    transform: "translate3d(0,0,0) scale(1)"
-                  }}
-                  transition={{
-                    duration: 0.3,
-                    ease: [0.23, 1, 0.32, 1]
-                  }}
-                  className="text-center"
-                >
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      transform: "scale(.94) rotate(6deg)"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      transform: "scale(1) rotate(0deg)"
-                    }}
-                    transition={{
-                      duration: 0.28,
-                      delay: 0.08,
-                      ease: [0.23, 1, 0.32, 1]
-                    }}
-                    className="mx-auto grid h-24 w-24 place-items-center rounded-[30px] border border-white/10 bg-black/45 shadow-[0_24px_72px_rgba(143,0,0,.32)] backdrop-blur-md"
-                  >
-                    <Logo className="h-16 w-16" />
-                  </motion.div>
-
-                  <motion.div
-                    initial={{
-                      opacity: 0,
-                      transform: "translate3d(0,8px,0) scaleX(.96)"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      transform: "translate3d(0,0,0) scaleX(1)"
-                    }}
-                    transition={{
-                      duration: 0.3,
-                      delay: 0.16,
-                      ease: [0.23, 1, 0.32, 1]
-                    }}
-                    className="mt-7 origin-center text-[clamp(2.55rem,7vw,6.4rem)] font-semibold leading-none tracking-[-0.045em]"
-                  >
-                    GLOBAL STOCK
-                  </motion.div>
-
-                  <motion.p
-                    key={language}
-                    initial={{
-                      opacity: 0,
-                      transform: "translate3d(0,6px,0)"
-                    }}
-                    animate={{
-                      opacity: 1,
-                      transform: "translate3d(0,0,0)"
-                    }}
-                    transition={{
-                      duration: 0.24,
-                      delay: 0.42,
-                      ease: [0.23, 1, 0.32, 1]
-                    }}
-                    className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-white/58 sm:text-base"
-                  >
-                    {labels.intro}
-                  </motion.p>
-
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.95 }}
-                    className="mt-6 inline-flex items-center gap-2 rounded-full border border-red-500/15 bg-red-950/20 px-4 py-2 text-[10px] font-bold uppercase tracking-[0.18em] text-red-200/75"
-                  >
-                    <Zap size={12} />
-                    {labels.network}
-                  </motion.div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.section>
-        ) : (
-          <motion.section
-            key="auth-ui"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.32 }}
-            className="absolute inset-0 z-20 overflow-y-auto overscroll-contain px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] sm:px-6 lg:px-8 xl:px-12"
-          >
-            <div className="mx-auto flex min-h-full w-full max-w-[1170px] items-center justify-center py-3">
-            <AuthSplitMotion mode={mode} language={language} dark={dark} onSwitch={selectMode}>
+    <main className={`relative min-h-[100dvh] ${dark ? "bg-[#101015]" : "bg-[#F5F5F7]"}`}>
+      <motion.section
+        key="auth-ui"
+        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: reduceMotion ? 0 : 0.32 }}
+        className="relative z-10 flex min-h-[100dvh] w-full items-center px-4 py-5 sm:px-6 lg:px-8 xl:px-12"
+      >
+            <div className="mx-auto flex w-full max-w-[1170px] items-center justify-center">
+            <AuthSplitMotion mode={mode} language={language} dark={dark}>
             <motion.div
               key={dark ? "dark-auth" : "light-auth"}
               initial={{
@@ -1026,9 +899,7 @@ export function AuthScreen({
             </motion.div>
             </AuthSplitMotion>
             </div>
-          </motion.section>
-        )}
-      </AnimatePresence>
+      </motion.section>
     </main>
   );
 }
