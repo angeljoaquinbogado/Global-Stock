@@ -20,3 +20,19 @@ test("original browser dashboard is preserved for rollback",async ({page})=>{
   await page.goto("/classic",{waitUntil:"domcontentloaded"});
   await expect(page.getByRole("button",{name:"Iniciar sesión",exact:true}).first()).toBeVisible({timeout:30000});
 });
+
+test("demo credentials open an isolated Expo preview without Supabase login", async ({ page }) => {
+  test.setTimeout(60000);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("button", { name: "Ya tengo una cuenta" })).toBeVisible({ timeout: 30000 });
+  await page.getByRole("button", { name: "Ya tengo una cuenta" }).click();
+
+  await expect(page.getByRole("button", { name: "Probar demo" })).toBeVisible();
+  await page.getByRole("button", { name: "Probar demo" }).click();
+  await expect(page.getByText("MODO DEMOSTRACIÓN")).toBeVisible();
+  await expect(page.getByText(/productos son ficticios/i)).toBeVisible();
+
+  await page.getByRole("button", { name: "Cerrar demostración" }).click();
+  await expect(page.getByText("Bienvenido a", { exact: false }).first()).toBeVisible();
+});
