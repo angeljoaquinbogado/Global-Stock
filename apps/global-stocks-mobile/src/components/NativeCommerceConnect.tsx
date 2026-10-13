@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CheckCircle2, ChevronDown, ExternalLink, Globe2, Link2, LockKeyhole, RefreshCw, ShieldCheck, Store, WifiOff } from "lucide-react-native";
 import type { Business } from "../lib/data";
@@ -50,6 +50,12 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
   const [error,setError] = useState("");
   const [success,setSuccess] = useState("");
   const [version,setVersion] = useState(0);
+  const [role,setRole] = useState("viewer");
+  const [editingRequest,setEditingRequest] = useState<string|null>(null);
+  const [editName,setEditName] = useState("");
+  const [editUrl,setEditUrl] = useState("");
+  const [workingId,setWorkingId] = useState<string|null>(null);
+  const canEdit=role==="owner"||role==="admin";
   const p=useMemo(()=>dark?{panel:"#19191D",tile:"#24242A",line:"#37373C",fg:"#F6F6F9",muted:"#ACADB7"}:
     {panel:"#FFF",tile:"#F2F2F5",line:"#DEDEE4",fg:"#16161B",muted:"#6C6C75"},[dark]);
   const s=useMemo(()=>styles(p),[p]);
@@ -59,12 +65,15 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
   const requiresUrl=selected==="custom"||selected==="other";
   const activeRequests=requests.filter(x=>x.status==="requested");
   const refresh=useCallback(async()=>{
-    const [{data:req,error:reqError},{data:linked,error:linkedError}]=await Promise.all([
+    const [{data:req,error:reqError},{data:linked,error:linkedError},{data:membership,error:roleError}]=await Promise.all([
       client.from("global_stock_integration_requests").select("id,provider,display_name,store_url,status,created_at").eq("business_id",business.id).order("created_at",{ascending:false}).limit(40),
-      client.from("global_stock_integration_accounts").select("id,provider,display_name,status,last_synced_at").eq("business_id",business.id).limit(50)
+      client.from("global_stock_integration_accounts").select("id,provider,display_name,status,last_synced_at").eq("business_id",business.id).limit(50),
+      client.from("global_stock_members").select("role").eq("business_id",business.id).eq("user_id",(await client.auth.getUser()).data.user?.id||"").eq("active",true).maybeSingle()
     ]);
     if(reqError)throw reqError;
     if(linkedError)throw linkedError;
+    if(roleError)throw roleError;
+    setRole(String(membership?.role||"viewer"));
     setRequests((req??[]) as StoreRequest[]);
     setConnected((linked??[]) as VerifiedAccount[]);
   },[business.id,client]);
@@ -99,6 +108,75 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
       setStoreUrl("");setCustomName("");setExpanded(false);setVersion(v=>v+1);
     }catch(err){setError(err instanceof Error?err.message:"No se pudo registrar la solicitud.");}
     finally{setSaving(false)}
+  }
+  function beginRequestEdit(item:StoreRequest) {
+    setEditingRequest(item.id);setEditName(item.display_name||display(item.provider));
+    setEditUrl(item.store_url||"");setError("");setSuccess("");
+  }
+  async function saveRequest(item:StoreRequest) {
+    if(!canEdit||workingId)return;
+    setWorkingId(item.id);setError("");setSuccess("");
+    try{
+      const origin=editUrl.trim()?publicStoreOrigin(editUrl):null;
+      if(!origin&&(item.provider==="custom"||item.provider==="other"))
+        throw new Error("Ingresá la URL pública de la tienda.");
+      const {error}=await client.rpc("global_stock_manage_integration_request",{
+        target_business_id:business.id,target_request_id:item.id,
+        action:"edit",new_display_name:editName.trim(),new_store_url:origin
+      });
+      if(error)throw error;
+      setEditingRequest(null);setSuccess("Solicitud actualizada.");setVersion(v=>v+1);
+    }catch(e){setError(e instanceof Error?e.message:"No pudimos guardar la conexión.");}
+    finally{setWorkingId(null);}
+  }
+  function deleteRequest(item:StoreRequest) {
+    if(!canEdit)return;
+    Alert.alert("Eliminar solicitud","Se quitará la solicitud pendiente. No elimina productos ni pedidos.",[
+      {text:"Cancelar",style:"cancel"},
+      {text:"Eliminar",style:"destructive",onPress:()=>void (async()=>{
+        setWorkingId(item.id);setError("");
+        try{
+          const {error}=await client.rpc("global_stock_manage_integration_request",{
+            target_business_id:business.id,target_request_id:item.id,action:"delete"
+          });
+          if(error)throw error;
+          setSuccess("Solicitud eliminada.");setVersion(v=>v+1);
+        }catch(e){setError(e instanceof Error?e.message:"No se pudo eliminar la solicitud.");}
+        finally{setWorkingId(null);}
+      })()}
+    ]);
+  }
+  function disconnect(account:VerifiedAccount) {
+    if(!canEdit)return;
+    Alert.alert("Desconectar tienda",
+      "Se desconectarán las cuentas de "+display(account.provider)+" de este negocio y se borrarán las credenciales de integración guardadas. No borra productos ni pedidos. Si autorizaste el acceso desde la plataforma, revocalo también allí.",[
+      {text:"Cancelar",style:"cancel"},
+      {text:"Desconectar",style:"destructive",onPress:()=>void (async()=>{
+        setWorkingId(account.id);setError("");setSuccess("");
+        try{
+          const {error}=await client.rpc("global_stock_disconnect_integration",{
+            target_business_id:business.id,target_provider:account.provider
+          });
+          if(error)throw error;
+          setSuccess("Conexión local eliminada y credenciales revocadas en Global Stock.");
+          setVersion(v=>v+1);
+        }catch(e){setError(e instanceof Error?e.message:"No se pudo desconectar.");}
+        finally{setWorkingId(null);}
+      })()}
+    ]);
+  }
+  async function renameAccount(item:VerifiedAccount) {
+    if(!canEdit||workingId)return;
+    setWorkingId(item.id);setError("");
+    try{
+      const name=editName.trim();
+      if(name.length<2||name.length>120)throw new Error("Ingresá un nombre válido.");
+      const {error}=await client.from("global_stock_integration_accounts")
+        .update({display_name:name}).eq("business_id",business.id).eq("id",item.id);
+      if(error)throw error;
+      setEditingRequest(null);setSuccess("Nombre de la conexión actualizado.");setVersion(v=>v+1);
+    }catch(e){setError(e instanceof Error?e.message:"No pudimos editar la conexión.");}
+    finally{setWorkingId(null);}
   }
   function openProviderDocs(){
     onOpenWeb();
@@ -136,8 +214,38 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
       <View style={s.statusLine}><Text style={s.cardTitle}>Conexiones de este negocio</Text><Pressable accessibilityRole="button" accessibilityLabel="Actualizar conexiones" onPress={()=>setVersion(v=>v+1)}><RefreshCw size={16} color={p.muted}/></Pressable></View>
       {busy&&<ActivityIndicator color="#B00F1C"/>}
       {!busy && !connected.length&&!activeRequests.length&&<Text style={s.caption}>Todavía no hay conexiones registradas.</Text>}
-      {connected.map(v=><View key={v.id} style={s.listItem}><View style={{flex:1}}><Text style={s.choiceName}>{v.display_name||display(v.provider)}</Text><Text style={s.caption}>Estado del proveedor: {v.status}</Text></View><Text style={{fontSize:11,color:v.status==="connected"?"#62C99D":p.muted}}>{v.status==="connected"?"Activa":"No activa"}</Text></View>)}
-      {activeRequests.map(v=><View key={v.id} style={s.listItem}><View style={{flex:1}}><Text style={s.choiceName}>{v.display_name||display(v.provider)}</Text><Text style={s.caption} numberOfLines={1}>{v.store_url||"Sin URL declarada"}</Text></View><Text style={s.pending}>Pendiente</Text></View>)}
+      {connected.map(v=><View key={v.id} style={{gap:9,paddingVertical:11,borderTopWidth:0.7,borderColor:p.line}}>
+        <View style={s.listItem}><View style={{flex:1}}><Text style={s.choiceName}>{v.display_name||display(v.provider)}</Text>
+          <Text style={s.caption}>Estado: {v.status} · Última sincronización: {v.last_synced_at?new Date(v.last_synced_at).toLocaleDateString("es-AR"):"No comprobada"}</Text>
+        </View><CheckCircle2 size={17} color={v.status==="connected"?"#60CB9E":p.muted}/></View>
+        {canEdit&&<View style={{flexDirection:"row",gap:8}}>
+          <Pressable accessibilityRole="button" style={[s.secondary,{flex:1}]} onPress={()=>{setEditingRequest("account:"+v.id);setEditName(v.display_name||display(v.provider));}}>
+            <Text style={s.secondaryText}>Renombrar</Text></Pressable>
+          <Pressable accessibilityRole="button" style={[s.secondary,{flex:1}]} onPress={()=>disconnect(v)} disabled={workingId===v.id}>
+            <Text style={s.secondaryText}>Desconectar</Text></Pressable>
+        </View>}
+        {editingRequest==="account:"+v.id&&<View style={{gap:8}}>
+          <TextInput style={s.input} accessibilityLabel="Nuevo nombre de conexión" value={editName} onChangeText={setEditName} maxLength={120}/>
+          <Pressable accessibilityRole="button" style={s.action} onPress={()=>void renameAccount(v)}><Text style={s.actionText}>Guardar nombre</Text></Pressable>
+          <Text style={s.caption}>Para cambiar URL o permisos de una cuenta verificada, desconectá y volvé a autorizarla.</Text>
+        </View>}
+      </View>)}
+      {activeRequests.map(v=><View key={v.id} style={{gap:8,paddingVertical:11,borderTopWidth:0.7,borderColor:p.line}}>
+        <View style={s.listItem}><View style={{flex:1}}><Text style={s.choiceName}>{v.display_name||display(v.provider)}</Text>
+          <Text style={s.caption} numberOfLines={2}>{v.store_url||"Sin URL declarada"} · Pendiente</Text></View>
+        </View>
+        {canEdit&&<View style={{flexDirection:"row",gap:8}}>
+          <Pressable accessibilityRole="button" onPress={()=>beginRequestEdit(v)} style={[s.secondary,{flex:1}]}><Text style={s.secondaryText}>Editar</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={()=>deleteRequest(v)} disabled={workingId===v.id} style={[s.secondary,{flex:1}]}><Text style={s.secondaryText}>Eliminar</Text></Pressable>
+        </View>}
+        {editingRequest===v.id&&<View style={{gap:8}}>
+          <TextInput style={s.input} accessibilityLabel="Nombre de la conexión" value={editName} onChangeText={setEditName} maxLength={120}/>
+          <TextInput style={s.input} accessibilityLabel="URL de tienda a corregir" value={editUrl} onChangeText={setEditUrl}
+            autoCapitalize="none" autoCorrect={false} keyboardType="url" maxLength={500}/>
+          <Pressable accessibilityRole="button" onPress={()=>void saveRequest(v)} style={s.action}>
+            <Text style={s.actionText}>Guardar cambios</Text></Pressable>
+        </View>}
+      </View>)}
     </View>
     <Text style={s.footer}>La beta Argentina admite solicitudes para sitios de cualquier país, pero una conexión efectiva requiere API compatible, permisos del titular, seguridad y cumplimiento de los términos de cada plataforma.</Text>
   </View>;
