@@ -561,13 +561,13 @@ export function AuthScreen({
   const iconMutedClass = dark ? "text-white/48" : "text-[#6E7078]";
 
   return (
-    <main className={`relative min-h-[100dvh] ${dark ? "bg-[#09080B]" : "bg-[#EDE9E6]"}`}>
+    <main className={`gs-auth-viewport relative h-[100dvh] overflow-hidden ${dark ? "bg-[#09080B]" : "bg-[#EDE9E6]"}`}>
       <motion.section
         key="auth-ui"
         initial={reduceMotion ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: reduceMotion ? 0 : 0.32 }}
-        className="relative z-10 flex min-h-[100dvh] w-full items-center px-3 py-3 sm:px-4 sm:py-4 lg:px-[14px] lg:py-[14px]"
+        className="relative z-10 flex h-full min-h-0 w-full items-center overflow-hidden px-3 py-3 sm:px-4 sm:py-4 lg:px-[14px] lg:py-[14px]"
       >
             <div className="mx-auto flex w-full min-w-0 items-center justify-center">
             <AuthSplitMotion mode={mode} language={language} dark={dark}>
