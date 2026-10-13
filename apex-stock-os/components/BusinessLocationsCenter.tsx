@@ -34,6 +34,7 @@ export function BusinessLocationsCenter({ businessId, currency }: {
   const [locations, setLocations] = useState<LocationRow[]>([]);
   const [levels, setLevels] = useState<StockRow[]>([]);
   const [products, setProducts] = useState<ProductRow[]>([]);
+  const [sales, setSales] = useState<Array<{ location_id:string|null; total:number }>>([]);
   const [role, setRole] = useState("viewer");
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -71,7 +72,7 @@ export function BusinessLocationsCenter({ businessId, currency }: {
       const current = authorized.find(x => x.business_id === businessId);
       if (!current) throw new Error("No tenés acceso a este negocio.");
       const ids = authorized.map(x => x.business_id).filter(id => uuid.test(id));
-      const [allBusinesses, branchRows, levelRows, productRows] = await Promise.all([
+      const [allBusinesses, branchRows, levelRows, productRows, saleRows] = await Promise.all([
         client.from("global_stock_businesses")
           .select("id,name,business_type,base_currency,locale,owner_user_id")
           .in("id",ids).eq("active",true).limit(100),
@@ -83,16 +84,20 @@ export function BusinessLocationsCenter({ businessId, currency }: {
           .eq("business_id",businessId).limit(2001),
         client.from("global_stock_products")
           .select("id,client_key,name")
-          .eq("business_id",businessId).eq("active",true).limit(2001)
+          .eq("business_id",businessId).eq("active",true).limit(2001),
+        client.from("global_stock_sales")
+          .select("location_id,total").eq("business_id",businessId)
+          .eq("status","completed").order("created_at",{ascending:false}).limit(1001)
       ]);
-      const failure=[allBusinesses,branchRows,levelRows,productRows].find(x=>x.error)?.error;
+      const failure=[allBusinesses,branchRows,levelRows,productRows,saleRows].find(x=>x.error)?.error;
       if (failure) throw failure;
       setBusinesses((allBusinesses.data ?? []) as BusinessRow[]);
       setLocations((branchRows.data ?? []) as LocationRow[]);
       setLevels((levelRows.data ?? []).slice(0,2000) as StockRow[]);
       setProducts((productRows.data ?? []).slice(0,2000) as ProductRow[]);
+      setSales((saleRows.data ?? []).slice(0,1000) as Array<{location_id:string|null;total:number}>);
       setIncomplete((levelRows.data?.length ?? 0)>2000 ||
-        (productRows.data?.length ?? 0)>2000);
+        (productRows.data?.length ?? 0)>2000 || (saleRows.data?.length ?? 0)>1000);
       setRole(current.role);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "No se pudieron cargar los locales.");
@@ -260,6 +265,8 @@ export function BusinessLocationsCenter({ businessId, currency }: {
         const stocks=levels.filter(x=>x.location_id===loc.id);
         const qty=stocks.reduce((sum,x)=>sum+Number(x.on_hand||0),0);
         const reserved=stocks.reduce((sum,x)=>sum+Number(x.reserved||0),0);
+        const branchSales=sales.filter(x=>x.location_id===loc.id);
+        const salesTotal=branchSales.reduce((sum,x)=>sum+Number(x.total||0),0);
         const selected=selectedLocation===loc.id;
         return <article key={loc.id} className="rounded-2xl border border-[var(--apex-border)] p-4">
           <div className="flex items-start justify-between gap-2">
@@ -269,6 +276,9 @@ export function BusinessLocationsCenter({ businessId, currency }: {
               <strong className="block truncate text-sm">{loc.name}</strong>
               <span className="mt-1 block text-xs text-[var(--apex-muted)]">{loc.address||"Sin dirección"}</span>
               <span className="mt-1 block text-xs text-[var(--apex-muted)]">{qty.toLocaleString("es-AR")} unidades · {reserved.toLocaleString("es-AR")} reservadas</span>
+              {branchSales.length>0&&<span className="mt-1 block text-xs text-[var(--apex-muted)]">
+                {branchSales.length} ventas recientes · {money(salesTotal,currency)}
+              </span>}
             </button>
             {loc.kind==="warehouse"?<Warehouse size={19} className="text-[#8F0000]"/>:<MapPin size={19} className="text-[#8F0000]"/>}
           </div>
@@ -319,7 +329,7 @@ export function BusinessLocationsCenter({ businessId, currency }: {
     <p className="mt-4 text-[11px] leading-5 text-[var(--apex-muted)]">
       El historial se conserva al archivar un local. Las transferencias y los cambios
       se validan en Supabase y no mezclan los inventarios de otros negocios.
-      Moneda de este negocio: {currency}. {money(0,currency)}
+      Moneda del negocio: {currency}.
     </p>
   </section>;
 }
