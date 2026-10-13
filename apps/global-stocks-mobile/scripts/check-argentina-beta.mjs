@@ -29,26 +29,23 @@ const sectorsWeb = read("apex-stock-os/components/DownloadSectorShowcase.tsx");
 const route = read("apex-stock-os/app/api/intelligence/route.ts");
 const cfg = JSON.parse(read("apps/global-stocks-mobile/app.json"));
 
-must(mobileEntry.includes('import App from "./src/components/UnifiedApp"') &&
-  unifiedShell.includes('https://globalstocks.vercel.app') &&
-  unifiedShell.includes("onShouldStartLoadWithRequest={request => navigate(request.url)}") &&
-  unifiedShell.includes("thirdPartyCookiesEnabled={false}") &&
-  unifiedShell.includes('type: "app_ready"') === false &&
-  unifiedShell.includes('message.type === "app_ready"'),
-  "Expo must render the canonical web workspace through the origin-restricted native shell.");
-must(unifiedShell.includes('type: "open_scanner"') === false &&
+// The native Expo app remains the primary mobile experience. The optional
+// shared-web bridge must never replace its native menus, widgets or offline UI.
+must(mobileEntry.includes('import App from "./App"') &&
+  !mobileEntry.includes('import App from "./src/components/UnifiedApp"') &&
+  app.includes("NativeWorkspace") &&
+  app.includes("NativeAuthLanding") &&
+  workspace.includes('module: "charts"') &&
+  workspace.includes('module: "scan"') &&
+  workspace.includes('module: "settings"') &&
+  workspace.includes('module: "pos"'),
+  "Expo must use the complete native UI, not replace it with a web wrapper.");
+must(unifiedShell.includes('https://globalstocks.vercel.app') &&
   unifiedShell.includes('message.type === "open_scanner"') &&
-  unifiedShell.includes("CameraView") &&
-  unifiedShell.includes("globalstock:native-barcode") &&
   webScanner.includes("globalstock:native-barcode") &&
-  webScanner.includes('type: "open_scanner"') &&
-  webShell.includes('type: "app_ready"'),
-  "Expo barcode bridge must call the same web lookup and confirm web readiness.");
-must(webShell.includes("UnifiedLegalGate") &&
-  webLegal.includes("global_stock_legal_acceptances") &&
-  webLegal.includes("2026-10-12-v5") &&
-  webLegal.includes("2026-10-11-ar-beta"),
-  "Both PC and Expo must run the same versioned legal consent gate.");
+  webShell.includes("UnifiedLegalGate") &&
+  webLegal.includes("2026-10-12-v5"),
+  "Shared web infrastructure remains available without replacing native screens.");
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
 must(
   landing.includes('<SafeAreaView edges={["top","bottom"]}') &&
