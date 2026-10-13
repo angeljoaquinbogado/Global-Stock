@@ -96,3 +96,31 @@ test("ecosystem keeps its clicked module selected while hover previews links", a
   assert.match(hub, /onClick=\{\(\) => onSelect\(item\.id\)\}/);
   assert.match(hub, /id="gs-ecosystem-detail"/);
 });
+
+test("desktop and Expo keep independent responsive interfaces with shared core modules", async () => {
+  const home = await source("app/page.tsx");
+  const classic = await source("app/classic/page.tsx");
+  const desktop = await source("components/BusinessWorkspace.tsx");
+  const mobileEntry = await readFile(
+    path.resolve(root, "../apps/global-stocks-mobile/index.ts"), "utf8"
+  );
+  const mobile = await readFile(
+    path.resolve(root, "../apps/global-stocks-mobile/src/components/NativeWorkspace.tsx"), "utf8"
+  );
+  assert.match(home, /import \{ ApexShell \}/);
+  assert.match(home, /return <ApexShell\s*\/>/);
+  assert.doesNotMatch(home, /redirect\s*\(/, "Desktop homepage must never redirect into Expo UI");
+  assert.match(classic, /<ApexShell\s*\/>/);
+  assert.match(mobileEntry, /import App from "\.\/App"/);
+  assert.doesNotMatch(mobileEntry, /UnifiedApp/, "Native screens must remain primary in Expo Go");
+  for (const id of [
+    "overview", "pos", "cash", "online", "inventory", "charts",
+    "purchases", "suppliers", "activities", "documents", "notes",
+    "operations", "settings"
+  ]) {
+    assert.ok(desktop.includes('{ id: "' + id + '"'),
+      "PC missing shared module: " + id);
+    assert.ok(mobile.includes('{ module: "' + id + '"'),
+      "Expo missing shared module: " + id);
+  }
+});
