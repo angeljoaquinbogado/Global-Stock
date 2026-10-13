@@ -407,6 +407,28 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
                 </>}
               </Pressable>
               {!signup && (
+                <View style={{ gap: 9 }}>
+                  <Text style={[styles.explanation, { textAlign: "center" }]}>
+                    {language === "es" ? "O continuá con" : language === "pt" ? "Ou continue com" : "Or continue with"}
+                  </Text>
+                  <View style={{ flexDirection: "row", gap: 9 }}>
+                    <Pressable accessibilityRole="button" accessibilityLabel="Continuar con Apple"
+                      disabled={loading} onPress={() => onSocial("apple")}
+                      style={({ pressed }) => [styles.socialButton,
+                        {backgroundColor:dark?"#F9F6F2":"#171318"},pressed&&styles.pressed]}>
+                      <Text style={{fontSize:17,fontWeight:"900",color:dark?"#151216":"#FFFFFF"}}>●</Text>
+                      <Text style={{fontSize:13,fontWeight:"800",color:dark?"#151216":"#FFFFFF"}}>Apple</Text>
+                    </Pressable>
+                    <Pressable accessibilityRole="button" accessibilityLabel="Continuar con Google"
+                      disabled={loading} onPress={() => onSocial("google")}
+                      style={({pressed}) => [styles.socialButton,pressed&&styles.pressed]}>
+                      <Text style={{fontSize:18,fontWeight:"800",color:"#4285F4"}}>G</Text>
+                      <Text style={[styles.secondaryText,{fontSize:13}]}>Google</Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+              {!signup && (
                 <View style={{ gap: 6 }}>
                   <Pressable accessibilityRole="button" accessibilityLabel={t.demoButton}
                     disabled={loading} onPress={onDemo}
@@ -498,6 +520,7 @@ function createStyles(p: typeof palette.dark | typeof palette.light) {
     languageSelected: { backgroundColor:p.elevated },
     languageOptionText: { fontSize:13,fontWeight:"700",color:p.title },
     switchStage: { position:"relative", overflow:"hidden", borderRadius:20 },
+    socialButton: { flex:1, minHeight:47, borderRadius:14, borderWidth:1, borderColor:p.border, backgroundColor:p.surface, flexDirection:"row", alignItems:"center", justifyContent:"center", gap:9 },
     switchCurtain: {
       position:"absolute", top:0, bottom:0, left:0, zIndex:45,
       backgroundColor:"#250A13", justifyContent:"center", alignItems:"center",
