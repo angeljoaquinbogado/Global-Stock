@@ -11,7 +11,7 @@ const lanHosts = Object.values(networkInterfaces())
   .flat()
   .filter(entry => entry && entry.family === "IPv4" && !entry.internal)
   .map(entry => entry.address)
-  .filter(ip => /^10\\.|^192\\.168\\.|^172\\.(1[6-9]|2\\d|3[01])\\./.test(ip));
+  .filter(ip => /^10\.|^192\.168\.|^172\.(1[6-9]|2\d|3[01])\./.test(ip));
 const allowedDevOrigins = [...new Set([...lanHosts, "192.168.0.7"])];
 
 // The checked-out production build is also exercised on a loopback HTTP server
