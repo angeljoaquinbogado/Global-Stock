@@ -102,9 +102,11 @@ type CachedLayout = {
 };
 
 export function DownloadScrollNavigator() {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [availableCount, setAvailableCount] = useState(sectionIds.length);
+  // The visual rail has exactly three stable stops, regardless of how many
+  // content sections or cinematic scenes are loaded in the page.
+  const [activeStage, setActiveStage] = useState<0 | 1 | 2>(0);
   const [canGoUp, setCanGoUp] = useState(false);
+  const [canGoDown, setCanGoDown] = useState(true);
   const layoutRef = useRef<CachedLayout>({ sections: [], tops: [] });
 
   const updatePosition = useCallback(() => {
@@ -119,13 +121,13 @@ export function DownloadScrollNavigator() {
       else break;
     }
 
-    const currentTop = tops[current] ?? 0;
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = maxScroll ? Math.max(0, Math.min(1, window.scrollY / maxScroll)) : 0;
+    const stage: 0 | 1 | 2 = progress < 1 / 3 ? 0 : progress < 2 / 3 ? 1 : 2;
 
-    setActiveIndex((value) => (value === current ? value : current));
-    setCanGoUp((value) => {
-      const next = current > 0 || window.scrollY - currentTop > 8;
-      return value === next ? value : next;
-    });
+    setActiveStage((previous) => previous === stage ? previous : stage);
+    setCanGoUp((previous) => previous === (window.scrollY > 8) ? previous : window.scrollY > 8);
+    setCanGoDown((previous) => previous === (window.scrollY < maxScroll - 8) ? previous : window.scrollY < maxScroll - 8);
   }, []);
 
   const measureLayout = useCallback(() => {
@@ -138,11 +140,6 @@ export function DownloadScrollNavigator() {
         Math.max(0, getDocumentTop(section) - offset)
       )
     };
-
-    setAvailableCount((value) => {
-      const next = sections.length || sectionIds.length;
-      return value === next ? value : next;
-    });
 
     updatePosition();
   }, [updatePosition]);
@@ -302,8 +299,20 @@ export function DownloadScrollNavigator() {
       else break;
     }
 
-    goToSection(current + 1);
+    if (current >= sections.length - 1) {
+      scrollToTop(document.documentElement.scrollHeight - window.innerHeight);
+    } else {
+      goToSection(current + 1);
+    }
   }, [goToSection, scrollToTop]);
+
+  const goToRailStage = useCallback((stage: 0 | 1 | 2) => {
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    // Three real destinations: beginning, midpoint, and page end.
+    // Unlike the former section-dot navigation these positions never move
+    // relative to one another when a section is loaded asynchronously.
+    scrollToTop(stage === 0 ? 0 : stage === 1 ? maxScroll / 2 : maxScroll);
+  }, [scrollToTop]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -367,28 +376,36 @@ export function DownloadScrollNavigator() {
         <ChevronUp size={16} />
       </button>
 
-      <div className="flex flex-col items-center gap-1.5 rounded-full border border-[#342025] bg-black/55 px-2 py-3 backdrop-blur">
-        {sectionIds.slice(0, availableCount).map((id, index) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => goToSection(index)}
-            className={
-              "rounded-full transition-all duration-200 " +
-              (index === activeIndex
-                ? "h-5 w-1.5 bg-[#8F0000]"
-                : "h-1.5 w-1.5 bg-white/25 hover:bg-white/50")
-            }
-            aria-current={index === activeIndex ? "true" : undefined}
-            aria-label={"Ir a sección " + (index + 1)}
-          />
-        ))}
+      <div data-testid="download-scroll-rail"
+        className="gs-download-scroll-rail relative h-[108px] w-[28px] shrink-0 overflow-hidden rounded-full border border-[#342025] bg-black/55 shadow-sm backdrop-blur">
+        <span aria-hidden="true"
+          data-testid="download-scroll-indicator"
+          data-stage={activeStage}
+          className="pointer-events-none absolute left-1/2 z-10 h-[22px] w-[5px] -translate-x-1/2 rounded-full bg-[#8F0000] shadow-[0_0_8px_rgba(143,0,0,.22)] transition-[top] duration-200 ease-out motion-reduce:transition-none"
+          style={{ top: 7 + activeStage * 36 }}
+        />
+        <div className="relative z-20 grid h-full grid-rows-3">
+          {([
+            { stage: 0 as const, name: "Arriba" },
+            { stage: 1 as const, name: "Medio" },
+            { stage: 2 as const, name: "Abajo" }
+          ]).map(({ stage, name }) => (
+            <button key={stage} type="button"
+              data-testid={`download-scroll-stage-${stage}`}
+              aria-label={`Ir ${name.toLowerCase()}`}
+              aria-current={stage === activeStage ? "location" : undefined}
+              title={name}
+              onClick={() => goToRailStage(stage)}
+              className="h-9 w-full cursor-pointer bg-transparent hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[#8F0000]"
+            />
+          ))}
+        </div>
       </div>
 
       <button
         type="button"
         onClick={goNext}
-        disabled={activeIndex >= availableCount - 1}
+        disabled={!canGoDown}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Bajar"
       >
