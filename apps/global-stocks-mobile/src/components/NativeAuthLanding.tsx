@@ -4,6 +4,7 @@ import {
   ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Svg, { Path } from "react-native-svg";
 import { StatusBar } from "expo-status-bar";
 import { preferenceStorage as SecureStore } from "../lib/preference-storage";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
@@ -12,6 +13,14 @@ import {
   Globe2, LockKeyhole, Moon, ShieldCheck, Sun
 } from "lucide-react-native";
 
+function GoogleG() {
+  return <Svg width={19} height={19} viewBox="0 0 18 18" accessibilityLabel="Google">
+    <Path fill="#4285F4" d="M17.64 9.205c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.796 2.716v2.258h2.909c1.702-1.567 2.683-3.878 2.683-6.615Z"/>
+    <Path fill="#34A853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.258c-.806.54-1.835.86-3.047.86-2.344 0-4.328-1.585-5.037-3.714H.957v2.332A9 9 0 0 0 9 18Z"/>
+    <Path fill="#FBBC05" d="M3.963 10.708A5.42 5.42 0 0 1 3.682 9c0-.593.102-1.168.281-1.708V4.96H.957A9 9 0 0 0 0 9c0 1.45.347 2.824.957 4.04l3.006-2.332Z"/>
+    <Path fill="#EA4335" d="M9 3.58c1.322 0 2.508.454 3.442 1.345l2.582-2.582C13.463.89 11.427 0 9 0A9 9 0 0 0 .957 4.96l3.006 2.332C4.672 5.163 6.656 3.58 9 3.58Z"/>
+  </Svg>;
+}
 type Language = "es" | "en" | "pt";
 type Stage = "welcome" | "signin" | "signup";
 type Props = {
@@ -416,13 +425,13 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
                       disabled={loading} onPress={() => onSocial("apple")}
                       style={({ pressed }) => [styles.socialButton,
                         {backgroundColor:dark?"#F9F6F2":"#171318"},pressed&&styles.pressed]}>
-                      <Text style={{fontSize:17,fontWeight:"900",color:dark?"#151216":"#FFFFFF"}}>●</Text>
+                      <Text style={{fontSize:23,fontWeight:"500",color:dark?"#151216":"#FFFFFF"}}>{Platform.OS === "ios" ? "\uF8FF" : "●"}</Text>
                       <Text style={{fontSize:13,fontWeight:"800",color:dark?"#151216":"#FFFFFF"}}>Apple</Text>
                     </Pressable>
                     <Pressable accessibilityRole="button" accessibilityLabel="Continuar con Google"
                       disabled={loading} onPress={() => onSocial("google")}
                       style={({pressed}) => [styles.socialButton,pressed&&styles.pressed]}>
-                      <Text style={{fontSize:18,fontWeight:"800",color:"#4285F4"}}>G</Text>
+                      <GoogleG/>
                       <Text style={[styles.secondaryText,{fontSize:13}]}>Google</Text>
                     </Pressable>
                   </View>
