@@ -27,6 +27,7 @@ type Props = {
   onSubmit: (email: string, password: string) => void;
   onRegister: (name: string, email: string, password: string, language: Language) => void;
   onSocial: (provider: "google" | "apple") => void;
+  registrationComplete: boolean;
   onDemo: () => void;
   loading: boolean;
   error: string;
@@ -111,7 +112,7 @@ const palette = {
   }
 } as const;
 
-export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDemo, loading, error }: Props) {
+export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, registrationComplete, onDemo, loading, error }: Props) {
   const { height, width } = useWindowDimensions();
   const [stage, setStage] = useState<Stage>("welcome");
   const wipe = useRef(new Animated.Value(0)).current;
@@ -144,6 +145,14 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
     inputRange: [0, 1, 2],
     outputRange: [-width * 1.55, 0, width * 1.55]
   });
+
+  useEffect(() => {
+    if (registrationComplete) {
+      setStage("signin");
+      setPassword("");
+      setRevealPassword(false);
+    }
+  }, [registrationComplete]);
 
   useEffect(() => {
     let active = true;
