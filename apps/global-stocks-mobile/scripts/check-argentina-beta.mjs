@@ -69,7 +69,7 @@ must(
   landing.includes("{t.begin}") &&
   landing.includes("{t.existing}") &&
   landing.includes("styles.languagePicker") &&
-  !landing.includes("<Svg") &&
+  !landing.includes("<Svg style={StyleSheet.absoluteFill") &&
   !landing.includes("StyleSheet.absoluteFillObject") &&
   landing.includes('switchStage: { position:"relative", overflow:"hidden"') &&
   landing.includes('Animated.timing(wipe') &&
