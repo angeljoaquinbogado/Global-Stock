@@ -178,9 +178,6 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
     }catch(e){setError(e instanceof Error?e.message:"No pudimos editar la conexión.");}
     finally{setWorkingId(null);}
   }
-  function openProviderDocs(){
-    onOpenWeb();
-  }
   return <View style={{gap:15}}>
     <View style={s.header}><Globe2 size={20} color="#D21B2A"/><View style={{flex:1}}><Text style={s.title}>Conectar canales de venta</Text><Text style={s.subtitle}>Elegí la plataforma de tu tienda. Cualquier web puede solicitar su conexión.</Text></View></View>
     <View style={s.notice}><ShieldCheck size={17} color="#6CD0A8"/><Text style={s.noticeText}>Una URL no demuestra propiedad del sitio. Los accesos a productos y pedidos se habilitan solo después de OAuth, API o verificación con permisos del dueño.</Text></View>
@@ -206,7 +203,10 @@ export default function NativeCommerceConnect({client,business,dark,onOpenWeb}:P
       <Pressable accessibilityRole="button" onPress={()=>void register()} disabled={saving} style={[s.action,saving&&{opacity:0.5}]}>
         {saving?<ActivityIndicator color="#FFF"/>:<Text style={s.actionText}>Solicitar vinculación segura</Text>}
       </Pressable>
-      <Pressable accessibilityRole="button" onPress={openProviderDocs} style={s.secondary}><ExternalLink size={15} color={p.fg}/><Text style={s.secondaryText}>Administrar autorización desde la web</Text></Pressable>
+      <Pressable accessibilityRole="button" onPress={()=>setVersion(v=>v+1)} style={s.secondary}>
+        <RefreshCw size={15} color={p.fg}/><Text style={s.secondaryText}>Comprobar configuración</Text>
+      </Pressable>
+      <Text style={s.caption}>La configuración del conector no equivale a una conexión autorizada. Para dar acceso a una tienda real, el titular debe aprobar los permisos en el proveedor correspondiente.</Text>
     </View>
     {!!error&&<Text accessibilityRole="alert" style={s.error}>{error}</Text>}
     {!!success&&<Text style={s.success}>{success}</Text>}
