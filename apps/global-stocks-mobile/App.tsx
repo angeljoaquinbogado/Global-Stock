@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   AppState,
   Image,
   KeyboardAvoidingView,
@@ -14,6 +13,7 @@ import {
   TextInput,
   View
 } from "react-native";
+import { appAlerts } from "./src/lib/alerts";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { StatusBar } from "expo-status-bar";
@@ -425,7 +425,7 @@ function MobileApp() {
       setLoginViewVersion((n) => n + 1);
       await new Promise<void>((resolve) => setTimeout(resolve, 450));
     } catch (error) {
-      Alert.alert(
+      appAlerts.alert(
         "No se completó el cierre de sesión",
         error instanceof Error ? error.message : "Error de almacenamiento. Reintentá."
       );
@@ -437,7 +437,7 @@ function MobileApp() {
 
   function logout() {
     if (!supabase || signOutLock.current) return;
-    Alert.alert(
+    appAlerts.alert(
       "Cerrar sesión en este dispositivo",
       "Por privacidad, se borrarán las copias locales del inventario y los presupuestos no sincronizados de esta cuenta. Esto no elimina los datos guardados en Global Stock web. ¿Querés continuar?",
       [
@@ -490,12 +490,12 @@ function MobileApp() {
       await saveOfflineDraft(user.id, draft);
       setDrafts((items) => [draft, ...items]);
       setCart([]);
-      Alert.alert(
+      appAlerts.alert(
         "Borrador guardado en el dispositivo",
         "Esto NO es una venta cobrada, no descuenta stock ni se sincroniza automáticamente. No entregues mercadería hasta confirmar el cobro en el sistema online."
       );
     } catch (error) {
-      Alert.alert("No se guardó el borrador", error instanceof Error ? error.message : "Error de almacenamiento.");
+      appAlerts.alert("No se guardó el borrador", error instanceof Error ? error.message : "Error de almacenamiento.");
     }
   }
 
