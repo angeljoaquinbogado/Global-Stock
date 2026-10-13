@@ -1,4 +1,5 @@
 import "react-native-url-polyfill/auto";
+import { Platform } from "react-native";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { secureSessionStorage } from "./secure-session";
 
@@ -8,7 +9,7 @@ import { secureSessionStorage } from "./secure-session";
  * A local .env can override this for independent development.
  */
 const EXPECTED_SUPABASE_HOST = "yckimhbtvijmmkxukxgd.supabase.co";
-const WEB_PUBLIC_CONFIG_ENDPOINT = "https://globalstocks.vercel.app/api/mobile-config";
+const WEB_PUBLIC_CONFIG_ENDPOINT = Platform.OS === "web" ? "/api/mobile-config" : "https://globalstocks.vercel.app/api/mobile-config";
 let clientPromise: Promise<SupabaseClient> | null = null;
 
 type PublicConfig = { supabaseUrl: string; supabasePublishableKey: string };
