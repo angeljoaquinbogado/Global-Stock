@@ -582,7 +582,7 @@ export default function NativeWorkspace({
         onScan={scanToCash} onRefresh={onRefresh} onSaveDraft={onSaveDraft}
         onCompleted={(sale) => {
           for (const line of sale.lines) onAdjust(line.product_id, -line.quantity);
-          setMessage("Venta registrada en Caja: " + money(sale.total));
+          setMessage(""); // Caja displays a single inline success confirmation.
           onRefresh();
           open("cash");
         }}
