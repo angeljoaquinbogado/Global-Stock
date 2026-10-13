@@ -20,6 +20,10 @@ const kinds: Array<{ value:BusinessKind;label:string }> = [
 export default function NativeBusinessManager({client,business,businesses,userId,products,dark,onBusiness,onReload}:Props){
   const [branches,setBranches]=useState<Branch[]>([]);
   const [levels,setLevels]=useState<Level[]>([]);
+  const [salesByLocation,setSalesByLocation]=useState<Record<string,{count:number;total:number}>>({});
+  const [transferProduct,setTransferProduct]=useState<string|null>(null);
+  const [transferTo,setTransferTo]=useState<string|null>(null);
+  const [transferAmount,setTransferAmount]=useState("1");
   const [role,setRole]=useState("viewer");
   const [selectedLocation,setSelectedLocation]=useState<string|null>(null);
   const [editing,setEditing]=useState<string|null>(null);
@@ -40,7 +44,7 @@ export default function NativeBusinessManager({client,business,businesses,userId
   const canEdit=role==="owner"||role==="admin";
   const locations = branches.filter(x=>x.active);
   const refresh=useCallback(async()=>{
-    const [locations,stock,membership]=await Promise.all([
+    const [locations,stock,membership,sales]=await Promise.all([
       client.from("global_stock_locations")
         .select("id,business_id,name,kind,address,active")
         .eq("business_id",business.id).order("created_at",{ascending:true}).limit(200),
@@ -48,14 +52,26 @@ export default function NativeBusinessManager({client,business,businesses,userId
         .select("location_id,product_id,on_hand,reserved")
         .eq("business_id",business.id).range(0,9999),
       client.from("global_stock_members")
-        .select("role").eq("business_id",business.id).eq("user_id",userId).eq("active",true).maybeSingle()
+        .select("role").eq("business_id",business.id).eq("user_id",userId).eq("active",true).maybeSingle(),
+      client.from("global_stock_sales").select("location_id,total,status")
+        .eq("business_id",business.id).eq("status","completed").order("created_at",{ascending:false}).limit(1000)
     ]);
     if(locations.error)throw locations.error;
     if(stock.error)throw stock.error;
     if((stock.data??[]).length===10000)throw new Error("Hay demasiados movimientos para resumirlos de forma completa.");
     setBranches((locations.data??[]) as Branch[]);
     setLevels((stock.data??[]) as Level[]);
-    setRole(String(membership.data?.role|| (businesses.find(b=>b.id===business.id)?"viewer":"viewer")));
+    if(!sales.error){
+      const totals:Record<string,{count:number;total:number}>={};
+      for(const row of sales.data??[]){
+        const key=String(row.location_id||"unassigned");
+        if(!totals[key])totals[key]={count:0,total:0};
+        totals[key].count++;
+        totals[key].total+=Number(row.total)||0;
+      }
+      setSalesByLocation(totals);
+    }
+    setRole(String(membership.data?.role||"viewer"));
   },[client,business.id,businesses,userId]);
   useEffect(()=>{let live=true;setLoading(true);setError("");setSuccess("");setBusinessName(business.name);
     void refresh().catch(e=>{if(live)setError(e instanceof Error?e.message:"No pudimos cargar los locales.");})
@@ -66,7 +82,7 @@ export default function NativeBusinessManager({client,business,businesses,userId
     disabled={saving||disabled} onPress={run} style={{
       backgroundColor:primary?"#A90017":p.field,
       borderRadius:11,paddingHorizontal:13,paddingVertical:12,minHeight:43,
-      opacity:saving||disabled?.5:1,alignItems:"center",justifyContent:"center"}}>
+      opacity:(saving||disabled)?0.5:1,alignItems:"center",justifyContent:"center"}}>
     <Text style={{color:primary?"#FFF":p.fg,fontWeight:"700",fontSize:12}}>{label}</Text>
   </Pressable>;
   const input=(label:string,value:string,change:(value:string)=>void,limit=120)=><View style={{gap:5}}>
@@ -97,6 +113,29 @@ export default function NativeBusinessManager({client,business,businesses,userId
       if(error)throw error;
       setEditing(null);
     },editing==="new"?"Local creado.":"Local actualizado.");
+  }
+  function transferStock(source:Branch){
+    if(!canEdit||!transferProduct||!transferTo||!/^\\d{1,8}$/.test(transferAmount)) {
+      setError("Elegí un producto, un destino y una cantidad entera válida.");return;
+    }
+    const product=products.find(p=>p.id===transferProduct);
+    const quantity=Number(transferAmount);
+    const available=levels.find(l=>l.location_id===source.id&&l.product_id===transferProduct);
+    if(!product?.client_key||quantity<=0||quantity>Number(available?.on_hand||0)-Number(available?.reserved||0)||
+      source.id===transferTo){setError("No hay unidades disponibles para ese traslado.");return;}
+    Alert.alert("Confirmar traslado",
+      `Mover ${quantity} unidades de ${product.name} a otro local. No cambia el total del negocio.`,[
+      {text:"Cancelar",style:"cancel"},
+      {text:"Confirmar",onPress:()=>void run(async()=>{
+        const {error}=await client.rpc("global_stock_execute_transfer",{
+          target_business_id:business.id,from_location:source.id,to_location:transferTo,
+          target_product_key:product.client_key,transfer_quantity:quantity,
+          transfer_notes:"Traslado desde administración móvil"
+        });
+        if(error)throw error;
+        setTransferProduct(null);setTransferTo(null);setTransferAmount("1");
+      },"Transferencia registrada.")}
+    ]);
   }
   function archiveBranch(item:Branch){
     Alert.alert("Archivar local",`¿Archivar "${item.name}"? Se conserva el historial. Primero debe quedar sin stock ni reservas y tiene que existir otro local activo.`,[
@@ -199,6 +238,27 @@ export default function NativeBusinessManager({client,business,businesses,userId
               </View>;
             }):<Text style={{fontSize:11,color:p.muted}}>Sin existencias asignadas a esta sucursal.</Text>}
             {stock.length>70&&<Text style={{color:p.muted,fontSize:11}}>Mostrando los primeros 70 productos.</Text>}
+            {salesByLocation[branch.id]&&<View style={{padding:9,borderRadius:9,backgroundColor:p.tile,gap:4}}>
+              <Text style={{color:p.fg,fontSize:11,fontWeight:"700"}}>Ventas atribuidas a este local</Text>
+              <Text style={{color:p.muted,fontSize:11}}>{salesByLocation[branch.id].count} ventas · {salesByLocation[branch.id].total.toLocaleString("es-AR",{style:"currency",currency:business.base_currency})}</Text>
+              <Text style={{color:p.muted,fontSize:10}}>Resumen de las últimas 1000 ventas confirmadas del negocio.</Text>
+            </View>}
+            {canEdit&&locations.length>1&&stock.length>0&&<View style={{gap:8,padding:10,borderWidth:1,borderColor:p.border,borderRadius:11}}>
+              <Text style={{color:p.fg,fontWeight:"700",fontSize:12}}>Trasladar existencias</Text>
+              {stock.filter(level=>Number(level.on_hand)>Number(level.reserved)).slice(0,30).map(level=>{
+                const prod=products.find(p=>p.id===level.product_id);
+                return prod?.client_key?<Pressable key={level.product_id} accessibilityRole="button" onPress={()=>setTransferProduct(level.product_id)}>
+                  <Text style={{fontSize:11,color:transferProduct===level.product_id?"#DD394B":p.muted}}>{transferProduct===level.product_id?"✓ ":""}{prod.name} · {Number(level.on_hand)-Number(level.reserved)} libres</Text>
+                </Pressable>:null;
+              })}
+              <Text style={{fontSize:11,color:p.muted}}>Local de destino</Text>
+              {locations.filter(l=>l.id!==branch.id).map(l=><Pressable key={l.id} accessibilityRole="button" onPress={()=>setTransferTo(l.id)}>
+                <Text style={{fontSize:11,color:transferTo===l.id?"#DD394B":p.muted}}>{transferTo===l.id?"✓ ":""}{l.name}</Text>
+              </Pressable>)}
+              {input("Cantidad a trasladar",transferAmount,setTransferAmount,8)}
+              {action("Confirmar traslado",()=>transferStock(branch),true)}
+            </View>}
+
             {canEdit&&<View style={{flexDirection:"row",gap:8}}>
               <View style={{flex:1}}>{action("Editar",()=>openEditor(branch))}</View>
               <View style={{flex:1}}>{action("Archivar",()=>archiveBranch(branch))}</View>
