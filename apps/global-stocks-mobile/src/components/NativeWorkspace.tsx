@@ -275,7 +275,7 @@ export default function NativeWorkspace({
         return;
       }
       onAdd(candidate);
-      setMessage("Agregado a Caja: " + candidate.name);
+      setMessage("");
       setScanForCash(false);
       open("cash");
       return;
@@ -630,7 +630,7 @@ export default function NativeWorkspace({
           onOpenWeb={openWebsite}
         />
       ) : null}
-      {message ? <View style={s.hint}><Check size={13} color="#67CFA8"/><Text style={s.hintText}>{message}</Text></View> : null}
+      {message && active!=="cash" ? <View style={s.hint}><Check size={13} color="#67CFA8"/><Text style={s.hintText}>{message}</Text></View> : null}
     </ScrollView>
 
     <View style={[s.dock,{backgroundColor:p.surface}]}>
