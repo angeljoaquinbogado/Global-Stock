@@ -14,7 +14,7 @@ import {
   Check, ChevronRight, CircleDollarSign, ClipboardList, CreditCard, FileText,
   Globe2, LayoutDashboard, LogOut, Menu, Moon, PackagePlus, RefreshCw,
   ScanLine, Search, Settings2, ShieldCheck, ShoppingBag, ShoppingCart, Sparkles, Store,
-  Sun, Truck, Users, Warehouse, WifiOff, X, Plus, Minus
+  Sun, Truck, Users, Warehouse, Wallet, WifiOff, X, Plus, Minus
 } from "lucide-react-native";
 import type { Business, Product, SaleDraft, SaleLine } from "../lib/data";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
@@ -22,6 +22,7 @@ import ProductForm from "./ProductForm";
 import NativeExtraModules, { type ExtraModule } from "./NativeExtraModules";
 import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
+import NativeCashRegister from "./NativeCashRegister";
 import NativePrintCenter from "./NativePrintCenter";
 
 type Module = "overview" | "pos" | "cash" | "inventory" | "scan" | "charts" | "activities" |
@@ -102,6 +103,7 @@ function Action({ children, onPress, p, secondary, compact }: { children: React.
 const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDashboard; group: string; live: boolean }> = [
   { module: "overview", label: "Inicio", icon: LayoutDashboard, group: "PRINCIPAL", live: true },
   { module: "pos", label: "Punto de venta", icon: ShoppingCart, group: "PRINCIPAL", live: true },
+  { module: "cash", label: "Caja", icon: Wallet, group: "PRINCIPAL", live: true },
   { module: "inventory", label: "Almacén", icon: Warehouse, group: "PRINCIPAL", live: true },
   { module: "charts", label: "Gráficos", icon: BarChart3, group: "ANÁLISIS", live: true },
   { module: "activities", label: "Actividad", icon: Activity, group: "ANÁLISIS", live: true },
@@ -141,6 +143,7 @@ export default function NativeWorkspace({
   const [posSearch, setPosSearch] = useState("");
   const [message, setMessage] = useState("");
   const [scanned, setScanned] = useState(false);
+  const [scanForCash, setScanForCash] = useState(false);
   const [manualBarcode, setManualBarcode] = useState("");
   const [barcodeError, setBarcodeError] = useState("");
   const [pendingBarcode, setPendingBarcode] = useState("");
@@ -215,6 +218,7 @@ export default function NativeWorkspace({
     setManualBarcode("");
     setBarcodeError("");
     setPendingBarcode("");
+    setScanForCash(false);
     setActive("overview");
   }, [business.id]);
 
@@ -242,6 +246,12 @@ export default function NativeWorkspace({
     setActive(module);
     setMenuOpen(false);
     if (module === "scan") setScanned(false);
+    if (module !== "scan") setScanForCash(false);
+  }
+  function scanToCash() {
+    setScanForCash(true);
+    setScanned(false);
+    open("scan");
   }
   function lookupBarcode(raw: string) {
     const value = raw.trim();
@@ -251,6 +261,25 @@ export default function NativeWorkspace({
     }
     setBarcodeError("");
     setManualBarcode(value);
+    if (scanForCash) {
+      const candidate = products.find(item =>
+        item.barcode?.trim().toLowerCase() === value.toLowerCase() ||
+        item.sku?.trim().toLowerCase() === value.toLowerCase());
+      if (!candidate) {
+        setBarcodeError("Ese código no está registrado en este negocio.");
+        return;
+      }
+      if (candidate.stock <= 0 ||
+        (cart.find(line => line.product_id === candidate.id)?.quantity ?? 0) >= candidate.stock) {
+        setBarcodeError("No quedan existencias disponibles para sumar a Caja.");
+        return;
+      }
+      onAdd(candidate);
+      setMessage("Agregado a Caja: " + candidate.name);
+      setScanForCash(false);
+      open("cash");
+      return;
+    }
     // Keep leading zeroes (EAN/UPC), handle case-insensitive SKUs and
     // match only the currently selected business's inventory.
     const product = products.find(item =>
@@ -344,7 +373,7 @@ export default function NativeWorkspace({
       </View> : null}
       <View style={s.quickGrid}>
         <Pressable onPress={() => open("inventory")} style={s.quickCard} accessibilityRole="button"><Warehouse size={18} color={p.redIcon}/><Text style={s.quickText}>Almacén</Text><ArrowRight size={15} color={p.muted}/></Pressable>
-        <Pressable onPress={() => open("pos")} style={s.quickCard} accessibilityRole="button"><ShoppingCart size={18} color={p.redIcon}/><Text style={s.quickText}>Punto de venta</Text><ArrowRight size={15} color={p.muted}/></Pressable>
+        <Pressable onPress={() => open("cash")} style={s.quickCard} accessibilityRole="button"><Wallet size={18} color={p.redIcon}/><Text style={s.quickText}>Caja registradora</Text><ArrowRight size={15} color={p.muted}/></Pressable>
       </View>
     </>;
   }
@@ -546,6 +575,18 @@ export default function NativeWorkspace({
       {active==="overview" ? overview() : null}
       {active==="inventory" ? inventory() : null}
       {active==="pos" ? pointOfSale() : null}
+      {active==="cash" ? <NativeCashRegister
+        client={client} business={business} products={products}
+        cart={cart} dark={dark} online={source==="live"} refreshToken={refreshToken}
+        onAdd={onAdd} onAdjust={onAdjust}
+        onScan={scanToCash} onRefresh={onRefresh} onSaveDraft={onSaveDraft}
+        onCompleted={(sale) => {
+          for (const line of sale.lines) onAdjust(line.product_id, -line.quantity);
+          setMessage("Venta registrada en Caja: " + money(sale.total));
+          onRefresh();
+          open("cash");
+        }}
+      /> : null}
       {active==="charts" ? chartScreen() : null}
       {active==="activities" ? activityScreen() : null}
       {active==="settings" ? <NativeSettings
@@ -577,7 +618,7 @@ export default function NativeWorkspace({
         <Text style={s.meta}>O escaneá con la cámara</Text>
         {!permission ? <ActivityIndicator color={p.redIcon}/> : !permission.granted ? <Action p={p} onPress={() => void requestPermission()}>Permitir acceso a la cámara</Action> :
         <View style={s.cameraWrap}><CameraView style={{ flex: 1 }} facing="back" barcodeScannerSettings={{barcodeTypes:["ean13","ean8","upc_a","upc_e","code128","code39","qr"]}} onBarcodeScanned={scanned ? undefined : scanResult}/><View pointerEvents="none" style={s.cameraReticle}/></View>}
-        <Action p={p} secondary onPress={() => open("inventory")}>Volver al almacén</Action>
+        <Action p={p} secondary onPress={() => open(scanForCash ? "cash" : "inventory")}>{scanForCash ? "Volver a Caja" : "Volver al almacén"}</Action>
       </> : null}
       {active==="documents" ? <NativePrintCenter client={client} business={business} products={products}
         drafts={drafts} cart={cart} dark={dark} onFiscal={() => open("fiscal")} /> : null}
@@ -595,7 +636,7 @@ export default function NativeWorkspace({
     <View style={[s.dock,{backgroundColor:p.surface}]}>
       <Pressable accessibilityRole="tab" accessibilityLabel="Inicio" accessibilityState={{selected:active==="overview"}} onPress={() => open("overview")} style={s.dockTab}><Store size={18} color={active==="overview" ? p.redIcon : p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="overview"?p.redIcon:p.muted}]}>Inicio</Text></Pressable>
       <Pressable accessibilityRole="tab" accessibilityLabel="Punto de venta" accessibilityState={{selected:active==="pos"}} onPress={() => open("pos")} style={s.dockTab}><ShoppingCart size={18} color={active==="pos"?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="pos"?p.redIcon:p.muted}]}>Punto de venta</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityLabel="Escanear" accessibilityState={{selected:active==="scan"}} onPress={() => {setScanned(false);open("scan");}} style={s.scanDockTab}><View style={s.scanCircle}><ScanLine size={23} color="#FFFFFF" strokeWidth={2}/></View><Text numberOfLines={2} style={[s.dockLabel,{color:p.redIcon}]}>Escanear</Text></Pressable>
+      <Pressable accessibilityRole="tab" accessibilityLabel="Escanear" accessibilityState={{selected:active==="scan"}} onPress={() => {setScanForCash(false);setScanned(false);open("scan");}} style={s.scanDockTab}><View style={s.scanCircle}><ScanLine size={23} color="#FFFFFF" strokeWidth={2}/></View><Text numberOfLines={2} style={[s.dockLabel,{color:p.redIcon}]}>Escanear</Text></Pressable>
       <Pressable accessibilityRole="tab" accessibilityLabel="Almacén" accessibilityState={{selected:active==="inventory"}} onPress={() => open("inventory")} style={s.dockTab}><Boxes size={18} color={active==="inventory"?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:active==="inventory"?p.redIcon:p.muted}]}>Almacén</Text></Pressable>
       <Pressable accessibilityRole="tab" accessibilityLabel="Menú" accessibilityState={{selected:isMenuActive}} onPress={() => setMenuOpen(true)} style={s.dockTab}><Menu size={18} color={isMenuActive?p.redIcon:p.muted}/><Text numberOfLines={2} style={[s.dockLabel,{color:isMenuActive?p.redIcon:p.muted}]}>Menú</Text></Pressable>
     </View>
