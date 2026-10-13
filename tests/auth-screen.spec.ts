@@ -133,3 +133,24 @@ for (const viewport of [
     expect(await panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(2);
   });
 }
+
+
+test("language and theme stay clear of the diagonal edge on desktop", async ({ page, browserName }) => {
+  test.skip(browserName !== "chromium", "Diagonal geometry is verified in Chromium.");
+  await page.setViewportSize({ width: 1366, height: 768 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const controls = page.getByTestId("auth-header-preferences");
+  await expect(controls).toBeVisible();
+  const stage = await page.getByTestId("auth-split-stage").boundingBox();
+  const prefs = await controls.boundingBox();
+  expect(stage).not.toBeNull();
+  expect(prefs).not.toBeNull();
+  // The curtain begins at 36% of the card's width at its upper edge.
+  expect(prefs!.x + prefs!.width).toBeLessThan(
+    stage!.x + stage!.width * 0.36 - 10
+  );
+  const logo = await page.locator(".gs-auth-reference-logo").boundingBox();
+  expect(logo).not.toBeNull();
+  expect(prefs!.x).toBeGreaterThan(logo!.x + logo!.width + 8);
+  await expect(page.getByRole("button", { name: "Cambiar tema" })).toBeVisible();
+});
