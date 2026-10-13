@@ -115,7 +115,7 @@ export default function NativeBusinessManager({client,business,businesses,userId
     },editing==="new"?"Local creado.":"Local actualizado.");
   }
   function transferStock(source:Branch){
-    if(!canEdit||!transferProduct||!transferTo||!/^\\d{1,8}$/.test(transferAmount)) {
+    if(!canEdit||!transferProduct||!transferTo||!/^\d{1,8}$/.test(transferAmount)) {
       setError("Elegí un producto, un destino y una cantidad entera válida.");return;
     }
     const product=products.find(p=>p.id===transferProduct);
