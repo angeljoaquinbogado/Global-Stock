@@ -16,6 +16,7 @@ const ALL_ROLES = [...GLOBAL_STOCK_ROLES];
 export const MODULE_ACCESS: Record<string, readonly GlobalStockRole[]> = {
   overview: ALL_ROLES,
   pos: ["owner", "admin", "manager", "cashier", "sales"],
+  cash: ["owner", "admin", "manager", "cashier", "sales"],
   online: ["owner", "admin"],
   inventory: ["owner", "admin", "manager", "warehouse", "viewer"],
   charts: ["owner", "admin", "manager", "accountant"],
