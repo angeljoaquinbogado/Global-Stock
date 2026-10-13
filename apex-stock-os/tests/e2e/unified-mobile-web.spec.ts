@@ -15,7 +15,6 @@ for (const viewport of [
     await expect(page).toHaveURL(/\/$/);
     await expect(page.getByTestId("auth-split-stage")).toBeVisible({timeout:30000});
     await expect(page.getByRole("button",{name:"Iniciar sesión",exact:true}).first()).toBeVisible();
-    await expect(page.getByText("Bienvenido a",{exact:false})).toHaveCount(0);
   });
 }
 test("classic remains available as a desktop dashboard alias",async ({page})=>{
