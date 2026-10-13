@@ -4727,6 +4727,7 @@ function OverviewModule({
 }
 
 function PosModule({
+  cashMode,
   labels,
   language,
   products,
@@ -4749,6 +4750,7 @@ function PosModule({
   sellableStockById,
   completeSale
 }: {
+  cashMode: boolean;
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   products: Product[];
@@ -4902,7 +4904,20 @@ function PosModule({
 
   return (
     <div className="space-y-5">
-      <PageIntro title={labels.posTitle} subtitle={labels.posSubtitle} />
+      <PageIntro
+        title={cashMode ? labels.nav.cash : labels.posTitle}
+        subtitle={cashMode
+          ? (language === "es"
+            ? "Escaneá artículos, aplicá promociones y calculá el vuelto antes de registrar el cobro."
+            : language === "en"
+              ? "Scan products, apply promotions and calculate change before confirming payment."
+              : language === "pt"
+                ? "Escaneie produtos, aplique promoções e calcule o troco antes de registrar o pagamento."
+                : language === "fr"
+                  ? "Scannez vos produits, appliquez les remises et calculez la monnaie."
+                  : "Produkte scannen, Rabatte anwenden und Rückgeld berechnen.")
+          : labels.posSubtitle}
+      />
       <WorkflowHelp {...workflowHelp[language].pos} />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
