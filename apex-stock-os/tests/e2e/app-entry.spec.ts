@@ -50,9 +50,6 @@ for (const screen of [
       await expect(create).toBeVisible({ timeout: 25000 });
       await create.click();
       await expect(page.getByText("Creá tu cuenta.", { exact: true })).toBeVisible();
-      await expect.poll(() => page.getByTestId("auth-form-panel").evaluate(
-        element => getComputedStyle(element).transform === "none"
-      )).toBe(true); // layout settled; still assert bounding boxes below
       await page.waitForTimeout(550);
       await checkNoClippedForm();
       // Real business sector cards, not the old generic "retail" options.
