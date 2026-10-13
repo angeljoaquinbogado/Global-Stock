@@ -110,16 +110,7 @@ export function DownloadScrollNavigator() {
   const layoutRef = useRef<CachedLayout>({ sections: [], tops: [] });
 
   const updatePosition = useCallback(() => {
-    const { tops } = layoutRef.current;
-    if (!tops.length) return;
-
-    const marker = window.scrollY + 2;
-    let current = 0;
-
-    for (let index = 0; index < tops.length; index += 1) {
-      if (tops[index] <= marker) current = index;
-      else break;
-    }
+    if (!layoutRef.current.tops.length) return;
 
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
     const progress = maxScroll ? Math.max(0, Math.min(1, window.scrollY / maxScroll)) : 0;
