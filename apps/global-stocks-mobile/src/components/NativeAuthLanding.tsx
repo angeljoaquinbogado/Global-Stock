@@ -109,6 +109,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
   const switchingRef = useRef(false);
   const [switching, setSwitching] = useState(false);
   const [wipeDirection, setWipeDirection] = useState<1 | -1>(1);
+  const introLogo = useRef(new Animated.Value(0)).current;
+  const introName = useRef(new Animated.Value(0)).current;
+  const introZoom = useRef(new Animated.Value(0)).current;
+  const introFade = useRef(new Animated.Value(1)).current;
+  const [introVisible, setIntroVisible] = useState(true);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dark, setDark] = useState(true);
   const [language, setLanguage] = useState<Language>("es");
@@ -130,6 +135,27 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
     inputRange: [0, 1, 2],
     outputRange: [-width * 1.55, 0, width * 1.55]
   });
+
+  useEffect(() => {
+    let active = true;
+    let runner: Animated.CompositeAnimation | null = null;
+    void AccessibilityInfo.isReduceMotionEnabled().then(reduce => {
+      if (!active) return;
+      if (reduce) { setIntroVisible(false); return; }
+      runner = Animated.sequence([
+        Animated.timing(introLogo, { toValue: 1, duration: 770, easing: Easing.out(Easing.back(1.4)), useNativeDriver: true }),
+        Animated.timing(introName, { toValue: 1, duration: 420, useNativeDriver: true }),
+        Animated.delay(550),
+        Animated.parallel([
+          Animated.timing(introName, { toValue: 0, duration: 220, useNativeDriver: true }),
+          Animated.timing(introZoom, { toValue: 1, duration: 600, easing: Easing.inOut(Easing.cubic), useNativeDriver: true })
+        ]),
+        Animated.timing(introFade, { toValue: 0, duration: 280, useNativeDriver: true })
+      ]);
+      runner.start(({ finished }) => { if (active && finished) setIntroVisible(false); });
+    }).catch(() => { if (active) setIntroVisible(false); });
+    return () => { active = false; runner?.stop(); };
+  }, [introLogo, introName, introZoom, introFade]);
 
   useEffect(() => {
     let alive = true;
@@ -435,6 +461,24 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, onDe
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      {introVisible && (
+        <Animated.View pointerEvents="auto" accessibilityLabel="Intro de Global Stock"
+          style={[StyleSheet.absoluteFillObject, { zIndex:100, backgroundColor:p.bg,
+            alignItems:"center", justifyContent:"center", opacity:introFade }]}>
+          <Animated.Image source={require("../../assets/brand-mark.png")} resizeMode="contain"
+            style={{width:Math.min(width*.48,195),height:Math.min(width*.48,195),
+              opacity:introLogo,transform:[
+                {scale:Animated.multiply(introLogo.interpolate({inputRange:[0,1],outputRange:[.2,1]}),
+                  introZoom.interpolate({inputRange:[0,1],outputRange:[1,6]}))},
+                {rotate:introLogo.interpolate({inputRange:[0,1],outputRange:["-25deg","0deg"]})}
+              ]}}/>
+          <Animated.Text style={{position:"absolute",top:"62%",fontSize:28,fontWeight:"900",
+            color:p.title,letterSpacing:-1,opacity:introName,
+            transform:[{translateY:introName.interpolate({inputRange:[0,1],outputRange:[12,0]})}]}}>
+            Global <Text style={{color:p.red}}>Stock</Text>
+          </Animated.Text>
+        </Animated.View>
+      )}
     </SafeAreaView>
   );
 }
