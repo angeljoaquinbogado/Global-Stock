@@ -61,6 +61,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#09090C"
     },
-    "backgroundColor": "#09090C"
+    "backgroundColor": "#09090C",
+    "web": {
+      "name": "Global Stock",
+      "bundler": "metro",
+      "output": "single"
+    },
+    "experiments": {
+      "baseUrl": "/native-app"
+    }
   }
 }
