@@ -359,7 +359,7 @@ export function DownloadScrollNavigator() {
     <div className="gs-download-scroll-nav fixed right-4 top-1/2 z-50 hidden -translate-y-1/2 flex-col items-center gap-2 md:flex">
       <button
         type="button"
-        onClick={goPrevious}
+        onClick={() => goToRailStage(Math.max(0, activeStage - 1) as 0 | 1 | 2)}
         disabled={!canGoUp}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Subir"
@@ -395,7 +395,7 @@ export function DownloadScrollNavigator() {
 
       <button
         type="button"
-        onClick={goNext}
+        onClick={() => goToRailStage(Math.min(2, activeStage + 1) as 0 | 1 | 2)}
         disabled={!canGoDown}
         className="grid h-9 w-9 place-items-center rounded-full border border-[#342025] bg-black/70 text-white/70 shadow-xl backdrop-blur transition enabled:hover:bg-black enabled:hover:text-white disabled:cursor-default disabled:opacity-25"
         aria-label="Bajar"
