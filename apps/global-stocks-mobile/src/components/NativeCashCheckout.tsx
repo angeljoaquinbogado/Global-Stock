@@ -13,7 +13,7 @@ type Props = {
   cart: SaleLine[]; online: boolean; dark: boolean;
   onCompleted: (sale: CompletedMobileSale) => void;
   expectedTotal: number; discount: number; quoteReady: boolean;
-  canSell: boolean;
+  quoteError?: string; canSell: boolean;
 };
 const money = (v: number, currency: string) =>
   new Intl.NumberFormat("es-AR", { style: "currency", currency, maximumFractionDigits: 2 }).format(v);
@@ -31,7 +31,7 @@ function parseTendered(value: string) {
 function newKey() { return "expo-cash-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 14); }
 export default function NativeCashCheckout({
   client, business, products, cart, online, dark, onCompleted,
-  expectedTotal, discount, quoteReady, canSell
+  expectedTotal, discount, quoteReady, quoteError, canSell
 }: Props) {
   const [method, setMethod] = useState<"cash" | "transfer">("cash");
   const [received, setReceived] = useState("");
@@ -58,6 +58,7 @@ export default function NativeCashCheckout({
   const valid = cart.length > 0 && online && canSell && quoteReady &&
     Number.isFinite(total) && total > 0 && validCash && !uncertainChanged;
   const blockReason = !cart.length ? "" : !online ? "Actualizá el stock para cobrar." :
+    quoteError ? "No pudimos actualizar los descuentos. Tocá Actualizar." :
     !quoteReady ? "Comprobando Caja…" :
     !canSell ? "Esta cuenta no tiene permiso para cobrar." :
     total <= 0 ? "El importe debe ser mayor que cero." :
@@ -160,7 +161,7 @@ export default function NativeCashCheckout({
       </View>
     </View> : <View style={[s.amountBox, { backgroundColor: colors.tile }]}>
       <CreditCard size={16} color="#E5B073"/>
-      <Text style={s.small}>Comprobá que la transferencia esté acreditada en tu cuenta. Global Stock no la verifica automáticamente.</Text>
+      <Text style={s.small}>Confirmá la transferencia en tu banco antes de cobrar.</Text>
     </View>}
     {(error || blockReason) ? <Text accessibilityRole={error ? "alert" : undefined} style={s.error}>{error || blockReason}</Text> : null}
     <Pressable accessibilityRole="button" accessibilityLabel="Confirmar cobro y registrar venta"
@@ -170,7 +171,7 @@ export default function NativeCashCheckout({
         <ShieldCheck size={18} color="#FFF"/><Text style={s.confirmText}>Confirmar cobro · {money(total, business.base_currency)}</Text>
       </>}
     </Pressable>
-    <Text style={s.tiny}>Presioná solo cuando hayas recibido el pago. El stock se actualiza al confirmar.</Text>
+    <Text style={s.tiny}>Confirmá solo después de recibir el pago.</Text>
   </View>;
 }
 function styles(p: { surface: string; tile: string; border: string; text: string; muted: string }) {
