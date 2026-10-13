@@ -5,7 +5,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
-import * as SecureStore from "expo-secure-store";
+import { preferenceStorage as SecureStore } from "../lib/preference-storage";
 import { SUPPORT_EMAIL, supportEmailUrl } from "../lib/support";
 import {
   ArrowLeft, ArrowRight, Check, ChevronDown, Eye, EyeOff,
