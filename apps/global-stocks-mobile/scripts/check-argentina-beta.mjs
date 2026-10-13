@@ -117,7 +117,8 @@ must(!workspace.includes('module: "rates"') &&
   workspace.includes('active==="cash" ? <NativeCashRegister') &&
   cash.includes('onScan={') === false &&
   cash.includes('onScan: () => void') &&
-  cash.includes('global_stock_promotions') &&
+  cash.includes('global_stock_preview_cash_sale') &&
+  cash.includes('setQuote(data)') &&
   checkout.includes('global_stock_record_pos_sale') &&
   checkout.includes('Dinero recibido') &&
   checkout.includes('Vuelto automático') &&
