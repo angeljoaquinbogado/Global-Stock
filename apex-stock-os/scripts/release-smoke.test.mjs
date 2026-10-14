@@ -31,7 +31,10 @@ test("ecosystem has all eight modules and a responsive stage", async () => {
   assert.match(css, /\.gs-ecosystem-stage/);
   const polish = await source("app/download/visual-polish.css");
   assert.match(polish, /\.gs-ecosystem-mobile-slot--7/);
-  assert.match(polish, /\.gs-cinematic-device-stage/);
+  assert.match(polish, /\.gs-product-hero__art/);
+  const hero = await source("components/DownloadCinematicHero.tsx");
+  assert.match(hero, /global-stock-control-total\.avif/);
+  assert.doesNotMatch(hero, /\bconst scenes\b/);
 });
 
 test("native wheel scrolling and scoped keyboard navigation", async () => {
