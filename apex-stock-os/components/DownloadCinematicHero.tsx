@@ -30,8 +30,8 @@ export function DownloadCinematicHero() {
             <img
               src="/download/global-stock-control-total.avif"
               alt="Global Stock, Control total: notebook y celular mostrando ejemplos del panel de ventas, inventario y caja de la aplicación."
-              width={850}
-              height={478}
+              width={1100}
+              height={619}
               fetchPriority="high"
               decoding="async"
               className="gs-product-hero__art block h-auto w-full object-cover"
