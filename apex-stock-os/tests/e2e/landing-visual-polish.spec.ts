@@ -6,8 +6,9 @@ async function openLanding(page: import("@playwright/test").Page, width: number,
   await page.setViewportSize({ width, height });
   const response = await page.goto("/download", { waitUntil: "domcontentloaded" });
   expect(response?.ok()).toBe(true);
-  await expect(page.locator(".gs-cinematic-phone-shell")).toBeVisible({ timeout: 20_000 });
-  await expect(page.locator(".gs-cinematic-copy-surface")).toBeVisible();
+  const visual = page.getByTestId("download-product-visual");
+  await expect(visual).toBeVisible({ timeout: 20_000 });
+  await expect.poll(() => visual.evaluate((img: HTMLImageElement) => img.complete && img.naturalWidth > 0), { timeout: 20_000 }).toBe(true);
 }
 
 for (const size of [
@@ -20,17 +21,17 @@ for (const size of [
     test.setTimeout(75_000);
     await openLanding(page, size.width, size.height);
     const geometry = await page.evaluate(() => {
-      const phone = document.querySelector(".gs-cinematic-phone-shell")!.getBoundingClientRect();
-      const copy = document.querySelector(".gs-cinematic-copy-surface")!.getBoundingClientRect();
+      const visual = document.querySelector('[data-testid="download-product-visual"]')!.getBoundingClientRect();
       return {
-        overlapWidth: Math.max(0, Math.min(phone.right, copy.right) - Math.max(phone.left, copy.left)),
-        overlapHeight: Math.max(0, Math.min(phone.bottom, copy.bottom) - Math.max(phone.top, copy.top)),
+        visualLeft: visual.left,
+        visualRight: visual.right,
+        visualWidth: visual.width,
         horizontalOverflow: document.documentElement.scrollWidth - window.innerWidth
       };
     });
-    // Phones stack vertically. Tablets use side-by-side layout like desktop.
-    // In either case the actual rectangles must never intersect.
-    expect(geometry.overlapWidth * geometry.overlapHeight, "text must not cover animated phone").toBe(0);
+    expect(geometry.visualLeft).toBeGreaterThanOrEqual(-1);
+    expect(geometry.visualRight).toBeLessThanOrEqual(size.width + 1);
+    expect(geometry.visualWidth).toBeGreaterThan(260);
     expect(geometry.horizontalOverflow, "viewport should not overflow horizontally").toBeLessThanOrEqual(2);
 
     const quickTabs = page.locator(".gs-download-platform-tabs").first();
@@ -128,52 +129,16 @@ test("mobile ecosystem keeps eight interactive modules around center logo", asyn
   expect(pathAnimation).toContain("gs-ecosystem-stream");
 });
 
-test("desktop scroll hint does not cover the CTA", async ({ page }) => {
+test("single-image hero has no drifting scroll hints or four-scene controls", async ({ page }) => {
   await openLanding(page, 1280, 768);
-  const hint = await page.locator(".gs-cinematic-scroll-note").boundingBox();
-  const cta = await page.locator(".gs-cinematic-copy .gs-download-primary-action").first().boundingBox();
-  expect(hint).not.toBeNull();
-  expect(cta).not.toBeNull();
-  const intersectionWidth = Math.max(0, Math.min(hint!.x + hint!.width, cta!.x + cta!.width) - Math.max(hint!.x, cta!.x));
-  const intersectionHeight = Math.max(0, Math.min(hint!.y + hint!.height, cta!.y + cta!.height) - Math.max(hint!.y, cta!.y));
-  expect(intersectionWidth * intersectionHeight).toBe(0);
-});
-
-
-test("mobile intro advances by itself without scrolling through four screens", async ({ page }) => {
-  test.setTimeout(45_000);
-  // Autoplay must run for people who allow motion, while honoring users who
-  // explicitly request reduced motion (Playwright defaults to reduce in CI).
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await openLanding(page, 390, 844);
-  const hero = page.locator("#download-hero");
-  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
-  const layout = await hero.evaluate((node) => {
-    const handset = node.querySelector(".gs-cinematic-device-stage")?.getBoundingClientRect();
-    const narrative = node.querySelector(".gs-cinematic-copy")?.getBoundingClientRect();
-    return {
-      height: node.getBoundingClientRect().height,
-      overlapped: Boolean(
-        handset && narrative &&
-        handset.right > narrative.left && narrative.right > handset.left &&
-        handset.bottom > narrative.top && narrative.bottom > handset.top
-      )
-    };
-  });
-  // The mobile intro may be taller than one short viewport to avoid clipping
-  // its narrative; it must be compact and keep the phone and copy separate.
-  expect(layout.height).toBeLessThan(1060);
-  expect(layout.overlapped).toBe(false);
-  const initialScene = await hero.getAttribute("data-active-scene");
-  // Playback is visibility-aware and should change screens with no scroll input.
-  await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 15_000 }).not.toBe(initialScene);
-  expect(await page.evaluate(() => window.scrollY)).toBe(0);
-  const dots = hero.locator("[data-scene-dot-button]");
-  await dots.last().click();
-  await expect(hero).toHaveAttribute("data-active-scene", "3");
-  // Playwright may scroll a partially offscreen dot into view before clicking;
-  // changing the scene itself must not attempt scroll-based navigation.
-  expect(await hero.getAttribute("data-mobile-intro")).toBe("autoplay");
+  const hero = page.getByTestId("download-product-hero");
+  await expect(hero).toBeVisible();
+  await expect(hero.locator("[data-scene-dot-button]")).toHaveCount(0);
+  await expect(hero.locator(".gs-cinematic-scroll-note")).toHaveCount(0);
+  await expect(hero.getByRole("link", { name: "Abrir Global Stock" })).toBeVisible();
+  await expect(hero).not.toHaveAttribute("data-mobile-intro", /.+/);
+  const h = await hero.evaluate((node) => node.getBoundingClientRect().height);
+  expect(h).toBeLessThan(1000);
 });
 
 test("mobile metrics unfold and count when scrolled into view", async ({ page }) => {
@@ -188,38 +153,17 @@ test("mobile metrics unfold and count when scrolled into view", async ({ page })
   );
 });
 
-test("desktop cinematic remains driven by scroll, not autoplay", async ({ page }) => {
-  await openLanding(page, 1280, 768);
-  const hero = page.locator("#download-hero");
-  await expect(hero).toHaveAttribute("data-mobile-intro", "scroll");
-  const height = await hero.evaluate((node) => node.getBoundingClientRect().height);
-  expect(height).toBeGreaterThan(768 * 2);
-});
-
-
-test("mobile cinematic uses four angled poses and renders the phone at native width", async ({ page }) => {
-  test.setTimeout(35_000);
+test("premium product illustration loads as one stable responsive image", async ({ page }) => {
   await openLanding(page, 390, 844);
-  const hero = page.locator("#download-hero");
-  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
-  const device = hero.locator(".gs-phone-preview-stage-cinematic .gs-phone-preview-device");
-  const phone = hero.locator(".gs-cinematic-phone-shell");
-  const motion = hero.locator(".gs-cinematic-phone-motion");
-  await expect(device).toBeVisible();
-  await expect.poll(async () => {
-    return device.evaluate((node) => getComputedStyle(node).transform);
-  }).toBe("none");
-  const width = await phone.evaluate((node) => node.getBoundingClientRect().width);
-  expect(width).toBeGreaterThan(180);
-  const reducedMotion = await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
-  if (!reducedMotion) {
-    await expect.poll(async () => motion.evaluate((node) => getComputedStyle(node).transform), { timeout: 5000 })
-      .not.toBe("none");
-  }
-  const initialScene = await hero.getAttribute("data-active-scene");
-  if (!reducedMotion) {
-    await expect.poll(() => hero.getAttribute("data-active-scene"), { timeout: 9000 }).not.toBe(initialScene);
-  }
+  const img = page.getByTestId("download-product-visual");
+  await expect(img).toHaveAttribute("src", "/download/global-stock-control-total.avif");
+  await expect(img).toHaveJSProperty("naturalWidth", 1100);
+  const hero = page.getByTestId("download-product-hero");
+  const first = await hero.boundingBox();
+  await page.waitForTimeout(1300);
+  const after = await hero.boundingBox();
+  expect(Math.abs((after?.height ?? 0) - (first?.height ?? 0))).toBeLessThan(2);
+  await expect(hero.locator(".gs-cinematic-phone-shell")).toHaveCount(0);
 });
 
 test("mobile metric values and labels are vertically separated", async ({ page }) => {
@@ -239,115 +183,13 @@ test("mobile metric values and labels are vertically separated", async ({ page }
 });
 
 
-test("mobile hero uses polished silver chassis while desktop keeps graphite", async ({ page }) => {
-  await openLanding(page, 390, 844);
-  const hero = page.locator("#download-hero");
-  await expect(hero).toHaveAttribute("data-mobile-intro", "autoplay");
-  const frame = hero.locator(".gs-phone-preview-stage-cinematic .gs-phone-preview-device > div");
-  await expect(frame).toBeVisible();
-  const mobileFrame = await frame.evaluate((element) =>
-    getComputedStyle(element).getPropertyValue("--iphone-frame").trim()
-  );
-  expect(mobileFrame.toLowerCase()).toBe("#d8d8d3");
-  const chassis = hero.locator(".gs-cinematic-phone-motion");
-  const detail = await chassis.evaluate((element) => {
-    const style = getComputedStyle(element, "::before");
-    return { content: style.content, background: style.backgroundImage, transform: style.transform };
-  });
-  expect(detail.content).not.toBe("none");
-  expect(detail.background).toContain("linear-gradient");
-  expect(detail.transform).not.toBe("none");
-
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(hero).toHaveAttribute("data-mobile-intro", "scroll");
-  const desktopFrame = await frame.evaluate((element) =>
-    getComputedStyle(element).getPropertyValue("--iphone-frame").trim()
-  );
-  expect(desktopFrame.toLowerCase()).toBe("#343637");
-});
-
-
-test("cinematic mobile screen is readable while desktop keeps its original live preview", async ({ page }) => {
-  test.setTimeout(50_000);
-  await openLanding(page, 390, 844);
-  const hero = page.locator("#download-hero");
-  const crisp = hero.locator(".gs-cine-mobile-ui");
-  const original = hero.locator(".gs-cine-original-ui");
-  await expect(crisp).toBeVisible();
-  await expect(original).toBeHidden();
-  await expect(crisp.getByText("Centro de control")).toBeVisible();
-  await expect(crisp.locator(".gs-cine-hires-kpi-value")).toHaveCount(4);
-  const sizes = await crisp.evaluate((node) => {
-    const root = node.querySelector(".gs-cine-hires")!;
-    const title = node.querySelector(".gs-cine-hires-title")!;
-    const value = node.querySelector(".gs-cine-hires-kpi-value")!;
-    return {
-      title: parseFloat(getComputedStyle(title).fontSize),
-      value: parseFloat(getComputedStyle(value).fontSize),
-      fits: root.scrollWidth <= root.clientWidth + 1
-    };
-  });
-  expect(sizes.title).toBeGreaterThanOrEqual(13);
-  expect(sizes.value).toBeGreaterThanOrEqual(11);
-  expect(sizes.fits).toBe(true);
-  await hero.locator("[data-scene-dot-button]").nth(2).click();
-  await expect(crisp.getByText("Inventario", { exact: true }).first()).toBeVisible();
-  await page.setViewportSize({ width: 1280, height: 800 });
-  await expect(crisp).toBeHidden();
-  await expect(original).toBeVisible();
-});
-
-
-test("all three secondary mobile intro screens have readable typography", async ({ page }) => {
-  test.setTimeout(55_000);
-  // Prevent autoplay from changing the selected screen while assessing legibility.
-  await page.emulateMedia({ reducedMotion: "reduce" });
-  await openLanding(page, 390, 844);
-  const hero = page.locator("#download-hero");
-  const screen = hero.locator(".gs-cine-mobile-ui .gs-cine-hires");
-  const states = [
-    { index: 1, name: "pos", title: "Punto de venta", specific: ".gs-cine-hires-sale-summary strong" },
-    { index: 2, name: "inventory", title: "Inventario", specific: ".gs-cine-hires-product strong" },
-    { index: 3, name: "ai", title: "Global Intelligence", specific: ".gs-cine-hires-chat-answer strong" }
-  ];
-  for (const state of states) {
-    const dot = hero.locator("[data-scene-dot-button]").nth(state.index);
-    await dot.scrollIntoViewIfNeeded();
-    await dot.click();
-    await expect(hero).toHaveAttribute("data-active-scene", String(state.index));
-    await expect(screen).toHaveAttribute("data-cine-screen", state.name);
-    // Regression for Firefox: the old draggable-dot logic could override a
-    // tap with an earlier scene while the previous transition was finishing.
-    await expect.poll(() => hero.getAttribute("data-active-scene"), {
-      timeout: 2500,
-      intervals: [250, 500, 700]
-    }).toBe(String(state.index));
-    await expect(screen.locator(".gs-cine-hires-title")).toHaveText(state.title);
-    // WebKit may report the previous dashboard's computed 13px font in the
-    // same frame that React swaps the scene. Wait for actual style recalculation.
-    await expect.poll(
-      () => screen.locator(".gs-cine-hires-title").evaluate(
-        (node) => parseFloat(getComputedStyle(node).fontSize)
-      ),
-      { timeout: 6_000, intervals: [100, 250, 500] }
-    ).toBeGreaterThanOrEqual(14);
-    const reading = await screen.evaluate((node, selector) => {
-      const title = node.querySelector(".gs-cine-hires-title") as HTMLElement;
-      const subtitle = node.querySelector(".gs-cine-hires-subtitle") as HTMLElement;
-      const example = node.querySelector(selector as string) as HTMLElement;
-      const main = node.querySelector(".gs-cine-hires-main") as HTMLElement;
-      const contents = main.getBoundingClientRect();
-      const detail = example.getBoundingClientRect();
-      return {
-        title: parseFloat(getComputedStyle(title).fontSize),
-        subtitle: parseFloat(getComputedStyle(subtitle).fontSize),
-        detail: parseFloat(getComputedStyle(example).fontSize),
-        inside: detail.bottom <= contents.bottom + 2
-      };
-    }, state.specific);
-    expect(reading.title).toBeGreaterThanOrEqual(14);
-    expect(reading.subtitle).toBeGreaterThanOrEqual(10);
-    expect(reading.detail).toBeGreaterThanOrEqual(10);
-    expect(reading.inside).toBe(true);
-  }
+test("single-frame campaign stays the same while theme changes", async ({ page }) => {
+  await openLanding(page, 1366, 768);
+  const visual = page.getByTestId("download-product-visual");
+  await expect(visual).toBeVisible();
+  const src = await visual.getAttribute("src");
+  await page.getByRole("button", { name: "Usar tema oscuro" }).first().click();
+  await expect(visual).toHaveAttribute("src", src!);
+  await expect(visual).toBeVisible();
+  await expect(page.getByTestId("download-product-hero").locator("[data-scene-dot-button]")).toHaveCount(0);
 });
