@@ -1634,11 +1634,13 @@
   color: #9995a0;
 }
 @media (max-width: 639px) {
-  .gs-product-hero__frame { aspect-ratio: 1 / 1.08; }
+  /* Preserve the approved laptop AND phone together instead of cropping the
+     left handset away on portrait screens. */
+  .gs-product-hero__frame { aspect-ratio: 850 / 478; }
   .gs-product-hero__art {
-    object-fit: cover;
-    object-position: 69% center;
-    aspect-ratio: 1 / 1.08;
+    object-fit: contain;
+    object-position: center;
+    aspect-ratio: 850 / 478;
   }
   .gs-product-hero__actions { margin-top: 19px; }
 }
