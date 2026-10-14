@@ -1648,3 +1648,60 @@
   .gs-product-hero__frame,
   .gs-product-hero__art { aspect-ratio: 850 / 478; }
 }
+
+/* Download product campaign: respect native source detail instead of stretching
+   a 1672px illustration to the entire desktop. On notebook screens the full
+   composition now fits below the sticky header and the calls to action remain
+   accessible without a forced cinematic scroll. */
+.gs-product-hero__frame {
+  width: 100%;
+  max-width: 1120px;
+  margin-inline: auto;
+  aspect-ratio: 1672 / 941;
+}
+.gs-product-hero__art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1672 / 941;
+  object-fit: contain !important;
+  object-position: center;
+  image-rendering: auto;
+}
+.gs-product-hero__actions {
+  width: 100%;
+  max-width: 1120px;
+}
+@media (min-width: 768px) and (max-height: 900px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__actions {
+    max-width: min(1010px, 82vw);
+  }
+}
+@media (min-width: 768px) and (max-height: 800px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__actions {
+    max-width: min(970px, 78vw);
+  }
+}
+@media (min-width: 768px) and (max-height: 700px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__actions {
+    max-width: min(820px, 76vw);
+  }
+}
+@media (min-width: 768px) and (max-height: 600px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__actions {
+    max-width: min(690px, 73vw);
+  }
+}
+@media (max-width: 767px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__actions {
+    max-width: 100%;
+  }
+  .gs-product-hero__frame {
+    border-radius: 18px;
+  }
+}
