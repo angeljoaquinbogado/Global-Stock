@@ -19,13 +19,14 @@ export function DownloadCinematicHero() {
       className="gs-product-hero relative scroll-mt-[68px] overflow-hidden"
       aria-labelledby="download-product-hero-heading"
     >
-      <div className="gs-product-hero__inner mx-auto w-full max-w-none px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pb-12">
+      <div className="gs-product-hero__inner mx-auto w-full max-w-none">
         <h1 id="download-product-hero-heading" className="sr-only">
           Global Stock — Control total. Stock, ventas y caja en una sola app.
         </h1>
 
-        <div className="gs-product-hero__frame relative isolate mx-auto overflow-hidden rounded-[20px] border sm:rounded-[26px]">
-          <picture>
+        <div className="gs-product-hero__frame relative isolate mx-auto overflow-hidden">
+          <div className="gs-product-hero__ambient" aria-hidden="true" />
+          <picture className="gs-product-hero__picture">
             <source
               media="(min-width: 768px)"
               srcSet="/download/global-stock-control-total-4k.webp"
@@ -44,13 +45,9 @@ export function DownloadCinematicHero() {
               data-testid="download-product-visual"
             />
           </picture>
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-inset ring-white/10"
-          />
         </div>
 
-        <div className="gs-product-hero__actions mx-auto mt-5 flex flex-col items-center justify-between gap-5 sm:mt-6 sm:flex-row">
+        <div className="gs-product-hero__actions mx-auto mt-6 flex flex-col items-center justify-between gap-5 px-5 sm:mt-8 sm:flex-row sm:px-8">
           <div className="max-w-xl text-center sm:text-left">
             <p className="mb-4 text-[clamp(1.95rem,8vw,2.75rem)] font-bold leading-[.98] tracking-[-.06em] sm:hidden">
               Global Stock
@@ -80,7 +77,7 @@ export function DownloadCinematicHero() {
             </div>
           </div>
         </div>
-        <p className="gs-product-hero__trust mt-5 flex items-center justify-center gap-2 text-center text-[11px]">
+        <p className="gs-product-hero__trust mt-5 flex items-center justify-center gap-2 px-5 pb-9 text-center text-[11px] sm:pb-12">
           <ShieldCheck aria-hidden="true" size={14} />
           Beta gratuita en Argentina · Acceso protegido por usuario y negocio
         </p>
