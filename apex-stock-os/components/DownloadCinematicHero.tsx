@@ -26,6 +26,11 @@ export function DownloadCinematicHero() {
 
         <div className="gs-product-hero__frame relative isolate mx-auto overflow-hidden rounded-[20px] border sm:rounded-[26px]">
           <picture>
+            <source
+              media="(min-width: 768px)"
+              srcSet="/download/global-stock-control-total-4k.webp"
+              type="image/webp"
+            />
             <source srcSet="/download/global-stock-control-total.avif" type="image/avif" />
             <img
               src="/download/global-stock-control-total.webp"
@@ -33,6 +38,7 @@ export function DownloadCinematicHero() {
               width={1672}
               height={941}
               fetchPriority="high"
+              sizes="(max-width: 767px) 100vw, (max-height: 600px) 690px, (max-height: 700px) 820px, (max-height: 800px) 970px, 1120px"
               decoding="async"
               className="gs-product-hero__art block h-auto w-full object-contain"
               data-testid="download-product-visual"
