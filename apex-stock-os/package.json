@@ -3,15 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "predev": "node scripts/restore-web-entry.mjs",
+    "predev": "node scripts/restore-web-entry.mjs && node scripts/build-download-hero-4k.mjs",
     "dev": "next dev",
-    "prebuild": "npm run qa:smoke && node scripts/restore-web-entry.mjs",
+    "prebuild": "npm run qa:smoke && node scripts/restore-web-entry.mjs && node scripts/build-download-hero-4k.mjs",
     "qa:smoke": "node --test scripts/release-smoke.test.mjs scripts/arca-draft-guidance.test.mjs scripts/ai-security-regression.test.mjs scripts/fiscal-validation.test.mjs scripts/web-entry-regression.test.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "predev:lan": "node scripts/restore-web-entry.mjs",
+    "predev:lan": "node scripts/restore-web-entry.mjs && node scripts/build-download-hero-4k.mjs",
     "dev:lan": "next dev -H 0.0.0.0",
     "start:lan": "next start -H 0.0.0.0",
     "ui:audit": "node scripts/ui-contract-check.mjs"
