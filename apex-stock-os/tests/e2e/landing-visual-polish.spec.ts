@@ -156,8 +156,9 @@ test("mobile metrics unfold and count when scrolled into view", async ({ page })
 test("premium product illustration loads as one stable responsive image", async ({ page }) => {
   await openLanding(page, 390, 844);
   const img = page.getByTestId("download-product-visual");
-  await expect(img).toHaveAttribute("src", "/download/global-stock-control-total.avif");
-  await expect(img).toHaveJSProperty("naturalWidth", 1100);
+  await expect(img).toHaveAttribute("src", "/download/global-stock-control-total.webp");
+  await expect(page.locator("#download-hero source[type=\"image/avif\"]")).toHaveAttribute("srcset", "/download/global-stock-control-total.avif");
+  await expect(img).toHaveJSProperty("naturalWidth", 1672);
   const hero = page.getByTestId("download-product-hero");
   const first = await hero.boundingBox();
   await page.waitForTimeout(1300);
