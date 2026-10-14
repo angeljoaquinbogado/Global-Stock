@@ -1649,45 +1649,85 @@
   .gs-product-hero__art { aspect-ratio: 850 / 478; }
 }
 
-/* Full-viewport campaign composition. The 16:9 photograph is sized against
-   BOTH available width and viewport height (minus the sticky header and a
-   breathing margin). This fills notebook screens without any cover/cropping.
-   The actions remain below the photograph in the normal document flow. */
-.gs-product-hero__frame {
-  width: min(100%, calc(177.68dvh - 164px));
+/* Full-bleed Global Stock campaign.
+   Fill everything under the 68px public navigation. The actual photograph
+   stays fully visible, while a softly extended version of its own background
+   fills the letterbox area on screens wider/taller than its 1672:941 ratio.
+   No white gutters, no enlarged/cropped title, laptop or phone. */
+.gs-product-hero__inner {
+  width: 100%;
   max-width: none;
-  height: auto;
-  margin-inline: auto;
-  aspect-ratio: 1672 / 941;
+  padding: 0 !important;
+}
+.gs-product-hero__frame {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none;
+  min-height: calc(100svh - 68px);
+  height: calc(100dvh - 68px);
+  margin: 0;
+  padding: 0;
   overflow: hidden;
+  aspect-ratio: auto;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #e9d8d7;
+  box-shadow: none !important;
+}
+.gs-product-hero__ambient {
+  position: absolute;
+  z-index: 0;
+  inset: -42px;
+  background-image: url("/download/global-stock-control-total-4k.webp");
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  filter: blur(32px) saturate(.9);
+  opacity: .86;
+  pointer-events: none;
+  transform: scale(1.02);
+}
+.gs-product-hero__picture {
+  position: relative;
+  z-index: 1;
+  display: block;
+  flex: none;
+  width: min(100%, calc(177.68dvh - 120.82px));
+  height: 100%;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to right, transparent 0%, black 3.5%, black 96.5%, transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0%, black 3.5%, black 96.5%, transparent 100%);
 }
 .gs-product-hero__art {
   display: block;
   width: 100%;
   height: 100%;
-  aspect-ratio: 1672 / 941;
+  max-height: 100%;
+  aspect-ratio: auto;
   object-fit: contain !important;
-  object-position: center;
+  object-position: center center;
   image-rendering: auto;
 }
 .gs-product-hero__actions {
-  width: min(100%, 1280px);
   max-width: 1280px;
+  width: 100%;
+}
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero__frame {
+  background: #1a1115;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+@supports not (height: 1dvh) {
+  .gs-product-hero__frame { height: calc(100vh - 68px); }
+  .gs-product-hero__picture { width: min(100%, calc(177.68vh - 120.82px)); }
 }
 @media (max-width: 767px) {
-  /* Portrait phones cannot fill width AND height with one landscape photograph
-     without cropping. Prefer showing both devices and the full headline. */
-  .gs-product-hero__frame,
-  .gs-product-hero__actions {
-    width: 100%;
-    max-width: 100%;
-  }
-  .gs-product-hero__frame {
-    border-radius: 18px;
-  }
-}
-@supports not (width: 1dvh) {
-  @media (min-width: 768px) {
-    .gs-product-hero__frame { width: min(100%, calc(177.68vh - 164px)); }
-  }
+  /* Mobile keeps the complete desktop-and-phone mockup (no object-fit: cover).
+     The ambient background adapts to tall portrait screens. */
+  .gs-product-hero__picture { width: 100%; }
+  .gs-product-hero__frame { min-height: calc(100svh - 68px); }
+  .gs-product-hero__ambient { filter: blur(40px) saturate(.85); }
 }
