@@ -19,7 +19,7 @@ export function DownloadCinematicHero() {
       className="gs-product-hero relative scroll-mt-[68px] overflow-hidden"
       aria-labelledby="download-product-hero-heading"
     >
-      <div className="gs-product-hero__inner mx-auto w-full max-w-[1440px] px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pb-12">
+      <div className="gs-product-hero__inner mx-auto w-full max-w-none px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pb-12">
         <h1 id="download-product-hero-heading" className="sr-only">
           Global Stock — Control total. Stock, ventas y caja en una sola app.
         </h1>
@@ -38,7 +38,7 @@ export function DownloadCinematicHero() {
               width={1672}
               height={941}
               fetchPriority="high"
-              sizes="(max-width: 767px) 100vw, (max-height: 600px) 690px, (max-height: 700px) 820px, (max-height: 800px) 970px, 1120px"
+              sizes="(max-width: 767px) 100vw, calc(100vw - 64px)"
               decoding="async"
               className="gs-product-hero__art block h-auto w-full object-contain"
               data-testid="download-product-visual"
