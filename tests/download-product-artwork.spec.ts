@@ -30,8 +30,15 @@ for (const viewport of [
         horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth
       };
     });
-    expect(values.naturalWidth).toBe(1672);
-    expect(values.naturalHeight).toBe(941);
+    if (viewport.width >= 768) {
+      // The 4K variant is generated before Next dev/build; it is a controlled
+      // upscale of the approved image, not a claim of native 4K photography.
+      expect(values.naturalWidth).toBe(3840);
+      expect(values.naturalHeight).toBe(2160);
+    } else {
+      expect(values.naturalWidth).toBe(1672);
+      expect(values.naturalHeight).toBe(941);
+    }
     expect(values.frameWidth).toBeLessThanOrEqual(viewport.maximum + 2);
     expect(values.photoWidth).toBeLessThanOrEqual(values.naturalWidth);
     expect(values.fit).toBe("contain");
