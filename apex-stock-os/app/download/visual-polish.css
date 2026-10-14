@@ -1671,8 +1671,8 @@
   image-rendering: auto;
 }
 .gs-product-hero__actions {
-  width: min(100%, calc(177.68dvh - 164px));
-  max-width: none;
+  width: min(100%, 1280px);
+  max-width: 1280px;
 }
 @media (max-width: 767px) {
   /* Portrait phones cannot fill width AND height with one landscape photograph
@@ -1687,8 +1687,7 @@
   }
 }
 @supports not (width: 1dvh) {
-  .gs-product-hero__frame,
-  .gs-product-hero__actions {
-    width: min(100%, calc(177.68vh - 164px));
+  @media (min-width: 768px) {
+    .gs-product-hero__frame { width: min(100%, calc(177.68vh - 164px)); }
   }
 }
