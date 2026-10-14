@@ -1589,3 +1589,60 @@
   .gs-sales-mobile-chip-copy small { color: #4e586b !important; }
   .gs-sales-mobile-document-columns { color: #535a71 !important; }
 }
+
+
+/* 2026-10-14 /download: approved single-shot Global Stock product campaign.
+   No sticky multi-scene panels, no drifting metric cards or scene controls. */
+.gs-product-hero {
+  color: var(--gs-download-text, #111827);
+  background:
+    radial-gradient(ellipse at 88% 0%, rgba(143,0,0,.11), transparent 62%),
+    var(--gs-download-bg, #f6f7f9);
+}
+.gs-product-hero__frame {
+  border-color: rgba(107,83,83,.13);
+  background: #f4eded;
+  box-shadow: 0 24px 75px rgba(30,8,14,.12), 0 2px 12px rgba(30,8,14,.05);
+  aspect-ratio: 850 / 478;
+}
+.gs-product-hero__art {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 850 / 478;
+  object-fit: cover;
+  object-position: center;
+}
+.gs-product-hero__eyebrow { color: #8f0000; }
+.gs-product-hero__tagline { color: #41404b; }
+.gs-product-hero__demo,
+.gs-product-hero__trust { color: #72717a; }
+.gs-product-hero__install > button { min-height: 48px; }
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero {
+  background:
+    radial-gradient(ellipse at 87% 0%, rgba(143,0,0,.18), transparent 65%),
+    #08090c;
+}
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero__frame {
+  border-color: rgba(255,255,255,.12);
+  box-shadow: 0 25px 80px rgba(0,0,0,.47);
+}
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero__tagline {
+  color: #e1dee3;
+}
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero__demo,
+.gs-download-theme[data-download-theme="dark"] .gs-product-hero__trust {
+  color: #9995a0;
+}
+@media (max-width: 639px) {
+  .gs-product-hero__frame { aspect-ratio: 1 / 1.08; }
+  .gs-product-hero__art {
+    object-fit: cover;
+    object-position: 69% center;
+    aspect-ratio: 1 / 1.08;
+  }
+  .gs-product-hero__actions { margin-top: 19px; }
+}
+@media (min-width: 640px) and (max-width: 900px) {
+  .gs-product-hero__frame,
+  .gs-product-hero__art { aspect-ratio: 850 / 478; }
+}
