@@ -19,12 +19,12 @@ export function DownloadCinematicHero() {
       className="gs-product-hero relative scroll-mt-[68px] overflow-hidden"
       aria-labelledby="download-product-hero-heading"
     >
-      <div className="gs-product-hero__inner mx-auto w-full max-w-[1580px] px-3 pb-9 pt-5 sm:px-6 sm:pb-12 sm:pt-8 lg:px-8 lg:pb-16">
+      <div className="gs-product-hero__inner mx-auto w-full max-w-[1440px] px-4 pb-8 pt-4 sm:px-6 sm:pb-10 sm:pt-5 lg:px-8 lg:pb-12">
         <h1 id="download-product-hero-heading" className="sr-only">
           Global Stock — Control total. Stock, ventas y caja en una sola app.
         </h1>
 
-        <div className="gs-product-hero__frame relative isolate overflow-hidden rounded-[22px] border sm:rounded-[30px]">
+        <div className="gs-product-hero__frame relative isolate mx-auto overflow-hidden rounded-[20px] border sm:rounded-[26px]">
           <picture>
             <source srcSet="/download/global-stock-control-total.avif" type="image/avif" />
             <img
@@ -34,7 +34,7 @@ export function DownloadCinematicHero() {
               height={941}
               fetchPriority="high"
               decoding="async"
-              className="gs-product-hero__art block h-auto w-full object-cover"
+              className="gs-product-hero__art block h-auto w-full object-contain"
               data-testid="download-product-visual"
             />
           </picture>
@@ -44,7 +44,7 @@ export function DownloadCinematicHero() {
           />
         </div>
 
-        <div className="gs-product-hero__actions mx-auto mt-6 flex max-w-[1280px] flex-col items-center justify-between gap-5 sm:mt-7 sm:flex-row">
+        <div className="gs-product-hero__actions mx-auto mt-5 flex flex-col items-center justify-between gap-5 sm:mt-6 sm:flex-row">
           <div className="max-w-xl text-center sm:text-left">
             <p className="mb-4 text-[clamp(1.95rem,8vw,2.75rem)] font-bold leading-[.98] tracking-[-.06em] sm:hidden">
               Global Stock
@@ -74,7 +74,7 @@ export function DownloadCinematicHero() {
             </div>
           </div>
         </div>
-        <p className="gs-product-hero__trust mt-6 flex items-center justify-center gap-2 text-center text-[11px]">
+        <p className="gs-product-hero__trust mt-5 flex items-center justify-center gap-2 text-center text-[11px]">
           <ShieldCheck aria-hidden="true" size={14} />
           Beta gratuita en Argentina · Acceso protegido por usuario y negocio
         </p>
