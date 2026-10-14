@@ -46,6 +46,10 @@ export function DownloadCinematicHero() {
 
         <div className="gs-product-hero__actions mx-auto mt-6 flex max-w-[1280px] flex-col items-center justify-between gap-5 sm:mt-7 sm:flex-row">
           <div className="max-w-xl text-center sm:text-left">
+            <p className="mb-4 text-[clamp(1.95rem,8vw,2.75rem)] font-bold leading-[.98] tracking-[-.06em] sm:hidden">
+              Global Stock
+              <span className="mt-1 block font-normal italic text-[#8F0000]">Control total</span>
+            </p>
             <p className="gs-product-hero__eyebrow inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-[.22em]">
               <MonitorSmartphone aria-hidden="true" size={15} />
               Global Stock · Aplicación multiplataforma
