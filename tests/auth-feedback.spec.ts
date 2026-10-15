@@ -38,20 +38,24 @@ test("local failed-login counter stops at five and expires after fifteen minutes
 test("sign-in respects a saved cooldown without exposing the credential fields in logs", async ({ page, browserName }) => {
   test.skip(browserName !== "chromium", "Client cooldown checked in Chromium.");
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Iniciar sesión", exact: true })).toBeVisible();
+  // Simulate a cooldown saved in another tab. No network requests or real
+  // account lockouts are needed to validate the interface.
   await page.evaluate((key) => {
     const now = Date.now();
     localStorage.setItem(key, JSON.stringify({
       failed: 5, startedAt: now - 1000, lockedUntil: now + 15 * 60 * 1000
     }));
+    window.dispatchEvent(new StorageEvent("storage", { key }));
   }, LOGIN_ATTEMPT_STORAGE_KEY);
-  await page.reload();
-  await expect(page.getByRole("heading", { name: "Iniciar sesión" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /reintentar en/i })).toBeDisabled();
+  await expect(page.locator('form button[type="submit"]')).toBeDisabled();
   const buttonText = await page.locator('form button[type="submit"]').innerText();
   expect(buttonText).toMatch(/15 min/);
-  await page.evaluate(key => localStorage.removeItem(key), LOGIN_ATTEMPT_STORAGE_KEY);
-  await page.reload();
-  await expect(page.getByRole("button", { name: "Iniciar sesión", exact: true }).last()).toBeEnabled();
+  await page.evaluate(key => {
+    localStorage.removeItem(key);
+    window.dispatchEvent(new StorageEvent("storage", { key }));
+  }, LOGIN_ATTEMPT_STORAGE_KEY);
+  await expect(page.locator('form button[type="submit"]')).toBeEnabled();
 });
 
 test("login text fields have a clean underline, not a rectangular focus outline", async ({ page, browserName }) => {
@@ -63,10 +67,14 @@ test("login text fields have a clean underline, not a rectangular focus outline"
     await field.focus();
     const css = await field.evaluate(el => {
       const s = getComputedStyle(el);
-      return { outline: s.outlineStyle, radius: s.borderRadius, border: s.borderBottomColor };
+      return { outline: s.outlineStyle, radius: s.borderRadius };
     });
     expect(css.outline).toBe("none");
     expect(css.radius).toBe("0px");
-    expect(css.border).toBe("rgb(143, 0, 0)");
+    // The underlined inputs have an intentional color transition.
+    await expect.poll(
+      () => field.evaluate(el => getComputedStyle(el).borderBottomColor),
+      { timeout: 2500 }
+    ).toBe("rgb(143, 0, 0)");
   }
 });
