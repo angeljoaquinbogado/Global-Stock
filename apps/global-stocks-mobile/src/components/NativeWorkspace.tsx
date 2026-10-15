@@ -29,7 +29,7 @@ import NativeCashRegister from "./NativeCashRegister";
 import NativePrintCenter from "./NativePrintCenter";
 
 type Module = "overview" | "pos" | "cash" | "inventory" | "scan" | "charts" | "activities" |
-  "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings";
+  "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings" | "account";
 type Palette = { bg: string; surface: string; elevated: string; border: string; text: string; muted: string; red: string; redIcon: string };
 const darkPalette: Palette = { bg: "#09090B", surface: "#171719", elevated: "#202024", border: "#313135", text: "#FAFAFA", muted: "#A3A3AE", red: "#A4000C", redIcon: "#CC1420" };
 const lightPalette: Palette = { bg: "#F5F5F7", surface: "#FFFFFF", elevated: "#F1F1F4", border: "#DEDEE5", text: "#16161A", muted: "#6A6A76", red: "#8F0000", redIcon: "#A40A14" };
@@ -106,19 +106,27 @@ function Action({ children, onPress, p, secondary, compact }: { children: React.
 
 const navigation: Array<{ module: Module; label: string; icon: typeof LayoutDashboard; group: string; live: boolean }> = [
   { module: "overview", label: "Inicio", icon: LayoutDashboard, group: "PRINCIPAL", live: true },
-  { module: "pos", label: "Punto de venta", icon: ShoppingCart, group: "PRINCIPAL", live: true },
-  { module: "cash", label: "Caja", icon: Wallet, group: "PRINCIPAL", live: true },
+  { module: "cash", label: "Caja Registradora", icon: Wallet, group: "PRINCIPAL", live: true },
   { module: "inventory", label: "Almacén", icon: Warehouse, group: "PRINCIPAL", live: true },
+  { module: "pos", label: "Ventas (Punto de venta)", icon: ShoppingCart, group: "PRINCIPAL", live: true },
+  { module: "online", label: "Tienda online", icon: ShoppingBag, group: "PRINCIPAL", live: true },
   { module: "charts", label: "Gráficos", icon: BarChart3, group: "ANÁLISIS", live: true },
   { module: "activities", label: "Actividad", icon: Activity, group: "ANÁLISIS", live: true },
-  { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: true },
-  { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
   { module: "suppliers", label: "Proveedores", icon: Users, group: "ORGANIZACIÓN", live: true },
-  { module: "online", label: "Tienda online", icon: ShoppingBag, group: "GESTIÓN", live: true },
+  { module: "purchases", label: "Reposición", icon: Truck, group: "ORGANIZACIÓN", live: true },
+  { module: "notes", label: "Agenda", icon: CalendarDays, group: "ORGANIZACIÓN", live: true },
   { module: "documents", label: "Comprobantes", icon: FileText, group: "GESTIÓN", live: true },
-  { module: "fiscal", label: "ARCA · Facturación", icon: ShieldCheck, group: "GESTIÓN", live: true },
-  { module: "operations", label: "Gestión", icon: ClipboardList, group: "GESTIÓN", live: true },
-  { module: "settings", label: "Configuración", icon: Settings2, group: "GESTIÓN", live: true }
+  { module: "fiscal", label: "ARCA Facturación", icon: ShieldCheck, group: "GESTIÓN", live: true },
+  { module: "operations", label: "Negocios / Locales", icon: ClipboardList, group: "GESTIÓN", live: true },
+  { module: "settings", label: "Configuración", icon: Settings2, group: "AJUSTES", live: true },
+  { module: "account", label: "Cuenta / Cuentas", icon: Users, group: "AJUSTES", live: true }
+];
+
+const legalNavigation = [
+  { label: "Términos y condiciones", url: "/legal/terms", icon: FileText },
+  { label: "Política de privacidad", url: "/legal/privacy", icon: ShieldCheck },
+  { label: "Política de cookies", url: "/legal/cookies", icon: Settings2 },
+  { label: "Seguridad", url: "/legal/security", icon: ShieldCheck }
 ];
 
 const fullWebsite = "https://globalstocks.vercel.app";
@@ -501,7 +509,7 @@ export default function NativeWorkspace({
     </>;
   }
 
-  const groups = ["PRINCIPAL", "ANÁLISIS", "ORGANIZACIÓN", "GESTIÓN"];
+  const groups = ["PRINCIPAL", "ANÁLISIS", "ORGANIZACIÓN", "GESTIÓN", "AJUSTES", "LEGAL"];
   const isMenuActive = !["overview","pos","inventory","scan"].includes(active);
 
 
@@ -563,6 +571,15 @@ export default function NativeWorkspace({
       {groups.map(group => <View key={group} style={{marginBottom:21}}>
         <Text style={s.menuGroup}>{group}</Text>
         <View style={s.menuGrid}>
+          {group === "LEGAL" && legalNavigation.map(item => {
+            const Icon = item.icon;
+            return <Pressable key={item.url} accessibilityRole="link" style={s.menuTile}
+              onPress={() => void Linking.openURL(fullWebsite + item.url)}>
+              <View style={s.menuTileIcon}><Icon size={17} color={p.redIcon}/></View>
+              <Text style={[s.menuTileText,{flex:1}]}>{item.label}</Text>
+              <ChevronRight size={17} color={p.muted}/>
+            </Pressable>;
+          })}
           {navigation.filter(item => item.group===group).map(item => {
             const Icon=item.icon;
             return <Pressable key={item.module} accessibilityRole="button" style={[s.menuTile,active===item.module&&s.menuTileActive]}
@@ -624,6 +641,14 @@ export default function NativeWorkspace({
       /> : null}
       {active==="charts" ? chartScreen() : null}
       {active==="activities" ? activityScreen() : null}
+      {active==="account" ? <>
+        {heading("Cuenta / Cuentas", "Consultá tu cuenta y administrá tu sesión de Global Stock.")}
+        <View style={s.bigCard}>
+          <Text style={s.sectionTitle}>Cuenta actual</Text>
+          <Text style={s.meta}>Tu sesión está vinculada a tu cuenta de Global Stock.</Text>
+          <Action p={p} onPress={requestSignOut}>Cerrar sesión</Action>
+        </View>
+      </> : null}
       {active==="settings" ? <NativeSettings
         client={client} business={business} userId={userId} dark={dark}
         onTheme={setPersistedTheme} onBusiness={onBusiness}
