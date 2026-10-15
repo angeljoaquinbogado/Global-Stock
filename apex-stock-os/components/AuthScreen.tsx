@@ -11,9 +11,12 @@ import {
   Sun,
   UserRound
 } from "lucide-react";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 
 import { getSupabaseBrowserClient, isSupabaseConfigured } from "@/lib/supabase";
+import { LOGIN_ATTEMPT_LIMIT, LOGIN_ATTEMPT_STORAGE_KEY, addFailedLoginAttempt,
+  classifyAuthFailure, emptyLoginAttemptState, loginLockSeconds,
+  readLoginAttemptState } from "@/lib/auth-feedback";
 import type { LanguageCode } from "./GlobalPreferences";
 import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
@@ -61,6 +64,12 @@ const copy: Record<
     invalidName: string;
     accountCreated: string;
     authError: string;
+    invalidCredentials: string;
+    unconfirmedEmail: string;
+    manyAttempts: string;
+    existingAccount: string;
+    loginLocked: string;
+    remainingAttempts: string;
     oauthSetup: string;
     showPassword: string;
     hidePassword: string;
@@ -95,8 +104,14 @@ const copy: Record<
     invalidPassword: "La contraseña debe tener al menos 8 caracteres.",
     invalidName: "Ingresá tu nombre.",
     accountCreated:
-      "Cuenta creada. Si recibís un correo de confirmación, verificá tu dirección e iniciá sesión. Después vas a completar los datos de tu negocio.",
-    authError: "No se pudo completar la autenticación.",
+      "Revisá tu correo si recibiste un enlace de confirmación. Si ese correo ya tiene una cuenta, iniciá sesión o recuperá tu contraseña.",
+    authError: "No se pudo completar la autenticación. Revisá tu conexión e intentá nuevamente.",
+    invalidCredentials: "Correo electrónico o contraseña incorrectos.",
+    unconfirmedEmail: "Confirmá tu correo electrónico antes de iniciar sesión. Revisá también la carpeta de spam.",
+    manyAttempts: "Demasiadas solicitudes. Esperá unos minutos antes de intentarlo otra vez.",
+    existingAccount: "Si ese correo ya tiene una cuenta, iniciá sesión o recuperá tu contraseña.",
+    loginLocked: "Por seguridad, el acceso se pausó temporalmente. Volvé a intentarlo en",
+    remainingAttempts: "Intentos restantes en este navegador:",
     oauthSetup: "Google requiere configurar Supabase antes de usar OAuth.",
     showPassword: "Mostrar contraseña",
     hidePassword: "Ocultar contraseña",
@@ -130,8 +145,14 @@ const copy: Record<
     invalidPassword: "Password must contain at least 8 characters.",
     invalidName: "Enter your name.",
     accountCreated:
-      "Account created. Check your email to confirm access before signing in.",
-    authError: "Authentication could not be completed.",
+      "Check your inbox for a confirmation link. If you already have an account, sign in or reset your password.",
+    authError: "Could not complete authentication. Check your connection and try again.",
+    invalidCredentials: "Incorrect email or password.",
+    unconfirmedEmail: "Confirm your email address before signing in. Check your spam folder as well.",
+    manyAttempts: "Too many requests. Please wait a few minutes before trying again.",
+    existingAccount: "If you already have an account with this email, sign in or reset your password.",
+    loginLocked: "For security, sign-in is temporarily paused. Try again in",
+    remainingAttempts: "Attempts remaining in this browser:",
     oauthSetup: "Google sign-in requires Supabase configuration first.",
     showPassword: "Show password",
     hidePassword: "Hide password",
@@ -165,8 +186,14 @@ const copy: Record<
     invalidPassword: "A senha deve ter pelo menos 8 caracteres.",
     invalidName: "Digite seu nome.",
     accountCreated:
-      "Conta criada. Verifique seu e-mail para confirmar o acesso antes de entrar.",
-    authError: "Não foi possível concluir a autenticação.",
+      "Verifique sua caixa de entrada. Se já tiver uma conta, entre ou redefina a senha.",
+    authError: "Não foi possível entrar. Verifique sua conexão e tente novamente.",
+    invalidCredentials: "E-mail ou senha incorretos.",
+    unconfirmedEmail: "Confirme seu e-mail antes de entrar. Verifique também a pasta de spam.",
+    manyAttempts: "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.",
+    existingAccount: "Se este e-mail já tiver uma conta, entre ou redefina sua senha.",
+    loginLocked: "Por segurança, o acesso foi pausado temporariamente. Tente novamente em",
+    remainingAttempts: "Tentativas restantes neste navegador:",
     oauthSetup: "O login com Google requer configurar o Supabase primeiro.",
     showPassword: "Mostrar senha",
     hidePassword: "Ocultar senha",
@@ -200,8 +227,14 @@ const copy: Record<
     invalidPassword: "Le mot de passe doit contenir au moins 8 caractères.",
     invalidName: "Saisissez votre nom.",
     accountCreated:
-      "Compte créé. Consultez votre e-mail pour confirmer l’accès avant de vous connecter.",
-    authError: "Impossible de terminer l’authentification.",
+      "Consultez votre boîte de réception. Si vous avez déjà un compte, connectez-vous ou réinitialisez votre mot de passe.",
+    authError: "Connexion impossible. Vérifiez votre connexion et réessayez.",
+    invalidCredentials: "E-mail ou mot de passe incorrect.",
+    unconfirmedEmail: "Confirmez votre adresse e-mail avant de vous connecter. Vérifiez les indésirables.",
+    manyAttempts: "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
+    existingAccount: "Si cette adresse possède déjà un compte, connectez-vous ou réinitialisez votre mot de passe.",
+    loginLocked: "Pour votre sécurité, la connexion est temporairement suspendue. Réessayez dans",
+    remainingAttempts: "Tentatives restantes dans ce navigateur :",
     oauthSetup: "Google nécessite d’abord la configuration de Supabase.",
     showPassword: "Afficher le mot de passe",
     hidePassword: "Masquer le mot de passe",
@@ -235,8 +268,14 @@ const copy: Record<
     invalidPassword: "Das Passwort muss mindestens 8 Zeichen lang sein.",
     invalidName: "Gib deinen Namen ein.",
     accountCreated:
-      "Konto erstellt. Bestätige den Zugang per E-Mail, bevor du dich anmeldest.",
-    authError: "Die Authentifizierung konnte nicht abgeschlossen werden.",
+      "Prüfe dein Postfach auf einen Bestätigungslink. Falls du bereits ein Konto hast, melde dich an oder setze dein Passwort zurück.",
+    authError: "Anmeldung fehlgeschlagen. Überprüfe deine Verbindung und versuche es erneut.",
+    invalidCredentials: "E-Mail-Adresse oder Passwort falsch.",
+    unconfirmedEmail: "Bestätige zuerst deine E-Mail-Adresse. Prüfe auch den Spamordner.",
+    manyAttempts: "Zu viele Versuche. Warte einige Minuten und versuche es erneut.",
+    existingAccount: "Falls bereits ein Konto mit dieser E-Mail besteht, melde dich an oder setze dein Passwort zurück.",
+    loginLocked: "Die Anmeldung ist aus Sicherheitsgründen vorübergehend pausiert. Versuche es erneut in",
+    remainingAttempts: "Verbleibende Versuche in diesem Browser:",
     oauthSetup: "Google-Anmeldung erfordert zuerst die Supabase-Konfiguration.",
     showPassword: "Passwort anzeigen",
     hidePassword: "Passwort ausblenden",
