@@ -1086,72 +1086,48 @@ const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "activities", icon: ActivityIcon },
   { id: "documents", icon: ReceiptText },
   { id: "notes", icon: ClipboardList },
-  { id: "operations", icon: CircleDollarSign },
-  { id: "settings", icon: Settings2 }
+  { id: "operations", icon: Building2 },
+  { id: "arca", icon: Landmark },
+  { id: "settings", icon: Settings2 },
+  { id: "account", icon: UserRound }
 ];
 
-type NavigationGroupId =
-  | "core"
-  | "business"
-  | "stock"
-  | "organization";
+type NavigationGroupId = "core" | "analysis" | "organization" | "management" | "settings" | "legal";
+type LegalLinkId = "terms" | "privacy" | "cookies" | "security";
+
+const legalLinks: Array<{ id: LegalLinkId; href: string; icon: typeof Store }> = [
+  { id: "terms", href: "/legal/terms", icon: ClipboardList },
+  { id: "privacy", href: "/legal/privacy", icon: ShieldCheck },
+  { id: "cookies", href: "/legal/cookies", icon: Settings2 },
+  { id: "security", href: "/legal/security", icon: ShieldCheck }
+];
+
+const legalLinkLabels: Record<LanguageCode, Record<LegalLinkId, string>> = {
+  es: { terms: "Términos y condiciones", privacy: "Política de privacidad", cookies: "Política de cookies", security: "Seguridad" },
+  en: { terms: "Terms and conditions", privacy: "Privacy policy", cookies: "Cookie policy", security: "Security" },
+  pt: { terms: "Termos e condições", privacy: "Política de privacidade", cookies: "Política de cookies", security: "Segurança" },
+  fr: { terms: "Conditions générales", privacy: "Politique de confidentialité", cookies: "Politique de cookies", security: "Sécurité" },
+  de: { terms: "Nutzungsbedingungen", privacy: "Datenschutz", cookies: "Cookie-Richtlinie", security: "Sicherheit" }
+};
 
 const navigationGroups: Array<{
   id: NavigationGroupId;
   modules: readonly ModuleId[];
 }> = [
-  {
-    id: "core",
-    modules: ["overview", "pos", "cash", "inventory"]
-  },
-  {
-    id: "business",
-    modules: ["online", "charts", "operations"]
-  },
-  {
-    id: "stock",
-    modules: ["purchases", "suppliers", "documents"]
-  },
-  {
-    id: "organization",
-    modules: ["activities", "notes", "settings"]
-  }
+  { id: "core", modules: ["overview", "cash", "inventory", "pos", "online"] },
+  { id: "analysis", modules: ["charts", "activities"] },
+  { id: "organization", modules: ["suppliers", "purchases", "notes"] },
+  { id: "management", modules: ["documents", "arca", "operations"] },
+  { id: "settings", modules: ["settings", "account"] },
+  { id: "legal", modules: [] }
 ];
 
-const navigationGroupLabels: Record<
-  LanguageCode,
-  Record<NavigationGroupId, string>
-> = {
-  es: {
-    core: "Principal",
-    business: "Negocio",
-    stock: "Stock y compras",
-    organization: "Organización"
-  },
-  en: {
-    core: "Main",
-    business: "Business",
-    stock: "Stock & purchasing",
-    organization: "Organization"
-  },
-  pt: {
-    core: "Principal",
-    business: "Negócio",
-    stock: "Estoque e compras",
-    organization: "Organização"
-  },
-  fr: {
-    core: "Principal",
-    business: "Entreprise",
-    stock: "Stock et achats",
-    organization: "Organisation"
-  },
-  de: {
-    core: "Hauptbereich",
-    business: "Geschäft",
-    stock: "Lager & Einkauf",
-    organization: "Organisation"
-  }
+const navigationGroupLabels: Record<LanguageCode, Record<NavigationGroupId, string>> = {
+  es: { core: "Principal", analysis: "Análisis", organization: "Organización", management: "Gestión", settings: "Ajustes", legal: "Legal" },
+  en: { core: "Main", analysis: "Analysis", organization: "Organization", management: "Management", settings: "Settings", legal: "Legal" },
+  pt: { core: "Principal", analysis: "Análise", organization: "Organização", management: "Gestão", settings: "Ajustes", legal: "Legal" },
+  fr: { core: "Principal", analysis: "Analyse", organization: "Organisation", management: "Gestion", settings: "Réglages", legal: "Légal" },
+  de: { core: "Hauptbereich", analysis: "Analyse", organization: "Organisation", management: "Verwaltung", settings: "Einstellungen", legal: "Rechtliches" }
 };
 
 const mobileMenuSubtitle: Record<LanguageCode, string> = {
