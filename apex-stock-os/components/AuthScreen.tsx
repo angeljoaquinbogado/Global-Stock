@@ -569,7 +569,7 @@ export function AuthScreen({
       <section className="flex h-full min-h-0 w-full items-center justify-center overflow-hidden px-3 py-3 sm:px-5 sm:py-5 lg:px-7 lg:py-6">
         <div className="mx-auto h-full min-h-0 w-full max-w-[1480px]">
           <AuthSplitMotion mode={mode} language={language} dark={dark}>
-            <div className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(25px,4.3vw,72px)]">
+            <div data-auth-theme={dark ? "dark" : "light"} className="gs-auth-reference-form w-full min-w-0 px-[clamp(18px,4.2vw,72px)] py-2 lg:px-[clamp(25px,4.3vw,72px)]">
               <div className="gs-auth-brand-row mb-8 flex items-center justify-between gap-3">
                 <Logo withWordmark className="gs-auth-reference-logo [&>img]:!h-11 [&>img]:!w-11 [&>div>div]:!text-[16px]" />
                 <div data-testid="auth-header-preferences" className={`flex shrink-0 items-center gap-1.5 ${mode === "signin" ? "lg:mr-[clamp(84px,7.7vw,112px)]" : ""}`}>
@@ -591,7 +591,9 @@ export function AuthScreen({
                 >
                   <div className="mb-7">
                     <h1 className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">
-                      {mode === "signin" ? labels.signIn : labels.signUp}
+                      {mode === "signin" && remainingLockSeconds > 0
+                        ? `${labels.loginLocked} ${lockTimeText}`
+                        : mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
                     <div aria-hidden="true" className="mt-2 h-[2px] w-7 rounded-full bg-[#8F0000]"/>
                   </div>
@@ -664,13 +666,13 @@ export function AuthScreen({
                     )}
 
                     {error && (
-                      <div role="alert" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-[#BC1D31] dark:text-red-200">{error}</div>
+                      <div role="alert" data-testid="auth-feedback-error" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-[#BC1D31] dark:text-red-200">{error}</div>
                     )}
                     {notice && (
-                      <div role="status" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
+                      <div role="status" data-testid="auth-feedback-notice" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
                     )}
 
-                    <button type="submit" disabled={pending || (mode === "signup" && !adultConsent)}
+                    <button type="submit" disabled={pending || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
                       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
                       {mode === "signin" ? labels.signIn : labels.signUp}
