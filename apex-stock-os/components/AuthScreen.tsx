@@ -306,6 +306,50 @@ export function AuthScreen({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const [attemptState, setAttemptState] = useState(emptyLoginAttemptState);
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const pendingRef = useRef(false);
+
+  useEffect(() => {
+    const update = () => {
+      setCurrentTime(Date.now());
+      try {
+        setAttemptState(readLoginAttemptState(window.localStorage.getItem(LOGIN_ATTEMPT_STORAGE_KEY)));
+      } catch { /* Browsers may block storage in private mode. */ }
+    };
+    update();
+    const timer = window.setInterval(update, 1000);
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === LOGIN_ATTEMPT_STORAGE_KEY) update();
+    };
+    window.addEventListener("storage", onStorage);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener("storage", onStorage);
+    };
+  }, []);
+
+  const remainingLockSeconds = loginLockSeconds(attemptState, currentTime);
+  const lockTimeText = `${Math.ceil(remainingLockSeconds / 60)} min`;
+
+  function trackInvalidLogin() {
+    const now = Date.now();
+    let current = attemptState;
+    try { current = readLoginAttemptState(window.localStorage.getItem(LOGIN_ATTEMPT_STORAGE_KEY), now); }
+    catch { /* Continue with in-memory state. */ }
+    const next = addFailedLoginAttempt(current, now);
+    setAttemptState(next);
+    setCurrentTime(now);
+    try { window.localStorage.setItem(LOGIN_ATTEMPT_STORAGE_KEY, JSON.stringify(next)); }
+    catch { /* Supabase still enforces its server-side limits. */ }
+    return next;
+  }
+
+  function resetInvalidLogins() {
+    setAttemptState(emptyLoginAttemptState());
+    try { window.localStorage.removeItem(LOGIN_ATTEMPT_STORAGE_KEY); }
+    catch { /* no-op */ }
+  }
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
@@ -317,9 +361,24 @@ export function AuthScreen({
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (pendingRef.current) return;
     setError("");
+    setNotice("");
 
     const normalizedEmail = email.trim().toLowerCase();
+
+    if (mode === "signin") {
+      const now = Date.now();
+      let current = attemptState;
+      try { current = readLoginAttemptState(window.localStorage.getItem(LOGIN_ATTEMPT_STORAGE_KEY), now); }
+      catch { /* no-op */ }
+      if (loginLockSeconds(current, now) > 0) {
+        setAttemptState(current);
+        setCurrentTime(now);
+        setError(`${labels.loginLocked} ${Math.ceil(loginLockSeconds(current, now) / 60)} min.`);
+        return;
+      }
+    }
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
       setError(labels.invalidEmail);
@@ -341,6 +400,7 @@ export function AuthScreen({
       return;
     }
 
+    pendingRef.current = true;
     setPending(true);
 
     try {
@@ -370,7 +430,26 @@ export function AuthScreen({
           password
         });
 
-        if (authError) throw authError;
+        if (authError) {
+          const reason = classifyAuthFailure(authError);
+          if (reason === "invalid") {
+            const next = trackInvalidLogin();
+            if (loginLockSeconds(next, Date.now()) > 0) {
+              setError(`${labels.loginLocked} 15 min.`);
+            } else {
+              setError(`${labels.invalidCredentials} ${labels.remainingAttempts} ${LOGIN_ATTEMPT_LIMIT - next.failed}.`);
+            }
+          } else if (reason === "unconfirmed") {
+            setError(labels.unconfirmedEmail);
+          } else if (reason === "rate_limited") {
+            setError(labels.manyAttempts);
+          } else {
+            setError(labels.authError);
+          }
+          return;
+        }
+
+        resetInvalidLogins();
 
         if (data.user?.id) {
           const metadata = data.user.user_metadata ?? {};
@@ -433,7 +512,13 @@ export function AuthScreen({
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        const reason = classifyAuthFailure(authError);
+        setError(reason === "duplicate" ? labels.existingAccount
+          : reason === "rate_limited" ? labels.manyAttempts
+          : labels.authError);
+        return;
+      }
 
       if (data.session) {
         onAuthenticated();
@@ -444,6 +529,7 @@ export function AuthScreen({
     } catch {
       setError(labels.authError);
     } finally {
+      pendingRef.current = false;
       setPending(false);
     }
   }
