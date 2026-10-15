@@ -325,7 +325,11 @@ export function AuthScreen({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
+  // Keep the widget optional until Supabase Auth CAPTCHA is actually enabled.
+  // A configured site key alone must not block beta users (especially Expo Go).
+  const siteKey = process.env.NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED === "true"
+    ? (process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "")
+    : "";
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [captchaReset, setCaptchaReset] = useState(0);
   const [attemptState, setAttemptState] = useState(emptyLoginAttemptState);
