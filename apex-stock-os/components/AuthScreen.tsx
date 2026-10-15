@@ -69,6 +69,7 @@ const copy: Record<
     manyAttempts: string;
     existingAccount: string;
     loginLocked: string;
+    retryIn: string;
     remainingAttempts: string;
     oauthSetup: string;
     showPassword: string;
@@ -111,6 +112,7 @@ const copy: Record<
     manyAttempts: "Demasiadas solicitudes. Esperá unos minutos antes de intentarlo otra vez.",
     existingAccount: "Si ese correo ya tiene una cuenta, iniciá sesión o recuperá tu contraseña.",
     loginLocked: "Por seguridad, el acceso se pausó temporalmente. Volvé a intentarlo en",
+    retryIn: "Reintentar en",
     remainingAttempts: "Intentos restantes en este navegador:",
     oauthSetup: "Google requiere configurar Supabase antes de usar OAuth.",
     showPassword: "Mostrar contraseña",
@@ -152,6 +154,7 @@ const copy: Record<
     manyAttempts: "Too many requests. Please wait a few minutes before trying again.",
     existingAccount: "If you already have an account with this email, sign in or reset your password.",
     loginLocked: "For security, sign-in is temporarily paused. Try again in",
+    retryIn: "Try again in",
     remainingAttempts: "Attempts remaining in this browser:",
     oauthSetup: "Google sign-in requires Supabase configuration first.",
     showPassword: "Show password",
@@ -193,6 +196,7 @@ const copy: Record<
     manyAttempts: "Muitas tentativas. Aguarde alguns minutos antes de tentar novamente.",
     existingAccount: "Se este e-mail já tiver uma conta, entre ou redefina sua senha.",
     loginLocked: "Por segurança, o acesso foi pausado temporariamente. Tente novamente em",
+    retryIn: "Tentar novamente em",
     remainingAttempts: "Tentativas restantes neste navegador:",
     oauthSetup: "O login com Google requer configurar o Supabase primeiro.",
     showPassword: "Mostrar senha",
@@ -234,6 +238,7 @@ const copy: Record<
     manyAttempts: "Trop de tentatives. Patientez quelques minutes avant de réessayer.",
     existingAccount: "Si cette adresse possède déjà un compte, connectez-vous ou réinitialisez votre mot de passe.",
     loginLocked: "Pour votre sécurité, la connexion est temporairement suspendue. Réessayez dans",
+    retryIn: "Réessayer dans",
     remainingAttempts: "Tentatives restantes dans ce navigateur :",
     oauthSetup: "Google nécessite d’abord la configuration de Supabase.",
     showPassword: "Afficher le mot de passe",
@@ -275,6 +280,7 @@ const copy: Record<
     manyAttempts: "Zu viele Versuche. Warte einige Minuten und versuche es erneut.",
     existingAccount: "Falls bereits ein Konto mit dieser E-Mail besteht, melde dich an oder setze dein Passwort zurück.",
     loginLocked: "Die Anmeldung ist aus Sicherheitsgründen vorübergehend pausiert. Versuche es erneut in",
+    retryIn: "Erneut versuchen in",
     remainingAttempts: "Verbleibende Versuche in diesem Browser:",
     oauthSetup: "Google-Anmeldung erfordert zuerst die Supabase-Konfiguration.",
     showPassword: "Passwort anzeigen",
@@ -592,7 +598,7 @@ export function AuthScreen({
                   <div className="mb-7">
                     <h1 className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">
                       {mode === "signin" && remainingLockSeconds > 0
-                        ? `${labels.loginLocked} ${lockTimeText}`
+                        ? `${labels.retryIn} ${lockTimeText}`
                         : mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
                     <div aria-hidden="true" className="mt-2 h-[2px] w-7 rounded-full bg-[#8F0000]"/>
