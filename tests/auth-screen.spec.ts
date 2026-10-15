@@ -127,8 +127,8 @@ for (const viewport of [
     await expect(password).toHaveAttribute("type", "text");
     await expect(password).toHaveValue("Prueba123!2026");
     const bounds = await toggle.boundingBox();
-    expect(bounds?.width).toBeGreaterThanOrEqual(31);
-    expect(bounds?.height).toBeGreaterThanOrEqual(31);
+    expect(bounds?.width).toBeGreaterThanOrEqual(43);
+    expect(bounds?.height).toBeGreaterThanOrEqual(43);
     const eyeIcon = toggle.locator("svg");
     const mailIcon = page.locator("form svg.lucide-mail").first();
     const eyeRect = await eyeIcon.boundingBox();
