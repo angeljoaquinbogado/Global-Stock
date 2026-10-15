@@ -298,11 +298,18 @@ export function DownloadScrollNavigator() {
   }, [goToSection, scrollToTop]);
 
   const goToRailStage = useCallback((stage: 0 | 1 | 2) => {
-    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    // Three real destinations: beginning, midpoint, and page end.
-    // Unlike the former section-dot navigation these positions never move
-    // relative to one another when a section is loaded asynchronously.
-    scrollToTop(stage === 0 ? 0 : stage === 1 ? maxScroll / 2 : maxScroll);
+    const maxScroll = Math.max(
+      0,
+      document.documentElement.scrollHeight - window.innerHeight
+    );
+    const destination = stage === 0 ? 0 : stage === 1 ? maxScroll / 2 : maxScroll;
+    // Update the intent immediately, then scroll to the corresponding stop.
+    // This prevents a second arrow click from reusing the prior stage while
+    // the browser is still painting/smoothing the first scroll.
+    setActiveStage(stage);
+    setCanGoUp(stage !== 0);
+    setCanGoDown(stage !== 2);
+    scrollToTop(destination);
   }, [scrollToTop]);
 
   useEffect(() => {
