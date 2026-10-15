@@ -3367,3 +3367,38 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+
+/* Global Stock authentication: deliberately keep the reference's clean
+   underlined input style instead of the global red focus rectangle.
+   The underline still provides an accessible, visible focus indicator. */
+.gs-auth-reference-form input:not([type="checkbox"]) {
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 0 !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: none !important;
+  background-color: transparent !important;
+}
+.gs-auth-reference-form input:not([type="checkbox"]):is(:focus, :focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+  border-bottom: 2px solid #8f0000 !important;
+}
+.gs-auth-reference-form input:not([type="checkbox"]):-webkit-autofill,
+.gs-auth-reference-form input:not([type="checkbox"]):-webkit-autofill:hover,
+.gs-auth-reference-form input:not([type="checkbox"]):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #fbf8f4 inset !important;
+  -webkit-text-fill-color: #2a2223 !important;
+  caret-color: #8f0000;
+  border-radius: 0 !important;
+  transition: background-color 99999s ease-out;
+}
+.gs-auth-reference-form[data-auth-theme="dark"] input:not([type="checkbox"]):-webkit-autofill,
+.gs-auth-reference-form[data-auth-theme="dark"] input:not([type="checkbox"]):-webkit-autofill:hover,
+.gs-auth-reference-form[data-auth-theme="dark"] input:not([type="checkbox"]):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #191519 inset !important;
+  -webkit-text-fill-color: #fff !important;
+  caret-color: #f3dadd;
+}
