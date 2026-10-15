@@ -626,9 +626,7 @@ export function AuthScreen({
                 >
                   <div className="mb-7">
                     <h1 className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">
-                      {mode === "signin" && remainingLockSeconds > 0
-                        ? `${labels.retryIn} ${lockTimeText}`
-                        : mode === "signin" ? labels.signIn : labels.signUp}
+{mode === "signin" ? labels.signIn : labels.signUp}
                     </h1>
                     <div aria-hidden="true" className="mt-2 h-[2px] w-7 rounded-full bg-[#8F0000]"/>
                   </div>
@@ -720,7 +718,9 @@ export function AuthScreen({
                     <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
                       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
-                      {mode === "signin" ? labels.signIn : labels.signUp}
+                      {mode === "signin" && remainingLockSeconds > 0
+                        ? `${labels.retryIn} ${lockTimeText}`
+                        : mode === "signin" ? labels.signIn : labels.signUp}
                     </button>
                   </form>
 
