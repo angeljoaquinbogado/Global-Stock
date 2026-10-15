@@ -666,13 +666,16 @@ export function AuthScreen({
                           className={`h-11 w-full border-0 border-b bg-transparent pr-12 text-[14px] outline-none transition-colors ${fieldStyle}`}/>
                         <button type="button"
                           data-testid="auth-password-visibility"
-                          onClick={() => setShowPassword(value => !value)}
+                          onClick={(event) => {
+                            event.preventDefault();
+                            setShowPassword(previous => !previous);
+                          }}
                           aria-pressed={showPassword}
                           aria-controls="global-stock-auth-password"
                           aria-label={showPassword ? labels.hidePassword : labels.showPassword}
                           title={showPassword ? labels.hidePassword : labels.showPassword}
-                          className={`absolute right-0 top-1/2 z-10 grid h-10 w-10 -translate-y-1/2 cursor-pointer touch-manipulation place-items-center rounded-full transition-colors hover:bg-[#8F0000]/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-0 focus-visible:outline-[#8F0000] ${muted}`}>
-                          {showPassword ? <EyeOff size={18} aria-hidden="true"/> : <Eye size={18} aria-hidden="true"/>}
+                          className={`gs-auth-password-eye absolute -right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 touch-manipulation items-center justify-center border-0 bg-transparent p-0 text-inherit outline-none ${icons}`}>
+                          {showPassword ? <EyeOff size={16} strokeWidth={1.7} aria-hidden="true"/> : <Eye size={16} strokeWidth={1.7} aria-hidden="true"/>}
                         </button>
                       </span>
                       {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
