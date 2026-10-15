@@ -678,7 +678,7 @@ export function AuthScreen({
                           aria-controls="global-stock-auth-password"
                           aria-label={showPassword ? labels.hidePassword : labels.showPassword}
                           title={showPassword ? labels.hidePassword : labels.showPassword}
-                          className={`gs-auth-password-eye absolute -right-1 top-1/2 z-10 flex h-8 w-8 -translate-y-1/2 touch-manipulation items-center justify-center border-0 bg-transparent p-0 text-inherit outline-none ${icons}`}>
+                          className={`gs-auth-password-eye absolute -right-[10px] top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 touch-manipulation items-center justify-center border-0 bg-transparent p-0 text-inherit outline-none ${icons}`}>
                           {showPassword ? <EyeOff size={16} strokeWidth={1.7} aria-hidden="true"/> : <Eye size={16} strokeWidth={1.7} aria-hidden="true"/>}
                         </button>
                       </span>
