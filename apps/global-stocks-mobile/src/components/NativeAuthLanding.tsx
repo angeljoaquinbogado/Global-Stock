@@ -4,6 +4,7 @@ import {
   ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { NativeTurnstilePrompt } from "./NativeTurnstilePrompt";
 import Svg, { Path } from "react-native-svg";
 import { StatusBar } from "expo-status-bar";
 import { preferenceStorage as SecureStore } from "../lib/preference-storage";
@@ -24,8 +25,8 @@ function GoogleG() {
 type Language = "es" | "en" | "pt";
 type Stage = "welcome" | "signin" | "signup";
 type Props = {
-  onSubmit: (email: string, password: string) => void;
-  onRegister: (name: string, email: string, password: string, language: Language) => void;
+  onSubmit: (email: string, password: string, captchaToken?: string) => void;
+  onRegister: (name: string, email: string, password: string, language: Language, captchaToken?: string) => void;
   onSocial: (provider: "google") => void;
   registrationComplete: boolean;
   onDemo: () => void;
@@ -129,6 +130,9 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   const [language, setLanguage] = useState<Language>("es");
   const [openLanguages, setOpenLanguages] = useState(false);
   const [keyboardOpen, setKeyboardOpen] = useState(false);
+  const [captchaEnabled, setCaptchaEnabled] = useState<boolean | null>(null);
+  const [captchaOpen, setCaptchaOpen] = useState(false);
+  const [captchaError, setCaptchaError] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -205,6 +209,28 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   }, [wipe]);
 
   useEffect(() => {
+    let live = true;
+    const controller = new AbortController();
+    void fetch("https://globalstocks.vercel.app/api/auth/turnstile-config", {
+      signal: controller.signal,
+      cache: "no-store"
+    }).then(async response => {
+      if (!response.ok) throw new Error("Captcha configuration unavailable");
+      const data = await response.json() as { enabled?: boolean };
+      if (live) {
+        setCaptchaEnabled(data.enabled === true);
+        setCaptchaError("");
+      }
+    }).catch(() => {
+      if (live) {
+        setCaptchaEnabled(null);
+        setCaptchaError("No se pudo comprobar la protección antibots. Probá conectarte a internet o ingresá desde la web.");
+      }
+    });
+    return () => { live = false; controller.abort(); };
+  }, []);
+
+  useEffect(() => {
     const shown = Keyboard.addListener("keyboardDidShow", () => setKeyboardOpen(true));
     const hidden = Keyboard.addListener("keyboardDidHide", () => setKeyboardOpen(false));
     return () => { shown.remove(); hidden.remove(); };
@@ -221,6 +247,8 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   }
   function show(next: Stage) {
     if (switchingRef.current || loading || next === stage) return;
+    setCaptchaOpen(false);
+    setCaptchaError("");
     setOpenLanguages(false);
     if (stage === "welcome" || next === "welcome" || reducedMotion) {
       setStage(next);
@@ -255,8 +283,26 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   function submit() {
     if (loading || switchingRef.current || !email.trim() || password.length < 8 ||
         (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) return;
+    if (captchaEnabled === null) {
+      setCaptchaError("No se pudo comprobar la protección antibots. Revisá la conexión e intentá nuevamente.");
+      return;
+    }
+    if (captchaEnabled) {
+      Keyboard.dismiss();
+      setCaptchaError("");
+      setCaptchaOpen(true);
+      return;
+    }
     if (signup) onRegister(fullName.trim(), email.trim(), password, language);
     else onSubmit(email.trim(), password);
+  }
+
+  function acceptCaptcha(token: string) {
+    if (!captchaOpen || loading) return;
+    setCaptchaOpen(false);
+    setCaptchaError("");
+    if (signup) onRegister(fullName.trim(), email.trim(), password, language, token);
+    else onSubmit(email.trim(), password, token);
   }
   function openLegal(path: "terms" | "privacy") {
     void Linking.openURL(`${LEGAL_BASE}/${path}`);
@@ -418,6 +464,9 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                   </View>
                 </View>
               ) : null}
+              {captchaError ? <View style={styles.authError}>
+                <Text accessibilityRole="alert" style={styles.error}>{captchaError}</Text>
+              </View> : null}
               {error ? <View style={styles.authError}>
                 <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
                 <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL(supportEmailUrl("Problema de acceso a Global Stock"))}>
@@ -425,11 +474,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                 </Pressable>
               </View> : null}
               <Pressable accessibilityRole="button" accessibilityLabel={signup ? t.create : t.login}
-                disabled={loading || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))}
+                disabled={loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))}
                 onPress={submit}
                 style={({pressed}) => [
                   styles.primary,
-                  (loading || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
+                  (loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
                   pressed && styles.pressed
                 ]}>
                 {loading ? <ActivityIndicator color="#fff"/> : <>
@@ -505,6 +554,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
           </View>}
         </ScrollView>
       </KeyboardAvoidingView>
+      <NativeTurnstilePrompt
+        visible={captchaOpen}
+        onCancel={() => setCaptchaOpen(false)}
+        onVerified={acceptCaptcha}
+      />
       {introVisible && (
         <Animated.View pointerEvents="auto" accessibilityLabel="Intro de Global Stock"
           style={[StyleSheet.absoluteFill, { zIndex:100, backgroundColor:p.bg,
