@@ -3402,3 +3402,27 @@ textarea:focus-visible {
   -webkit-text-fill-color: #fff !important;
   caret-color: #f3dadd;
 }
+
+/* Password visibility: keep the icon aligned with the mail affordance.
+   No circular red hover/ripple or lingering mouse-click focus frame.
+   Keyboard users retain a minimal, stationary underline focus cue. */
+.gs-auth-reference-form .gs-auth-password-eye,
+.gs-auth-reference-form .gs-auth-password-eye:hover,
+.gs-auth-reference-form .gs-auth-password-eye:active,
+.gs-auth-reference-form .gs-auth-password-eye:focus {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  transition: none !important;
+  animation: none !important;
+  transform: translateY(-50%) !important;
+}
+.gs-auth-reference-form .gs-auth-password-eye:focus-visible {
+  outline: none !important;
+  box-shadow: inset 0 -2px 0 #8f0000 !important;
+}
+.gs-auth-reference-form .gs-auth-password-eye svg {
+  pointer-events: none;
+}
