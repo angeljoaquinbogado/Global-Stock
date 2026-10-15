@@ -22,6 +22,7 @@ import { Logo } from "./Logo";
 import { GoogleIdentityButton } from "./GoogleIdentityButton";
 import { AuthSplitMotion } from "./AuthSplitMotion";
 import { AuthLanguagePicker } from "./AuthLanguagePicker";
+import { AuthTurnstile } from "./AuthTurnstile";
 import { TERMS_VERSION, PRIVACY_VERSION } from "./UnifiedLegalGate";
 
 type AuthScreenProps = {
@@ -71,6 +72,8 @@ const copy: Record<
     loginLocked: string;
     retryIn: string;
     remainingAttempts: string;
+    captchaPending: string;
+    captchaError: string;
     oauthSetup: string;
     showPassword: string;
     hidePassword: string;
@@ -114,6 +117,8 @@ const copy: Record<
     loginLocked: "Por seguridad, el acceso se pausó temporalmente. Volvé a intentarlo en",
     retryIn: "Reintentar en",
     remainingAttempts: "Intentos restantes en este navegador:",
+    captchaPending: "Esperá a que finalice la verificación de seguridad.",
+    captchaError: "No se pudo completar la verificación. Revisá tu conexión e intentá otra vez.",
     oauthSetup: "Google requiere configurar Supabase antes de usar OAuth.",
     showPassword: "Mostrar contraseña",
     hidePassword: "Ocultar contraseña",
@@ -156,6 +161,8 @@ const copy: Record<
     loginLocked: "For security, sign-in is temporarily paused. Try again in",
     retryIn: "Try again in",
     remainingAttempts: "Attempts remaining in this browser:",
+    captchaPending: "Please complete the security verification.",
+    captchaError: "Security verification failed. Check your connection and try again.",
     oauthSetup: "Google sign-in requires Supabase configuration first.",
     showPassword: "Show password",
     hidePassword: "Hide password",
@@ -198,6 +205,8 @@ const copy: Record<
     loginLocked: "Por segurança, o acesso foi pausado temporariamente. Tente novamente em",
     retryIn: "Tentar novamente em",
     remainingAttempts: "Tentativas restantes neste navegador:",
+    captchaPending: "Conclua a verificação de segurança.",
+    captchaError: "Não foi possível verificar. Confira sua conexão e tente novamente.",
     oauthSetup: "O login com Google requer configurar o Supabase primeiro.",
     showPassword: "Mostrar senha",
     hidePassword: "Ocultar senha",
@@ -240,6 +249,8 @@ const copy: Record<
     loginLocked: "Pour votre sécurité, la connexion est temporairement suspendue. Réessayez dans",
     retryIn: "Réessayer dans",
     remainingAttempts: "Tentatives restantes dans ce navigateur :",
+    captchaPending: "Terminez la vérification de sécurité.",
+    captchaError: "La vérification a échoué. Vérifiez votre connexion et réessayez.",
     oauthSetup: "Google nécessite d’abord la configuration de Supabase.",
     showPassword: "Afficher le mot de passe",
     hidePassword: "Masquer le mot de passe",
@@ -282,6 +293,8 @@ const copy: Record<
     loginLocked: "Die Anmeldung ist aus Sicherheitsgründen vorübergehend pausiert. Versuche es erneut in",
     retryIn: "Erneut versuchen in",
     remainingAttempts: "Verbleibende Versuche in diesem Browser:",
+    captchaPending: "Bitte schließe die Sicherheitsprüfung ab.",
+    captchaError: "Sicherheitsprüfung fehlgeschlagen. Prüfe deine Verbindung und versuche es erneut.",
     oauthSetup: "Google-Anmeldung erfordert zuerst die Supabase-Konfiguration.",
     showPassword: "Passwort anzeigen",
     hidePassword: "Passwort ausblenden",
@@ -312,6 +325,9 @@ export function AuthScreen({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [captchaReset, setCaptchaReset] = useState(0);
   const [attemptState, setAttemptState] = useState(emptyLoginAttemptState);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
   const pendingRef = useRef(false);
@@ -363,6 +379,8 @@ export function AuthScreen({
     setError("");
     setNotice("");
     setShowPassword(false);
+    setCaptchaToken(null);
+    setCaptchaReset(value => value + 1);
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -406,6 +424,11 @@ export function AuthScreen({
       return;
     }
 
+    if (siteKey && !captchaToken) {
+      setError(labels.captchaPending);
+      return;
+    }
+
     pendingRef.current = true;
     setPending(true);
 
@@ -433,7 +456,8 @@ export function AuthScreen({
       if (mode === "signin") {
         const { data, error: authError } = await supabase.auth.signInWithPassword({
           email: normalizedEmail,
-          password
+          password,
+          options: siteKey ? { captchaToken: captchaToken! } : undefined
         });
 
         if (authError) {
@@ -502,6 +526,7 @@ export function AuthScreen({
         password,
         options: {
           emailRedirectTo: window.location.origin,
+          ...(siteKey ? { captchaToken: captchaToken! } : {}),
           data: {
             app: "global_stock",
             full_name: name.trim(),
@@ -535,6 +560,10 @@ export function AuthScreen({
     } catch {
       setError(labels.authError);
     } finally {
+      if (siteKey) {
+        setCaptchaToken(null);
+        setCaptchaReset(value => value + 1);
+      }
       pendingRef.current = false;
       setPending(false);
     }
@@ -671,6 +700,16 @@ export function AuthScreen({
                       </label>
                     )}
 
+                    {siteKey && (
+                      <AuthTurnstile
+                        key={`${mode}-${dark}`}
+                        siteKey={siteKey}
+                        dark={dark}
+                        onToken={setCaptchaToken}
+                        onUnavailable={() => setError(labels.captchaError)}
+                        resetCounter={captchaReset}
+                      />
+                    )}
                     {error && (
                       <div role="alert" data-testid="auth-feedback-error" className="rounded-lg border border-red-400/30 bg-red-500/10 px-3 py-2 text-[11px] leading-4 text-[#BC1D31] dark:text-red-200">{error}</div>
                     )}
@@ -678,7 +717,7 @@ export function AuthScreen({
                       <div role="status" data-testid="auth-feedback-notice" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
                     )}
 
-                    <button type="submit" disabled={pending || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
+                    <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
                       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
                       {mode === "signin" ? labels.signIn : labels.signUp}
