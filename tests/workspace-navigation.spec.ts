@@ -52,8 +52,8 @@ test("mobile menu keeps the same six groups and opens legal links without floati
   await page.addInitScript(() => window.localStorage.setItem("__global_stock_demo_active_v1", "1"));
   await page.goto("/", { waitUntil: "domcontentloaded" });
   await page.getByRole("button", { name: "Menú", exact: true }).first().click();
-  await expect(page.getByText("Ajustes", { exact: true })).toBeVisible();
-  await expect(page.getByText("Legal", { exact: true })).toBeVisible();
+  await expect(page.getByText("Ajustes", { exact: true }).last()).toBeVisible();
+  await expect(page.getByText("Legal", { exact: true }).last()).toBeVisible();
   await expect(page.getByRole("link", { name: "Términos y condiciones" })).toHaveAttribute("href", "/legal/terms");
   await expect(page.getByRole("link", { name: "Seguridad" })).toHaveAttribute("href", "/legal/security");
   await expect(page.locator(".gs-sidebar-scroll-control")).toHaveCount(0);
