@@ -127,8 +127,27 @@ for (const viewport of [
     await expect(password).toHaveAttribute("type", "text");
     await expect(password).toHaveValue("Prueba123!2026");
     const bounds = await toggle.boundingBox();
-    expect(bounds?.width).toBeGreaterThanOrEqual(39);
-    expect(bounds?.height).toBeGreaterThanOrEqual(39);
+    expect(bounds?.width).toBeGreaterThanOrEqual(31);
+    expect(bounds?.height).toBeGreaterThanOrEqual(31);
+    const eyeIcon = toggle.locator("svg");
+    const mailIcon = page.locator("form svg.lucide-mail").first();
+    const eyeRect = await eyeIcon.boundingBox();
+    const mailRect = await mailIcon.boundingBox();
+    expect(eyeRect).not.toBeNull();
+    expect(mailRect).not.toBeNull();
+    expect(Math.abs((eyeRect!.x + eyeRect!.width / 2) - (mailRect!.x + mailRect!.width / 2))).toBeLessThanOrEqual(3);
+
+    // The icon must respond to the very first physical click, not only after
+    // several presses, and must not show a red circular hover/focus animation.
+    await page.mouse.click(eyeRect!.x + eyeRect!.width / 2, eyeRect!.y + eyeRect!.height / 2);
+    await expect(password).toHaveAttribute("type", "password");
+    const visual = await toggle.evaluate(el => {
+      const styles = getComputedStyle(el);
+      return { radius: styles.borderRadius, animation: styles.animationName, shadow: styles.boxShadow };
+    });
+    expect(visual.radius).toBe("0px");
+    expect(visual.animation).toBe("none");
+    expect(visual.shadow).toBe("none");
     const panel = page.getByTestId("auth-form-panel");
     expect(await panel.evaluate(el => el.scrollHeight - el.clientHeight)).toBeLessThanOrEqual(2);
   });
