@@ -74,7 +74,9 @@ export function AuthTurnstile({
   const container = useRef<HTMLDivElement>(null);
   const widgetId = useRef<string | null>(null);
   const callbacks = useRef({ onToken, onUnavailable });
-  callbacks.current = { onToken, onUnavailable };
+  useEffect(() => {
+    callbacks.current = { onToken, onUnavailable };
+  }, [onToken, onUnavailable]);
 
   useEffect(() => {
     let cancelled = false;
