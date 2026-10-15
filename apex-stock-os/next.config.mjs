@@ -29,15 +29,15 @@ const contentSecurityPolicy = [
   "object-src 'none'",
   "frame-ancestors 'none'",
   "form-action 'self'",
-  `script-src 'self' 'unsafe-inline' https://accounts.google.com${isProduction ? "" : " 'unsafe-eval'"}`,
+  `script-src 'self' 'unsafe-inline' https://accounts.google.com https://challenges.cloudflare.com${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https:",
   "font-src 'self' data:",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com",
+  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
   "media-src 'self' blob:",
   "manifest-src 'self'",
-  "frame-src 'self' https://www.google.com https://maps.google.com https://accounts.google.com",
+  "frame-src 'self' https://www.google.com https://maps.google.com https://accounts.google.com https://challenges.cloudflare.com",
   ...(isProduction && !localBrowserQaHttp ? ["upgrade-insecure-requests"] : [])
 ].join("; ");
 
