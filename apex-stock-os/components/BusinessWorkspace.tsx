@@ -109,6 +109,16 @@ const ConnectedCommerceHub = dynamic(
   { ssr: false, loading: LazyModuleFallback }
 );
 
+const FiscalDocumentsCenter = dynamic(
+  () => import("./FiscalDocumentsCenter").then(module => module.FiscalDocumentsCenter),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
+const WorkspaceAccountPanel = dynamic(
+  () => import("./WorkspaceAccountPanel").then(module => module.WorkspaceAccountPanel),
+  { ssr: false, loading: LazyModuleFallback }
+);
+
 const PremiumCharts = dynamic(
   () =>
     import("./PremiumCharts").then(
@@ -4159,6 +4169,24 @@ export function BusinessWorkspace({
                     canViewFinancials
                   )
                 }
+              />
+            )}
+
+            {activeModule === "arca" && (
+              <FiscalDocumentsCenter
+                language={language}
+                currency={currency}
+                locale={locale}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
+              />
+            )}
+
+            {activeModule === "account" && (
+              <WorkspaceAccountPanel
+                language={language}
+                demoMode={demoMode}
+                onSignOut={onSignOut}
               />
             )}
 
