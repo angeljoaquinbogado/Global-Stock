@@ -1223,10 +1223,6 @@ export function BusinessWorkspace({
   const [notice, setNotice] = useState("");
   const [moreOpen, setMoreOpen] = useState(false);
   const sidebarNavRef = useRef<HTMLElement>(null);
-  const [sidebarScroll, setSidebarScroll] = useState({
-    visible: false,
-    progress: 0
-  });
   const [scannerOpen, setScannerOpen] = useState(false);
   const scannerRef = useRef<BarcodeScannerHandle>(null);
   const remoteWriteTimersRef = useRef<Map<string, number>>(new Map());
@@ -1246,42 +1242,6 @@ export function BusinessWorkspace({
   const lastMirroredProductsRef = useRef<Map<string,string>>(new Map());
   const productSyncQueueRef = useRef<Promise<void>>(Promise.resolve());
   const cloudSaveTimerRef = useRef<number | null>(null);
-
-  useEffect(() => {
-    const nav = sidebarNavRef.current;
-    if (!nav) return;
-
-    const updateSidebarScroll = () => {
-      const maxScroll = Math.max(0, nav.scrollHeight - nav.clientHeight);
-      const visible = maxScroll > 4;
-      const progress = maxScroll > 0 ? nav.scrollTop / maxScroll : 0;
-
-      setSidebarScroll({
-        visible,
-        progress: Math.min(1, Math.max(0, progress))
-      });
-    };
-
-    updateSidebarScroll();
-
-    nav.addEventListener("scroll", updateSidebarScroll, { passive: true });
-    window.addEventListener("resize", updateSidebarScroll);
-
-    const observer =
-      typeof ResizeObserver !== "undefined"
-        ? new ResizeObserver(updateSidebarScroll)
-        : null;
-
-    observer?.observe(nav);
-    const firstChild = nav.firstElementChild;
-    if (firstChild instanceof HTMLElement) observer?.observe(firstChild);
-
-    return () => {
-      nav.removeEventListener("scroll", updateSidebarScroll);
-      window.removeEventListener("resize", updateSidebarScroll);
-      observer?.disconnect();
-    };
-  }, [demoMode, language, memberRole]);
 
   function scrollSidebarToProgress(
     progress: number,
@@ -3768,160 +3728,7 @@ export function BusinessWorkspace({
             </div>
           </nav>
 
-          {sidebarScroll.visible ? (
-            <div
-              className="gs-sidebar-scroll-control absolute -right-[35px] top-1/2 z-30 hidden -translate-y-1/2 flex-col items-center gap-2 lg:flex"
-              onWheel={(event) => {
-                const nav = sidebarNavRef.current;
-                if (!nav) return;
-                event.preventDefault();
-                nav.scrollBy({ top: event.deltaY, behavior: "auto" });
-              }}
-            >
-              <button
-                type="button"
-                aria-label={
-                  language === "es"
-                    ? "Subir en el menú lateral"
-                    : language === "pt"
-                      ? "Subir no menu lateral"
-                      : language === "fr"
-                        ? "Monter dans le menu latéral"
-                        : language === "de"
-                          ? "Im Seitenmenü nach oben"
-                          : "Scroll sidebar up"
-                }
-                disabled={sidebarScroll.progress <= 0.002}
-                onClick={() => {
-                  const nav = sidebarNavRef.current;
-                  if (!nav) return;
-                  nav.scrollBy({
-                    top: -Math.max(120, Math.round(nav.clientHeight * 0.42)),
-                    behavior: "smooth"
-                  });
-                }}
-                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_22px_rgba(0,0,0,.13)] transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 enabled:hover:-translate-y-px enabled:hover:border-[#8F0000]/35 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:translate-y-0 disabled:cursor-default disabled:opacity-35"
-              >
-                <ChevronUp size={16} strokeWidth={2.1} />
-              </button>
 
-              <div
-                role="scrollbar"
-                tabIndex={0}
-                aria-controls="business-sidebar-nav"
-                aria-orientation="vertical"
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round(sidebarScroll.progress * 100)}
-                aria-label={
-                  language === "es"
-                    ? "Posición del menú lateral"
-                    : language === "pt"
-                      ? "Posição do menu lateral"
-                      : language === "fr"
-                        ? "Position du menu latéral"
-                        : language === "de"
-                          ? "Position des Seitenmenüs"
-                          : "Sidebar position"
-                }
-                onKeyDown={(event) => {
-                  if (!scrollSidebarByKeyboard(event.key)) return;
-                  event.preventDefault();
-                }}
-                onPointerDown={(event) => {
-                  const rail = event.currentTarget;
-                  rail.setPointerCapture(event.pointerId);
-                  const rect = rail.getBoundingClientRect();
-                  const thumbHalf = 12;
-                  const usable = Math.max(1, rect.height - thumbHalf * 2);
-                  const next =
-                    (event.clientY - rect.top - thumbHalf) / usable;
-                  scrollSidebarToProgress(next, "auto");
-                }}
-                onPointerMove={(event) => {
-                  const rail = event.currentTarget;
-                  if (!rail.hasPointerCapture(event.pointerId)) return;
-                  const rect = rail.getBoundingClientRect();
-                  const thumbHalf = 12;
-                  const usable = Math.max(1, rect.height - thumbHalf * 2);
-                  const next =
-                    (event.clientY - rect.top - thumbHalf) / usable;
-                  scrollSidebarToProgress(next, "auto");
-                }}
-                className="group relative h-[126px] w-7 cursor-ns-resize touch-none rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] outline-none shadow-[0_10px_26px_rgba(0,0,0,.12)] transition-[border-color,box-shadow,background-color] duration-150 hover:bg-[var(--apex-surface-strong)] focus-visible:border-[#8F0000]/45 focus-visible:shadow-[0_0_0_2px_rgba(143,0,0,.10),0_10px_26px_rgba(0,0,0,.14)]"
-              >
-                <div className="pointer-events-none absolute inset-[5px] overflow-hidden rounded-full bg-[var(--apex-bg)]/55">
-                  <div className="absolute inset-0 grid grid-rows-3">
-                    {[0, 1, 2].map((zone) => {
-                      const activeZone = Math.min(
-                        2,
-                        Math.floor(sidebarScroll.progress * 3)
-                      );
-
-                      return (
-                        <span
-                          key={zone}
-                          className={
-                            "relative transition-colors duration-150 " +
-                            (zone === activeZone
-                              ? "bg-[#8F0000]/[0.07]"
-                              : "bg-transparent")
-                          }
-                        >
-                          {zone < 2 ? (
-                            <span className="absolute inset-x-[3px] bottom-0 h-px bg-[var(--apex-border)]/80" />
-                          ) : null}
-
-                          <span
-                            className={
-                              "absolute left-1/2 top-1/2 h-1.5 w-1.5 -translate-x-1/2 -translate-y-1/2 rounded-full transition-[background-color,transform,opacity] duration-150 " +
-                              (zone === activeZone
-                                ? "scale-110 bg-[#8F0000] opacity-100"
-                                : "bg-[var(--apex-muted)]/35 opacity-75")
-                            }
-                          />
-                        </span>
-                      );
-                    })}
-                  </div>
-
-                  <span
-                    className="absolute left-1/2 h-6 w-[5px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[#8F0000] shadow-[0_0_10px_rgba(143,0,0,.28)] transition-[top] duration-100"
-                    style={{
-                      top: `calc(${sidebarScroll.progress * 100}% + ${12 - sidebarScroll.progress * 24}px)`
-                    }}
-                  />
-                </div>
-              </div>
-
-              <button
-                type="button"
-                aria-label={
-                  language === "es"
-                    ? "Bajar en el menú lateral"
-                    : language === "pt"
-                      ? "Descer no menu lateral"
-                      : language === "fr"
-                        ? "Descendre dans le menu latéral"
-                        : language === "de"
-                          ? "Im Seitenmenü nach unten"
-                          : "Scroll sidebar down"
-                }
-                disabled={sidebarScroll.progress >= 0.998}
-                onClick={() => {
-                  const nav = sidebarNavRef.current;
-                  if (!nav) return;
-                  nav.scrollBy({
-                    top: Math.max(120, Math.round(nav.clientHeight * 0.42)),
-                    behavior: "smooth"
-                  });
-                }}
-                className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-[0_8px_22px_rgba(0,0,0,.13)] transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-150 enabled:hover:translate-y-px enabled:hover:border-[#8F0000]/35 enabled:hover:bg-[var(--apex-surface-strong)] enabled:hover:text-[var(--apex-text)] enabled:active:translate-y-0 disabled:cursor-default disabled:opacity-35"
-              >
-                <ChevronDown size={16} strokeWidth={2.1} />
-              </button>
-            </div>
-          ) : null}
         </div>
 
         <div className="mt-auto space-y-3 pt-4">
