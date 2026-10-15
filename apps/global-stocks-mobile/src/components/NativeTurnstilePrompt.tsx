@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator, Modal, Pressable, StyleSheet, Text, View
 } from "react-native";
@@ -22,6 +22,11 @@ export function NativeTurnstilePrompt({
 }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!visible) return;
+    setError("");
+    setLoading(true);
+  }, [visible]);
   return (
     <Modal visible={visible} animationType="slide" transparent={false}
       presentationStyle="pageSheet" onRequestClose={onCancel}>
@@ -40,7 +45,15 @@ export function NativeTurnstilePrompt({
           color="#A50017" size="small" style={{ marginTop: 25 }} />}
         <WebView
           source={{ uri: HOSTED_URL }}
-          originWhitelist={["https://*"]}
+          originWhitelist={["https://globalstocks.vercel.app", "https://challenges.cloudflare.com"]}
+          onShouldStartLoadWithRequest={request => {
+            try {
+              const url = new URL(request.url);
+              return url.protocol === "https:" &&
+                ((url.hostname === "globalstocks.vercel.app" && url.pathname === "/auth/turnstile") ||
+                  url.hostname === "challenges.cloudflare.com");
+            } catch { return false; }
+          }}
           javaScriptEnabled
           domStorageEnabled={false}
           sharedCookiesEnabled={false}
