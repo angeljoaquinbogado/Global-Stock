@@ -179,6 +179,7 @@ function RevenueBars({
               return (
                 <button key={row.label + index} type="button"
                   aria-label={row.label + ": " + money(row.revenue)}
+                  onClick={() => setSelected(previous => previous === index ? null : index)}
                   onFocus={() => setSelected(index)}
                   onBlur={() => setSelected(null)}
                   onMouseEnter={() => setSelected(index)}
@@ -215,8 +216,6 @@ function RevenueBars({
 function MarginGauge({ margin, label, noData }: {margin:number|null,label:string,noData:string}) {
   const reduced = useReducedMotion();
   const safePct = Math.max(0,Math.min(100,margin??0));
-  const radius = 72;
-  const circumference = 2 * Math.PI * radius;
   return (
     <div className="gs-exec-gauge">
       <svg viewBox="0 0 200 128" role="img"
