@@ -34,6 +34,8 @@ export const MODULE_ACCESS: Record<string, readonly GlobalStockRole[]> = {
     "accountant"
   ],
   operations: ["owner", "admin", "manager", "warehouse", "accountant"],
+  arca: ["owner", "admin", "accountant"],
+  account: ALL_ROLES,
   settings: ["owner", "admin"]
 };
 
