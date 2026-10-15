@@ -3690,7 +3690,7 @@ export function BusinessWorkspace({
                       Boolean(item)
                   );
 
-                if (!groupItems.length) return null;
+                if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
                   <section key={group.id}>
@@ -3721,6 +3721,16 @@ export function BusinessWorkspace({
                           </button>
                         );
                       })}
+                      {group.id === "legal" && legalLinks.map(({ id, href, icon: Icon }) => (
+                        <a
+                          key={id}
+                          href={href}
+                          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000]"
+                        >
+                          <Icon size={16} aria-hidden="true" />
+                          <span className="min-w-0 break-words">{legalLinkLabels[language][id]}</span>
+                        </a>
+                      ))}
                     </div>
                   </section>
                 );
@@ -4203,7 +4213,7 @@ export function BusinessWorkspace({
                         Boolean(item)
                     );
 
-                  if (!groupItems.length) return null;
+                  if (!groupItems.length && group.id !== "legal") return null;
 
                   return (
                     <section key={group.id}>
@@ -4250,6 +4260,18 @@ export function BusinessWorkspace({
                             </button>
                           );
                         })}
+                        {group.id === "legal" && legalLinks.map(({ id, href, icon: Icon }) => (
+                          <a
+                            key={id}
+                            href={href}
+                            className="flex min-h-[62px] items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3.5 text-left text-sm font-semibold text-[var(--apex-text)]"
+                          >
+                            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#8F0000]/10 text-[#8F0000]">
+                              <Icon size={17} aria-hidden="true" />
+                            </span>
+                            <span className="min-w-0 break-words leading-tight">{legalLinkLabels[language][id]}</span>
+                          </a>
+                        ))}
                       </div>
                     </section>
                   );
