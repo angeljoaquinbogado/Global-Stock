@@ -34,16 +34,6 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis
-} from "recharts";
-
-import {
   calculateMetrics,
   formatMoney,
   getStockStatus,
@@ -74,6 +64,7 @@ import type {
 import { demoProducts, demoTrend } from "@/lib/demo-data";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
+import { AnimatedHomeDashboard } from "./AnimatedHomeDashboard";
 import { ApexIntelligence } from "./ApexIntelligence";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
@@ -3850,6 +3841,8 @@ export function BusinessWorkspace({
             >
             {activeModule === "overview" && (
               <OverviewModule
+                dark={dark}
+                language={language}
                 labels={labels}
                 metrics={metrics}
                 chartData={localizedTrend}
@@ -4380,12 +4373,12 @@ export function BusinessWorkspace({
 }
 
 function OverviewModule({
+  dark,
+  language,
   labels,
   metrics,
   chartData,
   money,
-  currency,
-  locale,
   setActiveModule,
   canOpenModule,
   showFinancials,
@@ -4393,14 +4386,11 @@ function OverviewModule({
   todayNotes,
   activityText
 }: {
+  dark: boolean;
+  language: LanguageCode;
   labels: (typeof copy)[LanguageCode];
   metrics: ReturnType<typeof calculateMetrics>;
-  chartData: Array<{
-    label: string;
-    revenue: number;
-    cost: number;
-    profit: number;
-  }>;
+  chartData: Array<{ label: string; revenue: number; cost: number; profit: number }>;
   money: (value: number) => string;
   currency: string;
   locale: string;
@@ -4412,208 +4402,40 @@ function OverviewModule({
   activityText: (activity: ActivityRecord) => string;
 }) {
   return (
-    <div className="space-y-5">
-      <PageIntro
-        title={labels.overviewTitle}
-        subtitle={labels.overviewSubtitle}
-      />
-
-      <section className={"grid grid-cols-2 gap-3 " + (showFinancials ? "xl:grid-cols-4" : "xl:max-w-2xl")}>
-        {showFinancials && (
-          <>
-            <Kpi
-              label={labels.revenue}
-              value={money(metrics.revenue)}
-              icon={<CircleDollarSign size={18} />}
-            />
-            <Kpi
-              label={labels.inventoryCost}
-              value={money(metrics.inventoryCost)}
-              icon={<Boxes size={18} />}
-            />
-            <Kpi
-              label={labels.grossProfit}
-              value={money(metrics.grossProfit)}
-              icon={<BarChart3 size={18} />}
-            />
-          </>
-        )}
-        {!showFinancials && (
-          <Kpi
-            label={labels.stock}
-            value={String(metrics.inventoryUnits)}
-            detail={labels.units}
-            icon={<Boxes size={18} />}
-          />
-        )}
-        <Kpi
-          label={labels.criticalStock}
-          value={String(
-            metrics.lowStockCount + metrics.outOfStockCount
-          )}
-          detail={labels.alerts}
-          icon={<BellRing size={18} />}
-        />
-      </section>
-
-      <section className={"grid gap-4 " + (showFinancials ? "xl:grid-cols-[1.25fr_.75fr]" : "xl:grid-cols-2")}>
-        {showFinancials && (
-        <div className="apex-card p-5 sm:p-6">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#8F0000]">
-                {labels.salesFlow}
-              </p>
-              <h3 className="mt-2 text-lg font-semibold">
-                {labels.grossProfit}
-              </h3>
-            </div>
-            {canOpenModule("charts") && (
-              <button
-                type="button"
-                onClick={() => setActiveModule("charts")}
-                className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-[10px] font-semibold text-[var(--apex-muted)]"
-              >
-                {labels.nav.charts}
-              </button>
-            )}
-          </div>
-
-          <div className="mt-5 h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <defs>
-                  <linearGradient
-                    id="workspaceProfit"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="0%"
-                      stopColor="#8F0000"
-                      stopOpacity={0.12}
-                    />
-                    <stop
-                      offset="100%"
-                      stopColor="#8F0000"
-                      stopOpacity={0}
-                    />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid
-                  stroke="var(--apex-border)"
-                  strokeDasharray="1 7"
-                  vertical
-                />
-                <XAxis
-                  dataKey="label"
-                  axisLine={false}
-                  tickLine={false}
-                  fontSize={11}
-                  stroke="var(--apex-muted)"
-                />
-                <YAxis hide />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: 18,
-                    border: "1px solid var(--apex-border)",
-                    background: "var(--apex-surface-strong)",
-                    color: "var(--apex-text)"
-                  }}
-                  formatter={(value) =>
-                    formatMoney(Number(value), currency, locale)
-                  }
-                />
-                <Area
-                  type="linear"
-                  dataKey="profit"
-                  stroke="#C10A0A"
-                  strokeWidth={2.15}
-                  fill="url(#workspaceProfit)"
-                  dot={false}
-                  activeDot={{ r: 4, strokeWidth: 0 }}
-                
-                isAnimationActive={false}/>
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        )}
-
-        <div className="grid gap-4">
-          <section className="apex-card p-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                {labels.recentActivity}
-              </h3>
-              {canOpenModule("activities") && (
-                <button
-                  type="button"
-                  onClick={() => setActiveModule("activities")}
-                  className="text-[10px] font-semibold text-[#8F0000]"
-                >
-                  {labels.open}
-                </button>
-              )}
-            </div>
-            <div className="mt-4 space-y-3">
-              {recentActivities.length ? (
-                recentActivities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-start gap-3"
-                  >
-                    <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-[#8F0000]" />
-                    <p className="text-xs leading-5 text-[var(--apex-muted)]">
-                      {activityText(activity)}
-                    </p>
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-[var(--apex-muted)]">
-                  {labels.noActivities}
-                </p>
-              )}
-            </div>
-          </section>
-
-          <section className="apex-card p-5">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold">
-                {labels.todayNotes}
-              </h3>
-              {canOpenModule("notes") && (
-                <button
-                  type="button"
-                  onClick={() => setActiveModule("notes")}
-                  className="text-[10px] font-semibold text-[#8F0000]"
-                >
-                  {labels.open}
-                </button>
-              )}
-            </div>
-            <div className="mt-4 space-y-2">
-              {todayNotes.length ? (
-                todayNotes.slice(0, 4).map((note) => (
-                  <div
-                    key={note.id}
-                    className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5 text-xs"
-                  >
-                    {note.text}
-                  </div>
-                ))
-              ) : (
-                <p className="text-xs text-[var(--apex-muted)]">
-                  {labels.noNotes}
-                </p>
-              )}
-            </div>
-          </section>
-        </div>
-      </section>
-    </div>
+    <AnimatedHomeDashboard
+      dark={dark}
+      language={language}
+      labels={{
+        title: labels.overviewTitle,
+        subtitle: labels.overviewSubtitle,
+        revenue: labels.revenue,
+        inventoryCost: labels.inventoryCost,
+        grossProfit: labels.grossProfit,
+        stock: labels.stock,
+        criticalStock: labels.criticalStock,
+        units: labels.units,
+        alerts: labels.alerts,
+        salesFlow: labels.salesFlow,
+        recentActivity: labels.recentActivity,
+        todayNotes: labels.todayNotes,
+        noActivities: labels.noActivities,
+        noNotes: labels.noNotes,
+        charts: labels.nav.charts,
+        open: labels.open
+      }}
+      metrics={metrics}
+      chartData={chartData}
+      money={money}
+      showFinancials={showFinancials}
+      recentActivities={recentActivities.map(activityText)}
+      todayNotes={todayNotes.map(note => note.text)}
+      canOpenCharts={canOpenModule("charts")}
+      canOpenActivities={canOpenModule("activities")}
+      canOpenNotes={canOpenModule("notes")}
+      openCharts={() => setActiveModule("charts")}
+      openActivities={() => setActiveModule("activities")}
+      openNotes={() => setActiveModule("notes")}
+    />
   );
 }
 
@@ -6084,37 +5906,6 @@ function PageIntro({
         {subtitle}
       </p>
     </section>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  detail,
-  icon
-}: {
-  label: string;
-  value: string;
-  detail?: string;
-  icon: React.ReactNode;
-}) {
-  return (
-    <article className="apex-card p-5">
-      <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
-        {icon}
-      </span>
-      <p className="mt-4 text-xs font-semibold text-[var(--apex-muted)]">
-        {label}
-      </p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">
-        {value}
-      </p>
-      {detail && (
-        <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
-          {detail}
-        </p>
-      )}
-    </article>
   );
 }
 
