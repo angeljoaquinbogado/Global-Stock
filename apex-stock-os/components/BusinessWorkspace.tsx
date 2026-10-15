@@ -6,12 +6,13 @@ import dynamic from "next/dynamic";
 import {
   Activity as ActivityIcon,
   BarChart3,
+  Landmark,
+  UserRound,
+  ShieldCheck,
   BellRing,
   Boxes,
   Building2,
   CircleDollarSign,
-  ChevronDown,
-  ChevronUp,
   ClipboardList,
   LogOut,
   ReceiptText,
@@ -179,6 +180,8 @@ type ModuleId =
   | "documents"
   | "notes"
   | "operations"
+  | "arca"
+  | "account"
   | "settings";
 
 type BusinessWorkspaceProps = {
@@ -453,8 +456,8 @@ const copy: Record<
   es: {
     nav: {
       overview: "Inicio",
-      pos: "Punto de venta",
-      cash: "Caja",
+      pos: "Ventas (Punto de venta)",
+      cash: "Caja Registradora",
       online: "Tienda online",
       inventory: "Almacén",
       charts: "Gráficos",
@@ -463,7 +466,9 @@ const copy: Record<
       activities: "Actividad",
       documents: "Comprobantes",
       notes: "Agenda",
-      operations: "Gestión",
+      operations: "Negocios / Locales",
+      arca: "ARCA Facturación",
+      account: "Cuenta / Cuentas",
       settings: "Configuración"
     },
     more: "Menú",
@@ -571,7 +576,9 @@ const copy: Record<
       activities: "Activity",
       documents: "Documents",
       notes: "Agenda",
-      operations: "Operations",
+      operations: "Businesses / Locations",
+      arca: "ARCA Invoicing",
+      account: "Account / Accounts",
       settings: "Settings"
     },
     more: "Menu",
@@ -679,7 +686,9 @@ const copy: Record<
       activities: "Atividade",
       documents: "Comprovantes",
       notes: "Agenda",
-      operations: "Gestão",
+      operations: "Negócios / Locais",
+      arca: "ARCA Faturamento",
+      account: "Conta / Contas",
       settings: "Configurações"
     },
     more: "Menu",
@@ -787,7 +796,9 @@ const copy: Record<
       activities: "Activité",
       documents: "Documents",
       notes: "Agenda",
-      operations: "Gestion",
+      operations: "Entreprises / Sites",
+      arca: "Facturation ARCA",
+      account: "Compte / Comptes",
       settings: "Paramètres"
     },
     more: "Menu",
@@ -895,7 +906,9 @@ const copy: Record<
       activities: "Aktivität",
       documents: "Belege",
       notes: "Agenda",
-      operations: "Verwaltung",
+      operations: "Betriebe / Standorte",
+      arca: "ARCA Rechnungen",
+      account: "Konto / Konten",
       settings: "Einstellungen"
     },
     more: "Menü",
