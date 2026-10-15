@@ -4199,9 +4199,7 @@ export function BusinessWorkspace({
                 {navigationGroups.map((group) => {
                   const groupItems = group.modules
                     .filter(
-                      (id) =>
-                        visibleModuleIds.has(id) &&
-                        !mobileDockModuleIds.has(id)
+                      (id) => visibleModuleIds.has(id)
                     )
                     .map((id) =>
                       modules.find((module) => module.id === id)
