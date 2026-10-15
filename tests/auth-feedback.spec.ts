@@ -46,7 +46,7 @@ test("sign-in respects a saved cooldown without exposing the credential fields i
   }, LOGIN_ATTEMPT_STORAGE_KEY);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Iniciar sesión" })).toBeVisible();
-  await expect(page.getByRole("button", { name: /acceso se pausó/i })).toBeDisabled();
+  await expect(page.getByRole("button", { name: /reintentar en/i })).toBeDisabled();
   const buttonText = await page.locator('form button[type="submit"]').innerText();
   expect(buttonText).toMatch(/15 min/);
   await page.evaluate(key => localStorage.removeItem(key), LOGIN_ATTEMPT_STORAGE_KEY);
