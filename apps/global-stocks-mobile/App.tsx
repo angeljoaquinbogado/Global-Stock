@@ -369,7 +369,7 @@ function MobileApp() {
     return () => { alive = false; subscription.remove(); };
   }, [supabase]);
 
-  async function login(email: string, password: string) {
+  async function login(email: string, password: string, captchaToken?: string) {
     setRegisteredNeedsConfirmation(false);
     // Public demo credentials open a local-only sandbox, NEVER a Supabase session.
     if (email.trim().toLowerCase() === "demo@globalstock.app" && password === "GlobalStock2026!") {
@@ -381,7 +381,10 @@ function MobileApp() {
     setAuthLoading(true);
     setAuthError("");
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({
+        email, password,
+        options: captchaToken ? { captchaToken } : undefined
+      });
       if (error) {
         setAuthError(error.message.toLowerCase().includes("invalid login credentials")
           ? "Correo o contraseña incorrectos. Revisá los datos o elegí Probar demo."
@@ -429,7 +432,7 @@ function MobileApp() {
     }
   }
 
-  async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt") {
+  async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt", captchaToken?: string) {
     setRegisteredNeedsConfirmation(false);
     if (!supabase) return;
     setAuthLoading(true);
@@ -443,6 +446,7 @@ function MobileApp() {
         email, password,
         options: {
           emailRedirectTo: "https://globalstocks.vercel.app",
+          ...(captchaToken ? { captchaToken } : {}),
           data: {
             app: "global_stock",
             full_name: fullName.trim(),
