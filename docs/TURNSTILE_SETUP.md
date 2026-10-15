@@ -1,21 +1,35 @@
 # Global Stock — Turnstile + Supabase Auth (Argentina beta)
 
-**Estado inicial seguro:** mantené **CAPTCHA desactivado en Supabase** hasta terminar todas las verificaciones. Tener una Site Key en Vercel no activa por sí sola el control en Supabase.
+**Estado inicial seguro:** mantener **CAPTCHA desactivado en Supabase** y `NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED=false` (o sin configurar) en Vercel hasta completar las pruebas. **La Site Key ya existente NO obliga al navegador ni a Expo Go a realizar Turnstile.** Antes, confundir ambas cosas abría una ventana blanca de verificación aunque Supabase no la exigiera; se corrigió.
 
 ## Qué está conectado
 
-- Sitio web: `AuthScreen` monta `AuthTurnstile` cuando existe `NEXT_PUBLIC_TURNSTILE_SITE_KEY`, bloquea los envíos sin token y pasa `options.captchaToken` en `signInWithPassword` y `options.captchaToken` en `signUp`.
+- Sitio web: `AuthScreen` monta `AuthTurnstile` **solo cuando `NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED=true` y existe `NEXT_PUBLIC_TURNSTILE_SITE_KEY`**, bloquea los envíos sin token y pasa `options.captchaToken` en `signInWithPassword` y `options.captchaToken` en `signUp`.
 - Política CSP: permite `https://challenges.cloudflare.com` para script, iframe y conexión.
-- App Expo Go: consulta `/api/auth/turnstile-config`; si la Site Key está configurada, abre `/auth/turnstile` desde `globalstocks.vercel.app` en un WebView y envía el token efímero por puente nativo hacia Supabase Auth.
+- App Expo Go: consulta `/api/auth/turnstile-config`; solo si la protección está explícitamente habilitada **y** la Site Key está configurada, abre `/auth/turnstile` desde `globalstocks.vercel.app` en un WebView y envía el token efímero por puente nativo hacia Supabase Auth.
 - Modo demo: no utiliza Supabase Auth ni requiere CAPTCHA. Google ID-token es un flujo diferente y debe comprobarse después de habilitar CAPTCHA.
 - El backend que verifica el token es **Supabase Auth**. No implementes una comprobación casera ni envíes la Secret Key al cliente.
 
 ## Claves
 
 1. Cloudflare Turnstile: widget **Managed** y hostname **globalstocks.vercel.app**.
-2. Vercel > Global Stock > Settings > Environment Variables: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` = **Site Key pública**; seleccionar Production, guardar y completar un nuevo despliegue.
+2. Vercel > Global Stock > Settings > Environment Variables: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` = **Site Key pública** y `NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED=false` (o dejar esta segunda variable sin crear). No activar todavía; la Site Key por sí sola queda guardada pero no lanza la verificación. Cambiar el interruptor exige un **nuevo despliegue** para la aplicación web.
 3. Supabase proyecto correcto (`yckimhbtvijmmkxukxgd`) > Authentication > Protection: seleccionar **Cloudflare Turnstile** y poner la **Secret Key** privada en **Captcha secreto**. Mantener el interruptor **desactivado** mientras se prueba.
 4. Nunca copiar la Secret Key a Vercel, `.env`, GitHub, Expo, código JS, capturas ni un mensaje.
+
+## Importante: corregir la verificación en Expo Go
+
+El problema de la ventana blanca/«verificación fallida» se originó porque Expo activaba el captcha apenas encontraba la Site Key, aun cuando Supabase Auth no tenía CAPTCHA habilitado. Con el interruptor separado, Expo continúa con correo y contraseña sin mostrar el modal hasta que decidas activar el requisito.
+
+Al preparar la activación real en el futuro, no confiar solamente en compilar: ejecutar una prueba física en Expo Go con Cloudflare, verificar la recepción y el uso del token contra Supabase, y contemplar las versiones móviles anteriores. Si Turnstile no funciona en el WebView, mantener desactivado el requisito y corregir ese recorrido antes de habilitar el bloqueo.
+
+## Secuencia de activación
+
+1. Con Supabase CAPTCHA **desactivado**, revisar el widget Cloudflare y probar `/auth/turnstile` en la web, sin revelar claves privadas.
+2. Confirmar con una cuenta de prueba la verificación en la web y Expo Go bajo condiciones de prueba, sin bloquear usuarios públicos.
+3. Configurar `NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED=true` en producción y **redesplegar** para que web y Expo Go soliciten tokens.
+4. Sólo una vez confirmada la versión publicada y la app móvil actualizada, activar Cloudflare Turnstile en Supabase Auth y guardar. Probar acceso y registro reales con cuentas de prueba.
+5. Para revertir: primero desactivar CAPTCHA en Supabase y guardar, después cambiar `NEXT_PUBLIC_AUTH_CAPTCHA_ENABLED=false` y desplegar.
 
 ## Pruebas antes de activar el bloqueo en Supabase
 
