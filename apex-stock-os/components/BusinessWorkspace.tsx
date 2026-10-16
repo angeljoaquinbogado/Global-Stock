@@ -1080,7 +1080,6 @@ const workflowHelp: Record<
 
 const modules: Array<{ id: ModuleId; icon: typeof Store }> = [
   { id: "overview", icon: Store },
-  { id: "pos", icon: ShoppingCart },
   { id: "cash", icon: Wallet },
   { id: "online", icon: ShoppingBag },
   { id: "inventory", icon: Boxes },
@@ -1118,7 +1117,7 @@ const navigationGroups: Array<{
   id: NavigationGroupId;
   modules: readonly ModuleId[];
 }> = [
-  { id: "core", modules: ["overview", "cash", "inventory", "pos", "online"] },
+  { id: "core", modules: ["overview", "cash", "inventory", "online"] },
   { id: "analysis", modules: ["charts", "activities"] },
   { id: "organization", modules: ["suppliers", "purchases", "notes"] },
   { id: "management", modules: ["documents", "arca", "operations"] },
@@ -1222,6 +1221,7 @@ export function BusinessWorkspace({
   const [storageReady, setStorageReady] = useState(false);
   const [cart, setCart] = useState<Record<string, number>>({});
   const [posQuery, setPosQuery] = useState("");
+  const [cashTab, setCashTab] = useState<"checkout" | "management">("checkout");
   const [businessName, setBusinessName] = useState("");
   const [businessType, setBusinessType] =
     useState<BusinessType>("retail");
@@ -2588,8 +2588,8 @@ export function BusinessWorkspace({
     setActiveModule(fallback);
   }, [activeModule, visibleModuleIds, visibleModules]);
 
-  const mobileLeftModule: ModuleId = visibleModuleIds.has("pos")
-    ? "pos"
+  const mobileLeftModule: ModuleId = visibleModuleIds.has("cash")
+    ? "cash"
     : visibleModuleIds.has("inventory")
       ? "inventory"
       : "activities";
@@ -3889,49 +3889,68 @@ export function BusinessWorkspace({
               />
             )}
 
-            {activeModule === "pos" && (
-              <PosModule
-                cashMode={true}
-                onOpenCashRegister={() => setActiveModule("cash")}
-                labels={labels}
-                language={language}
-                products={products}
-                posVariants={posVariants}
-                locations={posLocations}
-                sellableStockByLocation={sellableStockByLocation}
-                query={posQuery}
-                setQuery={setPosQuery}
-                cart={cart}
-                setQuantity={setQuantity}
-                cartLines={cartLines}
-                cartSubtotal={cartSubtotal}
-                promotionDiscount={promotionDiscount}
-                promotionLabel={appliedPromotion?.name ?? ""}
-                cartTotal={cartTotal}
-                cartProfit={
-                  canViewFinancials && cartCostKnown
-                    ? cartTotal - cartCost
-                    : null
-                }
-                money={money}
-                businessId={cloudBusinessId}
-                demoMode={demoMode}
-                sellableStockById={sellableStockById}
-                completeSale={completeSale}
-              />
-            )}
-
             {activeModule === "cash" && (
-              <CashRegisterCenter
-                language={language}
-                businessId={cloudBusinessId}
-                demoMode={demoMode}
-                locations={posLocations}
-                money={money}
-                currency={currency}
-                canManage={memberRole !== "viewer"}
-                onGoToPos={() => setActiveModule("pos")}
-              />
+              <div className="space-y-5">
+                <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5" role="tablist" aria-label={language === "es" ? "Secciones de Caja Registradora" : "Cash register sections"}>
+                  <button type="button" role="tab" aria-selected={cashTab === "checkout"}
+                    onClick={() => setCashTab("checkout")}
+                    className={"min-h-10 flex-1 rounded-xl px-4 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200 sm:flex-none " +
+                      (cashTab === "checkout"
+                        ? "bg-[var(--apex-accent)] text-white shadow-sm"
+                        : "text-[var(--apex-muted)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")}>
+                    <ShoppingCart className="mr-2 inline-block" size={15} />
+                    {language === "es" ? "Cobros y ventas" : language === "pt" ? "Vendas e pagamentos" : language === "fr" ? "Ventes et paiements" : language === "de" ? "Verkauf und Zahlung" : "Checkout & sales"}
+                  </button>
+                  <button type="button" role="tab" aria-selected={cashTab === "management"}
+                    onClick={() => setCashTab("management")}
+                    className={"min-h-10 flex-1 rounded-xl px-4 text-xs font-semibold transition-[background-color,color,box-shadow] duration-200 sm:flex-none " +
+                      (cashTab === "management"
+                        ? "bg-[var(--apex-accent)] text-white shadow-sm"
+                        : "text-[var(--apex-muted)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")}>
+                    <Wallet className="mr-2 inline-block" size={15} />
+                    {language === "es" ? "Apertura, cierre y arqueo" : language === "pt" ? "Abertura, fechamento e conferência" : language === "fr" ? "Ouverture et clôture" : language === "de" ? "Kassenöffnung und -abschluss" : "Shifts & cash reconciliation"}
+                  </button>
+                </div>
+                <div role="tabpanel">
+                  {cashTab === "checkout" ? (
+                    <PosModule
+                      cashMode={true}
+                      labels={labels}
+                      language={language}
+                      products={products}
+                      posVariants={posVariants}
+                      locations={posLocations}
+                      sellableStockByLocation={sellableStockByLocation}
+                      query={posQuery}
+                      setQuery={setPosQuery}
+                      cart={cart}
+                      setQuantity={setQuantity}
+                      cartLines={cartLines}
+                      cartSubtotal={cartSubtotal}
+                      promotionDiscount={promotionDiscount}
+                      promotionLabel={appliedPromotion?.name ?? ""}
+                      cartTotal={cartTotal}
+                      cartProfit={canViewFinancials && cartCostKnown ? cartTotal - cartCost : null}
+                      money={money}
+                      businessId={cloudBusinessId}
+                      demoMode={demoMode}
+                      sellableStockById={sellableStockById}
+                      completeSale={completeSale}
+                    />
+                  ) : (
+                    <CashRegisterCenter
+                      language={language}
+                      businessId={cloudBusinessId}
+                      demoMode={demoMode}
+                      locations={posLocations}
+                      money={money}
+                      currency={currency}
+                      canManage={demoMode || memberRole !== "viewer"}
+                      onGoToPos={() => setCashTab("checkout")}
+                    />
+                  )}
+                </div>
+              </div>
             )}
 
             {activeModule === "online" && (
@@ -4396,7 +4415,7 @@ export function BusinessWorkspace({
         demoMode={demoMode}
         businessId={cloudBusinessId}
         raiseOnMobile={
-          (activeModule === "pos" || activeModule === "cash") && cartLines.length > 0
+          activeModule === "cash" && cashTab === "checkout" && cartLines.length > 0
         }
         appContext={{
           businessName,
@@ -4488,7 +4507,6 @@ function OverviewModule({
 
 function PosModule({
   cashMode,
-  onOpenCashRegister,
   labels,
   language,
   products,
@@ -4512,7 +4530,6 @@ function PosModule({
   completeSale
 }: {
   cashMode: boolean;
-  onOpenCashRegister: () => void;
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   products: Product[];
@@ -4833,27 +4850,21 @@ function PosModule({
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <PageIntro
-            title={labels.posTitle}
-            subtitle={language === "es"
-              ? "Escaneá o ingresá productos, armá el ticket y registrá la venta. Los cobros en efectivo se reflejan en el turno de Caja Registradora."
+      <PageIntro
+        title={cashMode ? labels.nav.cash : labels.posTitle}
+        subtitle={cashMode
+          ? (language === "es"
+            ? "Escaneá artículos, aplicá promociones y calculá el vuelto antes de registrar el cobro."
+            : language === "en"
+              ? "Scan products, apply promotions and calculate change before confirming payment."
               : language === "pt"
-                ? "Escaneie produtos, monte o pedido e registre a venda. O dinheiro entra no turno do caixa."
+                ? "Escaneie produtos, aplique promoções e calcule o troco antes de registrar o pagamento."
                 : language === "fr"
-                  ? "Scannez les articles, préparez le ticket et enregistrez la vente."
-                  : language === "de"
-                    ? "Artikel scannen, Beleg zusammenstellen und Verkauf erfassen."
-                    : "Scan products, build the receipt and record the sale. Cash payments count toward the open register shift."}
-          />
-        </div>
-        <button type="button" onClick={onOpenCashRegister}
-          className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-xs font-semibold transition-colors hover:border-[var(--apex-accent)] hover:text-[var(--apex-accent)]">
-          <Wallet size={16} />
-          {labels.nav.cash}
-        </button>
-      </div>
+                  ? "Scannez vos produits, appliquez les remises et calculez la monnaie."
+                  : "Produkte scannen, Rabatte anwenden und Rückgeld berechnen.")
+          : labels.posSubtitle}
+      />
+      {!cashMode && <WorkflowHelp {...workflowHelp[language].pos} />}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">

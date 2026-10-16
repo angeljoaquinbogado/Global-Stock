@@ -32,11 +32,11 @@ type Props={
 };
 const words={
   es:{
-    title:"Caja Registradora",subtitle:"Controlá tus turnos, movimientos de efectivo y arqueos sin duplicar las ventas.",
+    title:"Control de caja",subtitle:"Abrí y cerrá turnos, registrá movimientos de efectivo y controlá el arqueo.",
     demo:"Modo demostración: los movimientos de esta caja no se guardan.",noBusiness:"Conectá tu negocio para usar la caja compartida.",
     location:"Sucursal / local",open:"Abrir caja",opening:"Fondo inicial",openShift:"Comenzar turno",current:"Turno abierto",
     closed:"Turno cerrado",last:"Últimos turnos",none:"Todavía no hay turnos en esta ubicación.",
-    POS:"Ir al Punto de Venta",reload:"Actualizar movimientos",since:"Desde",
+    POS:"Ir a cobros y ventas",reload:"Actualizar movimientos",since:"Desde",
     cashExpected:"Efectivo esperado",cashSales:"Ventas en efectivo",otherSales:"Otros medios",openingBalance:"Fondo inicial",
     manualIncome:"Entradas manuales",manualExpense:"Salidas manuales",activity:"Movimientos",history:"Historial",
     emptyActivity:"Sin movimientos manuales en este turno.",in:"Ingreso",out:"Egreso",withdrawal:"Retiro",deposit:"Depósito",
@@ -56,11 +56,11 @@ const words={
     validAmount:"Ingresá un importe válido (hasta dos decimales)."
   },
   en:{
-    title:"Cash register",subtitle:"Manage cash shifts, movements and reconciliations separately from sales.",
+    title:"Cash management",subtitle:"Open and close shifts, record cash movements and reconcile balances.",
     demo:"Demo mode: these cash movements are not saved.",noBusiness:"Connect your business to use the shared cash register.",
     location:"Store / location",open:"Open register",opening:"Opening float",openShift:"Start shift",current:"Open shift",
     closed:"Closed shift",last:"Previous shifts",none:"No shifts in this location yet.",
-    POS:"Go to Point of Sale",reload:"Refresh",since:"Since",
+    POS:"Go to checkout",reload:"Refresh",since:"Since",
     cashExpected:"Expected cash",cashSales:"Cash POS sales",otherSales:"Non-cash payments",openingBalance:"Opening float",
     manualIncome:"Manual cash in",manualExpense:"Manual cash out",activity:"Movements",history:"History",
     emptyActivity:"No manual movements for this shift.",in:"Income",out:"Expense",withdrawal:"Withdrawal",deposit:"Deposit",
@@ -80,10 +80,10 @@ const words={
     validAmount:"Enter a valid amount (up to two decimals)."
   },
   pt:{
-    title:"Caixa registradora",subtitle:"Gerencie turnos, dinheiro e conferências separadamente das vendas.",
+    title:"Controle do caixa",subtitle:"Abra e feche turnos, registre movimentos e confira o dinheiro.",
     demo:"Modo demonstração: movimentos não são salvos.",noBusiness:"Conecte sua empresa para usar o caixa.",
     location:"Filial / loja",open:"Abrir caixa",opening:"Fundo inicial",openShift:"Iniciar turno",current:"Turno aberto",
-    closed:"Turno fechado",last:"Últimos turnos",none:"Nenhum turno registrado.",POS:"Ir ao Ponto de Venda",
+    closed:"Turno fechado",last:"Últimos turnos",none:"Nenhum turno registrado.",POS:"Ir para vendas e pagamentos",
     reload:"Atualizar",since:"Desde",cashExpected:"Dinheiro esperado",cashSales:"Vendas em dinheiro",
     otherSales:"Outros pagamentos",openingBalance:"Fundo inicial",manualIncome:"Entradas manuais",
     manualExpense:"Saídas manuais",activity:"Movimentos",history:"Histórico",emptyActivity:"Sem movimentos manuais.",
