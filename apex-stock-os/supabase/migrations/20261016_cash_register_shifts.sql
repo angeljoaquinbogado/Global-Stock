@@ -219,3 +219,9 @@ grant execute on function public.global_stock_open_cash_shift(uuid,uuid,numeric)
 grant execute on function public.global_stock_record_cash_adjustment(uuid,uuid,text,text,numeric,text) to authenticated;
 grant execute on function public.global_stock_cash_shift_snapshot(uuid,uuid) to authenticated;
 grant execute on function public.global_stock_close_cash_shift(uuid,uuid,numeric,text) to authenticated;
+
+
+-- Allow authenticated business members to read shift and movement history.
+-- Row-level security remains enabled and isolates each business.
+grant select on public.global_stock_cash_sessions to authenticated;
+grant select on public.global_stock_cash_movements to authenticated;
