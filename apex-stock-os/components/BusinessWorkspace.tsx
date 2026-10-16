@@ -3992,6 +3992,8 @@ export function BusinessWorkspace({
             {activeModule === "charts" && (
               <PremiumCharts
                 language={language}
+                dark={dark}
+                accent={workspaceAccent}
                 products={products}
                 data={localizedTrend}
                 money={money}

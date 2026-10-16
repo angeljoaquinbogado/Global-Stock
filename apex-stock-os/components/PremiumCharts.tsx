@@ -1,6 +1,13 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
+import { useEffect, useState } from "react";
+import type { WorkspaceAccent } from "@/lib/workspace-accent";
+import "./animated-home-dashboard.css";
+import "./premium-charts.css";
+
 import {
+  Sparkles,
   ArrowDownRight,
   ArrowUpRight,
   Boxes,
@@ -51,6 +58,8 @@ type Props = {
   profit: number;
   losses: number;
   money: (value: number) => string;
+  dark: boolean;
+  accent: WorkspaceAccent;
 };
 
 const copy: Record<
@@ -233,8 +242,11 @@ export function PremiumCharts({
   cost,
   profit,
   losses,
-  money
+  money,
+  dark,
+  accent
 }: Props) {
+  const reduced = useReducedMotion();
   const t = copy[language];
 
   const stockData = products
@@ -305,9 +317,9 @@ export function PremiumCharts({
     [...data].sort((a, b) => a.profit - b.profit)[0] ?? null;
 
   const donutData = [
-    { name: t.normal, value: normal, fill: "#5B5B63" },
-    { name: t.low, value: low, fill: "#B10000" },
-    { name: t.out, value: out, fill: "#E32626" }
+    { name: t.normal, value: normal, fill: "var(--home-accent)" },
+    { name: t.low, value: low, fill: "#d9a34c" },
+    { name: t.out, value: out, fill: "#df5555" }
   ];
 
   const latestPoint = data.at(-1) ?? null;
@@ -338,56 +350,55 @@ export function PremiumCharts({
             : "No sales have been recorded for this chart yet.";
 
   return (
-    <div className="space-y-5">
-      <section>
-        <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
+    <section className="gs-exec-dashboard gs-an-premium" data-testid="premium-charts" data-theme={dark ? "dark" : "light"} data-accent={accent}>
+      <motion.header className="gs-exec-header gs-an-header" initial={reduced ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .5, ease: [.22, 1, .36, 1] }}>
+        <div className="gs-exec-header__copy">
+        <p className="gs-exec-overline"><Sparkles size={13} aria-hidden="true" />
           {t.eyebrow}
         </p>
-        <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-          {t.title}
-        </h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
-          {t.subtitle}
-        </p>
-      </section>
+        <h2>{t.title}<span className="gs-exec-heading-mark">.</span></h2>
+        <p>{t.subtitle}</p>
+        </div>
+        <span className="gs-exec-period"><BarChart3 size={14} />{t.availablePeriod}</span>
+      </motion.header>
 
-      <section className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="gs-exec-metrics gs-an-metrics">
         <Metric
           icon={<CircleDollarSign size={17} />}
           label={t.revenue}
-          value={money(revenue)}
+          amount={revenue} format={money}
           positive
         />
         <Metric
           icon={<Boxes size={17} />}
           label={t.cost}
-          value={money(cost)}
+          amount={cost} format={money}
         />
         <Metric
           icon={<TrendingUp size={17} />}
           label={t.profit}
-          value={money(profit)}
+          amount={profit} format={money}
           positive={profit >= 0}
         />
         <Metric
           icon={<ArrowDownRight size={17} />}
           label={t.losses}
-          value={money(losses)}
+          amount={losses} format={money}
           positive={losses === 0}
         />
-      </section>
+      </div>
 
-      <section className="apex-card overflow-hidden p-5 sm:p-6">
+      <motion.section className="gs-exec-panel gs-an-finance" initial={reduced ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .52, delay: reduced ? 0 : .19, ease: [.22, 1, .36, 1] }}>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+            <p className="gs-exec-overline">
               {t.availablePeriod}
             </p>
-            <h3 className="mt-1 text-lg font-semibold">
+            <h3 className="gs-an-title">
               {t.revenueCostProfit}
             </h3>
           </div>
-          <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-4">
+          <div className="gs-an-small-stats">
             <SmallStat label={t.bestDay} value={bestDay?.label ?? "—"} />
             <SmallStat label={t.weakestDay} value={weakestDay?.label ?? "—"} />
             <SmallStat
@@ -398,29 +409,29 @@ export function PremiumCharts({
           </div>
         </div>
 
-        <div className="mt-5 grid gap-2 sm:grid-cols-3">
+        <div className="gs-an-series-stats">
           <SeriesStat
             label={t.revenue}
             value={latestPoint ? formatMoney(latestPoint.revenue, currency, locale) : "—"}
             change={periodDelta(latestPoint?.revenue, previousPoint?.revenue)}
-            markerClass="bg-[#D10A0A]"
+            markerClass="gs-an-marker--accent"
           />
           <SeriesStat
             label={t.cost}
             value={latestPoint ? formatMoney(latestPoint.cost, currency, locale) : "—"}
             change={periodDelta(latestPoint?.cost, previousPoint?.cost)}
-            markerClass="bg-[#8C8C94]"
+            markerClass="gs-an-marker--muted"
           />
           <SeriesStat
             label={t.profit}
             value={latestPoint ? formatMoney(latestPoint.profit, currency, locale) : "—"}
             change={periodDelta(latestPoint?.profit, previousPoint?.profit)}
-            markerClass="bg-[var(--apex-text)]"
+            markerClass="gs-an-marker--text"
           />
         </div>
 
         {data.length ? (
-          <div className="mt-4 h-[390px] rounded-[24px] border border-[var(--apex-border)] bg-[linear-gradient(180deg,var(--apex-surface-strong),var(--apex-bg))] p-2 sm:h-[450px] sm:p-4">
+          <div className="gs-an-chart-frame">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={data}
@@ -428,8 +439,8 @@ export function PremiumCharts({
               >
                 <defs>
                   <linearGradient id="premiumRevenueFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#D10A0A" stopOpacity={0.16} />
-                    <stop offset="100%" stopColor="#D10A0A" stopOpacity={0} />
+                    <stop offset="0%" stopColor="var(--home-accent)" stopOpacity={0.16} />
+                    <stop offset="100%" stopColor="var(--home-accent)" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid
@@ -485,28 +496,31 @@ export function PremiumCharts({
                   dataKey="revenue"
                   stroke="none"
                   fill="url(#premiumRevenueFill)"
-                  isAnimationActive={false}
+                  isAnimationActive={!reduced}
+                animationDuration={850}
                 />
                 <Line
                   type="linear"
                   dataKey="revenue"
                   name={t.revenue}
-                  stroke="#D10A0A"
+                  stroke="var(--home-accent)"
                   strokeWidth={2.6}
                   dot={false}
                   activeDot={{ r: 4.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
-                  isAnimationActive={false}
+                  isAnimationActive={!reduced}
+                animationDuration={850}
                 />
                 <Line
                   type="linear"
                   dataKey="cost"
                   name={t.cost}
-                  stroke="#8C8C94"
+                  stroke="var(--home-muted)"
                   strokeWidth={1.55}
                   strokeDasharray="5 5"
                   dot={false}
                   activeDot={{ r: 3.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
-                  isAnimationActive={false}
+                  isAnimationActive={!reduced}
+                animationDuration={850}
                 />
                 <Line
                   type="linear"
@@ -516,7 +530,8 @@ export function PremiumCharts({
                   strokeWidth={1.9}
                   dot={false}
                   activeDot={{ r: 3.8, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
-                  isAnimationActive={false}
+                  isAnimationActive={!reduced}
+                animationDuration={850}
                 />
               </ComposedChart>
             </ResponsiveContainer>
@@ -526,9 +541,9 @@ export function PremiumCharts({
             {noData}
           </div>
         )}
-      </section>
+      </motion.section>
 
-      <section className="grid gap-4 xl:grid-cols-2">
+      <div className="gs-an-split-grid">
         <ChartPanel title={t.stockByProduct}>
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={stockData} margin={{ top: 12 }}>
@@ -549,18 +564,20 @@ export function PremiumCharts({
               <Bar
                 dataKey="stock"
                 name={t.stockByProduct}
-                fill="#8F0000"
+                fill="var(--home-accent)"
                 radius={[9, 9, 3, 3]}
 
-                isAnimationActive={false}
+                isAnimationActive={!reduced}
+                animationDuration={850}
               />
               <Bar
                 dataKey="min"
                 name="Min"
-                fill="#55555D"
+                fill="var(--home-muted)"
                 radius={[9, 9, 3, 3]}
 
-                isAnimationActive={false}
+                isAnimationActive={!reduced}
+                animationDuration={850}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -590,19 +607,20 @@ export function PremiumCharts({
               />
               <Bar
                 dataKey="margin"
-                fill="#A50000"
+                fill="var(--home-accent)"
                 radius={[0, 9, 9, 0]}
 
-                isAnimationActive={false}
+                isAnimationActive={!reduced}
+                animationDuration={850}
               />
             </BarChart>
           </ResponsiveContainer>
         </ChartPanel>
-      </section>
+      </div>
 
-      <section className="grid gap-4 xl:grid-cols-[.8fr_1.2fr]">
-        <div className="apex-card p-5 sm:p-6">
-          <h3 className="text-sm font-semibold">{t.stockHealth}</h3>
+      <div className="gs-an-bottom-grid">
+        <motion.div className="gs-exec-panel gs-an-health" initial={{opacity:0,y:15}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.15}} transition={{duration:.48}}>
+          <div className="gs-exec-panel__heading"><h3>{t.stockHealth}</h3></div>
           <div className="relative mt-3 h-[310px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -616,7 +634,8 @@ export function PremiumCharts({
                   stroke="var(--apex-surface-strong)"
                   strokeWidth={4}
                   cornerRadius={9}
-                  isAnimationActive={false}
+                  isAnimationActive={!reduced}
+                animationDuration={850}
                 >
                   {donutData.map((item) => (
                     <Cell key={item.name} fill={item.fill} />
@@ -653,9 +672,9 @@ export function PremiumCharts({
               </div>
             ))}
           </div>
-        </div>
+        </motion.div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="gs-an-values">
           <ValueCard
             icon={<Boxes size={18} />}
             label={t.inventoryValue}
@@ -677,8 +696,8 @@ export function PremiumCharts({
             value={String(products.length)}
           />
         </div>
-      </section>
-    </div>
+      </div>
+    </section>
   );
 }
 
@@ -697,9 +716,9 @@ function SeriesStat({
   const negative = change !== null && change < 0;
 
   return (
-    <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3">
+    <div className="gs-an-series-stat">
       <div className="flex items-center gap-2">
-        <span className={`h-1.5 w-5 rounded-full ${markerClass}`} />
+        <span className={`gs-an-marker ${markerClass}`} />
         <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
           {label}
         </p>
@@ -730,47 +749,50 @@ function SeriesStat({
   );
 }
 
-function Metric({
-  icon,
-  label,
-  value,
-  positive
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  positive?: boolean;
+function CountUp({amount,format}:{
+  amount:number;format:(value:number)=>string;
 }) {
-  return (
-    <article className="apex-card p-5">
-      <div className="flex items-start justify-between gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
-          {icon}
-        </span>
-        {positive !== undefined && (
-          <span
-            className={
-              "inline-flex items-center gap-1 text-[10px] font-semibold " +
-              (positive ? "text-emerald-600" : "text-red-500")
-            }
-          >
-            {positive ? <ArrowUpRight size={13} /> : <ArrowDownRight size={13} />}
-          </span>
-        )}
+  const reduced=useReducedMotion();
+  const [display,setDisplay]=useState(reduced?amount:0);
+  useEffect(()=>{
+    if(reduced)return;
+    let request=0;
+    let start:number|null=null;
+    function frame(now:number) {
+      if(start===null)start=now;
+      const progress=Math.min(1,(now-start)/820);
+      setDisplay(amount*(1-Math.pow(1-progress,3)));
+      if(progress<1)request=window.requestAnimationFrame(frame);
+    }
+    request=window.requestAnimationFrame(frame);
+    return ()=>window.cancelAnimationFrame(request);
+  },[amount,reduced]);
+  return <span className="gs-exec-figure">{format(reduced?amount:display)}</span>;
+}
+
+function Metric({icon,label,amount,format,positive}:{
+  icon:React.ReactNode;label:string;amount:number;
+  format:(value:number)=>string;positive?:boolean;
+}) {
+  const reduced=useReducedMotion();
+  return <motion.div initial={reduced?false:{opacity:0,y:19,scale:.985}}
+    animate={{opacity:1,y:0,scale:1}}
+    transition={{duration:reduced?0:.52,ease:[.22,1,.36,1]}}>
+    <article className="gs-exec-kpi gs-an-kpi">
+      <div className="gs-exec-kpi__top">
+        <span className="gs-exec-kpi__icon">{icon}</span>
+        {positive===false?<ArrowDownRight size={15} className="gs-exec-kpi__corner" aria-hidden="true"/>:
+          <ArrowUpRight size={15} className="gs-exec-kpi__corner" aria-hidden="true"/>}
       </div>
-      <p className="mt-4 text-xs font-semibold text-[var(--apex-muted)]">
-        {label}
-      </p>
-      <p className="mt-2 text-xl font-semibold tracking-[-0.04em] sm:text-2xl">
-        {value}
-      </p>
+      <p className="gs-exec-kpi__label">{label}</p>
+      <CountUp amount={amount} format={format}/>
     </article>
-  );
+  </motion.div>;
 }
 
 function SmallStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-[var(--apex-border)] px-3 py-2">
+    <div className="gs-an-small-stat">
       <p className="text-[9px] uppercase tracking-[0.1em] text-[var(--apex-muted)]">
         {label}
       </p>
@@ -787,10 +809,10 @@ function ChartPanel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="apex-card p-5 sm:p-6">
-      <h3 className="text-sm font-semibold">{title}</h3>
-      <div className="mt-5 h-[330px]">{children}</div>
-    </section>
+    <motion.section className="gs-exec-panel gs-an-plot" initial={{opacity:0,y:15}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.12}} transition={{duration:.48,ease:[.22,1,.36,1]}}>
+      <div className="gs-exec-panel__heading"><h3>{title}</h3></div>
+      <div className="gs-an-plot__chart">{children}</div>
+    </motion.section>
   );
 }
 
@@ -804,18 +826,18 @@ function ValueCard({
   value: string;
 }) {
   return (
-    <article className="apex-card flex min-h-[150px] flex-col justify-between p-5">
-      <span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
+    <motion.article className="gs-an-value gs-exec-kpi" initial={{opacity:0,y:12}} whileInView={{opacity:1,y:0}} viewport={{once:true,amount:.15}} transition={{duration:.44}}>
+      <span className="gs-exec-kpi__icon">
         {icon}
       </span>
-      <div className="mt-5">
-        <p className="text-[10px] uppercase tracking-[0.1em] text-[var(--apex-muted)]">
+      <div className="mt-4">
+        <p className="gs-exec-kpi__label">
           {label}
         </p>
-        <p className="mt-2 text-lg font-semibold tracking-[-0.03em]">
+        <p className="gs-an-value__figure">
           {value}
         </p>
       </div>
-    </article>
+    </motion.article>
   );
 }
