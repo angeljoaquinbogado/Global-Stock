@@ -262,6 +262,8 @@ export async function loadCanonicalProducts(
         images,
         originalPrice: typeof meta.originalPrice === "number" ? meta.originalPrice : undefined,
         discountPercent: typeof meta.discountPercent === "number" ? meta.discountPercent : undefined,
+        inventoryDetails: meta.inventoryDetails && typeof meta.inventoryDetails === "object" && !Array.isArray(meta.inventoryDetails)
+          ? meta.inventoryDetails as Product["inventoryDetails"] : undefined,
         updatedAt: item.updated_at || null
       });
     }
@@ -321,7 +323,8 @@ export async function mirrorProductsToCloud(
       images: product.images ?? [],
       image: product.image ?? "",
       originalPrice: product.originalPrice ?? null,
-      discountPercent: product.discountPercent ?? null
+      discountPercent: product.discountPercent ?? null,
+      inventoryDetails: product.inventoryDetails ?? null
     }
   }));
 

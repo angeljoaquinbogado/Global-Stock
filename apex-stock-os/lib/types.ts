@@ -1,5 +1,28 @@
 export type StockStatus = "normal" | "low" | "out";
 
+export type ProductInventoryDetails = {
+  profile?: "basic" | "perishable" | "serialized" | "warehouse";
+  sku?: string;
+  unit?: string;
+  location?: string;
+  shelf?: string;
+  receivedOn?: string;
+  manufacturedOn?: string;
+  expiresOn?: string;
+  batchCode?: string;
+  serialNumber?: string;
+  reorderPoint?: number;
+  leadTimeDays?: number;
+  safetyStock?: number;
+  notes?: string;
+  trackReceived?: boolean;
+  trackExpiry?: boolean;
+  trackManufacturing?: boolean;
+  trackBatch?: boolean;
+  trackSerial?: boolean;
+  trackLocation?: boolean;
+};
+
 export type Product = {
   id: string;
   barcode: string;
@@ -24,6 +47,7 @@ export type Product = {
   discountPercent?: number;
   active?: boolean;
   updatedAt?: string | null;
+  inventoryDetails?: ProductInventoryDetails;
 };
 
 export type TrendPoint = {

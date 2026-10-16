@@ -59,6 +59,7 @@ import "./workspace-accent.css";
 import type {
   BusinessSnapshot,
   Product,
+  ProductInventoryDetails,
   TrendPoint
 } from "@/lib/types";
 import { demoProducts, demoTrend } from "@/lib/demo-data";
@@ -69,6 +70,7 @@ import { ApexIntelligence } from "./ApexIntelligence";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
 import { StockQuantityCell } from "./StockQuantityCell";
+import { InventoryControlCenter } from "./InventoryControlCenter";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
@@ -3483,6 +3485,12 @@ export function BusinessWorkspace({
     }
   }
 
+  function updateInventoryDetails(id: string, details: ProductInventoryDetails) {
+    setProducts(current => current.map(product =>
+      product.id === id ? { ...product, inventoryDetails: details } : product
+    ));
+  }
+
   function updateSupplier(id: string, supplier: string) {
     const product = products.find((item) => item.id === id);
 
@@ -3938,6 +3946,8 @@ export function BusinessWorkspace({
                 updateMinStock={updateMinStock}
                 updateSupplier={updateSupplier}
                 updateBarcode={updateBarcode}
+                updateInventoryDetails={updateInventoryDetails}
+                businessType={businessType}
                 integrateScannedProduct={integrateScannedProduct}
                 businessId={cloudBusinessId}
                 readOnly={inventoryReadOnly}
@@ -5458,6 +5468,8 @@ function InventoryModule({
   updateMinStock,
   updateSupplier,
   updateBarcode,
+  updateInventoryDetails,
+  businessType,
   integrateScannedProduct,
   businessId,
   readOnly
@@ -5473,191 +5485,44 @@ function InventoryModule({
   updateMinStock: (id: string, minStock: number) => void;
   updateSupplier: (id: string, supplier: string) => void;
   updateBarcode: (id: string, barcode: string) => void;
+  updateInventoryDetails: (id: string, details: ProductInventoryDetails) => void;
+  businessType: BusinessType;
   integrateScannedProduct: (product: Product) => void;
   businessId: string | null;
   readOnly: boolean;
 }) {
   return (
     <div className="space-y-5">
-      <PageIntro
-        title={labels.inventoryTitle}
-        subtitle={labels.inventorySubtitle}
+      <PageIntro title={labels.inventoryTitle} subtitle={labels.inventorySubtitle} />
+      <InventoryControlCenter
+        language={language}
+        businessType={businessType}
+        products={products}
+        money={money}
+        readOnly={readOnly}
+        onUpdateStock={updateStock}
+        onAddStock={addStock}
+        onUpdatePrice={updatePrice}
+        onUpdateCost={updateCost}
+        onUpdateMinimum={updateMinStock}
+        onUpdateSupplier={updateSupplier}
+        onUpdateBarcode={updateBarcode}
+        onUpdateDetails={updateInventoryDetails}
       />
-      <WorkflowHelp {...workflowHelp[language].inventory} />
-
-      <section className="apex-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[1180px] text-left">
-            <thead className="border-b border-[var(--apex-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--apex-muted)]">
-              <tr>
-                <th className="px-5 py-4">{labels.product}</th>
-                <th className="px-4 py-4">{labels.category}</th>
-                <th className="px-4 py-4">{labels.supplier}</th>
-                {!readOnly && (
-                  <>
-                    <th className="px-4 py-4">{labels.cost}</th>
-                    <th className="px-4 py-4">{labels.price}</th>
-                  </>
-                )}
-                <th className="px-4 py-4">{labels.stock}</th>
-                <th className="px-4 py-4">
-                  {language === "es"
-                    ? "Mínimo"
-                    : language === "pt"
-                      ? "Mínimo"
-                      : language === "fr"
-                        ? "Minimum"
-                        : language === "de"
-                          ? "Minimum"
-                          : "Minimum"}
-                </th>
-                <th className="px-4 py-4">{labels.status}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {products.map((product) => {
-                const status = getStockStatus(product);
-                return (
-                  <tr
-                    key={product.id}
-                    className="border-b border-[var(--apex-border)] last:border-0"
-                  >
-                    <td className="px-5 py-4">
-                      <p className="text-sm font-semibold">
-                        {product.name}
-                      </p>
-                      <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-                        {product.barcode}
-                      </p>
-                    </td>
-                    <td className="px-4 py-4 text-xs text-[var(--apex-muted)]">
-                      {product.category}
-                    </td>
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-xs text-[var(--apex-muted)]">
-                          {product.supplier || "—"}
-                        </span>
-                      ) : (
-                        <input
-                          value={product.supplier}
-                          onChange={(event) =>
-                            updateSupplier(product.id, event.target.value)
-                          }
-                          placeholder="—"
-                          className="apex-input w-36 px-3 py-2 text-xs"
-                        />
-                      )}
-                    </td>
-                    {!readOnly && (
-                      <>
-                        <td className="px-4 py-4">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={
-                              product.costKnown === false
-                                ? ""
-                                : product.cost
-                            }
-                            onChange={(event) =>
-                              updateCost(product.id, event.target.value)
-                            }
-                            placeholder="—"
-                            className="apex-input w-28 px-3 py-2 text-xs"
-                          />
-                        </td>
-                        <td className="px-4 py-4">
-                          <input
-                            type="number"
-                            min={0}
-                            step="0.01"
-                            value={product.originalPrice ?? product.price}
-                            onChange={(event) =>
-                              updatePrice(
-                                product.id,
-                                Number(event.target.value)
-                              )
-                            }
-                            className="apex-input w-28 px-3 py-2 text-xs"
-                          />
-                        </td>
-                      </>
-                    )}
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-sm font-semibold">
-                          {product.stock}
-                        </span>
-                      ) : (
-                        <StockQuantityCell
-                          productId={product.id}
-                          stock={product.stock}
-                          onSetStock={updateStock}
-                          onAddStock={addStock}
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      {readOnly ? (
-                        <span className="text-sm">{product.minStock}</span>
-                      ) : (
-                        <input
-                          type="number"
-                          min={0}
-                          value={product.minStock}
-                          onChange={(event) =>
-                            updateMinStock(
-                              product.id,
-                              Number(event.target.value)
-                            )
-                          }
-                          className="apex-input w-20 px-3 py-2 text-xs"
-                        />
-                      )}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span
-                        className={
-                          "rounded-full px-2.5 py-1 text-[10px] font-bold " +
-                          (status === "normal"
-                            ? "bg-emerald-500/10 text-emerald-600"
-                            : status === "low"
-                              ? "bg-amber-500/10 text-amber-600"
-                              : "bg-red-500/10 text-red-600")
-                        }
-                      >
-                        {status === "normal"
-                          ? labels.normal
-                          : status === "low"
-                            ? labels.low
-                            : labels.out}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
-
       {!readOnly && (
-        <>
-          <BarcodeLabelStudio
-            language={language}
-            products={products}
-            money={money}
-            onAssignBarcode={updateBarcode}
-          />
-
-          <BarcodeScanner
-            onProduct={integrateScannedProduct}
-            language={language}
-            businessId={businessId}
-          />
-        </>
+        <details className="apex-card group overflow-hidden p-4 sm:p-5">
+          <summary className="cursor-pointer select-none text-sm font-semibold marker:text-[var(--apex-accent)]">
+            {language === "es" ? "Herramientas de códigos de barras y escaneo" :
+              language === "pt" ? "Ferramentas de códigos de barras e leitura" :
+              language === "fr" ? "Outils de codes-barres et de scan" :
+              language === "de" ? "Barcode- und Scanner-Werkzeuge" :
+              "Barcode and scanning tools"}
+          </summary>
+          <div className="mt-5 space-y-4">
+            <BarcodeLabelStudio language={language} products={products} money={money} onAssignBarcode={updateBarcode} />
+            <BarcodeScanner onProduct={integrateScannedProduct} language={language} businessId={businessId} />
+          </div>
+        </details>
       )}
     </div>
   );
