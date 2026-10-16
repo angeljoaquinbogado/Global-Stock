@@ -54,6 +54,8 @@ import {
   updateCloudBusiness
 } from "@/lib/cloud-workspace";
 import { businessStorageKey } from "@/lib/business-storage";
+import { WORKSPACE_ACCENT_KEY, isWorkspaceAccent, workspaceAccentVars, type WorkspaceAccent } from "@/lib/workspace-accent";
+import "./workspace-accent.css";
 import type {
   BusinessSnapshot,
   Product,
@@ -1188,6 +1190,19 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
+  const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
+  useEffect(() => {
+    try {
+      const old = window.localStorage.getItem("global-stock-home-accent-v1");
+      const saved = window.localStorage.getItem(WORKSPACE_ACCENT_KEY) ?? old;
+      if (isWorkspaceAccent(saved)) setWorkspaceAccent(saved);
+    } catch { /* Browsers with disabled storage use the default red. */ }
+  }, []);
+  function chooseWorkspaceAccent(next: WorkspaceAccent) {
+    setWorkspaceAccent(next);
+    try { window.localStorage.setItem(WORKSPACE_ACCENT_KEY, next); }
+    catch { /* Preference still works for this session. */ }
+  }
   const [products, setProducts] = useState<Product[]>([]);
   const [recipeComponents, setRecipeComponents] =
     useState<RecipeComponent[]>([]);
@@ -3650,7 +3665,7 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
+    <main data-workspace-accent={workspaceAccent} style={workspaceAccentVars(workspaceAccent)} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
       <aside className="relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
         <Logo withWordmark />
 
@@ -3841,6 +3856,8 @@ export function BusinessWorkspace({
               <OverviewModule
                 dark={dark}
                 language={language}
+                workspaceAccent={workspaceAccent}
+                onAccentChange={chooseWorkspaceAccent}
                 labels={labels}
                 metrics={metrics}
                 chartData={localizedTrend}
@@ -4373,6 +4390,8 @@ export function BusinessWorkspace({
 function OverviewModule({
   dark,
   language,
+  workspaceAccent,
+  onAccentChange,
   labels,
   metrics,
   chartData,
@@ -4386,6 +4405,8 @@ function OverviewModule({
 }: {
   dark: boolean;
   language: LanguageCode;
+  workspaceAccent: WorkspaceAccent;
+  onAccentChange: (accent: WorkspaceAccent) => void;
   labels: (typeof copy)[LanguageCode];
   metrics: ReturnType<typeof calculateMetrics>;
   chartData: Array<{ label: string; revenue: number; cost: number; profit: number }>;
@@ -4403,6 +4424,8 @@ function OverviewModule({
     <AnimatedHomeDashboard
       dark={dark}
       language={language}
+      accent={workspaceAccent}
+      onAccentChange={onAccentChange}
       labels={{
         title: labels.overviewTitle,
         subtitle: labels.overviewSubtitle,
