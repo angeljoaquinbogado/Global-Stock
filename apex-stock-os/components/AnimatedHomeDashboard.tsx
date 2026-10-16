@@ -139,12 +139,12 @@ function FadeIn({ children, delay = 0, className = "" }: {
   );
 }
 
-function KpiCard({ label, value, format, icon, tint, active = false, delay }: {
+function KpiCard({ label, value, format, icon, tint, delay }: {
   label: string; value: number; format: (n:number)=>string;
-  icon: ReactNode; tint?: string; active?: boolean; delay: number
+  icon: ReactNode; tint?: string; delay: number
 }) {
   return <FadeIn delay={delay}>
-    <article className={"gs-exec-kpi " + (active ? "gs-exec-kpi--hero" : "")} data-testid="exec-kpi">
+    <article className="gs-exec-kpi" data-testid="exec-kpi">
       <div className="gs-exec-kpi__top">
         <div className="gs-exec-kpi__icon" style={tint ? {color:tint} : undefined}>{icon}</div>
         <ArrowUpRight size={15} className="gs-exec-kpi__corner" aria-hidden="true" />
@@ -284,7 +284,7 @@ export function AnimatedHomeDashboard({
         {financials.map((metric,index)=>(
           <KpiCard key={metric.label} label={metric.label} value={metric.value}
             format={metric.format} icon={metric.icon}
-            active={index===0} delay={.06+index*.085}/>
+            delay={.06+index*.085}/>
         ))}
       </div>
       <div className="gs-exec-content">
