@@ -1,0 +1,56 @@
+/* Shared user-selected accent for the authenticated Global Stock workspace.
+   Scoped to .gs-app-shell: the brand's public site, auth, error/success
+   indicators and semantic transaction statuses keep their own colors. */
+.gs-app-shell {
+  --apex-accent:#8F0000;
+  --apex-accent-bright:#CD2430;
+  --apex-accent-soft:#F8EAEA;
+  --apex-accent-glow:rgba(143,0,0,.22);
+}
+.gs-app-shell[data-workspace-accent="blue"] {
+  color-scheme:light dark;
+}
+.gs-app-shell[data-workspace-accent="emerald"] {
+  color-scheme:light dark;
+}
+/* Explicit legacy Tailwind utility mapping instead of rewriting every
+   module's auth, financial-error and destructive states. New UI should
+   use --apex-accent tokens directly. */
+:where(.gs-app-shell) [class~="bg-[#8F0000]"] { background-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="bg-[#8f0000]"] { background-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="text-[#8F0000]"] { color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="text-[#8f0000]"] { color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="border-[#8F0000]"] { border-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="border-[#8f0000]"] { border-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="bg-[#8F0000]/10"] { background-color: color-mix(in srgb,var(--apex-accent) 10%,transparent) !important; }
+:where(.gs-app-shell) [class~="bg-[#8F0000]/12"] { background-color: color-mix(in srgb,var(--apex-accent) 12%,transparent) !important; }
+:where(.gs-app-shell) [class~="bg-[#8F0000]/[0.045]"] { background-color: color-mix(in srgb,var(--apex-accent) 4.5%,transparent) !important; }
+:where(.gs-app-shell) [class~="bg-[#8F0000]/20"] { background-color: color-mix(in srgb,var(--apex-accent) 20%,transparent) !important; }
+:where(.gs-app-shell) [class~="border-[#8F0000]/18"] { border-color: color-mix(in srgb,var(--apex-accent) 18%,transparent) !important; }
+:where(.gs-app-shell) [class~="border-[#8F0000]/35"] { border-color: color-mix(in srgb,var(--apex-accent) 35%,transparent) !important; }
+:where(.gs-app-shell) [class~="border-[#8F0000]/50"] { border-color: color-mix(in srgb,var(--apex-accent) 50%,transparent) !important; }
+:where(.gs-app-shell) [class~="border-[#8F0000]/25"] { border-color: color-mix(in srgb,var(--apex-accent) 25%,transparent) !important; }
+:where(.gs-app-shell) [class~="ring-[#8F0000]"] { --tw-ring-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="accent-[#8F0000]"] { accent-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="focus-visible:outline-[#8F0000]"]:focus-visible { outline-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="focus:border-[#8F0000]"]:focus { border-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="hover:bg-[#8F0000]"]:hover { background-color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="hover:text-[#8F0000]"]:hover { color: var(--apex-accent) !important; }
+:where(.gs-app-shell) [class~="hover:border-[#8F0000]"]:hover { border-color: var(--apex-accent) !important; }
+
+/* Colored primary buttons should continue to carry accessible white text. */
+.gs-app-shell [class~="bg-[#8F0000]"] { color:#fff; }
+.gs-app-shell [class~="shadow-[0_8px_22px_rgba(143,0,0,.18)]"] {
+  box-shadow:0 8px 22px var(--apex-accent-glow) !important;
+}
+.gs-app-shell [class~="shadow-[0_12px_34px_rgba(143,0,0,.36)]"] {
+  box-shadow:0 12px 34px var(--apex-accent-glow) !important;
+}
+.gs-app-shell [class~="shadow-[0_10px_26px_rgba(143,0,0,.24)]"] {
+  box-shadow:0 10px 26px var(--apex-accent-glow) !important;
+}
+/* Sidebar and mobile controls use the same accent as dashboard metrics. */
+.gs-app-shell .gs-sidebar-nav button[aria-current="page"],
+.gs-app-shell .gs-mobile-dock button[aria-current="page"] {
+  background:var(--apex-accent);
+}
