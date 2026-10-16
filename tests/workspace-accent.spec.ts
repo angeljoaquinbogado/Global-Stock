@@ -15,8 +15,6 @@ test("selected accent changes entire workspace and persists between sections and
   await page.setViewportSize({ width: 1440, height: 900 });
   await page.addInitScript(() => {
     localStorage.setItem("__global_stock_demo_active_v1", "1");
-    localStorage.removeItem("global-stock-home-accent-v1");
-    localStorage.removeItem(WORKSPACE_ACCENT_KEY);
   });
   await page.goto("/", { waitUntil: "domcontentloaded" });
   const dashboard = page.getByTestId("animated-home-dashboard");
@@ -44,7 +42,8 @@ test("selected accent changes entire workspace and persists between sections and
   await dashboard.getByRole("button", { name: "Verde esmeralda" }).click();
   await expect(workspace).toHaveAttribute("data-workspace-accent", "emerald");
   await expect(activeHome).toHaveCSS("background-color", "rgb(8, 104, 70)");
-  await expect(page.evaluate(key => localStorage.getItem(key), WORKSPACE_ACCENT_KEY)).resolves.toBe("emerald");
+  const saved = await page.evaluate(key => localStorage.getItem(key), WORKSPACE_ACCENT_KEY);
+  expect(saved).toBe("emerald");
   await expect(dashboard.getByText(/período disponible/i)).toHaveCount(0);
   await expect(dashboard.locator(".gs-exec-period")).toHaveCount(0);
 });
