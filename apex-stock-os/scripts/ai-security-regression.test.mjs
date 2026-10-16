@@ -78,7 +78,18 @@ test("native and web expose Caja without duplicating Cotizaciones or bypassing s
   assert.match(checkout, /global_stock_record_pos_sale/);
   assert.match(checkout, /Vuelto automático/);
   assert.match(checkout, /operation\.current\.key/);
-  assert.match(web, /cashMode=\{activeModule === "cash"\}/);
+  // The web now keeps POS checkout and shift reconciliation in distinct modules.
+  assert.match(web, /activeModule === "pos" && \(/);
+  assert.match(web, /activeModule === "cash" && \(/);
+  assert.match(web, /<CashRegisterCenter/);
+  assert.match(web, /cashMode=\{true\}/);
+  const cashRegister = file("apex-stock-os/components/CashRegisterCenter.tsx");
+  const shifts = file("apex-stock-os/supabase/migrations/20261016_cash_register_shifts.sql");
+  assert.match(cashRegister, /global_stock_open_cash_shift/);
+  assert.match(cashRegister, /global_stock_close_cash_shift/);
+  assert.match(cashRegister, /global_stock_cash_shift_snapshot/);
+  assert.match(shifts, /global_stock_can_write\(target_business_id,'cash'\)/);
+  assert.match(shifts, /gs_cash_one_open_shift_per_location/);
   assert.match(roles, /cash: \["owner", "admin", "manager", "cashier", "sales"\]/);
 });
 
