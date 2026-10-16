@@ -17,11 +17,16 @@ for (const viewport of [
     await expect(dashboard.getByTestId("exec-session-timer")).toBeVisible();
     const root = await dashboard.evaluate(el=>({width:el.scrollWidth,clientWidth:el.clientWidth}));
     expect(root.width-root.clientWidth).toBeLessThanOrEqual(2);
-    await expect(dashboard).toHaveAttribute("data-accent","emerald");
+    await expect(dashboard).toHaveAttribute("data-accent","red");
     await dashboard.getByRole("button",{name:"Azul"}).click();
     await expect(dashboard).toHaveAttribute("data-accent","blue");
     await dashboard.getByRole("button",{name:"Verde esmeralda"}).click();
     await expect(dashboard).toHaveAttribute("data-accent","emerald");
+    await dashboard.getByRole("button",{name:"Rojo Global Stock"}).click();
+    await expect(dashboard).toHaveAttribute("data-accent","red");
+    await expect(page.locator(".gs-app-shell")).toHaveAttribute("data-workspace-accent","red");
+    await expect(dashboard.getByText(/período disponible/i)).toHaveCount(0);
+    await expect(dashboard.locator(".gs-exec-period")).toHaveCount(0);
     const timer=dashboard.getByTestId("exec-session-timer");
     await timer.getByRole("button",{name:/pausar/i}).click();
     await expect(timer.getByRole("button",{name:/reanudar/i})).toBeVisible();
