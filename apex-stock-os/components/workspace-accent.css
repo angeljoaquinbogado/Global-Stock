@@ -7,12 +7,6 @@
   --apex-accent-soft:#F8EAEA;
   --apex-accent-glow:rgba(143,0,0,.22);
 }
-.gs-app-shell[data-workspace-accent="blue"] {
-  color-scheme:light dark;
-}
-.gs-app-shell[data-workspace-accent="emerald"] {
-  color-scheme:light dark;
-}
 /* Explicit legacy Tailwind utility mapping instead of rewriting every
    module's auth, financial-error and destructive states. New UI should
    use --apex-accent tokens directly. */
