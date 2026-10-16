@@ -6,6 +6,10 @@
   --apex-accent-bright:#CD2430;
   --apex-accent-soft:#F8EAEA;
   --apex-accent-glow:rgba(143,0,0,.22);
+  /* Existing shared form, focus and primary-button tokens now follow the
+     selected workspace accent as well. Error/danger tokens stay unchanged. */
+  --apex-crimson:var(--apex-accent);
+  --apex-crimson-hover:color-mix(in srgb,var(--apex-accent) 82%,black);
 }
 /* Explicit legacy Tailwind utility mapping instead of rewriting every
    module's auth, financial-error and destructive states. New UI should
