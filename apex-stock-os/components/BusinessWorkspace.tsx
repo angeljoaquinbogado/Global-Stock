@@ -3948,6 +3948,7 @@ export function BusinessWorkspace({
                 updateBarcode={updateBarcode}
                 updateInventoryDetails={updateInventoryDetails}
                 businessType={businessType}
+                accent={workspaceAccent}
                 integrateScannedProduct={integrateScannedProduct}
                 businessId={cloudBusinessId}
                 readOnly={inventoryReadOnly}
@@ -5470,6 +5471,7 @@ function InventoryModule({
   updateBarcode,
   updateInventoryDetails,
   businessType,
+  accent,
   integrateScannedProduct,
   businessId,
   readOnly
@@ -5487,6 +5489,7 @@ function InventoryModule({
   updateBarcode: (id: string, barcode: string) => void;
   updateInventoryDetails: (id: string, details: ProductInventoryDetails) => void;
   businessType: BusinessType;
+  accent: WorkspaceAccent;
   integrateScannedProduct: (product: Product) => void;
   businessId: string | null;
   readOnly: boolean;
@@ -5497,6 +5500,7 @@ function InventoryModule({
       <InventoryControlCenter
         language={language}
         businessType={businessType}
+        accent={accent}
         products={products}
         money={money}
         readOnly={readOnly}

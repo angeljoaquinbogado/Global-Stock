@@ -1,6 +1,6 @@
 /* Inventory dashboard: consistent controls, restrained typography and theme-aware surfaces. */
 .gs-warehouse {font-family:Inter,"Segoe UI",-apple-system,BlinkMacSystemFont,system-ui,sans-serif}
-.gs-warehouse-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.gs-warehouse-stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
 .gs-warehouse-stat{display:flex;align-items:center;gap:12px;min-width:0;min-height:88px;text-align:left;padding:16px;border:1px solid var(--apex-border);border-radius:18px;background:var(--apex-surface-strong);box-shadow:0 3px 14px rgba(0,0,0,.025);transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s,background .2s,box-shadow .2s}
 .gs-warehouse-stat:hover{transform:translateY(-2px);border-color:var(--apex-accent);box-shadow:0 10px 26px rgba(0,0,0,.065)}
 .gs-warehouse-stat[aria-pressed="true"]{border-color:var(--apex-accent);background:var(--apex-accent-soft)}

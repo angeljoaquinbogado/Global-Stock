@@ -2,11 +2,13 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  AlertTriangle, ArrowUpDown, Barcode, Boxes, CalendarClock, Check, ChevronRight,
-  Clock3, MapPin, Package, Search, Settings2, ShieldAlert, SlidersHorizontal,
+  AlertTriangle, ArrowUpDown, Boxes, CalendarClock, Check, ChevronRight,
+  Package, Search, Settings2, ShieldAlert, SlidersHorizontal,
   Sparkles, X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { workspaceAccentVars, type WorkspaceAccent } from "@/lib/workspace-accent";
 import { getStockStatus } from "@/lib/analytics";
 import type { Product, ProductInventoryDetails } from "@/lib/types";
 import type { LanguageCode } from "./GlobalPreferences";
@@ -19,7 +21,7 @@ type Profile = NonNullable<ProductInventoryDetails["profile"]>;
 type Filter = "all" | "low" | "out" | "expiring" | "expired";
 type Sort = "name" | "stock" | "expiry" | "updated";
 type Props = {
-  language: LanguageCode; businessType: BusinessType; products: Product[];
+  language: LanguageCode; businessType: BusinessType; accent: WorkspaceAccent; products: Product[];
   money: (n: number) => string; readOnly: boolean;
   onUpdateStock: (id: string, value: number) => void;
   onAddStock: (id: string, value: number, operationId: string) => Promise<number>;
@@ -205,7 +207,7 @@ function NumericEdit({ label, value, onChange, disabled, step="1" }: {
   </label>;
 }
 export function InventoryControlCenter({
-  language,businessType,products,money,readOnly,onUpdateStock,onAddStock,
+  language,businessType,accent,products,money,readOnly,onUpdateStock,onAddStock,
   onUpdatePrice,onUpdateCost,onUpdateMinimum,onUpdateSupplier,onUpdateBarcode,onUpdateDetails
 }:Props) {
   const t = texts[language];
@@ -220,6 +222,15 @@ export function InventoryControlCenter({
   const [barcodeDraft,setBarcodeDraft] = useState("");
   const [formError,setFormError] = useState("");
   const [saved,setSaved] = useState(false);
+
+  useEffect(()=>{
+    if(!selectedId)return;
+    const originalOverflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";
+    const onKey=(event:KeyboardEvent)=>{if(event.key==="Escape")setSelectedId(null);};
+    document.addEventListener("keydown",onKey);
+    return ()=>{document.body.style.overflow=originalOverflow;document.removeEventListener("keydown",onKey);};
+  },[selectedId]);
 
   useEffect(()=>{
     if (!selected) return;
@@ -280,7 +291,7 @@ export function InventoryControlCenter({
     }
     if (barcodeDraft.trim()!==selected.barcode) onUpdateBarcode(selected.id,barcodeDraft.trim());
     if (supplierDraft!==selected.supplier) onUpdateSupplier(selected.id,supplierDraft);
-    onUpdateDetails(selected.id,{
+    const normalized: ProductInventoryDetails = {
       ...draft,
       sku:draft.sku?.trim()||"",
       batchCode:draft.batchCode?.trim()||"",
@@ -290,7 +301,9 @@ export function InventoryControlCenter({
       leadTimeDays:Math.max(0,Number(draft.leadTimeDays)||0),
       reorderPoint:Math.max(0,Number(draft.reorderPoint)||0),
       safetyStock:Math.max(0,Number(draft.safetyStock)||0)
-    });
+    };
+    onUpdateDetails(selected.id,normalized);
+    setDraft(normalized);
     setSaved(true);
   }
   const toggles: Array<{key:keyof ProductInventoryDetails;title:string}> = [
@@ -307,6 +320,7 @@ export function InventoryControlCenter({
       {[
         {label:t.products,value:number.format(products.length),icon:<Boxes size={18}/>,target:"all" as Filter},
         {label:t.alerts,value:number.format(lowCount),icon:<AlertTriangle size={18}/>,target:"low" as Filter},
+        {label:t.out,value:number.format(outCount),icon:<Package size={18}/>,target:"out" as Filter},
         {label:t.expiring,value:number.format(expiring),icon:<CalendarClock size={18}/>,target:"expiring" as Filter},
         {label:t.expired,value:number.format(expired),icon:<ShieldAlert size={18}/>,target:"expired" as Filter}
       ].map(item=><button type="button" key={item.target} onClick={()=>setFilter(item.target)}
@@ -407,8 +421,8 @@ export function InventoryControlCenter({
       </div>
     </section>
     <p className="px-1 text-xs leading-relaxed text-[var(--apex-muted)]">{t.enableHint}</p>
-    <AnimatePresence>
-      {selected && <motion.div className="gs-warehouse-modal fixed inset-0 z-[160] flex justify-end"
+    {typeof document !== "undefined" && createPortal(<AnimatePresence>
+      {selected && <motion.div style={workspaceAccentVars(accent)} className="gs-warehouse-modal fixed inset-0 z-[160] flex justify-end"
         initial={reduced?false:{opacity:0}} animate={{opacity:1}} exit={{opacity:0}}
         transition={{duration:reduced?0:.18}}>
         <button type="button" className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={()=>setSelectedId(null)} aria-label={t.cancel}/>
@@ -510,6 +524,6 @@ export function InventoryControlCenter({
           </div>
         </motion.section>
       </motion.div>}
-    </AnimatePresence>
+    </AnimatePresence>, document.body)}
   </div>;
 }
