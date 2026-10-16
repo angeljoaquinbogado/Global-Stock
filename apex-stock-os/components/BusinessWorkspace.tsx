@@ -3885,7 +3885,7 @@ export function BusinessWorkspace({
                 cashMode={activeModule === "cash"}
                 labels={labels}
                 language={language}
-                products={filteredPosProducts}
+                products={activeModule === "cash" ? products : filteredPosProducts}
                 posVariants={posVariants}
                 locations={posLocations}
                 sellableStockByLocation={sellableStockByLocation}
@@ -4533,6 +4533,17 @@ function PosModule({
   const [selectedVariantByProduct, setSelectedVariantByProduct] =
     useState<Record<string, string>>({});
   const [selectedLocation, setSelectedLocation] = useState("");
+  const [scanEntry, setScanEntry] = useState("");
+  const [scanFeedback, setScanFeedback] = useState("");
+  const [clearCashConfirm, setClearCashConfirm] = useState(false);
+  const cashScanRef = useRef<HTMLInputElement>(null);
+
+  // Most USB/Bluetooth barcode readers emulate a keyboard and send Enter.
+  useEffect(() => {
+    if (cashMode && window.matchMedia("(pointer: fine)").matches) {
+      cashScanRef.current?.focus();
+    }
+  }, [cashMode]);
 
   useEffect(() => {
     if (!locations.length) {
@@ -4636,6 +4647,162 @@ function PosModule({
     setSplitFirstAmount("");
   }
 
+
+  const cashLabels = ({
+    es: {
+      reader: "Escáner de caja", readerHint: "Escaneá con un lector USB/Bluetooth o ingresá el código y presioná Enter.",
+      input: "Código de barras, SKU o nombre exacto", add: "Agregar artículo", matches: "Coincidencias del catálogo",
+      notFound: "No encontramos ese código. Revisalo o elegí una coincidencia.",
+      ambiguous: "Hay varias variantes para ese código. Elegí la correcta en la lista.",
+      stockLimit: "Stock insuficiente", added: "Agregado", ticket: "Ticket de venta",
+      items: "unidades", clear: "Vaciar ticket", clearConfirm: "Confirmar vaciado",
+      empty: "Listo para escanear", emptyHint: "El primer producto aparecerá acá al escanear su código.",
+      barcode: "Código", unit: "Precio unitario", qty: "Cantidad", lineTotal: "Importe",
+      noDiscount: "Sin descuento", savings: "Ahorro por precios rebajados (ya incluido)",
+      remove: "Quitar producto", subtotal: "Subtotal", checkout: "Cobro", products: "Productos"
+    },
+    en: {
+      reader: "Checkout scanner", readerHint: "Use a USB/Bluetooth scanner or type the code and press Enter.",
+      input: "Barcode, SKU or exact product name", add: "Add item", matches: "Catalog matches",
+      notFound: "Code not found. Check it or choose a match.",
+      ambiguous: "Multiple variants match. Choose the correct one below.",
+      stockLimit: "Insufficient stock", added: "Added", ticket: "Sales receipt",
+      items: "items", clear: "Clear receipt", clearConfirm: "Confirm clearing",
+      empty: "Ready to scan", emptyHint: "Scanned products will appear here.",
+      barcode: "Code", unit: "Unit price", qty: "Quantity", lineTotal: "Amount",
+      noDiscount: "No discount", savings: "Savings already included in prices",
+      remove: "Remove item", subtotal: "Subtotal", checkout: "Checkout", products: "Products"
+    },
+    pt: {
+      reader: "Leitor de caixa", readerHint: "Escaneie com leitor USB/Bluetooth ou digite o código e pressione Enter.",
+      input: "Código de barras, SKU ou nome exato", add: "Adicionar item", matches: "Resultados do catálogo",
+      notFound: "Código não encontrado. Confira ou escolha uma opção.",
+      ambiguous: "Há várias variantes. Escolha a correta abaixo.",
+      stockLimit: "Estoque insuficiente", added: "Adicionado", ticket: "Cupom de venda",
+      items: "unidades", clear: "Limpar cupom", clearConfirm: "Confirmar limpeza",
+      empty: "Pronto para escanear", emptyHint: "O primeiro produto aparecerá aqui após a leitura.",
+      barcode: "Código", unit: "Preço unitário", qty: "Quantidade", lineTotal: "Valor",
+      noDiscount: "Sem desconto", savings: "Economia já incluída nos preços",
+      remove: "Remover produto", subtotal: "Subtotal", checkout: "Pagamento", products: "Produtos"
+    },
+    fr: {
+      reader: "Scanner de caisse", readerHint: "Scannez avec un lecteur USB/Bluetooth ou saisissez le code puis Entrée.",
+      input: "Code-barres, SKU ou nom exact", add: "Ajouter", matches: "Résultats du catalogue",
+      notFound: "Code introuvable. Vérifiez ou choisissez un résultat.",
+      ambiguous: "Plusieurs variantes correspondent. Choisissez ci-dessous.",
+      stockLimit: "Stock insuffisant", added: "Ajouté", ticket: "Ticket de caisse",
+      items: "articles", clear: "Vider le ticket", clearConfirm: "Confirmer",
+      empty: "Prêt à scanner", emptyHint: "Le premier produit scanné apparaîtra ici.",
+      barcode: "Code", unit: "Prix unitaire", qty: "Quantité", lineTotal: "Montant",
+      noDiscount: "Sans remise", savings: "Économies déjà incluses",
+      remove: "Retirer le produit", subtotal: "Sous-total", checkout: "Paiement", products: "Produits"
+    },
+    de: {
+      reader: "Kassenscanner", readerHint: "Mit USB/Bluetooth-Scanner scannen oder Code eingeben und Enter drücken.",
+      input: "Barcode, SKU oder genauer Name", add: "Artikel hinzufügen", matches: "Katalogtreffer",
+      notFound: "Code nicht gefunden. Prüfen oder Treffer auswählen.",
+      ambiguous: "Mehrere Varianten gefunden. Bitte unten auswählen.",
+      stockLimit: "Nicht genügend Bestand", added: "Hinzugefügt", ticket: "Kassenbon",
+      items: "Stück", clear: "Bon leeren", clearConfirm: "Leeren bestätigen",
+      empty: "Bereit zum Scannen", emptyHint: "Der erste gescannte Artikel erscheint hier.",
+      barcode: "Code", unit: "Stückpreis", qty: "Menge", lineTotal: "Betrag",
+      noDiscount: "Kein Rabatt", savings: "Ersparnis bereits im Preis enthalten",
+      remove: "Artikel entfernen", subtotal: "Zwischensumme", checkout: "Bezahlen", products: "Produkte"
+    }
+  })[language];
+
+  const cashSuggestions = useMemo(() => {
+    const search = scanEntry.trim().toLocaleLowerCase();
+    const result: Array<{ product: Product; variant: PosVariant | null }> = [];
+    if (!cashMode || !search) return result;
+
+    for (const product of products) {
+      const baseMatch = [product.name, product.barcode, product.id, product.category]
+        .some((value) => value.toLocaleLowerCase().includes(search));
+      const variants = posVariants.filter((variant) => variant.productKey === product.id);
+
+      if (!variants.length && baseMatch) {
+        result.push({ product, variant: null });
+      } else {
+        for (const variant of variants) {
+          const variantMatch = [variant.name, variant.sku, variant.barcode]
+            .some((value) => value.toLocaleLowerCase().includes(search));
+          if (baseMatch || variantMatch) result.push({ product, variant });
+          if (result.length >= 7) break;
+        }
+      }
+      if (result.length >= 7) break;
+    }
+    return result.slice(0, 6);
+  }, [cashMode, scanEntry, products, posVariants]);
+
+  const discountedPriceSavings = cartLines.reduce((sum, line) => {
+    if (line.variant) return sum;
+    return sum + Math.max(0, (line.product.originalPrice ?? line.product.price) - line.product.price) * line.quantity;
+  }, 0);
+
+  function availableForCash(product: Product, variant: PosVariant | null) {
+    return variant
+      ? selectedLocation
+        ? variant.stockByLocation[selectedLocation] ?? 0
+        : variant.stock
+      : selectedLocation
+        ? sellableStockByLocation[product.id]?.[selectedLocation] ?? 0
+        : sellableStockById.get(product.id) ?? product.stock;
+  }
+
+  function addCashItem(product: Product, variant: PosVariant | null = null) {
+    const key = variantCartKey(product.id, variant?.id);
+    const available = availableForCash(product, variant);
+    if ((cart[key] ?? 0) >= available) {
+      setScanFeedback(`${cashLabels.stockLimit}: ${product.name} (${available}).`);
+      return;
+    }
+    setQuantity(key, (cart[key] ?? 0) + 1, available);
+    setScanEntry("");
+    setScanFeedback(`${cashLabels.added}: ${product.name}${variant ? " · " + variant.name : ""} (+1)`);
+    setClearCashConfirm(false);
+    cashScanRef.current?.focus();
+  }
+
+  function submitCashCode() {
+    const code = scanEntry.trim().toLocaleLowerCase();
+    if (!code) return;
+
+    const variants = posVariants.filter(
+      (variant) =>
+        products.some((product) => product.id === variant.productKey) &&
+        [variant.barcode, variant.sku].some((value) => value.trim().toLocaleLowerCase() === code)
+    );
+    if (variants.length === 1) {
+      const product = products.find((item) => item.id === variants[0].productKey);
+      if (product) addCashItem(product, variants[0]);
+      return;
+    }
+    if (variants.length > 1) {
+      setScanFeedback(cashLabels.ambiguous);
+      return;
+    }
+
+    const exactProducts = products.filter(
+      (product) =>
+        product.barcode.trim().toLocaleLowerCase() === code ||
+        product.id.toLocaleLowerCase() === code ||
+        product.name.trim().toLocaleLowerCase() === code
+    );
+    if (exactProducts.length !== 1) {
+      setScanFeedback(exactProducts.length > 1 ? cashLabels.ambiguous : cashLabels.notFound);
+      return;
+    }
+    const product = exactProducts[0];
+    const productVariants = posVariants.filter((variant) => variant.productKey === product.id);
+    if (productVariants.length > 1) {
+      setScanFeedback(cashLabels.ambiguous);
+      return;
+    }
+    addCashItem(product, productVariants[0] ?? null);
+  }
+
   return (
     <div className="space-y-5">
       <PageIntro
@@ -4652,7 +4819,7 @@ function PosModule({
                   : "Produkte scannen, Rabatte anwenden und Rückgeld berechnen.")
           : labels.posSubtitle}
       />
-      <WorkflowHelp {...workflowHelp[language].pos} />
+      {!cashMode && <WorkflowHelp {...workflowHelp[language].pos} />}
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">
@@ -4687,6 +4854,142 @@ function PosModule({
             </div>
           )}
 
+          {cashMode ? (
+            <div className="apex-card overflow-hidden p-0">
+              <div className="border-b border-[var(--apex-border)] p-4 sm:p-5">
+                <div className="mb-2 flex items-center gap-2.5">
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]">
+                    <ScanLine size={20} aria-hidden="true" />
+                  </span>
+                  <h2 className="text-base font-bold">{cashLabels.reader}</h2>
+                </div>
+                <p className="mb-4 text-xs leading-relaxed text-[var(--apex-muted)]">{cashLabels.readerHint}</p>
+                <form className="flex flex-col gap-2 sm:flex-row" onSubmit={(event) => { event.preventDefault(); submitCashCode(); }}>
+                  <input
+                    ref={cashScanRef}
+                    autoComplete="off"
+                    aria-label={cashLabels.input}
+                    value={scanEntry}
+                    onChange={(event) => { setScanEntry(event.target.value); setScanFeedback(""); }}
+                    placeholder={cashLabels.input}
+                    className="apex-input min-h-12 min-w-0 flex-1 px-4 text-sm"
+                  />
+                  <button type="submit" disabled={!scanEntry.trim()}
+                    className="min-h-12 rounded-xl bg-[var(--apex-accent)] px-5 text-sm font-semibold text-white transition-opacity disabled:opacity-40">
+                    {cashLabels.add}
+                  </button>
+                </form>
+                {scanFeedback && <p role="status" aria-live="polite" className="mt-3 rounded-xl bg-[var(--apex-bg)] px-3 py-2 text-xs">{scanFeedback}</p>}
+                {scanEntry.trim() && (
+                  <div className="mt-3 overflow-hidden rounded-xl border border-[var(--apex-border)]">
+                    <div className="border-b border-[var(--apex-border)] px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[var(--apex-muted)]">
+                      {cashLabels.matches}
+                    </div>
+                    {cashSuggestions.length ? cashSuggestions.map(({ product, variant }) => {
+                      const price = variant?.price ?? product.price;
+                      const available = availableForCash(product, variant);
+                      return (
+                        <button key={variantCartKey(product.id, variant?.id)} type="button"
+                          disabled={available <= (cart[variantCartKey(product.id, variant?.id)] ?? 0)}
+                          onClick={() => addCashItem(product, variant)}
+                          className="flex min-h-12 w-full items-center justify-between gap-3 border-b border-[var(--apex-border)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--apex-bg)] disabled:opacity-40">
+                          <span className="min-w-0">
+                            <span className="block truncate text-xs font-semibold">{product.name}{variant ? " · " + variant.name : ""}</span>
+                            <span className="block truncate text-[10px] text-[var(--apex-muted)]">{variant?.barcode || variant?.sku || product.barcode || product.id}</span>
+                          </span>
+                          <span className="shrink-0 text-xs font-semibold">{money(price)}</span>
+                        </button>
+                      );
+                    }) : (
+                      <p className="px-3 py-3 text-xs text-[var(--apex-muted)]">{cashLabels.notFound}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--apex-border)] px-4 py-3 sm:px-5">
+                <div>
+                  <h2 className="text-sm font-bold">{cashLabels.ticket}</h2>
+                  <p className="mt-1 text-[11px] text-[var(--apex-muted)]">
+                    {cartLines.length} {cashLabels.products.toLocaleLowerCase()} · {cartLines.reduce((sum, line) => sum + line.quantity, 0)} {cashLabels.items}
+                  </p>
+                </div>
+                {cartLines.length > 0 && (
+                  <button type="button"
+                    onClick={() => {
+                      if (!clearCashConfirm) { setClearCashConfirm(true); return; }
+                      for (const line of cartLines) setQuantity(line.cartKey, 0);
+                      setClearCashConfirm(false);
+                      setScanFeedback("");
+                      cashScanRef.current?.focus();
+                    }}
+                    className="rounded-xl border border-[var(--apex-border)] px-3 py-2 text-xs font-semibold hover:bg-[var(--apex-bg)]">
+                    {clearCashConfirm ? cashLabels.clearConfirm : cashLabels.clear}
+                  </button>
+                )}
+              </div>
+
+              {!cartLines.length ? (
+                <div className="flex min-h-52 flex-col items-center justify-center px-4 py-10 text-center">
+                  <ScanLine size={30} className="mb-3 text-[var(--apex-accent)]" aria-hidden="true" />
+                  <p className="text-sm font-bold">{cashLabels.empty}</p>
+                  <p className="mt-1 max-w-sm text-xs leading-relaxed text-[var(--apex-muted)]">{cashLabels.emptyHint}</p>
+                </div>
+              ) : (
+                <div className="max-h-[540px] overflow-y-auto">
+                  <div className="hidden grid-cols-[minmax(0,1fr)_110px_122px_125px_30px] gap-3 border-b border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3 text-[10px] font-bold uppercase tracking-wider text-[var(--apex-muted)] md:grid sm:px-5">
+                    <span>{cashLabels.products}</span>
+                    <span>{cashLabels.unit}</span>
+                    <span>{cashLabels.qty}</span>
+                    <span className="text-right">{cashLabels.lineTotal}</span>
+                    <span />
+                  </div>
+                  {cartLines.map(({ cartKey, product, variant, quantity }, index) => {
+                    const price = variant?.price ?? product.price;
+                    const previousPrice = !variant && (product.originalPrice ?? 0) > price ? product.originalPrice ?? 0 : null;
+                    const percent = previousPrice ? Math.round((1 - price / previousPrice) * 100) : !variant ? Math.max(0, product.discountPercent ?? 0) : 0;
+                    const available = availableForCash(product, variant);
+                    return (
+                      <div key={cartKey} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 border-b border-[var(--apex-border)] px-4 py-4 last:border-b-0 md:grid-cols-[minmax(0,1fr)_110px_122px_125px_30px] sm:px-5">
+                        <div className="min-w-0">
+                          <p className="text-[10px] font-semibold text-[var(--apex-muted)]">#{String(index + 1).padStart(2, "0")} · {cashLabels.barcode}: {variant?.barcode || variant?.sku || product.barcode || "—"}</p>
+                          <p className="mt-1 break-words text-sm font-bold">{product.name}</p>
+                          {variant && <p className="mt-0.5 text-[11px] text-[var(--apex-muted)]">{variant.name}</p>}
+                          <p className={"mt-1.5 inline-flex rounded-md px-2 py-0.5 text-[10px] font-semibold " + (percent > 0 ? "bg-emerald-500/10 text-emerald-600" : "bg-[var(--apex-bg)] text-[var(--apex-muted)]")}>
+                            {percent > 0 ? percent + "% off" : cashLabels.noDiscount}
+                          </p>
+                        </div>
+                        <div className="text-right md:text-left">
+                          <span className="block text-[10px] text-[var(--apex-muted)] md:hidden">{cashLabels.unit}</span>
+                          {previousPrice && <span className="block text-[10px] text-[var(--apex-muted)] line-through">{money(previousPrice)}</span>}
+                          <span className="text-xs font-semibold">{money(price)}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <button type="button" aria-label={"− " + product.name}
+                            onClick={() => setQuantity(cartKey, quantity - 1, available)}
+                            className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--apex-border)] hover:bg-[var(--apex-bg)]"><Minus size={14} /></button>
+                          <span className="min-w-8 text-center text-sm font-bold tabular-nums">{quantity}</span>
+                          <button type="button" aria-label={"+ " + product.name} disabled={quantity >= available}
+                            onClick={() => setQuantity(cartKey, quantity + 1, available)}
+                            className="grid h-9 w-9 place-items-center rounded-lg border border-[var(--apex-border)] hover:bg-[var(--apex-bg)] disabled:opacity-30"><Plus size={14} /></button>
+                        </div>
+                        <div className="text-right">
+                          <span className="block text-[10px] text-[var(--apex-muted)] md:hidden">{cashLabels.lineTotal}</span>
+                          <strong className="text-sm tabular-nums">{money(price * quantity)}</strong>
+                        </div>
+                        <button type="button" aria-label={cashLabels.remove + ": " + product.name}
+                          onClick={() => setQuantity(cartKey, 0)}
+                          className="grid h-8 w-8 place-items-center justify-self-end rounded-lg text-[var(--apex-muted)] hover:bg-rose-500/10 hover:text-rose-600">
+                          <X size={15} />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
           <label className="relative block">
             <Search
               size={16}
@@ -4790,12 +5093,15 @@ function PosModule({
               );
             })}
           </div>
+            </>
+          )}
         </section>
 
         <aside className="apex-card h-fit p-5 xl:sticky xl:top-24">
-          <h2 className="text-lg font-semibold">{labels.cart}</h2>
+          <h2 className="text-lg font-semibold">{cashMode ? cashLabels.checkout : labels.cart}</h2>
+          {cashMode && <p className="mt-2 text-xs text-[var(--apex-muted)]">{cartLines.reduce((sum, line) => sum + line.quantity, 0)} {cashLabels.items}</p>}
 
-          {!cartLines.length ? (
+          {!cashMode && (!cartLines.length ? (
             <p className="mt-4 text-sm text-[var(--apex-muted)]">
               {labels.emptyCart}
             </p>
@@ -4869,10 +5175,10 @@ function PosModule({
                 }
               )}
             </div>
-          )}
+          ))}
 
-          <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm">
-            {promotionDiscount > 0 && (
+          <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm>
+            {(cashMode || promotionDiscount > 0) && (
               <>
                 <div className="flex items-center justify-between">
                   <span className="text-[var(--apex-muted)]">
@@ -4880,6 +5186,7 @@ function PosModule({
                   </span>
                   <span>{money(cartSubtotal)}</span>
                 </div>
+                {promotionDiscount > 0 && (
                 <div className="flex items-center justify-between text-emerald-600">
                   <span>
                     {promotionLabel ||
@@ -4887,7 +5194,14 @@ function PosModule({
                   </span>
                   <strong>-{money(promotionDiscount)}</strong>
                 </div>
+                )}
               </>
+            )}
+            {cashMode && discountedPriceSavings > 0 && (
+              <div className="flex items-center justify-between gap-3 text-xs text-emerald-600">
+                <span>{cashLabels.savings}</span>
+                <strong>{money(discountedPriceSavings)}</strong>
+              </div>
             )}
             <div className="flex items-center justify-between">
               <span className="text-[var(--apex-muted)]">
