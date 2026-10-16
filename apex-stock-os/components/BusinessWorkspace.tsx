@@ -5177,7 +5177,7 @@ function PosModule({
             </div>
           ))}
 
-          <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm>
+          <div className="mt-5 space-y-2 border-t border-[var(--apex-border)] pt-4 text-sm">
             {(cashMode || promotionDiscount > 0) && (
               <>
                 <div className="flex items-center justify-between">
