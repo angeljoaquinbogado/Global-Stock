@@ -116,8 +116,14 @@ test("desktop and Expo keep independent responsive interfaces with shared core m
   assert.match(classic, /<ApexShell\s*\/>/);
   assert.match(mobileEntry, /import App from "\.\/App"/);
   assert.doesNotMatch(mobileEntry, /UnifiedApp/, "Native screens must remain primary in Expo Go");
+  // PC uses a single Caja Registradora with checkout and shift-management tabs.
+  // Expo may keep its separate native navigation without affecting the web layout.
+  assert.doesNotMatch(desktop, /\{ id: "pos", icon:/);
+  assert.match(desktop, /cashTab === "checkout"/);
+  assert.match(desktop, /cashTab === "management"/);
+  assert.match(mobile, /\{ module: "pos"/);
   for (const id of [
-    "overview", "pos", "cash", "online", "inventory", "charts",
+    "overview", "cash", "online", "inventory", "charts",
     "purchases", "suppliers", "activities", "documents", "notes",
     "operations", "settings"
   ]) {
