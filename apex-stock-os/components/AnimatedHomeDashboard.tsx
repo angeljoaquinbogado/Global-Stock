@@ -3,17 +3,17 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Activity, ArrowRight, ArrowUpRight, BarChart3, CheckCircle2,
-  ChevronDown, Clock3, Layers3, Package, Pause, Play,
+  Layers3, Package, Pause, Play,
   ShieldAlert, Sparkles, TrendingUp
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { CSSProperties, ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { DashboardMetrics } from "@/lib/types";
+import type { WorkspaceAccent } from "@/lib/workspace-accent";
 import type { LanguageCode } from "./GlobalPreferences";
 import "./animated-home-dashboard.css";
 
 type TrendRow = { label: string; revenue: number; cost: number; profit: number };
-type ThemeAccent = "emerald" | "blue";
 type HomeLabels = {
   title: string;
   subtitle: string;
@@ -35,6 +35,8 @@ type HomeLabels = {
 type Props = {
   dark: boolean;
   language: LanguageCode;
+  accent: WorkspaceAccent;
+  onAccentChange: (accent: WorkspaceAccent) => void;
   labels: HomeLabels;
   metrics: DashboardMetrics;
   chartData: TrendRow[];
@@ -57,7 +59,7 @@ const words: Record<LanguageCode, {
   view: string; palette: string; updates: string; inventory: string;
 }> = {
   es: {
-    period: "Período disponible", snapshot: "Resumen en tiempo real",
+    period: "Datos registrados", snapshot: "Resumen en tiempo real",
     financial: "Estado financiero", today: "Tu negocio, de un vistazo",
     last: "Actividad del negocio", margin: "Margen bruto", chart: "Movimiento de ventas",
     tasks: "Notas y recordatorios", noData: "Todavía no hay datos para mostrar",
@@ -66,7 +68,7 @@ const words: Record<LanguageCode, {
     inventory: "Inventario"
   },
   en: {
-    period: "Available period", snapshot: "Live overview",
+    period: "Recorded data", snapshot: "Live overview",
     financial: "Financial snapshot", today: "Your business at a glance",
     last: "Business activity", margin: "Gross margin", chart: "Sales trend",
     tasks: "Notes and reminders", noData: "No data available yet",
@@ -75,7 +77,7 @@ const words: Record<LanguageCode, {
     inventory: "Inventory"
   },
   pt: {
-    period: "Período disponível", snapshot: "Visão geral em tempo real",
+    period: "Dados registrados", snapshot: "Visão geral em tempo real",
     financial: "Resumo financeiro", today: "Seu negócio em um olhar",
     last: "Atividade do negócio", margin: "Margem bruta", chart: "Fluxo de vendas",
     tasks: "Notas e lembretes", noData: "Ainda não há dados",
@@ -84,7 +86,7 @@ const words: Record<LanguageCode, {
     inventory: "Estoque"
   },
   fr: {
-    period: "Période disponible", snapshot: "Vue générale en temps réel",
+    period: "Données enregistrées", snapshot: "Vue générale en temps réel",
     financial: "Bilan financier", today: "Votre activité en un coup d'œil",
     last: "Activité", margin: "Marge brute", chart: "Évolution des ventes",
     tasks: "Notes et rappels", noData: "Pas encore de données",
@@ -93,7 +95,7 @@ const words: Record<LanguageCode, {
     inventory: "Stock"
   },
   de: {
-    period: "Verfügbarer Zeitraum", snapshot: "Live-Übersicht",
+    period: "Erfasste Daten", snapshot: "Live-Übersicht",
     financial: "Finanzübersicht", today: "Dein Geschäft auf einen Blick",
     last: "Geschäftsaktivität", margin: "Bruttomarge", chart: "Verkaufsverlauf",
     tasks: "Notizen und Erinnerungen", noData: "Noch keine Daten vorhanden",
@@ -261,20 +263,11 @@ function HomeClock({label,pause,resume}: {label:string,pause:string,resume:strin
 }
 
 export function AnimatedHomeDashboard({
-  dark,language,labels,metrics,chartData,money,showFinancials,
+  dark,language,accent,onAccentChange,labels,metrics,chartData,money,showFinancials,
   recentActivities,todayNotes,canOpenCharts,canOpenActivities,canOpenNotes,
   openCharts,openActivities,openNotes
 }: Props) {
   const t=words[language];
-  const [accent,setAccent]=useState<ThemeAccent>("emerald");
-  useEffect(()=>{
-    const stored=window.localStorage.getItem("global-stock-home-accent-v1");
-    if(stored==="emerald"||stored==="blue") setAccent(stored);
-  },[]);
-  function chooseAccent(next:ThemeAccent) {
-    setAccent(next);
-    window.localStorage.setItem("global-stock-home-accent-v1",next);
-  }
   const countFormat=useMemo(()=>new Intl.NumberFormat(
     language==="es"?"es-AR":language==="pt"?"pt-BR":language==="fr"?"fr-FR":language==="de"?"de-DE":"en-US",
     {maximumFractionDigits:0}
@@ -291,15 +284,9 @@ export function AnimatedHomeDashboard({
     {label:labels.stock,value:metrics.inventoryUnits,format:numeric,icon:<Package size={20}/>},
     {label:labels.criticalStock,value:metrics.lowStockCount+metrics.outOfStockCount,format:numeric,icon:<ShieldAlert size={20}/>}
   ];
-  const accents:CSSProperties = {
-    "--home-accent":accent==="blue"?"#2459c6":"#086846",
-    "--home-accent-soft":accent==="blue"?"#e9effd":"#e5f4ec",
-    "--home-accent-bright":accent==="blue"?"#3c83ee":"#1cad7c",
-    "--home-accent-glow":accent==="blue"?"rgba(36,89,198,.22)":"rgba(8,104,70,.2)"
-  } as CSSProperties;
   return (
     <section data-testid="animated-home-dashboard" data-theme={dark?"dark":"light"} data-accent={accent}
-      className="gs-exec-dashboard" style={accents}>
+      className="gs-exec-dashboard">
       <FadeIn className="gs-exec-header">
         <div className="gs-exec-header__copy">
           <span className="gs-exec-overline"><Sparkles size={13}/>{t.snapshot}</span>
@@ -309,13 +296,15 @@ export function AnimatedHomeDashboard({
         <div className="gs-exec-header__tools">
           <div className="gs-exec-palette" role="group" aria-label={t.palette}>
             <button title="Verde esmeralda" type="button" aria-label="Verde esmeralda"
-              aria-pressed={accent==="emerald"} onClick={()=>chooseAccent("emerald")}
+              aria-pressed={accent==="emerald"} onClick={()=>onAccentChange("emerald")}
               className="gs-exec-palette__emerald"/>
             <button title="Azul" type="button" aria-label="Azul"
-              aria-pressed={accent==="blue"} onClick={()=>chooseAccent("blue")}
+              aria-pressed={accent==="blue"} onClick={()=>onAccentChange("blue")}
               className="gs-exec-palette__blue"/>
+            <button title="Rojo Global Stock" type="button" aria-label="Rojo Global Stock"
+              aria-pressed={accent==="red"} onClick={()=>onAccentChange("red")}
+              className="gs-exec-palette__red"/>
           </div>
-          <span className="gs-exec-period"><Clock3 size={15}/>{t.period}<ChevronDown size={12}/></span>
         </div>
       </FadeIn>
 
