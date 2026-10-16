@@ -188,6 +188,12 @@ function initialDetails(product: Product, businessType: BusinessType): ProductIn
   const profile = product.inventoryDetails?.profile ?? naturalProfile(product,businessType);
   return { profile, unit:"unidades", ...profileSettings(profile), ...product.inventoryDetails };
 }
+function warehouseStockStatus(product: Product): "normal" | "low" | "out" {
+  const current = getStockStatus(product);
+  const reorder = product.inventoryDetails?.reorderPoint;
+  if (current === "normal" && typeof reorder === "number" && reorder > 0 && product.stock <= reorder) return "low";
+  return current;
+}
 function expiryState(product: Product, businessType: BusinessType) {
   const details = initialDetails(product,businessType);
   return details.trackExpiry ? daysUntil(details.expiresOn) : null;
@@ -243,14 +249,14 @@ export function InventoryControlCenter({
 
   const expiring = products.filter(p=>p.stock>0 && (expiryState(p,businessType) ?? Infinity) >= 0 && (expiryState(p,businessType) ?? Infinity) <= 30).length;
   const expired = products.filter(p=>p.stock>0 && (expiryState(p,businessType) ?? Infinity)<0).length;
-  const lowCount = products.filter(p=>getStockStatus(p)==="low").length;
-  const outCount = products.filter(p=>getStockStatus(p)==="out").length;
+  const lowCount = products.filter(p=>warehouseStockStatus(p)==="low").length;
+  const outCount = products.filter(p=>warehouseStockStatus(p)==="out").length;
   const number = useMemo(()=>new Intl.NumberFormat(locale[language]),[language]);
 
   const visible = useMemo(()=>{
     const q = query.trim().toLocaleLowerCase();
     return products.filter(product=>{
-      const state = getStockStatus(product);
+      const state = warehouseStockStatus(product);
       const exp=expiryState(product,businessType);
       const match= [product.name,product.barcode,product.category,product.supplier,
         product.inventoryDetails?.sku,product.inventoryDetails?.batchCode,product.inventoryDetails?.location]
@@ -289,7 +295,17 @@ export function InventoryControlCenter({
          || (draft.trackManufacturing && draft.manufacturedOn && draft.expiresOn < draft.manufacturedOn))) {
       setFormError(t.invalid); return;
     }
-    if (barcodeDraft.trim()!==selected.barcode) onUpdateBarcode(selected.id,barcodeDraft.trim());
+    const barcode = barcodeDraft.trim();
+    if (barcode && barcode !== selected.barcode &&
+      products.some(product => product.id !== selected.id && product.barcode.trim().toLocaleLowerCase() === barcode.toLocaleLowerCase())) {
+      setFormError(language === "es" ? "Este código de barras ya está asignado a otro producto." :
+        language === "pt" ? "Este código de barras já pertence a outro produto." :
+        language === "fr" ? "Ce code-barres est déjà utilisé par un autre produit." :
+        language === "de" ? "Dieser Barcode ist bereits einem anderen Produkt zugewiesen." :
+        "This barcode is already assigned to another product.");
+      return;
+    }
+    if (barcode!==selected.barcode) onUpdateBarcode(selected.id,barcode);
     if (supplierDraft!==selected.supplier) onUpdateSupplier(selected.id,supplierDraft);
     const normalized: ProductInventoryDetails = {
       ...draft,
@@ -375,7 +391,7 @@ export function InventoryControlCenter({
           </tr></thead>
           <tbody>
             {visible.map(product=>{
-              const stockStatus=getStockStatus(product);
+              const stockStatus=warehouseStockStatus(product);
               const days=expiryState(product,businessType);
               const expFlag=product.stock>0 && days!==null && days<0;
               const soonFlag=product.stock>0 && days!==null && days>=0 && days<=30;
