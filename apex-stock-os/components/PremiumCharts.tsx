@@ -8,6 +8,7 @@ import "./premium-charts.css";
 
 import {
   Sparkles,
+  BarChart3,
   ArrowDownRight,
   ArrowUpRight,
   Boxes,
