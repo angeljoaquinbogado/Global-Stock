@@ -1,0 +1,30 @@
+/* Cash register: compact, responsive shift accounting separate from POS. */
+.gs-cash-register {font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:var(--apex-text)}
+.gs-cash-eyebrow{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--apex-accent)}
+.gs-cash-panel{border:1px solid var(--apex-border);border-radius:19px;background:var(--apex-surface-strong);box-shadow:0 4px 22px rgba(0,0,0,.025);min-width:0}
+.gs-cash-primary,.gs-cash-secondary,.gs-cash-danger{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:43px;border-radius:12px;padding:0 15px;font-size:12px;font-weight:700;transition:background .18s ease,transform .2s ease,box-shadow .2s ease}
+.gs-cash-primary{background:var(--apex-accent);color:#fff}
+.gs-cash-primary:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 8px 24px var(--apex-accent-glow)}
+.gs-cash-secondary{background:var(--apex-surface-strong);border:1px solid var(--apex-border);color:var(--apex-text)}
+.gs-cash-secondary:hover:not(:disabled){background:var(--apex-bg)}
+.gs-cash-danger{background:#ae2025;color:#fff}
+.gs-cash-danger:hover:not(:disabled){background:#9a1118}
+.gs-cash-primary:disabled,.gs-cash-secondary:disabled,.gs-cash-danger:disabled{opacity:.45;cursor:not-allowed}
+.gs-cash-field{display:flex;flex-direction:column;gap:7px;min-width:0}
+.gs-cash-field>span,.gs-cash-field-label{color:var(--apex-muted);font-size:11px;font-weight:650;letter-spacing:.015em}
+.gs-cash-register .apex-input{border-radius:12px;min-width:0;max-width:100%}
+.gs-cash-register .apex-input:focus-visible{outline:2px solid var(--apex-accent);outline-offset:2px}
+.gs-cash-register textarea.apex-input{width:100%;resize:vertical}
+.gs-cash-note,.gs-cash-error,.gs-cash-success{display:flex;align-items:center;gap:9px;border-radius:13px;border:1px solid var(--apex-border);padding:12px 14px;font-size:12px;line-height:1.5}
+.gs-cash-note{background:var(--apex-surface-strong);color:var(--apex-muted)}
+.gs-cash-error{background:rgba(220,38,38,.065);color:#cf2727;border-color:rgba(220,38,38,.2)}
+.gs-cash-success{background:rgba(22,163,74,.07);color:#15803d;border-color:rgba(22,163,74,.2)}
+.gs-cash-dot{display:inline-block;flex:none;width:7px;height:7px;border-radius:50%;background:var(--apex-muted);opacity:.7}
+.gs-cash-dot--live{background:#11a765;opacity:1;box-shadow:0 0 0 3px rgba(17,167,101,.13)}
+.gs-cash-icon{display:grid;place-items:center;width:42px;height:42px;flex:none;border-radius:13px;background:var(--apex-accent-soft);color:var(--apex-accent)}
+.gs-cash-stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.gs-cash-stat{min-width:0;padding:17px 18px;border:1px solid var(--apex-border);border-radius:17px;background:var(--apex-surface-strong);box-shadow:0 3px 14px rgba(0,0,0,.02);transition:transform .2s ease,border-color .2s ease}
+.gs-cash-stat:hover{transform:translateY(-2px);border-color:var(--apex-accent)}
+@media(max-width:1050px){.gs-cash-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.gs-cash-stat-grid{gap:9px}.gs-cash-stat{padding:13px;border-radius:13px}.gs-cash-panel{border-radius:15px}}
+@media(prefers-reduced-motion:reduce){.gs-cash-register *{transition-duration:.01ms!important;animation-duration:.01ms!important}}

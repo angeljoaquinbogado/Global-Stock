@@ -71,6 +71,7 @@ import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
 import { StockQuantityCell } from "./StockQuantityCell";
 import { InventoryControlCenter } from "./InventoryControlCenter";
+import { CashRegisterCenter } from "./CashRegisterCenter";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
@@ -3888,12 +3889,13 @@ export function BusinessWorkspace({
               />
             )}
 
-            {(activeModule === "pos" || activeModule === "cash") && (
+            {activeModule === "pos" && (
               <PosModule
-                cashMode={activeModule === "cash"}
+                cashMode={true}
+                onOpenCashRegister={() => setActiveModule("cash")}
                 labels={labels}
                 language={language}
-                products={activeModule === "cash" ? products : filteredPosProducts}
+                products={products}
                 posVariants={posVariants}
                 locations={posLocations}
                 sellableStockByLocation={sellableStockByLocation}
@@ -3916,6 +3918,19 @@ export function BusinessWorkspace({
                 demoMode={demoMode}
                 sellableStockById={sellableStockById}
                 completeSale={completeSale}
+              />
+            )}
+
+            {activeModule === "cash" && (
+              <CashRegisterCenter
+                language={language}
+                businessId={cloudBusinessId}
+                demoMode={demoMode}
+                locations={posLocations}
+                money={money}
+                currency={currency}
+                canManage={memberRole !== "viewer"}
+                onGoToPos={() => setActiveModule("pos")}
               />
             )}
 
@@ -4473,6 +4488,7 @@ function OverviewModule({
 
 function PosModule({
   cashMode,
+  onOpenCashRegister,
   labels,
   language,
   products,
@@ -4496,6 +4512,7 @@ function PosModule({
   completeSale
 }: {
   cashMode: boolean;
+  onOpenCashRegister: () => void;
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   products: Product[];
@@ -4816,21 +4833,27 @@ function PosModule({
 
   return (
     <div className="space-y-5">
-      <PageIntro
-        title={cashMode ? labels.nav.cash : labels.posTitle}
-        subtitle={cashMode
-          ? (language === "es"
-            ? "Escaneá artículos, aplicá promociones y calculá el vuelto antes de registrar el cobro."
-            : language === "en"
-              ? "Scan products, apply promotions and calculate change before confirming payment."
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <PageIntro
+            title={labels.posTitle}
+            subtitle={language === "es"
+              ? "Escaneá o ingresá productos, armá el ticket y registrá la venta. Los cobros en efectivo se reflejan en el turno de Caja Registradora."
               : language === "pt"
-                ? "Escaneie produtos, aplique promoções e calcule o troco antes de registrar o pagamento."
+                ? "Escaneie produtos, monte o pedido e registre a venda. O dinheiro entra no turno do caixa."
                 : language === "fr"
-                  ? "Scannez vos produits, appliquez les remises et calculez la monnaie."
-                  : "Produkte scannen, Rabatte anwenden und Rückgeld berechnen.")
-          : labels.posSubtitle}
-      />
-      {!cashMode && <WorkflowHelp {...workflowHelp[language].pos} />}
+                  ? "Scannez les articles, préparez le ticket et enregistrez la vente."
+                  : language === "de"
+                    ? "Artikel scannen, Beleg zusammenstellen und Verkauf erfassen."
+                    : "Scan products, build the receipt and record the sale. Cash payments count toward the open register shift."}
+          />
+        </div>
+        <button type="button" onClick={onOpenCashRegister}
+          className="flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-xs font-semibold transition-colors hover:border-[var(--apex-accent)] hover:text-[var(--apex-accent)]">
+          <Wallet size={16} />
+          {labels.nav.cash}
+        </button>
+      </div>
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
         <section className="space-y-4">
