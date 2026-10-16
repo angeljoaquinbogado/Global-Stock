@@ -103,7 +103,7 @@ const words={
     details:"Detalhes",selectShift:"Ver movimentos",oneRegister:"Apenas um turno aberto por loja.",validAmount:"Insira um valor válido."
   }
 } as const;
-type Copy=typeof words.es;
+type Copy={ [K in keyof typeof words.es]: string };
 function localized(language:LanguageCode):Copy {
   return (words as Record<string,Copy>)[language] ?? words.en;
 }
@@ -161,7 +161,6 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
 
   const active=shifts.find(item=>item.status==="open")??null;
   const displayed=shifts.find(item=>item.id===selectedId)??active??shifts[0]??null;
-  const demoRows=useMemo(()=>shifts,[shifts]);
 
   const reload=useCallback(async()=>{
     if(demoMode)return;
@@ -197,7 +196,6 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
   useEffect(()=>{
     if(!displayed){setSnapshot(null);setMovements([]);return;}
     if(demoMode) {
-      const all=(window as Window & {__none?:unknown});void all;
       // Demo values are held in React state only, never mixed with a real business.
       return;
     }
