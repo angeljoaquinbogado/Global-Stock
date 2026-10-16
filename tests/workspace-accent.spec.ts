@@ -46,4 +46,8 @@ test("selected accent changes entire workspace and persists between sections and
   expect(saved).toBe("emerald");
   await expect(dashboard.getByText(/período disponible/i)).toHaveCount(0);
   await expect(dashboard.locator(".gs-exec-period")).toHaveCount(0);
+  // No meaningless session timer or auto-ticking countdown remains.
+  await expect(dashboard.getByTestId("exec-session-timer")).toHaveCount(0);
+  await expect(dashboard.getByText("Tiempo en Inicio", { exact: true })).toHaveCount(0);
+  await expect(dashboard.locator(".gs-exec-panel--timer")).toHaveCount(0);
 });
