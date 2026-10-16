@@ -312,7 +312,7 @@ export function ApexSelect({
             aria-label={ariaLabel}
             style={menuStyle}
             className={
-              "apex-select-menu overscroll-contain overflow-y-auto rounded-2xl border border-white/10 bg-[#171719] p-1.5 text-[13px] text-white shadow-[0_22px_60px_rgba(0,0,0,.5)] " +
+              "apex-select-menu overscroll-contain overflow-y-auto rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 text-[13px] text-[var(--apex-text)] shadow-[0_16px_45px_rgba(0,0,0,.16)] dark:shadow-[0_22px_60px_rgba(0,0,0,.5)] " +
               (menuClassName ?? "")
             }
           >
@@ -330,8 +330,8 @@ export function ApexSelect({
                   className={
                     "flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-3 text-left transition-colors duration-150 " +
                     (active
-                      ? "bg-[#8F0000] text-white"
-                      : "text-white/78 hover:bg-white/[0.06] hover:text-white")
+                      ? "bg-[var(--apex-crimson)] text-white"
+                      : "text-[var(--apex-text)] hover:bg-[var(--apex-bg)]")
                   }
                 >
                   <span className="min-w-0 flex-1 truncate">{option.label}</span>
