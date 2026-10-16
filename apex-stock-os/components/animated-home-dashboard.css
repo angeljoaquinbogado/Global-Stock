@@ -105,14 +105,6 @@
 .gs-exec-activity__check {color:var(--home-accent);opacity:.6;flex-shrink:0}
 .gs-exec-note__circle {border:2px solid var(--home-accent);width:14px;height:14px;border-radius:5px;flex-shrink:0}
 .gs-exec-no-data {color:var(--home-muted);font-size:11px;line-height:1.55;padding:18px 0}
-.gs-exec-panel--timer {padding:0;position:relative;background:linear-gradient(135deg,var(--home-accent),color-mix(in srgb,var(--home-accent) 85%,#071810));color:white;border:0}
-.gs-exec-clock {isolation:isolate;min-height:145px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;position:relative;padding:14px}
-.gs-exec-clock__rings {position:absolute;inset:0;opacity:.18;z-index:-1;background:repeating-radial-gradient(circle at 50% 52%,transparent 0 12px,rgba(255,255,255,.45) 13px 14px);pointer-events:none}
-.gs-exec-clock p {font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;opacity:.85}
-.gs-exec-clock strong {font-size:clamp(21px,2.5vw,34px);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.035em}
-.gs-exec-clock button {display:grid;place-items:center;width:30px;height:30px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);border-radius:50%;color:white;transition:transform .2s ease,background .2s ease}
-.gs-exec-clock button:hover {background:rgba(255,255,255,.3);transform:scale(1.08)}
-.gs-exec-clock button:focus-visible {outline:2px solid white;outline-offset:3px}
 @media (max-width:1150px) {
  .gs-exec-metrics {grid-template-columns:repeat(2,minmax(0,1fr))}
  .gs-exec-content {grid-template-columns:minmax(0,1fr) minmax(260px,.85fr)}
@@ -122,7 +114,6 @@
  .gs-exec-content {grid-template-columns:minmax(0,1fr)}
  .gs-exec-panel--chart {grid-column:1}
  .gs-exec-panel--gauge {grid-column:1}
- .gs-exec-panel--timer {grid-column:1}
  .gs-exec-header {flex-wrap:wrap}
  .gs-exec-header__tools {justify-content:flex-start}
 }
@@ -143,4 +134,3 @@
  .gs-exec-dashboard * {scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
 
-/* The available period label was not a filter and has been intentionally removed. */
