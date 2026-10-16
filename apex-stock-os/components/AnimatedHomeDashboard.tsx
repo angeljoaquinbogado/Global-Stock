@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   Activity, ArrowRight, ArrowUpRight, BarChart3, CheckCircle2,
-  Layers3, Package, Pause, Play,
+  Layers3, Package,
   ShieldAlert, Sparkles, TrendingUp
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -55,7 +55,6 @@ type Props = {
 const words: Record<LanguageCode, {
   period: string; snapshot: string; financial: string; today: string;
   last: string; margin: string; chart: string; tasks: string; noData: string;
-  logged: string; running: string; pause: string; resume: string;
   view: string; palette: string; updates: string; inventory: string;
 }> = {
   es: {
@@ -63,7 +62,6 @@ const words: Record<LanguageCode, {
     financial: "Estado financiero", today: "Tu negocio, de un vistazo",
     last: "Actividad del negocio", margin: "Margen bruto", chart: "Movimiento de ventas",
     tasks: "Notas y recordatorios", noData: "Todavía no hay datos para mostrar",
-    logged: "Tiempo en Inicio", running: "En curso", pause: "Pausar", resume: "Reanudar",
     view: "Ver detalles", palette: "Color del panel", updates: "Movimientos recientes",
     inventory: "Inventario"
   },
@@ -72,7 +70,6 @@ const words: Record<LanguageCode, {
     financial: "Financial snapshot", today: "Your business at a glance",
     last: "Business activity", margin: "Gross margin", chart: "Sales trend",
     tasks: "Notes and reminders", noData: "No data available yet",
-    logged: "Time on Home", running: "Running", pause: "Pause", resume: "Resume",
     view: "View details", palette: "Dashboard accent", updates: "Recent updates",
     inventory: "Inventory"
   },
@@ -81,7 +78,6 @@ const words: Record<LanguageCode, {
     financial: "Resumo financeiro", today: "Seu negócio em um olhar",
     last: "Atividade do negócio", margin: "Margem bruta", chart: "Fluxo de vendas",
     tasks: "Notas e lembretes", noData: "Ainda não há dados",
-    logged: "Tempo no Início", running: "Em andamento", pause: "Pausar", resume: "Retomar",
     view: "Ver detalhes", palette: "Cor do painel", updates: "Atividade recente",
     inventory: "Estoque"
   },
@@ -90,7 +86,6 @@ const words: Record<LanguageCode, {
     financial: "Bilan financier", today: "Votre activité en un coup d'œil",
     last: "Activité", margin: "Marge brute", chart: "Évolution des ventes",
     tasks: "Notes et rappels", noData: "Pas encore de données",
-    logged: "Temps sur l'accueil", running: "En cours", pause: "Pause", resume: "Reprendre",
     view: "Voir les détails", palette: "Couleur du tableau", updates: "Activité récente",
     inventory: "Stock"
   },
@@ -99,7 +94,6 @@ const words: Record<LanguageCode, {
     financial: "Finanzübersicht", today: "Dein Geschäft auf einen Blick",
     last: "Geschäftsaktivität", margin: "Bruttomarge", chart: "Verkaufsverlauf",
     tasks: "Notizen und Erinnerungen", noData: "Noch keine Daten vorhanden",
-    logged: "Zeit auf Startseite", running: "Läuft", pause: "Pause", resume: "Fortsetzen",
     view: "Details ansehen", palette: "Akzentfarbe", updates: "Letzte Aktivitäten",
     inventory: "Bestand"
   }
@@ -240,28 +234,6 @@ function MarginGauge({ margin, label, noData }: {margin:number|null,label:string
   );
 }
 
-function HomeClock({label,pause,resume}: {label:string,pause:string,resume:string}) {
-  const [elapsed,setElapsed] = useState(0);
-  const [running,setRunning] = useState(true);
-  useEffect(() => {
-    if (!running) return;
-    const timer=window.setInterval(()=>setElapsed(x=>x+1),1000);
-    return ()=>window.clearInterval(timer);
-  },[running]);
-  const time=[Math.floor(elapsed/3600),Math.floor((elapsed%3600)/60),elapsed%60]
-    .map(x=>String(x).padStart(2,"0")).join(":");
-  return (
-    <div className="gs-exec-clock" data-testid="exec-session-timer">
-      <div className="gs-exec-clock__rings" aria-hidden="true"/>
-      <p>{label}</p><strong>{time}</strong>
-      <button type="button" aria-label={running?pause:resume}
-        onClick={()=>setRunning(x=>!x)}>
-        {running?<Pause size={15}/>:<Play size={15}/>}
-      </button>
-    </div>
-  );
-}
-
 export function AnimatedHomeDashboard({
   dark,language,accent,onAccentChange,labels,metrics,chartData,money,showFinancials,
   recentActivities,todayNotes,canOpenCharts,canOpenActivities,canOpenNotes,
@@ -388,9 +360,6 @@ export function AnimatedHomeDashboard({
           </div>
         </FadeIn>
 
-        <FadeIn className="gs-exec-panel gs-exec-panel--timer" delay={.55}>
-          <HomeClock label={t.logged} pause={t.pause} resume={t.resume}/>
-        </FadeIn>
       </div>
     </section>
   );
