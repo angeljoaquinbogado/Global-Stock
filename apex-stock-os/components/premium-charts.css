@@ -82,3 +82,30 @@
 .gs-an-premium .gs-an-chart-frame{height:clamp(320px,33vw,430px);background:linear-gradient(180deg,color-mix(in srgb,var(--home-accent) 2%,var(--home-card)),var(--home-bg));border-radius:19px}
 .gs-an-premium .gs-an-finance{box-shadow:0 8px 32px rgba(0,0,0,.025)}
 @media(max-width:530px){.gs-an-premium .gs-an-legend{gap:6px}.gs-an-premium .gs-an-legend__item{padding:0 9px}.gs-an-premium .gs-an-chart-frame{height:290px}}
+
+/* Financial Explorer — refined interactive analytic surface */
+.gs-an-chart-dashboard{border:1px solid var(--home-border);border-radius:23px;background:var(--home-card);overflow:hidden;margin-top:12px}
+.gs-an-chart-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:19px 22px 12px}
+.gs-an-chart-toolbar__copy{display:flex;flex-direction:column;gap:4px}
+.gs-an-chart-toolbar__copy strong{font-size:14px;font-weight:760;letter-spacing:-.02em;color:var(--home-text)}
+.gs-an-chart-toolbar__copy span{font-size:11px;color:var(--home-muted)}
+.gs-an-chart-mode{display:flex;gap:4px;padding:4px;border:1px solid var(--home-border);border-radius:12px;background:var(--home-bg)}
+.gs-an-chart-mode button{min-height:33px;border-radius:9px;padding:0 13px;font-size:11px;font-weight:700;color:var(--home-muted);transition:background .2s,color .2s,box-shadow .2s}
+.gs-an-chart-mode button[aria-pressed=true]{background:var(--home-card);color:var(--home-text);box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.gs-an-chart-mode button:focus-visible,.gs-an-point-nav button:focus-visible{outline:2px solid var(--home-accent);outline-offset:2px}
+.gs-an-chart-spotlight{display:grid;grid-template-columns:minmax(180px,1.65fr) repeat(3,minmax(0,1fr));gap:0;margin:0 22px;padding:15px 0 17px;border-bottom:1px solid var(--home-border)}
+.gs-an-chart-spotlight>div{min-width:0;display:flex;flex-direction:column;gap:8px;padding:5px 18px;border-left:1px solid var(--home-border)}
+.gs-an-chart-spotlight>div:first-child{padding-left:0;border-left:0}
+.gs-an-chart-spotlight span{font-size:10px;font-weight:700;color:var(--home-muted)}
+.gs-an-chart-spotlight strong{font-size:clamp(13px,1.5vw,20px);font-weight:760;letter-spacing:-.04em;color:var(--home-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gs-an-chart-spotlight__hero strong{font-size:clamp(19px,2.3vw,30px);color:var(--home-accent)}
+.gs-an-chart-spotlight__hero em{font-size:10px;font-style:normal;font-weight:700}
+.gs-an-chart-spotlight__hero em.is-positive{color:#0e926b}.gs-an-chart-spotlight__hero em.is-negative{color:#ce5858}
+.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame{margin:0;height:clamp(300px,32vw,430px);background:transparent;border:0;border-radius:0;padding:18px 13px 6px}
+.gs-an-point-nav{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px;padding:11px 22px 18px}
+.gs-an-point-nav button{min-width:0;min-height:36px;display:flex;align-items:center;justify-content:center;gap:7px;border-radius:10px;color:var(--home-muted);font-size:10px;font-weight:700;transition:background .2s,color .2s}
+.gs-an-point-nav button span{height:5px;width:5px;border-radius:50%;background:currentColor;opacity:.45}
+.gs-an-point-nav button[aria-pressed=true]{background:var(--home-accent-soft);color:var(--home-accent)}
+.gs-an-point-nav button:hover{background:var(--home-bg);color:var(--home-text)}
+@media(max-width:800px){.gs-an-chart-spotlight{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:14px}.gs-an-chart-spotlight__hero{grid-column:1/-1}.gs-an-chart-spotlight>div:nth-child(2){padding-left:0;border-left:0}}
+@media(max-width:530px){.gs-an-chart-toolbar{padding:14px}.gs-an-chart-spotlight{margin:0 14px;grid-template-columns:repeat(3,minmax(0,1fr))}.gs-an-chart-spotlight>div{padding:5px 8px}.gs-an-chart-spotlight strong{font-size:13px}.gs-an-chart-spotlight__hero strong{font-size:24px}.gs-an-point-nav{gap:0;padding:6px 8px 14px}.gs-an-point-nav button{font-size:9px;gap:3px}.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame{height:270px;padding:8px 1px}}
