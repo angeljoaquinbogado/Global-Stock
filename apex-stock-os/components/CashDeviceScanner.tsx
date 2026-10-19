@@ -67,7 +67,7 @@ export function CashDeviceScanner({language,onCode}:Props){
       </button>
     </div>
     {cameraOpen&&<div className="mt-3">
-      <BarcodeCameraCapture language={language} onBarcode={onCode}/>
+      <BarcodeCameraCapture language={language} onBarcode={onCode} autoStart/>
     </div>}
     {pair&&<div className="mt-3 space-y-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
       <p className="text-xs font-semibold">{language==="es"?"Escáner remoto temporal (10 minutos)":"Temporary remote scanner (10 minutes)"}</p>
