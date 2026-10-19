@@ -340,7 +340,6 @@ export function PremiumCharts({
   const focused = data[focusIndex ?? -1] ?? latestPoint;
   const focusedIndex = focusIndex !== null && data[focusIndex] ? focusIndex : Math.max(0, data.length - 1);
   const focusMargin = focused && focused.revenue > 0 ? focused.profit / focused.revenue * 100 : null;
-  const focusChange = focusedIndex > 0 ? periodDelta(data[focusedIndex]?.revenue, data[focusedIndex - 1]?.revenue) : null;
 
   const periodDelta = (current?: number, previous?: number) => {
     if (
@@ -354,6 +353,8 @@ export function PremiumCharts({
     }
     return ((current - previous) / Math.abs(previous)) * 100;
   };
+
+  const focusChange = focusedIndex > 0 ? periodDelta(data[focusedIndex]?.revenue, data[focusedIndex - 1]?.revenue) : null;
 
   const noData =
     language === "es"
