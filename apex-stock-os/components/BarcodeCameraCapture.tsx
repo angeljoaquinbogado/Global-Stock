@@ -4,14 +4,14 @@ import { BrowserMultiFormatReader } from "@zxing/library";
 import { Camera, CameraOff, ScanLine } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
-type Props = { onBarcode:(code:string)=>void; language?:string; };
+type Props = { onBarcode:(code:string)=>void; language?:string; autoStart?:boolean; };
 
-export function BarcodeCameraCapture({onBarcode, language="es"}:Props) {
+export function BarcodeCameraCapture({onBarcode, language="es", autoStart=false}:Props) {
   const video = useRef<HTMLVideoElement>(null);
   const callback = useRef(onBarcode);
   const readerRef = useRef<BrowserMultiFormatReader|null>(null);
   const last = useRef({code:"",at:0});
-  const [enabled,setEnabled] = useState(false);
+  const [enabled,setEnabled] = useState(autoStart);
   const [message,setMessage] = useState("");
   useEffect(()=>{callback.current=onBarcode},[onBarcode]);
 
