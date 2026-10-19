@@ -251,6 +251,8 @@ export function PremiumCharts({
   const t = copy[language];
   const chartGradient = useId().replace(/:/g, "");
   const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: true, profit: true });
+  const [graphMode, setGraphMode] = useState<"curve" | "bars">("curve");
+  const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
   const stockData = products
     .map((product) => ({
@@ -335,6 +337,10 @@ export function PremiumCharts({
 
   const latestPoint = data.at(-1) ?? null;
   const previousPoint = data.at(-2) ?? null;
+  const focused = data[focusIndex ?? -1] ?? latestPoint;
+  const focusedIndex = focusIndex !== null && data[focusIndex] ? focusIndex : Math.max(0, data.length - 1);
+  const focusMargin = focused && focused.revenue > 0 ? focused.profit / focused.revenue * 100 : null;
+  const focusChange = focusedIndex > 0 ? periodDelta(data[focusedIndex]?.revenue, data[focusedIndex - 1]?.revenue) : null;
 
   const periodDelta = (current?: number, previous?: number) => {
     if (
@@ -450,10 +456,32 @@ export function PremiumCharts({
         </div>
 
         {data.length ? (
+          <div className="gs-an-chart-dashboard">
+            <div className="gs-an-chart-toolbar">
+              <div className="gs-an-chart-toolbar__copy">
+                <strong>{language === "es" ? "Evolución financiera" : "Financial performance"}</strong>
+                <span>{language === "es" ? "Explorá un punto para ver su desglose" : "Select a point to explore its breakdown"}</span>
+              </div>
+              <div className="gs-an-chart-mode" role="group" aria-label={language === "es" ? "Estilo del gráfico" : "Chart style"}>
+                <button type="button" aria-pressed={graphMode === "curve"} onClick={() => setGraphMode("curve")}>{language === "es" ? "Líneas" : "Lines"}</button>
+                <button type="button" aria-pressed={graphMode === "bars"} onClick={() => setGraphMode("bars")}>{language === "es" ? "Barras" : "Bars"}</button>
+              </div>
+            </div>
+            <div className="gs-an-chart-spotlight">
+              <div className="gs-an-chart-spotlight__hero">
+                <span>{focused?.label ?? "—"} · {t.revenue}</span>
+                <strong>{focused ? money(focused.revenue) : "—"}</strong>
+                {focusChange !== null && <em className={focusChange >= 0 ? "is-positive" : "is-negative"}>{focusChange >= 0 ? "+" : ""}{focusChange.toFixed(1)}% {language === "es" ? "vs. período anterior" : "vs previous point"}</em>}
+              </div>
+              <div><span>{t.cost}</span><strong>{focused ? money(focused.cost) : "—"}</strong></div>
+              <div><span>{t.profit}</span><strong>{focused ? money(focused.profit) : "—"}</strong></div>
+              <div><span>{t.avgMargin}</span><strong>{focusMargin === null ? "—" : pct(focusMargin)}</strong></div>
+            </div>
           <div className="gs-an-chart-frame">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={data}
+                onMouseMove={(state: {activeTooltipIndex?: number | string}) => { const i = Number(state?.activeTooltipIndex); if (Number.isInteger(i) && i >= 0 && i < data.length) setFocusIndex(i); }}
                 margin={{ left: 6, right: 12, top: 16, bottom: 8 }}
               >
                 <defs>
@@ -511,7 +539,7 @@ export function PremiumCharts({
                   stroke="var(--apex-border)"
                   strokeDasharray="3 6"
                 />
-                {visibleSeries.revenue && <Area
+                {graphMode === "curve" && visibleSeries.revenue && <Area
                   type="monotone"
                   dataKey="revenue"
                   stroke="none"
@@ -519,7 +547,7 @@ export function PremiumCharts({
                   isAnimationActive={!reduced}
                 animationDuration={850}
                 />}
-                {visibleSeries.revenue && <Line
+                {graphMode === "curve" && visibleSeries.revenue && <Line
                   type="monotone"
                   dataKey="revenue"
                   name={t.revenue}
@@ -530,7 +558,7 @@ export function PremiumCharts({
                   isAnimationActive={!reduced}
                 animationDuration={850}
                 />}
-                {visibleSeries.cost && <Line
+                {graphMode === "curve" && visibleSeries.cost && <Line
                   type="monotone"
                   dataKey="cost"
                   name={t.cost}
@@ -542,7 +570,7 @@ export function PremiumCharts({
                   isAnimationActive={!reduced}
                 animationDuration={850}
                 />}
-                {visibleSeries.profit && <Line
+                {graphMode === "curve" && visibleSeries.profit && <Line
                   type="monotone"
                   dataKey="profit"
                   name={t.profit}
@@ -553,8 +581,15 @@ export function PremiumCharts({
                   isAnimationActive={!reduced}
                 animationDuration={850}
                 />}
+                {graphMode === "bars" && visibleSeries.revenue && <Bar dataKey="revenue" name={t.revenue} fill="var(--home-accent)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
+                {graphMode === "bars" && visibleSeries.cost && <Bar dataKey="cost" name={t.cost} fill="var(--home-muted)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
+                {graphMode === "bars" && visibleSeries.profit && <Bar dataKey="profit" name={t.profit} fill="var(--home-text)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
               </ComposedChart>
             </ResponsiveContainer>
+          </div>
+          <div className="gs-an-point-nav" role="group" aria-label={language === "es" ? "Explorar días" : "Explore periods"}>
+            {data.map((row, index) => <button key={index} type="button" onClick={() => setFocusIndex(index)} aria-pressed={focusedIndex === index} title={row.label}><span />{row.label}</button>)}
+          </div>
           </div>
         ) : (
           <div className="mt-4 grid min-h-[260px] place-items-center rounded-[24px] border border-dashed border-[var(--apex-border)] bg-[var(--apex-bg)] px-6 text-center text-sm text-[var(--apex-muted)]">
