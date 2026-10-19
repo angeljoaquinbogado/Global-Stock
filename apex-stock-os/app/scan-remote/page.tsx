@@ -15,7 +15,7 @@ export default function RemoteScannerPage(){
   const [manual,setManual]=useState("");
   const [count,setCount]=useState(0);
   useEffect(()=>{
-    const params=new URLSearchParams(window.location.search);
+    const params=new URLSearchParams(window.location.hash.slice(1));
     const pair=params.get("pair")||"";
     const until=Number(params.get("until")||"0");
     if(!/^[a-f0-9-]{36}$/i.test(pair)||!Number.isFinite(until)||until<Date.now()||until>Date.now()+11*60*1000){

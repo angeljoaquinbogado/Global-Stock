@@ -189,3 +189,33 @@ test("disconnect a single online store and preserve other accounts on its provid
     assert.doesNotMatch(source,/target_provider:account.provider/);
   }
 });
+
+test("cash scanner sends product codes without remote sale confirmation", () => {
+  const cashier = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const paired = file("apex-stock-os/components/CashDeviceScanner.tsx");
+  const mobile = file("apex-stock-os/app/scan-remote/page.tsx");
+  const camera = file("apex-stock-os/components/BarcodeCameraCapture.tsx");
+  assert.match(cashier, /<CashDeviceScanner/);
+  assert.match(cashier, /applyCashCode\(raw/);
+  assert.match(paired, /crypto\.randomUUID\(\)/);
+  assert.match(paired, /Date\.now\(\)\+10\*60\*1000/);
+  assert.match(paired, /\/scan-remote#pair=/);
+  assert.match(mobile, /channel\.send\(/);
+  assert.match(mobile, /type:"broadcast",event:"barcode"/);
+  assert.doesNotMatch(mobile, /completeSale|global_stock_record_pos_sale/);
+  assert.match(camera, /decodeFromVideoDevice/);
+});
+
+test("analytics, supplier editor and document actions keep their requested design scope", () => {
+  const charts = file("apex-stock-os/components/PremiumCharts.tsx");
+  const suppliers = file("apex-stock-os/components/SupplierDirectory.tsx");
+  const docs = file("apex-stock-os/components/SmartDocumentInbox.tsx");
+  assert.match(charts, /dailyAverage/);
+  assert.match(charts, /periodMargin/);
+  assert.match(charts, /visibleSeries/);
+  assert.doesNotMatch(charts, /onAccentChange/);
+  assert.match(suppliers, /createPortal\(/);
+  assert.match(suppliers, /aria-modal="true"/);
+  assert.match(docs, /xl:w-\[245px\]/);
+  assert.match(docs, /h-12 w-full/);
+});

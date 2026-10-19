@@ -43,7 +43,7 @@ export function CashDeviceScanner({language,onCode}:Props){
   },[pair,language]);
 
   const url=pair&&typeof window!=="undefined"
-    ?window.location.origin+"/scan-remote?pair="+encodeURIComponent(pair.token)+"&until="+pair.expires:"";
+    ?window.location.origin+"/scan-remote#pair="+encodeURIComponent(pair.token)+"&until="+pair.expires:"";
   const startPair=()=>{
     seen.current.clear();
     setPair({token:crypto.randomUUID(),expires:Date.now()+10*60*1000});

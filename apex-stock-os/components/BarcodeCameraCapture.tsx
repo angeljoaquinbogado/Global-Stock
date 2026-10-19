@@ -33,8 +33,11 @@ export function BarcodeCameraCapture({onBarcode, language="es", autoStart=false}
       const code=result.getText().trim();
       if(!code||code.length>160)return;
       const now=Date.now();
-      if(last.current.code===code && now-last.current.at<1700)return;
+      // The same barcode remains in view across many camera frames:
+      // emit once, then require a brief gap without detection to scan again.
+      const repeated=last.current.code===code && now-last.current.at<700;
       last.current={code,at:now};
+      if(repeated)return;
       callback.current(code);
     }).catch((cause:unknown)=>{
       if(!active)return;
