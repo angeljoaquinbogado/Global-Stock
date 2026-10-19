@@ -72,6 +72,7 @@ import { BusinessTypePicker } from "./BusinessTypePicker";
 import { StockQuantityCell } from "./StockQuantityCell";
 import { InventoryControlCenter } from "./InventoryControlCenter";
 import { CashRegisterCenter } from "./CashRegisterCenter";
+import { CashDeviceScanner } from "./CashDeviceScanner";
 import { BarcodeScanner, type BarcodeScannerHandle } from "./BarcodeScanner";
 import { BarcodeLabelStudio } from "./BarcodeLabelStudio";
 import {
@@ -4812,8 +4813,8 @@ function PosModule({
     cashScanRef.current?.focus();
   }
 
-  function submitCashCode() {
-    const code = scanEntry.trim().toLocaleLowerCase();
+  function applyCashCode(raw: string) {
+    const code = raw.trim().toLocaleLowerCase();
     if (!code) return;
 
     const variants = posVariants.filter(
@@ -4848,6 +4849,10 @@ function PosModule({
       return;
     }
     addCashItem(product, productVariants[0] ?? null);
+  }
+
+  function submitCashCode() {
+    applyCashCode(scanEntry);
   }
 
   return (
@@ -4927,6 +4932,7 @@ function PosModule({
                   </button>
                 </form>
                 {scanFeedback && <p role="status" aria-live="polite" className="mt-3 rounded-xl bg-[var(--apex-bg)] px-3 py-2 text-xs">{scanFeedback}</p>}
+                <CashDeviceScanner language={language} onCode={applyCashCode}/>
                 {scanEntry.trim() && (
                   <div className="mt-3 overflow-hidden rounded-xl border border-[var(--apex-border)]">
                     <div className="border-b border-[var(--apex-border)] px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[var(--apex-muted)]">

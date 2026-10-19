@@ -15,6 +15,7 @@ import {
   X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   loadCloudWorkspace,
@@ -536,10 +537,12 @@ export function SupplierDirectory({
         ))}
       </div>
 
+      {typeof document !== "undefined" && createPortal(
       <AnimatePresence>
         {editingId !== null && (
           <motion.div
-            className="fixed inset-0 z-[310] flex items-end justify-center bg-black/55 pt-[max(8px,env(safe-area-inset-top))] sm:items-center sm:p-4 sm:backdrop-blur-sm"
+            role="presentation"
+            className="fixed inset-0 z-[310] flex items-center justify-center overflow-hidden bg-black/55 p-[max(12px,env(safe-area-inset-top))] sm:p-6 sm:backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -548,14 +551,17 @@ export function SupplierDirectory({
             }}
           >
             <motion.section
-              initial={{ transform: "translate3d(0,100%,0)" }}
-              animate={{ transform: "translate3d(0,0,0)" }}
-              exit={{ transform: "translate3d(0,100%,0)" }}
+              role="dialog"
+              aria-modal="true"
+              aria-label={editingId === "new" ? t.newSupplier : t.editSupplier}
+              initial={{ opacity: 0, y: 22, scale: .985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 15, scale: .99 }}
               transition={{
                 duration: 0.28,
                 ease: [0.32, 0.72, 0, 1]
               }}
-              className="apex-glass apex-scrollbar max-h-[calc(100dvh-8px)] w-full max-w-2xl overflow-y-auto rounded-t-[30px] p-5 pb-[max(20px,env(safe-area-inset-bottom))] sm:max-h-[calc(100dvh-32px)] sm:rounded-[30px] sm:p-6"
+              className="apex-scrollbar flex max-h-[calc(100dvh-32px)] min-h-0 w-full max-w-2xl flex-col overflow-y-auto overscroll-contain rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-5 shadow-[0_25px_85px_rgba(0,0,0,.25)] sm:max-h-[calc(100dvh-48px)] sm:rounded-[26px] sm:p-6"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -684,7 +690,7 @@ export function SupplierDirectory({
                 </p>
               )}
 
-              <div className="mt-5 flex flex-wrap gap-2">
+              <div className="sticky bottom-[-20px] z-10 -mx-5 -mb-5 mt-5 flex flex-wrap gap-2 border-t border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-5 py-3 pb-[max(14px,env(safe-area-inset-bottom))] sm:-mx-6 sm:-mb-6 sm:bottom-[-24px] sm:px-6">
                 <button
                   type="button"
                   onClick={saveProfile}
@@ -714,7 +720,7 @@ export function SupplierDirectory({
             </motion.section>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>, document.body)}
     </div>
   );
 }

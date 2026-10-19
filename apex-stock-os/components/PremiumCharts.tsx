@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import type { WorkspaceAccent } from "@/lib/workspace-accent";
 import "./animated-home-dashboard.css";
 import "./premium-charts.css";
@@ -249,6 +249,8 @@ export function PremiumCharts({
 }: Props) {
   const reduced = useReducedMotion();
   const t = copy[language];
+  const chartGradient = useId().replace(/:/g, "");
+  const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: true, profit: true });
 
   const stockData = products
     .map((product) => ({
@@ -323,6 +325,14 @@ export function PremiumCharts({
     { name: t.out, value: out, fill: "#df5555" }
   ];
 
+  const totalRevenueInPeriod = data.reduce((sum, row) => sum + row.revenue, 0);
+  const totalProfitInPeriod = data.reduce((sum, row) => sum + row.profit, 0);
+  const activeDays = data.filter(row => row.revenue > 0).length;
+  const dailyAverage = activeDays ? totalRevenueInPeriod / activeDays : 0;
+  const periodMargin = totalRevenueInPeriod > 0 ? totalProfitInPeriod / totalRevenueInPeriod * 100 : 0;
+  const countReorder = low + out;
+  const pct = (n: number) => new Intl.NumberFormat(locale, {maximumFractionDigits: 1}).format(n) + "%";
+
   const latestPoint = data.at(-1) ?? null;
   const previousPoint = data.at(-2) ?? null;
 
@@ -364,29 +374,18 @@ export function PremiumCharts({
       </motion.header>
 
       <div className="gs-exec-metrics gs-an-metrics">
-        <Metric
-          icon={<CircleDollarSign size={17} />}
-          label={t.revenue}
-          amount={revenue} format={money}
-          positive
-        />
-        <Metric
-          icon={<Boxes size={17} />}
-          label={t.cost}
-          amount={cost} format={money}
-        />
-        <Metric
-          icon={<TrendingUp size={17} />}
-          label={t.profit}
-          amount={profit} format={money}
-          positive={profit >= 0}
-        />
-        <Metric
-          icon={<ArrowDownRight size={17} />}
-          label={t.losses}
-          amount={losses} format={money}
-          positive={losses === 0}
-        />
+        <Metric icon={<CircleDollarSign size={17} />}
+          label={language === "es" ? "Ingreso diario promedio" : language === "pt" ? "Receita média diária" : "Average daily revenue"}
+          amount={dailyAverage} format={money} positive />
+        <Metric icon={<TrendingUp size={17} />}
+          label={language === "es" ? "Margen del período" : language === "pt" ? "Margem do período" : "Period margin"}
+          amount={periodMargin} format={pct} positive={periodMargin >= 0} />
+        <Metric icon={<Boxes size={17} />}
+          label={t.inventoryValue}
+          amount={inventoryCost} format={money} />
+        <Metric icon={<PackageX size={17} />}
+          label={language === "es" ? "Productos por reponer" : language === "pt" ? "Produtos a repor" : "Products to restock"}
+          amount={countReorder} format={(v:number) => new Intl.NumberFormat(locale,{maximumFractionDigits:0}).format(Math.round(v))} positive={countReorder===0} />
       </div>
 
       <motion.section className="gs-exec-panel gs-an-finance" initial={reduced ? false : { opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: reduced ? 0 : .52, delay: reduced ? 0 : .19, ease: [.22, 1, .36, 1] }}>
@@ -431,6 +430,25 @@ export function PremiumCharts({
           />
         </div>
 
+        <div className="gs-an-legend" role="group" aria-label={language === "es" ? "Mostrar u ocultar series del gráfico" : "Show or hide chart series"}>
+          {([
+            {key:"revenue" as const,label:t.revenue},
+            {key:"cost" as const,label:t.cost},
+            {key:"profit" as const,label:t.profit}
+          ]).map(series => (
+            <button key={series.key} type="button"
+              aria-pressed={visibleSeries[series.key]}
+              onClick={() => setVisibleSeries(current => {
+                if(current[series.key] && Object.values(current).filter(Boolean).length === 1) return current;
+                return {...current, [series.key]: !current[series.key]};
+              })}
+              className={"gs-an-legend__item gs-an-legend__item--" + series.key + (visibleSeries[series.key] ? " is-visible" : "")}>
+              <span className="gs-an-legend__mark" aria-hidden="true" />
+              {series.label}
+            </button>
+          ))}
+        </div>
+
         {data.length ? (
           <div className="gs-an-chart-frame">
             <ResponsiveContainer width="100%" height="100%">
@@ -439,7 +457,7 @@ export function PremiumCharts({
                 margin={{ left: 6, right: 12, top: 16, bottom: 8 }}
               >
                 <defs>
-                  <linearGradient id="premiumRevenueFill" x1="0" y1="0" x2="0" y2="1">
+                  <linearGradient id={chartGradient} x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="var(--home-accent)" stopOpacity={0.16} />
                     <stop offset="100%" stopColor="var(--home-accent)" stopOpacity={0} />
                   </linearGradient>
@@ -472,6 +490,7 @@ export function PremiumCharts({
                   }
                 />
                 <Tooltip
+                  animationDuration={180}
                   cursor={{
                     stroke: "var(--apex-muted)",
                     strokeOpacity: 0.32,
@@ -492,27 +511,27 @@ export function PremiumCharts({
                   stroke="var(--apex-border)"
                   strokeDasharray="3 6"
                 />
-                <Area
-                  type="linear"
+                {visibleSeries.revenue && <Area
+                  type="monotone"
                   dataKey="revenue"
                   stroke="none"
-                  fill="url(#premiumRevenueFill)"
+                  fill={"url(#" + chartGradient + ")"}
                   isAnimationActive={!reduced}
                 animationDuration={850}
-                />
-                <Line
-                  type="linear"
+                />}
+                {visibleSeries.revenue && <Line
+                  type="monotone"
                   dataKey="revenue"
                   name={t.revenue}
                   stroke="var(--home-accent)"
                   strokeWidth={2.6}
                   dot={false}
-                  activeDot={{ r: 4.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
+                  activeDot={{ r: 6, strokeWidth: 3, stroke: "var(--home-card)" }}
                   isAnimationActive={!reduced}
                 animationDuration={850}
-                />
-                <Line
-                  type="linear"
+                />}
+                {visibleSeries.cost && <Line
+                  type="monotone"
                   dataKey="cost"
                   name={t.cost}
                   stroke="var(--home-muted)"
@@ -522,18 +541,18 @@ export function PremiumCharts({
                   activeDot={{ r: 3.5, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
                   isAnimationActive={!reduced}
                 animationDuration={850}
-                />
-                <Line
-                  type="linear"
+                />}
+                {visibleSeries.profit && <Line
+                  type="monotone"
                   dataKey="profit"
                   name={t.profit}
-                  stroke="var(--apex-text)"
-                  strokeWidth={1.9}
+                  stroke="var(--home-text)"
+                  strokeWidth={2.1}
                   dot={false}
                   activeDot={{ r: 3.8, strokeWidth: 2, stroke: "var(--apex-surface-strong)" }}
                   isAnimationActive={!reduced}
                 animationDuration={850}
-                />
+                />}
               </ComposedChart>
             </ResponsiveContainer>
           </div>

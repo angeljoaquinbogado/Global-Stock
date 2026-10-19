@@ -470,7 +470,7 @@ export function SmartDocumentInbox({
             </p>
           </div>
 
-          <div>
+          <div className="flex w-full min-w-0 flex-col gap-2 xl:w-[245px]">
             <input
               ref={fileInputRef}
               type="file"
@@ -486,7 +486,7 @@ export function SmartDocumentInbox({
               type="button"
               disabled={scanning}
               onClick={() => fileInputRef.current?.click()}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(143,0,0,.25)] disabled:opacity-60"
+              className="inline-flex h-12 w-full items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-[var(--apex-accent)] px-4 text-xs font-semibold text-white shadow-sm transition-[transform,filter] hover:brightness-110 active:scale-[.985] disabled:opacity-60"
             >
               {scanning ? (
                 <Loader2 size={17} className="animate-spin" />
@@ -501,7 +501,7 @@ export function SmartDocumentInbox({
               <button
                 type="button"
                 onClick={loadDemoSample}
-                className="mt-2 w-full rounded-xl border border-[var(--apex-border)] px-4 py-2 text-xs font-semibold text-[var(--apex-text)]"
+                className="inline-flex h-12 w-full items-center justify-center whitespace-nowrap rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-xs font-semibold text-[var(--apex-text)] transition-colors hover:bg-[var(--apex-bg)]"
               >
                 {label(language, "Probar comprobante de ejemplo", "Try sample document")}
               </button>
