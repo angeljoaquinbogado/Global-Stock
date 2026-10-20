@@ -425,7 +425,7 @@ test("dropdowns keep readable hover and selected text in both themes", () => {
 });
 test("Inicio greets verified member by real name and business membership role", () => {
   const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
-  assert.match(workspace, /supabase\.auth\.getUser\(\)/);
+  assert.match(workspace, /client\.auth\.getUser\(\)/);
   assert.match(workspace, /\.from\("global_stock_profiles"\)\s*\.select\("full_name"\)\s*\.eq\("user_id", user\.id\)/);
   assert.match(workspace, /\.from\("global_stock_members"\)/);
   assert.match(workspace, /const \[memberRoleReady, setMemberRoleReady\]/);
