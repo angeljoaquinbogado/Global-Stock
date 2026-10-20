@@ -1395,10 +1395,11 @@ export function BusinessWorkspace({
     }
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
+    const client = supabase;
     let cancelled = false;
     async function loadSignedInName() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const { data: { user } } = await client.auth.getUser();
         if (!user || cancelled) return;
         const metadata = user.user_metadata ?? {};
         const candidates = [metadata.full_name, metadata.name, metadata.display_name];
@@ -1406,7 +1407,7 @@ export function BusinessWorkspace({
           typeof item === "string" && item.trim().length > 0 && item.trim().length <= 100
         )?.trim() ?? "";
         if (!name) {
-          const { data: profile } = await supabase
+          const { data: profile } = await client
             .from("global_stock_profiles")
             .select("full_name")
             .eq("user_id", user.id)
