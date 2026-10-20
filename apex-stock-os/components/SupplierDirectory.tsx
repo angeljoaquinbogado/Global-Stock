@@ -22,6 +22,7 @@ import {
   saveCloudWorkspace
 } from "@/lib/cloud-workspace";
 import { businessStorageKey } from "@/lib/business-storage";
+import { workspaceAccentVars, type WorkspaceAccent } from "@/lib/workspace-accent";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type SupplierStat = {
@@ -48,6 +49,7 @@ type SupplierProfile = {
 
 type Props = {
   language: LanguageCode;
+  accent: WorkspaceAccent;
   stats: SupplierStat[];
   money: (value: number) => string;
   onRemoveSupplier: (name: string) => void;
@@ -211,6 +213,7 @@ const emptyDraft = {
 
 export function SupplierDirectory({
   language,
+  accent,
   stats,
   money,
   onRemoveSupplier,
@@ -419,7 +422,7 @@ export function SupplierDirectory({
     <div className="space-y-5">
       <section className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8F0000]">
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--apex-accent)]">
             {t.eyebrow}
           </p>
           <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
@@ -433,7 +436,7 @@ export function SupplierDirectory({
         <button
           type="button"
           onClick={openNew}
-          className="flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white"
+          className="flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-2xl bg-[var(--apex-accent)] px-5 text-sm font-semibold text-white"
         >
           <Plus size={17} />
           {t.newSupplier}
@@ -445,7 +448,7 @@ export function SupplierDirectory({
           <article key={name} className="apex-card p-5">
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[#8F0000]/10 text-[#8F0000]">
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]">
                   <Building2 size={18} />
                 </span>
                 <div className="min-w-0">
@@ -501,7 +504,7 @@ export function SupplierDirectory({
                     href={`tel:${profile.phone.replace(/\s+/g, "")}`}
                     className="flex min-h-10 items-center gap-3 rounded-xl px-2 text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]"
                   >
-                    <Phone size={14} className="text-[#8F0000]" />
+                    <Phone size={14} className="text-[var(--apex-accent)]" />
                     <span className="truncate">{profile.phone}</span>
                   </a>
                 )}
@@ -510,7 +513,7 @@ export function SupplierDirectory({
                     href={`mailto:${profile.email}`}
                     className="flex min-h-10 items-center gap-3 rounded-xl px-2 text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]"
                   >
-                    <Mail size={14} className="text-[#8F0000]" />
+                    <Mail size={14} className="text-[var(--apex-accent)]" />
                     <span className="truncate">{profile.email}</span>
                   </a>
                 )}
@@ -521,13 +524,13 @@ export function SupplierDirectory({
                     rel="noreferrer"
                     className="flex min-h-10 items-center gap-3 rounded-xl px-2 text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]"
                   >
-                    <Globe2 size={14} className="text-[#8F0000]" />
+                    <Globe2 size={14} className="text-[var(--apex-accent)]" />
                     <span className="truncate">{profile.website}</span>
                   </a>
                 )}
                 {profile.address && (
                   <div className="flex min-h-10 items-center gap-3 px-2 text-[var(--apex-muted)]">
-                    <MapPin size={14} className="shrink-0 text-[#8F0000]" />
+                    <MapPin size={14} className="shrink-0 text-[var(--apex-accent)]" />
                     <span>{profile.address}</span>
                   </div>
                 )}
@@ -542,7 +545,9 @@ export function SupplierDirectory({
         {editingId !== null && (
           <motion.div
             role="presentation"
-            className="fixed inset-0 z-[310] flex items-center justify-center overflow-hidden bg-black/55 p-[max(12px,env(safe-area-inset-top))] sm:p-6 sm:backdrop-blur-sm"
+            style={workspaceAccentVars(accent)}
+            data-workspace-accent={accent}
+            className="fixed inset-0 z-[310] flex items-center justify-center overflow-hidden bg-black/55 p-[max(10px,env(safe-area-inset-top))] sm:p-4 sm:backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -561,28 +566,28 @@ export function SupplierDirectory({
                 duration: 0.28,
                 ease: [0.32, 0.72, 0, 1]
               }}
-              className="apex-scrollbar flex max-h-[calc(100dvh-32px)] min-h-0 w-full max-w-2xl flex-col overflow-y-auto overscroll-contain rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-5 shadow-[0_25px_85px_rgba(0,0,0,.25)] sm:max-h-[calc(100dvh-48px)] sm:rounded-[26px] sm:p-6"
+              className="apex-scrollbar flex max-h-[calc(100dvh-20px)] min-h-0 w-full max-w-2xl flex-col overflow-y-auto overscroll-contain rounded-[20px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4 text-[var(--apex-text)] shadow-[0_25px_85px_rgba(0,0,0,.25)] sm:max-h-[calc(100dvh-32px)] sm:rounded-[22px] sm:p-5"
             >
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8F0000]">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[var(--apex-accent)]">
                     Global Stock
                   </p>
-                  <h3 className="mt-1 text-xl font-semibold">
+                  <h3 className="mt-0.5 text-lg font-semibold">
                     {editingId === "new" ? t.newSupplier : t.editSupplier}
                   </h3>
                 </div>
                 <button
                   type="button"
                   onClick={closeEditor}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                  className="grid h-9 w-9 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] transition-colors hover:bg-[var(--apex-bg)]"
                   aria-label={t.close}
                 >
                   <X size={16} />
                 </button>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <div className="mt-3 grid gap-x-3 gap-y-2 sm:grid-cols-2">
                 <Field label={t.name}>
                   <Building2 size={15} />
                   <input
@@ -656,7 +661,8 @@ export function SupplierDirectory({
                 </Field>
               </div>
 
-              <label className="mt-3 block">
+              <div className="mt-2 grid gap-3 sm:grid-cols-2 sm:items-start">
+                <label className="block min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
                   {t.address}
                 </span>
@@ -665,12 +671,12 @@ export function SupplierDirectory({
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, address: event.target.value }))
                   }
-                  className="apex-input mt-2 px-4 py-3"
+                  className="apex-input mt-1.5 min-h-10 w-full px-3 py-2"
                   autoComplete="street-address"
                 />
               </label>
 
-              <label className="mt-3 block">
+                <label className="block min-w-0">
                 <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
                   {t.notes}
                 </span>
@@ -679,10 +685,12 @@ export function SupplierDirectory({
                   onChange={(event) =>
                     setDraft((current) => ({ ...current, notes: event.target.value }))
                   }
-                  rows={3}
-                  className="apex-input mt-2 resize-y px-4 py-3"
+                  rows={2}
+                  className="apex-input mt-1.5 min-h-[56px] max-h-28 w-full resize-y px-3 py-2"
                 />
               </label>
+
+              </div>
 
               {error && (
                 <p role="alert" className="mt-3 text-xs font-semibold text-red-500">
@@ -690,11 +698,11 @@ export function SupplierDirectory({
                 </p>
               )}
 
-              <div className="sticky bottom-[-20px] z-10 -mx-5 -mb-5 mt-5 flex flex-wrap gap-2 border-t border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-5 py-3 pb-[max(14px,env(safe-area-inset-bottom))] sm:-mx-6 sm:-mb-6 sm:bottom-[-24px] sm:px-6">
+              <div className="mt-3 flex flex-wrap gap-2 border-t border-[var(--apex-border)] pt-3">
                 <button
                   type="button"
                   onClick={saveProfile}
-                  className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-[#8F0000] px-5 text-sm font-semibold text-white"
+                  className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--apex-accent)] px-4 text-xs font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[.99]"
                 >
                   <Save size={16} />
                   {t.save}
@@ -702,7 +710,7 @@ export function SupplierDirectory({
                 <button
                   type="button"
                   onClick={closeEditor}
-                  className="min-h-12 rounded-2xl border border-[var(--apex-border)] px-5 text-sm font-semibold"
+                  className="min-h-10 rounded-xl border border-[var(--apex-border)] px-4 text-xs font-semibold transition-colors hover:bg-[var(--apex-bg)]"
                 >
                   {t.cancel}
                 </button>
@@ -710,7 +718,7 @@ export function SupplierDirectory({
                   <button
                     type="button"
                     onClick={() => deleteProfile(editingId)}
-                    className="grid h-12 w-12 place-items-center rounded-2xl border border-red-500/20 text-red-500"
+                    className="grid h-10 w-10 place-items-center rounded-xl border border-red-500/20 text-red-500"
                     aria-label={t.delete}
                   >
                     <Trash2 size={16} />
@@ -748,7 +756,7 @@ function Field({
       <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
         {label}
       </span>
-      <span className="mt-2 flex min-h-12 items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-[var(--apex-muted)] focus-within:border-[#8F0000]">
+      <span className="mt-1.5 flex min-h-10 items-center gap-2.5 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-[var(--apex-muted)] transition-colors focus-within:border-[var(--apex-accent)]">
         {children}
       </span>
     </label>

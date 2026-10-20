@@ -4021,6 +4021,7 @@ export function BusinessWorkspace({
             {activeModule === "suppliers" && (
               <SupplierDirectory
                 language={language}
+                accent={workspaceAccent}
                 stats={supplierStats}
                 money={money}
                 onRemoveSupplier={removeSupplier}
