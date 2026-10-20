@@ -977,14 +977,15 @@ export function ApexIntelligence({
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-label={copy.title}
         className={
-          "fixed right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-white/10 bg-black px-4 text-white shadow-[0_18px_60px_rgba(0,0,0,.34)] lg:bottom-6 lg:right-6 " +
+          "fixed right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-[var(--apex-text)] shadow-[0_12px_36px_rgba(0,0,0,.14)] transition-[border-color,background-color,box-shadow] hover:border-[var(--apex-accent)] lg:bottom-6 lg:right-6 " +
           (raiseOnMobile
             ? "bottom-[calc(158px+env(safe-area-inset-bottom,0px))]"
             : "bottom-[calc(88px+env(safe-area-inset-bottom,0px))]")
         }
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-[#8F0000]">
+        <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--apex-accent)] text-white">
           <Sparkles size={16} />
         </span>
         <span className="hidden text-sm font-semibold sm:inline">

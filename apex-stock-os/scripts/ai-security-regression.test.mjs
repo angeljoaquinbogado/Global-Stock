@@ -219,3 +219,22 @@ test("analytics, supplier editor and document actions keep their requested desig
   assert.match(docs, /xl:w-\[245px\]/);
   assert.match(docs, /h-12 w-full/);
 });
+
+test("integer warehouse steppers and Agenda controls remain native-theme free", () => {
+  const stock = file("apex-stock-os/components/StockQuantityCell.tsx");
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const agenda = file("apex-stock-os/components/NotesHub.tsx");
+  const assistant = file("apex-stock-os/components/ApexIntelligence.tsx");
+
+  assert.match(stock, /step="1"\s+aria-label="Stock actual"/);
+  assert.doesNotMatch(stock, /step="0\.001"/);
+  assert.match(workspace, /inputMode="numeric" pattern="\[0-9\]\*"/);
+  assert.match(workspace, /<Minus size=\{14\}\/>/);
+  assert.match(workspace, /<Plus size=\{14\}\/>/);
+
+  assert.match(agenda, /setCalendarMonth\(new Date\(year-1,month,1\)\)/);
+  assert.match(agenda, /setCalendarMonth\(new Date\(year\+1,month,1\)\)/);
+  assert.ok(agenda.indexOf("onClick={() => removeNote(note.id)}") < agenda.indexOf("{note.text}"));
+  assert.match(assistant, /rounded-full border border-\[var\(--apex-border\)\] bg-\[var\(--apex-surface-strong\)\]/);
+  assert.match(assistant, /bg-\[var\(--apex-accent\)\] text-white/);
+});

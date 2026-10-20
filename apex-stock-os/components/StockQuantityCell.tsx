@@ -171,7 +171,7 @@ export function StockQuantityCell({ productId, stock, onSetStock, onAddStock }: 
         type="number"
         inputMode="decimal"
         min="0"
-        step="0.001"
+        step="1"
         aria-label="Stock actual"
         value={draft}
         disabled={busy}

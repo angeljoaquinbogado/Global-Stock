@@ -5641,24 +5641,37 @@ function PurchasesModule({
                         <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
                           {labels.suggested}
                         </p>
-                        <div className="mt-1 flex items-center gap-2">
-                          <input
-                            type="number"
-                            min={1}
-                            step={1}
-                            value={units}
-                            onChange={(event) =>
-                              setPlannedUnits((current) => ({
-                                ...current,
-                                [product.id]: Math.max(
-                                  1,
-                                  Math.round(Number(event.target.value) || 1)
-                                )
-                              }))
-                            }
-                            className="w-20 bg-transparent text-base font-semibold outline-none"
-                            aria-label={labels.suggested}
-                          />
+                        <div className="mt-1 flex flex-wrap items-center gap-2">
+                          <div className="inline-flex h-10 items-center gap-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-1 transition-colors focus-within:border-[var(--apex-accent)]">
+                            <button type="button" disabled={units <= 1}
+                              onClick={() => setPlannedUnits(current => ({...current,[product.id]:Math.max(1,units-1)}))}
+                              aria-label={language === "es" ? "Restar una unidad" : "Decrease by one"}
+                              className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] hover:bg-[var(--apex-bg)] disabled:opacity-30">
+                              <Minus size={14}/>
+                            </button>
+                            <input
+                              type="text" inputMode="numeric" pattern="[0-9]*" maxLength={9}
+                              value={String(units)}
+                              onChange={event => {
+                                const raw=event.target.value;
+                                if (!/^\d*$/.test(raw)) return;
+                                setPlannedUnits(current => ({...current,[product.id]:Math.max(1,Math.min(1_000_000,Number(raw)||1))}));
+                              }}
+                              onKeyDown={event => {
+                                if(event.key!=="ArrowUp"&&event.key!=="ArrowDown")return;
+                                event.preventDefault();
+                                const delta=event.key==="ArrowUp"?1:-1;
+                                setPlannedUnits(current=>({...current,[product.id]:Math.max(1,Math.min(1_000_000,units+delta))}));
+                              }}
+                              className="w-[60px] bg-transparent text-center text-sm font-semibold tabular-nums text-[var(--apex-text)] outline-none focus:outline-none focus-visible:!outline-none"
+                              aria-label={labels.suggested}
+                            />
+                            <button type="button" onClick={()=>setPlannedUnits(current=>({...current,[product.id]:Math.min(1_000_000,units+1)}))}
+                              aria-label={language==="es"?"Sumar una unidad":"Increase by one"}
+                              className="grid h-8 w-8 place-items-center rounded-lg text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]">
+                              <Plus size={14}/>
+                            </button>
+                          </div>
                           <span className="text-[10px] text-[var(--apex-muted)]">
                             {suggestedUnits !== units
                               ? language === "es"

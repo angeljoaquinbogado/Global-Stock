@@ -5,6 +5,8 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   ClipboardList,
   ListTodo,
   Pin,
@@ -83,6 +85,8 @@ const copy: Record<
     compactCalendar: string;
     previousMonth: string;
     nextMonth: string;
+    previousYear: string;
+    nextYear: string;
     today: string;
     selectedDay: string;
   }
@@ -111,6 +115,8 @@ const copy: Record<
     compactCalendar: "Calendario compacto",
     previousMonth: "Mes anterior",
     nextMonth: "Mes siguiente",
+    previousYear: "Año anterior",
+    nextYear: "Año siguiente",
     today: "Hoy",
     selectedDay: "Día seleccionado"
   },
@@ -138,6 +144,8 @@ const copy: Record<
     compactCalendar: "Compact calendar",
     previousMonth: "Previous month",
     nextMonth: "Next month",
+    previousYear: "Previous year",
+    nextYear: "Next year",
     today: "Today",
     selectedDay: "Selected day"
   },
@@ -165,6 +173,8 @@ const copy: Record<
     compactCalendar: "Calendário compacto",
     previousMonth: "Mês anterior",
     nextMonth: "Próximo mês",
+    previousYear: "Ano anterior",
+    nextYear: "Próximo ano",
     today: "Hoje",
     selectedDay: "Dia selecionado"
   },
@@ -192,6 +202,8 @@ const copy: Record<
     compactCalendar: "Calendrier compact",
     previousMonth: "Mois précédent",
     nextMonth: "Mois suivant",
+    previousYear: "Année précédente",
+    nextYear: "Année suivante",
     today: "Aujourd’hui",
     selectedDay: "Jour sélectionné"
   },
@@ -219,6 +231,8 @@ const copy: Record<
     compactCalendar: "Kompakter Kalender",
     previousMonth: "Vorheriger Monat",
     nextMonth: "Nächster Monat",
+    previousYear: "Vorheriges Jahr",
+    nextYear: "Nächstes Jahr",
     today: "Heute",
     selectedDay: "Ausgewählter Tag"
   }
@@ -575,6 +589,14 @@ export function NotesHub({
                       >
                         {note.done && <Check size={13} />}
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => removeNote(note.id)}
+                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--apex-border)] text-[var(--apex-muted)] transition-colors hover:border-red-500/30 hover:text-red-500"
+                        aria-label={t.delete}
+                      >
+                        <Trash2 size={14} />
+                      </button>
                       <p
                         className={
                           "min-w-0 flex-1 text-sm leading-5 " +
@@ -585,14 +607,6 @@ export function NotesHub({
                       >
                         {note.text}
                       </p>
-                      <button
-                        type="button"
-                        onClick={() => removeNote(note.id)}
-                        className="grid h-8 w-8 place-items-center rounded-full text-[var(--apex-muted)]"
-                        aria-label={t.delete}
-                      >
-                        <Trash2 size={14} />
-                      </button>
                     </div>
                   ))
                 ) : (
@@ -670,35 +684,27 @@ function CompactCalendar({
         (standalone ? "w-full" : "xl:sticky xl:top-24")
       }
     >
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() =>
-            setCalendarMonth(new Date(year, month - 1, 1))
-          }
-          className="grid h-8 w-8 place-items-center rounded-full border border-[var(--apex-border)]"
-          aria-label={t.previousMonth}
-        >
-          <ChevronLeft size={15} />
-        </button>
-        <div className="text-center">
-          <p className="text-[9px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-            {t.compactCalendar}
-          </p>
-          <h3 className="mt-1 text-sm font-semibold capitalize">
-            {monthLabel}
-          </h3>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => setCalendarMonth(new Date(year-1,month,1))}
+            className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--apex-border)] transition-colors hover:bg-[var(--apex-bg)]"
+            aria-label={t.previousYear} title={t.previousYear}><ChevronsLeft size={15}/></button>
+          <button type="button" onClick={() => setCalendarMonth(new Date(year,month-1,1))}
+            className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--apex-border)] transition-colors hover:bg-[var(--apex-bg)]"
+            aria-label={t.previousMonth} title={t.previousMonth}><ChevronLeft size={15}/></button>
         </div>
-        <button
-          type="button"
-          onClick={() =>
-            setCalendarMonth(new Date(year, month + 1, 1))
-          }
-          className="grid h-8 w-8 place-items-center rounded-full border border-[var(--apex-border)]"
-          aria-label={t.nextMonth}
-        >
-          <ChevronRight size={15} />
-        </button>
+        <div className="min-w-0 text-center">
+          <p className="text-[9px] font-bold uppercase tracking-[0.07em] text-[var(--apex-muted)]">{t.compactCalendar}</p>
+          <h3 className="mt-1 whitespace-nowrap text-[13px] font-semibold capitalize">{monthLabel}</h3>
+        </div>
+        <div className="flex items-center gap-1">
+          <button type="button" onClick={() => setCalendarMonth(new Date(year,month+1,1))}
+            className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--apex-border)] transition-colors hover:bg-[var(--apex-bg)]"
+            aria-label={t.nextMonth} title={t.nextMonth}><ChevronRight size={15}/></button>
+          <button type="button" onClick={() => setCalendarMonth(new Date(year+1,month,1))}
+            className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--apex-border)] transition-colors hover:bg-[var(--apex-bg)]"
+            aria-label={t.nextYear} title={t.nextYear}><ChevronsRight size={15}/></button>
+        </div>
       </div>
 
       <div className="mt-3 grid grid-cols-7 gap-1 text-center">
