@@ -136,7 +136,9 @@ test("web and Expo share authorized business switching, branch isolation and tra
   }
   assert.match(cloud, /global-stock-active-business-id/);
   assert.match(cloud, /memberships\?\.find/);
-  assert.match(workspace, /BusinessLocationsCenter/);
+  const operations = file("apex-stock-os/components/OperationsCenter.tsx");
+  assert.match(operations, /BusinessLocationsCenter/);
+  assert.match(operations, /locationsAdvancedOpen/);
   assert.match(desktop, /client\.auth\.getUser\(\)/);
   assert.match(desktop, /\.eq\("business_id",businessId\)/);
 });
