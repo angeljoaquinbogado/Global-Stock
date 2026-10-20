@@ -1,8 +1,8 @@
 "use client";
 
-import { ApexSelect } from "@/components/ui/ApexSelect";
-import { ArrowLeftRight, RefreshCw, TrendingUp } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import { ArrowLeftRight, Check, ChevronDown, RefreshCw, TrendingUp } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -33,6 +33,10 @@ type QuoteResponse = {
   } | null;
   sourceUpdatedAt?: string | null;
   checkedAt?: string;
+};
+
+const currencySymbols: Record<Currency, string> = {
+  ARS: "$", USD: "US$", EUR: "€", BRL: "R$", MXN: "MX$", GBP: "£", JPY: "¥"
 };
 
 const currencyNames: Record<
@@ -405,7 +409,7 @@ export function FxCenter({
   }
 
   return (
-    <section className="apex-card overflow-hidden">
+    <section className="apex-card overflow-visible">
       <div className="border-b border-[var(--apex-border)] p-5">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
@@ -620,35 +624,159 @@ export function FxCenter({
 }
 
 function CurrencySelect({
-  label,
-  value,
-  onChange,
-  language
+  label, value, onChange, language
 }: {
   label: string;
   value: Currency;
   onChange: (currency: Currency) => void;
   language: LanguageCode;
 }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const labelId = id + "-label";
+  const listId = id + "-list";
+
+  useEffect(() => {
+    if (!open) return;
+    function outside(event: PointerEvent) {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) setOpen(false);
+    }
+    function escape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setOpen(false);
+        if (listRef.current?.contains(document.activeElement)) triggerRef.current?.focus();
+      }
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", escape);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", escape);
+    };
+  }, [open]);
+
+  function focusOption(delta: number) {
+    const options = Array.from(listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]') ?? []);
+    if (!options.length) return;
+    const active = options.indexOf(document.activeElement as HTMLButtonElement);
+    const index = active === -1 ? currencies.indexOf(value) : active;
+    options[(index + delta + options.length) % options.length]?.focus();
+  }
+
+  function choose(next: Currency) {
+    onChange(next);
+    setOpen(false);
+    triggerRef.current?.focus();
+  }
+
   return (
-    <label>
-      <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-        {label}
-      </span>
-      <ApexSelect
-        value={value}
-        onChange={(event) =>
-          onChange(event.target.value as Currency)
-        }
-        className="apex-input mt-2 px-4 py-3 text-sm font-semibold"
+    <div
+      ref={rootRef}
+      className={"relative min-w-0 " + (open ? "z-[90]" : "")}
+      onMouseEnter={() => {
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(true);
+      }}
+      onMouseLeave={() => {
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(false);
+      }}
+    >
+      <span id={labelId} className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">{label}</span>
+      <button
+        type="button"
+        ref={triggerRef}
+        aria-labelledby={labelId}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-controls={open ? listId : undefined}
+        onClick={() => {
+          const hoverPointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+          setOpen(current => hoverPointer ? true : !current);
+        }}
+        onKeyDown={event => {
+          if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+          event.preventDefault();
+          setOpen(true);
+          requestAnimationFrame(() => {
+            const items = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+            items?.[currencies.indexOf(value)]?.focus();
+          });
+        }}
+        className="mt-2 flex min-h-11 w-full items-center justify-between gap-2 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 py-2.5 text-left text-sm font-semibold text-[var(--apex-text)] transition-colors hover:border-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
       >
-        {currencies.map((currency) => (
-          <option key={currency} value={currency}>
-            {currency} · {currencyNames[currency][language]}
-          </option>
-        ))}
-      </ApexSelect>
-    </label>
+        <span className="min-w-0 flex-1 truncate">{value} · {currencyNames[value][language]}</span>
+        <motion.span animate={{rotate:open ? 180 : 0}} transition={{duration:.18}}
+          className="shrink-0 text-[var(--apex-muted)]">
+          <ChevronDown size={16} aria-hidden="true"/>
+        </motion.span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            key="fx-currency-menu"
+            initial={{opacity:0,y:-9,scaleY:.95}}
+            animate={{opacity:1,y:0,scaleY:1}}
+            exit={{opacity:0,y:-6,scaleY:.97}}
+            transition={{type:"spring",stiffness:350,damping:29,mass:.75}}
+            className="absolute inset-x-0 top-full z-[100] origin-top pt-2"
+          >
+            <div
+              ref={listRef}
+              id={listId}
+              role="listbox"
+              aria-labelledby={labelId}
+              onKeyDown={event => {
+                if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                  event.preventDefault();
+                  focusOption(event.key === "ArrowDown" ? 1 : -1);
+                }
+                if (event.key === "Home" || event.key === "End") {
+                  event.preventDefault();
+                  const items = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
+                  items?.[event.key === "Home" ? 0 : currencies.length - 1]?.focus();
+                }
+                if (event.key === "Tab") setOpen(false);
+              }}
+              className="apex-scrollbar max-h-[min(340px,55dvh)] overflow-y-auto overscroll-contain rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,.15)]"
+            >
+              {currencies.map(currency => {
+                const selected = currency === value;
+                return (
+                  <button
+                    key={currency}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    tabIndex={-1}
+                    onClick={() => choose(currency)}
+                    className={
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
+                      (selected
+                        ? "bg-[var(--apex-accent)] text-white"
+                        : "text-[var(--apex-text)] hover:bg-[var(--apex-accent-soft)]")
+                    }
+                  >
+                    <span className={
+                      "grid h-7 w-9 shrink-0 place-items-center rounded-lg text-[10px] font-bold " +
+                      (selected ? "bg-white/15" : "bg-[var(--apex-bg)] text-[var(--apex-accent)]")
+                    }>{currencySymbols[currency]}</span>
+                    <span className="min-w-0 flex-1 truncate">
+                      <strong className="font-semibold">{currency}</strong>
+                      <span className={"ml-1 font-normal " + (selected ? "text-white/90" : "text-[var(--apex-muted)]")}>
+                        · {currencyNames[currency][language]}
+                      </span>
+                    </span>
+                    {selected && <Check size={15} className="shrink-0" aria-hidden="true"/>}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 

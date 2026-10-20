@@ -357,3 +357,20 @@ test("exchange rates keep full calculation precision but display two decimals", 
   assert.match(fx, /matrixUnits/);
   assert.doesNotMatch(fx, /maximumFractionDigits: 6|maximumFractionDigits: 8/);
 });
+
+test("FX currency selector uses theme-aware animated hover menu without changing conversion math", () => {
+  const fx = file("apex-stock-os/components/FxCenter.tsx");
+  assert.match(fx, /onMouseEnter=\{\(\) => \{/);
+  assert.match(fx, /onMouseLeave=\{\(\) => \{/);
+  assert.match(fx, /matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/);
+  assert.match(fx, /<AnimatePresence>/);
+  assert.match(fx, /initial=\{\{opacity:0,y:-9,scaleY:\.95\}\}/);
+  assert.match(fx, /role="listbox"/);
+  assert.match(fx, /aria-selected=\{selected\}/);
+  assert.match(fx, /bg-\[var\(--apex-accent\)\] text-white/);
+  assert.match(fx, /max-h-\[min\(340px,55dvh\)\]/);
+  assert.doesNotMatch(fx, /ApexSelect|#8F0000|#B51C30/);
+  assert.match(fx, /numericAmount \* quote\.rate/);
+  assert.match(fx, /minimumFractionDigits: 2/);
+  assert.match(fx, /maximumFractionDigits: 2/);
+});
