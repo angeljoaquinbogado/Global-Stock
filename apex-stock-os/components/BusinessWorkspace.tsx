@@ -159,11 +159,6 @@ const OnlineConnectionRequests = dynamic(
   { ssr: false }
 );
 
-const BusinessLocationsCenter = dynamic(
-  () => import("./BusinessLocationsCenter").then(mod => mod.BusinessLocationsCenter),
-  { ssr: false }
-);
-
 const BusinessSuite = dynamic(
   () =>
     import("./BusinessSuite").then(
@@ -4133,7 +4128,6 @@ export function BusinessWorkspace({
                 labels={labels}
                 language={language}
                 currency={currency}
-                dark={dark}
                 businessName={businessName}
                 businessType={businessType}
                 businessCountry={businessCountry}
@@ -4142,14 +4136,8 @@ export function BusinessWorkspace({
                 setBusinessType={setBusinessType}
                 setBusinessCountry={setBusinessCountry}
                 setBusinessDescription={setBusinessDescription}
-                onLanguageChange={onLanguageChange}
-                onCurrencyChange={onCurrencyChange}
-                onToggleTheme={onToggleTheme}
-                onSignOut={onSignOut}
                 saveBusinessName={saveBusinessName}
                 locale={locale}
-                businessId={cloudBusinessId}
-                demoMode={demoMode}
               />
             )}
             </motion.div>
@@ -5787,7 +5775,6 @@ function SettingsModule({
   labels,
   language,
   currency,
-  dark,
   businessName,
   businessType,
   businessCountry,
@@ -5796,19 +5783,12 @@ function SettingsModule({
   setBusinessType,
   setBusinessCountry,
   setBusinessDescription,
-  onLanguageChange,
-  onCurrencyChange,
-  onToggleTheme,
-  onSignOut,
   saveBusinessName,
-  locale,
-  businessId,
-  demoMode
+  locale
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
   currency: string;
-  dark: boolean;
   businessName: string;
   businessType: BusinessType;
   businessCountry: string;
@@ -5817,14 +5797,8 @@ function SettingsModule({
   setBusinessType: (value: BusinessType) => void;
   setBusinessCountry: (value: string) => void;
   setBusinessDescription: (value: string) => void;
-  onLanguageChange: (language: LanguageCode) => void;
-  onCurrencyChange: (currency: string) => void;
-  onToggleTheme: () => void;
-  onSignOut: () => void;
   saveBusinessName: () => void;
   locale: string;
-  businessId: string | null;
-  demoMode: boolean;
 }) {
   const [businessCategoryId, setBusinessCategoryId] = useState(() =>
     typeof window === "undefined" ? "almacen" :
@@ -6003,37 +5977,9 @@ function SettingsModule({
           <button
             type="button"
             onClick={saveBusinessName}
-            className="mt-4 rounded-2xl bg-[#8F0000] px-5 py-3 text-sm font-semibold text-white"
+            className="mt-4 rounded-xl bg-[var(--apex-accent)] px-5 py-3 text-sm font-semibold text-white transition-[filter,transform] hover:brightness-110 active:scale-[.99]"
           >
             {settingsCopy.save}
-          </button>
-        </section>
-
-        <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.preferences}
-          </h3>
-          <div className="mt-4">
-            <GlobalPreferences
-              language={language}
-              currency={currency}
-              onLanguageChange={onLanguageChange}
-              onCurrencyChange={onCurrencyChange}
-            />
-          </div>
-        </section>
-
-        <section className="apex-card p-5">
-          <h3 className="text-sm font-semibold">
-            {labels.appearance}
-          </h3>
-          <button
-            type="button"
-            onClick={onToggleTheme}
-            className="mt-4 flex items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm font-semibold"
-          >
-            {dark ? <Sun size={17} /> : <Moon size={17} />}
-            {labels.theme}
           </button>
         </section>
 
@@ -6045,34 +5991,22 @@ function SettingsModule({
           />
         </div>
 
-        {!demoMode && businessId ? <BusinessLocationsCenter businessId={businessId} currency={currency} /> : null}
-
         <NewsletterPreferences />
 
-        <section className="apex-card p-5 xl:col-span-2">
-          <h3 className="text-sm font-semibold">
-            {labels.install}
-          </h3>
-          <div className="mt-4 flex flex-wrap items-center gap-3">
-            <InstallAppButton language={language} />
-            {typeof window !== "undefined" &&
-              Boolean((window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView) && (
-              <button type="button"
-                onClick={() => (window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView?.postMessage(JSON.stringify({type:"open_legacy_recovery"}))}
-                className="rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-xs font-semibold text-[var(--apex-muted)]">
-                Recuperar borradores de Expo anterior
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onSignOut}
-              className="flex items-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 py-3 text-sm font-semibold text-[var(--apex-muted)]"
-            >
-              <LogOut size={16} />
-              {labels.signOut}
+        {typeof window !== "undefined" &&
+          Boolean((window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView) && (
+          <section className="apex-card p-4 xl:col-span-2">
+            <h3 className="text-xs font-semibold">
+              {language === "es" ? "Recuperación de datos anteriores" : "Previous data recovery"}
+            </h3>
+            <button type="button"
+              onClick={() => (window as typeof window & { ReactNativeWebView?: { postMessage: (v:string)=>void } }).ReactNativeWebView?.postMessage(JSON.stringify({type:"open_legacy_recovery"}))}
+              className="mt-3 min-h-10 rounded-xl border border-[var(--apex-border)] px-3 text-xs font-semibold text-[var(--apex-muted)] hover:bg-[var(--apex-bg)]">
+              {language === "es" ? "Recuperar borradores de Expo anterior" : "Recover previous Expo drafts"}
             </button>
-          </div>
-        </section>
+          </section>
+        )}
+
       </div>
     </div>
   );

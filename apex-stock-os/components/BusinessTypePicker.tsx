@@ -96,8 +96,8 @@ export function BusinessTypePicker({
       aria-haspopup="dialog"
       aria-controls="global-stock-business-category-grid"
       onClick={()=>setOpen(v=>!v)}
-      className="apex-input flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[#8F0000]">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#8F0000]/10 text-[#C31D2F]"><Icon size={19}/></span>
+      className="apex-input flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--apex-accent)]">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]"><Icon size={19}/></span>
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold">{selected.label[language]}</span>
         <span className="mt-0.5 block truncate text-[11px] text-[var(--apex-muted)]">{selected.description}</span>
@@ -120,11 +120,11 @@ export function BusinessTypePicker({
             const active=selected.id===item.id;
             return <button
               key={item.id} type="button" aria-pressed={active} onClick={()=>choose(item)}
-              className={"group flex min-h-[110px] flex-col justify-between rounded-2xl border p-3 text-left transition-[transform,background-color,border-color] hover:scale-[1.025] focus-visible:ring-2 focus-visible:ring-[#8F0000] "+
-                (active?"border-[#B51C30] bg-[#8F0000]/10":"border-[var(--apex-border)] bg-[var(--apex-bg)] hover:border-[#8F0000]/35")}>
+              className={"group flex min-h-[110px] flex-col justify-between rounded-2xl border p-3 text-left transition-[transform,background-color,border-color] hover:scale-[1.025] focus-visible:ring-2 focus-visible:ring-[var(--apex-accent)] "+
+                (active?"border-[var(--apex-accent)] bg-[var(--apex-accent-soft)]":"border-[var(--apex-border)] bg-[var(--apex-bg)] hover:border-[var(--apex-accent)]")}>
               <div className="flex items-start justify-between">
-                <CurrentIcon size={22} className={active?"text-[#C5283A]":"text-[var(--apex-text)]"} strokeWidth={1.8}/>
-                {active&&<Check size={15} className="text-[#C5283A]"/>}
+                <CurrentIcon size={22} className={active?"text-[var(--apex-accent)]":"text-[var(--apex-text)]"} strokeWidth={1.8}/>
+                {active&&<Check size={15} className="text-[var(--apex-accent)]"/>}
               </div>
               <span className="mt-4 block min-w-0">
                 <span className="block text-[11px] font-bold leading-4">{item.label[language]}</span>

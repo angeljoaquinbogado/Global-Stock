@@ -320,3 +320,38 @@ test("business areas use a compact primary nav and role-aware grouped operations
   assert.match(operations, /tab === "advanced"/);
   assert.match(operations, /await reload\(\)/);
 });
+
+test("configuration uses unique settings without duplicating global toolbar actions", () => {
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const operations = file("apex-stock-os/components/OperationsCenter.tsx");
+  const settings = workspace.slice(workspace.indexOf("function SettingsModule({"));
+  assert.match(settings, /<BusinessTypePicker/);
+  assert.match(settings, /<FxCenter/);
+  assert.match(settings, /<NewsletterPreferences/);
+  assert.doesNotMatch(settings, /<InstallAppButton/);
+  assert.doesNotMatch(settings, /<GlobalPreferences/);
+  assert.doesNotMatch(settings, /<BusinessLocationsCenter/);
+  assert.doesNotMatch(settings, /onToggleTheme/);
+  assert.doesNotMatch(settings, /onSignOut/);
+  assert.match(operations, /<BusinessLocationsCenter businessId=\{businessId\} currency=\{currency\}/);
+  assert.match(operations, /locationsAdvancedOpen &&/);
+});
+
+test("business picker and newsletter follow the chosen workspace accent", () => {
+  const picker = file("apex-stock-os/components/BusinessTypePicker.tsx");
+  const newsletter = file("apex-stock-os/components/NewsletterPreferences.tsx");
+  for(const source of [picker, newsletter]) {
+    assert.match(source, /var\(--apex-accent\)/);
+    assert.doesNotMatch(source, /#8F0000|#B51C30|#C5283A|#B31E30|#C31D2F/);
+  }
+});
+
+test("exchange rates keep full calculation precision but display two decimals", () => {
+  const fx = file("apex-stock-os/components/FxCenter.tsx");
+  assert.match(fx, /numericAmount \* quote\.rate/);
+  assert.match(fx, /minimumFractionDigits: 2/);
+  assert.match(fx, /maximumFractionDigits: 2/);
+  assert.match(fx, /quote\.rate \* quoteUnits/);
+  assert.match(fx, /matrixUnits/);
+  assert.doesNotMatch(fx, /maximumFractionDigits: 6|maximumFractionDigits: 8/);
+});

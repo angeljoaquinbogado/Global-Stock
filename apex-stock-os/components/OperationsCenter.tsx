@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from "react";
 import { canAccessOperationTab } from "@/lib/access-control";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AdvancedOperations } from "./AdvancedOperations";
+import { BusinessLocationsCenter } from "./BusinessLocationsCenter";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -398,6 +399,7 @@ export function OperationsCenter({
 }: Props) {
   const t = words[language];
   const [tab, setTab] = useState<Tab>("locations");
+  const [locationsAdvancedOpen, setLocationsAdvancedOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [movements, setMovements] = useState<CashMovement[]>([]);
@@ -1215,6 +1217,7 @@ export function OperationsCenter({
       )}
 
       {tab === "locations" && (
+        <div className="space-y-4">
         <TwoColumnForm
           title={t.locations}
           form={
@@ -1236,6 +1239,32 @@ export function OperationsCenter({
           ))}
           empty={t.empty}
         />
+        {!demoMode && businessId && ["owner","admin"].includes(memberRole) && (
+          <section className="apex-card overflow-hidden">
+            <button
+              type="button"
+              aria-expanded={locationsAdvancedOpen}
+              onClick={() => setLocationsAdvancedOpen(current => !current)}
+              className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left text-xs font-semibold transition-colors hover:bg-[var(--apex-bg)] sm:px-5"
+            >
+              <span>
+                {language === "es" ? "Administración avanzada de locales" : "Advanced location management"}
+                <span className="mt-1 block text-[11px] font-normal text-[var(--apex-muted)]">
+                  {language === "es"
+                    ? "Múltiples negocios, depósitos y transferencias de stock"
+                    : "Multiple businesses, warehouses, and stock transfers"}
+                </span>
+              </span>
+              <ChevronDown size={17} className={"shrink-0 text-[var(--apex-muted)] transition-transform " + (locationsAdvancedOpen ? "rotate-180" : "")}/>
+            </button>
+            {locationsAdvancedOpen && (
+              <div className="border-t border-[var(--apex-border)] p-3 sm:p-4">
+                <BusinessLocationsCenter businessId={businessId} currency={currency} />
+              </div>
+            )}
+          </section>
+        )}
+        </div>
       )}
 
       {tab === "purchases" && (

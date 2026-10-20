@@ -252,8 +252,8 @@ function formatNumber(
   return new Intl.NumberFormat(locale, {
     style: "currency",
     currency,
-    maximumFractionDigits:
-      currency === "JPY" ? 0 : Math.abs(value) < 1 ? 6 : 2
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(value);
 }
 
@@ -288,6 +288,14 @@ export function FxCenter({
   const [refreshKey, setRefreshKey] = useState(0);
 
   const includesArs = base === "ARS" || target === "ARS";
+  // Keep unrounded rates in all calculations. Scale visual quotes when a
+  // single unit converts to less than one cent to avoid misleading 0.00.
+  const quoteUnits = quote && quote.rate > 0 && quote.rate < 0.005 ? 1000 : 1;
+  const matrixUnits = Object.values(matrix).some(rate => typeof rate === "number" && rate > 0 && rate < 0.005)
+    ? 1000 : 1;
+  const unitsLabel = (units: number) => new Intl.NumberFormat(locale, {
+    maximumFractionDigits: 0
+  }).format(units);
   const numericAmount = Number(amount.replace(",", "."));
   const converted =
     quote &&
@@ -402,7 +410,7 @@ export function FxCenter({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <TrendingUp size={17} className="text-[#8F0000]" />
+              <TrendingUp size={17} className="text-[var(--apex-accent)]" />
               <h3 className="text-sm font-semibold">{t.title}</h3>
             </div>
             <p className="mt-2 max-w-2xl text-xs leading-5 text-[var(--apex-muted)]">
@@ -437,7 +445,7 @@ export function FxCenter({
             <button
               type="button"
               onClick={swap}
-              className="mb-0 grid h-11 w-11 place-items-center rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[#8F0000] transition-colors duration-150 hover:bg-[var(--apex-bg)]"
+              className="mb-0 grid h-11 w-11 place-items-center rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] transition-colors duration-150 hover:bg-[var(--apex-bg)]"
               aria-label={t.swap}
             >
               <ArrowLeftRight size={16} />
@@ -465,7 +473,7 @@ export function FxCenter({
                     className={
                       "rounded-full border px-3 py-2 text-[10px] font-semibold transition " +
                       (market === value
-                        ? "border-[#8F0000] bg-[#8F0000] text-white"
+                        ? "border-[var(--apex-accent)] bg-[var(--apex-accent)] text-white"
                         : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)]")
                     }
                   >
@@ -493,7 +501,7 @@ export function FxCenter({
               <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-[var(--apex-muted)]">
                 {t.result}
               </span>
-              <div className="mt-2 min-h-[54px] rounded-2xl border border-[#8F0000]/25 bg-[#8F0000]/[0.055] px-4 py-3">
+              <div className="mt-2 min-h-[54px] rounded-2xl border border-[var(--apex-accent)] bg-[var(--apex-accent-soft)] px-4 py-3">
                 <p className="text-lg font-semibold tracking-[-0.03em]">
                   {converted === null
                     ? "—"
@@ -508,11 +516,12 @@ export function FxCenter({
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <p className="text-[10px] uppercase tracking-[0.1em] text-[var(--apex-muted)]">
-                    1 {base}
+                    {unitsLabel(quoteUnits)} {base}
                   </p>
                   <p className="mt-1 text-xl font-semibold">
-                    {quote.rate.toLocaleString(locale, {
-                      maximumFractionDigits: 8
+                    {(quote.rate * quoteUnits).toLocaleString(locale, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
                     })}{" "}
                     {target}
                   </p>
@@ -576,7 +585,7 @@ export function FxCenter({
         <div className="rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-4">
           <p className="text-xs font-semibold">{t.liveMatrix}</p>
           <p className="mt-1 text-[10px] text-[var(--apex-muted)]">
-            {t.oneUnit} · {base}
+            {unitsLabel(matrixUnits)} · {base}
           </p>
 
           <div className="mt-4 space-y-2">
@@ -595,9 +604,9 @@ export function FxCenter({
                   </div>
                   <strong className="text-xs">
                     {matrix[currency]
-                      ? Number(matrix[currency]).toLocaleString(
+                      ? (Number(matrix[currency]) * matrixUnits).toLocaleString(
                           locale,
-                          { maximumFractionDigits: 6 }
+                          { minimumFractionDigits: 2, maximumFractionDigits: 2 }
                         )
                       : "—"}
                   </strong>

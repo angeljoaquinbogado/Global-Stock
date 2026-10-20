@@ -50,7 +50,7 @@ export function NewsletterPreferences() {
   }
   return <section className="apex-card p-5 xl:col-span-2" aria-label="Novedades por correo">
     <div className="flex items-start gap-3">
-      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#8F0000]/10 text-[#B31E30]"><BellRing size={19}/></span>
+      <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]"><BellRing size={19}/></span>
       <div className="min-w-0">
         <h3 className="text-sm font-semibold">Novedades de Global Stock · gratis</h3>
         <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
@@ -69,7 +69,7 @@ export function NewsletterPreferences() {
           onClick={()=>void change(!subscribed)}
           aria-pressed={subscribed}
           className={"min-h-10 rounded-xl px-4 text-xs font-bold disabled:opacity-40 "+
-            (subscribed?"border border-[var(--apex-border)] text-[var(--apex-text)]":"bg-[#8F0000] text-white")}>
+            (subscribed?"border border-[var(--apex-border)] text-[var(--apex-text)]":"bg-[var(--apex-accent)] text-white")}>
           {saving?"Guardando…":subscribed?"Darme de baja":"Quiero recibir novedades"}
         </button>
       </div>
