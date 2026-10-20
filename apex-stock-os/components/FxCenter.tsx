@@ -632,6 +632,8 @@ function CurrencySelect({
   language: LanguageCode;
 }) {
   const [open, setOpen] = useState(false);
+  const [opensAbove, setOpensAbove] = useState(false);
+  const [menuHeight, setMenuHeight] = useState(340);
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -666,6 +668,19 @@ function CurrencySelect({
     options[(index + delta + options.length) % options.length]?.focus();
   }
 
+  function showMenu() {
+    const rect = rootRef.current?.getBoundingClientRect();
+    if (rect) {
+      const preferred = Math.min(340, window.innerHeight * .55);
+      const below = window.innerHeight - rect.bottom - 12;
+      const above = rect.top - 12;
+      const upwards = below < preferred && above > below;
+      setOpensAbove(upwards);
+      setMenuHeight(Math.max(70, Math.min(preferred, upwards ? above : below)));
+    }
+    setOpen(true);
+  }
+
   function choose(next: Currency) {
     onChange(next);
     setOpen(false);
@@ -677,7 +692,7 @@ function CurrencySelect({
       ref={rootRef}
       className={"relative min-w-0 " + (open ? "z-[90]" : "")}
       onMouseEnter={() => {
-        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(true);
+        if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) showMenu();
       }}
       onMouseLeave={() => {
         if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(false);
@@ -693,12 +708,13 @@ function CurrencySelect({
         aria-controls={open ? listId : undefined}
         onClick={() => {
           const hoverPointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-          setOpen(current => hoverPointer ? true : !current);
+          if (hoverPointer || !open) showMenu();
+          else setOpen(false);
         }}
         onKeyDown={event => {
           if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
           event.preventDefault();
-          setOpen(true);
+          showMenu();
           requestAnimationFrame(() => {
             const items = listRef.current?.querySelectorAll<HTMLButtonElement>('[role="option"]');
             items?.[currencies.indexOf(value)]?.focus();
@@ -716,11 +732,11 @@ function CurrencySelect({
         {open && (
           <motion.div
             key="fx-currency-menu"
-            initial={{opacity:0,y:-9,scaleY:.95}}
+            initial={{opacity:0,y:opensAbove ? 9 : -9,scaleY:.95}}
             animate={{opacity:1,y:0,scaleY:1}}
-            exit={{opacity:0,y:-6,scaleY:.97}}
+            exit={{opacity:0,y:opensAbove ? 6 : -6,scaleY:.97}}
             transition={{type:"spring",stiffness:350,damping:29,mass:.75}}
-            className="absolute inset-x-0 top-full z-[100] origin-top pt-2"
+            className={"absolute inset-x-0 z-[100] " + (opensAbove ? "bottom-full origin-bottom pb-2" : "top-full origin-top pt-2")}
           >
             <div
               ref={listRef}
@@ -739,7 +755,8 @@ function CurrencySelect({
                 }
                 if (event.key === "Tab") setOpen(false);
               }}
-              className="apex-scrollbar max-h-[min(340px,55dvh)] overflow-y-auto overscroll-contain rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,.15)]"
+              style={{maxHeight:menuHeight}}
+              className="apex-scrollbar overflow-y-auto overscroll-contain rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_18px_48px_rgba(0,0,0,.15)]"
             >
               {currencies.map(currency => {
                 const selected = currency === value;

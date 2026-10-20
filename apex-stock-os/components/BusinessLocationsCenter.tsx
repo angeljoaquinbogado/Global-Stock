@@ -1,5 +1,6 @@
 "use client";
 
+import { ApexSelect } from "@/components/ui/ApexSelect";
 import { useCallback, useEffect, useState } from "react";
 import {
   ArrowLeftRight, Building2, Check, MapPin, Plus, RefreshCw, ShieldAlert,
@@ -251,10 +252,10 @@ export function BusinessLocationsCenter({ businessId, currency }: {
         value={locationName} onChange={e=>setLocationName(e.target.value)}/></label>
       <label className="text-xs">Dirección<input className={inputs+" mt-1"} maxLength={220}
         value={locationAddress} onChange={e=>setLocationAddress(e.target.value)}/></label>
-      <label className="text-xs">Tipo<select className={inputs+" mt-1"} value={locationKind}
+      <label className="text-xs">Tipo<ApexSelect className={inputs+" mt-1"} value={locationKind}
         onChange={e=>setLocationKind(e.target.value as "store"|"warehouse")}>
         <option value="store">Local</option><option value="warehouse">Depósito</option>
-      </select></label>
+      </ApexSelect></label>
       <div className="flex flex-wrap items-end gap-2">
         <button className={action} type="button" disabled={busy} onClick={saveLocation}>Guardar local</button>
         <button className={action} type="button" disabled={busy} onClick={()=>setEditLocation(null)}>Cancelar</button>
@@ -300,7 +301,7 @@ export function BusinessLocationsCenter({ businessId, currency }: {
             {canManage&&availableLocations.length>1&&!incomplete&&
               <div className="space-y-2 rounded-xl bg-[var(--apex-surface-strong)] p-3">
                 <p className="flex items-center gap-2 text-xs font-semibold"><ArrowLeftRight size={15}/>Trasladar stock</p>
-                <select className={inputs} aria-label="Producto a trasladar" value={transferProduct}
+                <ApexSelect className={inputs} aria-label="Producto a trasladar" value={transferProduct}
                   onChange={e=>setTransferProduct(e.target.value)}>
                   <option value="">Elegí un producto</option>
                   {stocks.filter(s=>Number(s.on_hand)>Number(s.reserved)).map(stock=>{
@@ -309,13 +310,13 @@ export function BusinessLocationsCenter({ businessId, currency }: {
                       {p.name} · {Number(stock.on_hand)-Number(stock.reserved)} disponible
                     </option>:null;
                   })}
-                </select>
-                <select className={inputs} aria-label="Local de destino" value={transferDestination}
+                </ApexSelect>
+                <ApexSelect className={inputs} aria-label="Local de destino" value={transferDestination}
                   onChange={e=>setTransferDestination(e.target.value)}>
                   <option value="">Local de destino</option>
                   {availableLocations.filter(x=>x.id!==loc.id).map(x=>
                     <option key={x.id} value={x.id}>{x.name}</option>)}
-                </select>
+                </ApexSelect>
                 <input className={inputs} type="number" min="1" step="1" max="99999999"
                   aria-label="Cantidad a trasladar" value={transferQuantity}
                   onChange={e=>setTransferQuantity(e.target.value)}/>

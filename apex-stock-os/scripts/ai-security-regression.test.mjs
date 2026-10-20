@@ -368,9 +368,43 @@ test("FX currency selector uses theme-aware animated hover menu without changing
   assert.match(fx, /role="listbox"/);
   assert.match(fx, /aria-selected=\{selected\}/);
   assert.match(fx, /bg-\[var\(--apex-accent\)\] text-white/);
-  assert.match(fx, /max-h-\[min\(340px,55dvh\)\]/);
+  assert.match(fx, /setOpensAbove\(upwards\)/);
+  assert.match(fx, /opensAbove \? "bottom-full origin-bottom pb-2"/);
   assert.doesNotMatch(fx, /ApexSelect|#8F0000|#B51C30/);
   assert.match(fx, /numericAmount \* quote\.rate/);
   assert.match(fx, /minimumFractionDigits: 2/);
   assert.match(fx, /maximumFractionDigits: 2/);
+});
+
+test("every shared dropdown follows workspace theme and adaptive placement", () => {
+  const component = file("apex-stock-os/components/ui/ApexSelect.tsx");
+  const fiscal = file("apex-stock-os/components/FiscalDocumentsCenter.tsx");
+  const locations = file("apex-stock-os/components/BusinessLocationsCenter.tsx");
+  const operations = file("apex-stock-os/components/OperationsCenter.tsx");
+  const businessType = file("apex-stock-os/components/BusinessTypePicker.tsx");
+  const fx = file("apex-stock-os/components/FxCenter.tsx");
+
+  assert.match(component, /getComputedStyle\(button\)/);
+  assert.match(component, /--apex-accent/);
+  assert.match(component, /--apex-accent-soft/);
+  assert.match(component, /bg-\[var\(--apex-accent\)\] text-white/);
+  assert.doesNotMatch(component, /bg-\[var\(--apex-crimson\)\]/);
+  assert.match(component, /const upwards = below < desiredHeight && above > below/);
+  assert.match(component, /initial=\{\{opacity:0,y:openAbove \? 9 : -9,scaleY:\.96\}\}/);
+  assert.match(component, /onMouseEnter=\{\(\) => \{ if \(isFinePointer\(\)\) openMenu\(\); \}\}/);
+  assert.match(component, /onMouseLeave=\{scheduleHoverClose\}/);
+  assert.match(component, /createPortal\(/);
+  assert.match(component, /window\.visualViewport\?\.addEventListener\("resize", positionMenu\)/);
+  assert.match(component, /element\.dispatchEvent\(new Event\("change", \{ bubbles: true \}\)\)/);
+  assert.match(component, /role="listbox"/);
+  assert.match(component, /aria-selected=\{active\}/);
+
+  assert.match(fiscal, /<ApexSelect/);
+  assert.match(locations, /<ApexSelect/);
+  assert.doesNotMatch(locations, /<select\b/);
+  assert.match(operations, /function RoleSelect\(/);
+  assert.match(operations, /aria-label=\{language === "es" \? "Rol del integrante"/);
+  assert.match(businessType, /onMouseLeave=\{scheduleHoverClose\}/);
+  assert.match(businessType, /opensAbove\?"bottom-\[calc\(100%\+8px\)\] origin-bottom"/);
+  assert.match(fx, /opensAbove \? "bottom-full origin-bottom pb-2"/);
 });

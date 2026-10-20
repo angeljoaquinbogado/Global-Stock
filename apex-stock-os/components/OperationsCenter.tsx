@@ -4,7 +4,6 @@ import { ApexSelect } from "@/components/ui/ApexSelect";
 import {
   Banknote,
   Building2,
-  Check,
   ChevronDown,
   Landmark,
   Plus,
@@ -1461,11 +1460,7 @@ export function OperationsCenter({
 }
 
 function RoleSelect({
-  language,
-  value,
-  onChange,
-  disabled = false,
-  excludeOwner = false
+  language, value, onChange, disabled = false, excludeOwner = false
 }: {
   language: LanguageCode;
   value: string;
@@ -1473,81 +1468,18 @@ function RoleSelect({
   disabled?: boolean;
   excludeOwner?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const options = roleValues.filter(
-    (role) => !(excludeOwner && role === "owner")
-  );
-
+  const roles = roleValues.filter(role => !(excludeOwner && role === "owner"));
   return (
-    <div className="relative min-w-[180px]">
-      <button
-        type="button"
+    <div className="min-w-[180px]">
+      <ApexSelect
+        aria-label={language === "es" ? "Rol del integrante" : "Member role"}
         disabled={disabled}
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        className={
-          "flex min-h-11 w-full items-center justify-between gap-3 rounded-2xl border px-3.5 text-left text-sm font-semibold transition-[border-color,background-color,box-shadow] duration-150 " +
-          (disabled
-            ? "cursor-not-allowed border-[var(--apex-border)] bg-[var(--apex-bg)] text-[var(--apex-muted)] opacity-70"
-            : open
-              ? "border-[#8F0000]/55 bg-[var(--apex-surface-strong)] shadow-[0_0_0_3px_rgba(143,0,0,.10)]"
-              : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] hover:border-[#8F0000]/35")
-        }
+        className="apex-input min-h-11 w-full rounded-2xl px-3.5 text-sm font-semibold"
+        value={value}
+        onChange={event => onChange(event.target.value)}
       >
-        <span className="truncate">{roleLabel(language, value)}</span>
-        <ChevronDown
-          size={15}
-          className={
-            "shrink-0 text-[var(--apex-muted)] transition-transform duration-150 " +
-            (open ? "rotate-180" : "")
-          }
-        />
-      </button>
-
-      {open && !disabled && (
-        <>
-          <button
-            type="button"
-            aria-label={
-              language === "es" ? "Cerrar selector" : "Close selector"
-            }
-            className="fixed inset-0 z-[160] cursor-default"
-            onClick={() => setOpen(false)}
-          />
-
-          <div
-            role="listbox"
-            className="absolute right-0 top-full z-[170] mt-2 w-full min-w-[210px] overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 shadow-[0_22px_70px_rgba(0,0,0,.34)]"
-          >
-            {options.map((role) => {
-              const selected = role === value;
-
-              return (
-                <button
-                  key={role}
-                  type="button"
-                  role="option"
-                  aria-selected={selected}
-                  onClick={() => {
-                    onChange(role);
-                    setOpen(false);
-                  }}
-                  className={
-                    "flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-3 text-left text-sm transition-colors duration-150 " +
-                    (selected
-                      ? "bg-[#8F0000] font-semibold text-white"
-                      : "text-[var(--apex-text)] hover:bg-[var(--apex-bg)]")
-                  }
-                >
-                  <span>{roleLabel(language, role)}</span>
-                  {selected && <Check size={14} />}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
+        {roles.map(role => <option key={role} value={role}>{roleLabel(language,role)}</option>)}
+      </ApexSelect>
     </div>
   );
 }

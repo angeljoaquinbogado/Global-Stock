@@ -63,6 +63,9 @@ export function BusinessTypePicker({
   className?: string;
 }) {
   const [open,setOpen] = useState(false);
+  const [opensAbove,setOpensAbove] = useState(false);
+  const [menuHeight,setMenuHeight] = useState<number|undefined>(undefined);
+  const hoverTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
   const [localCategory,setLocalCategory] = useState("almacen");
   const rootRef=useRef<HTMLDivElement>(null);
   const reducedMotion=useReducedMotion();
@@ -81,21 +84,53 @@ export function BusinessTypePicker({
     return()=>{window.removeEventListener("pointerdown",outside);window.removeEventListener("keydown",escape);};
   },[open]);
 
+  function cancelHoverTimer() {
+    if (hoverTimer.current !== null) {
+      clearTimeout(hoverTimer.current);
+      hoverTimer.current = null;
+    }
+  }
+  function openPicker() {
+    cancelHoverTimer();
+    const rect=rootRef.current?.getBoundingClientRect();
+    if(rect) {
+      const above=rect.top-15;
+      const below=window.innerHeight-rect.bottom-15;
+      const preferred=Math.min(window.innerHeight*.65,500);
+      const upwards=below<preferred && above>below;
+      setOpensAbove(upwards);
+      setMenuHeight(Math.max(90,Math.min(preferred,upwards?above:below)));
+    }
+    setOpen(true);
+  }
+  useEffect(()=>()=>{if(hoverTimer.current!==null)clearTimeout(hoverTimer.current)},[]);
+  function scheduleHoverClose() {
+    if (!window.matchMedia("(hover: hover) and (pointer: fine)").matches)return;
+    cancelHoverTimer();
+    hoverTimer.current=setTimeout(()=>{setOpen(false);hoverTimer.current=null},170);
+  }
   function choose(item:typeof businessCategories[number]) {
     setLocalCategory(item.id);
     onChange(item.kind);
     onCategoryChange?.(item.id);
+    cancelHoverTimer();
     setOpen(false);
   }
   const Icon=selected.icon;
-  return <div ref={rootRef} className={"relative "+className}>
+  return <div ref={rootRef} className={"relative "+className}
+    onMouseEnter={()=>{if(window.matchMedia("(hover: hover) and (pointer: fine)").matches)openPicker()}}
+    onMouseLeave={scheduleHoverClose}>
     <button
       type="button"
       aria-label={prompt[language]+": "+selected.label[language]}
       aria-expanded={open}
       aria-haspopup="dialog"
       aria-controls="global-stock-business-category-grid"
-      onClick={()=>setOpen(v=>!v)}
+      onClick={()=>{
+        const hover=window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+        if(hover || !open)openPicker();
+        else setOpen(false);
+      }}
       className="apex-input flex min-h-14 w-full items-center gap-3 rounded-2xl px-4 py-3 text-left outline-none transition focus-visible:ring-2 focus-visible:ring-[var(--apex-accent)]">
       <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]"><Icon size={19}/></span>
       <span className="min-w-0 flex-1">
@@ -108,11 +143,13 @@ export function BusinessTypePicker({
       {open&&<motion.div
         id="global-stock-business-category-grid" role="dialog"
         aria-label={prompt[language]}
-        initial={reducedMotion?false:{opacity:0,y:7,filter:"blur(6px)"}}
-        animate={{opacity:1,y:0,filter:"blur(0px)"}}
-        exit={reducedMotion?{opacity:0}:{opacity:0,y:-5,filter:"blur(4px)"}}
-        transition={{duration:reducedMotion?0:.18}}
-        className="apex-scrollbar absolute inset-x-0 top-[calc(100%+8px)] z-[350] max-h-[65dvh] overflow-y-auto overscroll-contain rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3 shadow-[0_24px_70px_rgba(0,0,0,.38)]">
+        initial={reducedMotion?false:{opacity:0,y:opensAbove?8:-8,scaleY:.96}}
+        animate={{opacity:1,y:0,scaleY:1}}
+        exit={reducedMotion?{opacity:0}:{opacity:0,y:opensAbove?6:-6,scaleY:.97}}
+        transition={{duration:reducedMotion?0:.22}}
+        style={{maxHeight:menuHeight}}
+        onMouseEnter={cancelHoverTimer}
+        className={"apex-scrollbar absolute inset-x-0 z-[350] overflow-y-auto overscroll-contain rounded-[22px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3 shadow-[0_24px_70px_rgba(0,0,0,.20)] " + (opensAbove?"bottom-[calc(100%+8px)] origin-bottom":"top-[calc(100%+8px)] origin-top")}>
         <p className="mb-3 px-1 text-xs leading-5 text-[var(--apex-muted)]">{help[language]}</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {businessCategories.map(item=>{
