@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Check, ChevronDown, Coins, Globe2, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 export type LanguageCode = "es" | "en" | "pt" | "fr" | "de";
@@ -10,6 +10,7 @@ export type LanguageCode = "es" | "en" | "pt" | "fr" | "de";
 type GlobalPreferencesProps = {
   language: LanguageCode;
   currency: string;
+  variant?: "default" | "header";
   onLanguageChange: (language: LanguageCode) => void;
   onCurrencyChange: (currency: string) => void;
 };
@@ -162,6 +163,7 @@ const currencies = Object.keys(currencyLabels);
 export function GlobalPreferences({
   language,
   currency,
+  variant = "default",
   onLanguageChange,
   onCurrencyChange
 }: GlobalPreferencesProps) {
@@ -197,6 +199,15 @@ export function GlobalPreferences({
   );
 
   const activeCurrency = currencyLabels[currency] ?? currencyLabels.ARS;
+
+  // The workspace toolbar alone uses a downward popup.
+  // Preferences in the rest of the app keep the original dialog.
+  if (variant === "header") {
+    return (
+      <HeaderPreferences language={language} currency={currency}
+        onLanguageChange={onLanguageChange} onCurrencyChange={onCurrencyChange} />
+    );
+  }
 
   const modal = (
     <AnimatePresence>
@@ -395,4 +406,119 @@ function PreferenceButton({
       <ChevronDown size={13} className="text-[var(--apex-muted)]" />
     </button>
   );
+}
+
+
+function HeaderPreferences({
+  language, currency, onLanguageChange, onCurrencyChange
+}: GlobalPreferencesProps) {
+  const [open, setOpen] = useState<"language" | "currency" | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+  const labels = ui[language];
+  const activeLanguage = languages.find(item => item.code === language) ?? languages[0];
+  const activeCurrency = currencyLabels[currency] ?? currencyLabels.ARS;
+
+  useEffect(() => {
+    if (!open) return;
+    function handleOutside(event: PointerEvent) {
+      if (event.target instanceof Node && !rootRef.current?.contains(event.target)) setOpen(null);
+    }
+    function handleKey(event: KeyboardEvent) {
+      if (event.key === "Escape") setOpen(null);
+    }
+    document.addEventListener("pointerdown", handleOutside);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutside);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [open]);
+
+  function button(kind: "language" | "currency", icon: React.ReactNode, main: string, secondary: string, accessible: string) {
+    const expanded = open === kind;
+    const items = kind === "language" ? languages.map(item => ({
+      id: item.code, badge: item.short, title: item.native,
+      description: item.short,
+      selected: language === item.code,
+      choose: () => onLanguageChange(item.code)
+    })) : currencies.map(code => ({
+      id: code, badge: currencyLabels[code].symbol, title: code,
+      description: currencyLabels[code].labels[language],
+      selected: currency === code,
+      choose: () => onCurrencyChange(code)
+    }));
+    return (
+      <div key={kind} className="relative"
+        onMouseEnter={() => {
+          if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(kind);
+        }}
+        onMouseLeave={() => {
+          if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setOpen(current => current === kind ? null : current);
+        }}
+      >
+        <button type="button"
+          aria-label={accessible} aria-haspopup="menu" aria-expanded={expanded}
+          aria-controls={expanded ? "gs-header-" + kind + "-menu" : undefined}
+          onClick={() => {
+            const hover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+            setOpen(current => hover ? kind : current === kind ? null : kind);
+          }}
+          className={
+            "flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] " +
+            "bg-[var(--apex-surface-strong)] px-3 text-[var(--apex-text)] shadow-sm transition-[border-color,background-color] " +
+            "hover:border-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
+          }>
+          <span className="text-[var(--apex-accent)]">{icon}</span>
+          <span className="text-xs font-bold">{main}</span>
+          <span className="hidden text-[10px] text-[var(--apex-muted)] lg:inline">{secondary}</span>
+          <motion.span animate={{ rotate: expanded ? 180 : 0 }} transition={{duration:.18}}>
+            <ChevronDown size={13} className="text-[var(--apex-muted)]" />
+          </motion.span>
+        </button>
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              id={"gs-header-" + kind + "-menu"} key={kind + "-popover"}
+              role="menu"
+              aria-label={kind === "language" ? labels.language : labels.currency}
+              initial={{opacity:0, y:-10, scaleY:.93}}
+              animate={{opacity:1, y:0, scaleY:1}}
+              exit={{opacity:0, y:-7, scaleY:.96}}
+              transition={{type:"spring",stiffness:355,damping:30,mass:.72}}
+              className="absolute right-0 top-[calc(100%+8px)] z-[100] w-[242px] origin-top-right overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 text-[var(--apex-text)] shadow-[0_18px_55px_rgba(0,0,0,.15)]">
+              <p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--apex-muted)]">
+                {kind === "language" ? labels.language : labels.currency}
+              </p>
+              <div className="apex-scrollbar max-h-[min(360px,55dvh)] space-y-0.5 overflow-y-auto">
+                {items.map(item => (
+                  <button type="button" role="menuitemradio" aria-checked={item.selected}
+                    key={item.id} onClick={() => { item.choose();setOpen(null); }}
+                    className={
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-xl px-2.5 text-left transition-colors " +
+                      "hover:bg-[var(--apex-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
+                      (item.selected ? "bg-[var(--apex-accent-soft)]" : "")
+                    }>
+                    <span className={
+                      "grid h-8 w-10 shrink-0 place-items-center rounded-lg text-[11px] font-bold " +
+                      (item.selected ? "bg-[var(--apex-accent)] text-white" : "bg-[var(--apex-bg)] text-[var(--apex-text)]")
+                    }>{item.badge}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-xs font-semibold">{item.title}</span>
+                      {kind === "currency" && <span className="block truncate text-[10px] text-[var(--apex-muted)]">{item.description}</span>}
+                    </span>
+                    {item.selected && <Check size={15} className="shrink-0 text-[var(--apex-accent)]" />}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
+  return <div ref={rootRef} className="flex items-center gap-2" data-testid="header-global-preferences">
+    {button("language", <Globe2 size={15}/>,activeLanguage.short,activeLanguage.native,labels.changeLanguage)}
+    {button("currency", <Coins size={15}/>,currency,activeCurrency.symbol,labels.changeCurrency)}
+  </div>;
 }

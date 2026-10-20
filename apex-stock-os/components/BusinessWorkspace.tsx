@@ -3820,11 +3820,12 @@ export function BusinessWorkspace({
 
             <div className="ml-auto flex items-center gap-2">
               <div className="hidden md:block">
-                <InstallAppButton language={language} />
+                <InstallAppButton language={language} variant="header" />
               </div>
               {canEditGlobalPreferences && (
                 <div className="hidden sm:block">
                   <GlobalPreferences
+                    variant="header"
                     language={language}
                     currency={currency}
                     onLanguageChange={onLanguageChange}

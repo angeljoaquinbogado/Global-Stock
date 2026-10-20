@@ -258,3 +258,22 @@ test("reminder controls, full-size calendar and intelligence launcher remain usa
   assert.match(ai, /setAutoRevealCancelled\(true\)/);
   assert.match(ai, /setOpen\(true\)/);
 });
+
+test("workspace header popovers animate downward without changing the theme switch", () => {
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const prefs = file("apex-stock-os/components/GlobalPreferences.tsx");
+  const install = file("apex-stock-os/components/InstallAppButton.tsx");
+  assert.match(workspace, /<InstallAppButton language=\{language\} variant="header"/);
+  assert.match(workspace, /<GlobalPreferences\s+variant="header"/);
+  assert.match(prefs, /variant === "header"/);
+  assert.match(prefs, /role="menuitemradio"/);
+  assert.match(prefs, /initial=\{\{opacity:0, y:-10, scaleY:\.93\}\}/);
+  assert.match(install, /variant === "header"/);
+  assert.match(install, /gs-install-device-options/);
+  assert.match(install, /\/platforms\/windows\.png/);
+  assert.match(install, /\/platforms\/android\.png/);
+  assert.match(install, /\/platforms\/apple\.png/);
+  assert.match(install, /await install\(\)/);
+  assert.match(install, /showHelp && \(/);
+  assert.match(workspace, /onClick=\{onToggleTheme\}/);
+});

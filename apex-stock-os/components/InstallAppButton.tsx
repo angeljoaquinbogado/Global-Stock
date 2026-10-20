@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   CheckCircle2,
+  ChevronDown,
+  Check,
   Download,
   MoreVertical,
   Share,
@@ -21,6 +23,7 @@ import type { LanguageCode } from "./GlobalPreferences";
 
 type InstallAppButtonProps = {
   language: LanguageCode;
+  variant?: "default" | "header";
 };
 
 const copy: Record<
@@ -141,12 +144,15 @@ function isStandaloneMode() {
   return media || navigatorStandalone;
 }
 
-export function InstallAppButton({ language }: InstallAppButtonProps) {
+export function InstallAppButton({ language, variant = "default" }: InstallAppButtonProps) {
   const labels = copy[language];
   const [installPrompt, setInstallPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [showHelp, setShowHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
+  const [deviceMenuOpen, setDeviceMenuOpen] = useState(false);
+  const [deviceHint, setDeviceHint] = useState<"windows" | "mac" | "android" | "ios" | null>(null);
+  const deviceRootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -232,6 +238,41 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
     };
   }, [showHelp]);
 
+  useEffect(() => {
+    if (!deviceMenuOpen) return;
+    function outside(event: PointerEvent) {
+      if (event.target instanceof Node && !deviceRootRef.current?.contains(event.target)) {
+        setDeviceMenuOpen(false);
+        setDeviceHint(null);
+      }
+    }
+    function keydown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setDeviceMenuOpen(false);
+        setDeviceHint(null);
+      }
+    }
+    document.addEventListener("pointerdown", outside);
+    document.addEventListener("keydown", keydown);
+    return () => {
+      document.removeEventListener("pointerdown", outside);
+      document.removeEventListener("keydown", keydown);
+    };
+  }, [deviceMenuOpen]);
+
+  async function chooseDevice(device: "windows" | "mac" | "android" | "ios") {
+    setDeviceHint(device);
+    const agent = navigator.userAgent.toLowerCase();
+    const current = /iphone|ipad|ipod/.test(agent) ? "ios"
+      : /android/.test(agent) ? "android"
+      : /windows/.test(agent) ? "windows"
+      : /macintosh|mac os/.test(agent) ? "mac" : null;
+    if (current === device) {
+      setDeviceMenuOpen(false);
+      await install();
+    }
+  }
+
   async function launchNativeInstall() {
     const prompt = installPrompt ?? getRememberedInstallPrompt();
     if (!prompt) {
@@ -276,6 +317,104 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
 
   return (
     <>
+      {variant === "header" ? (
+        <div
+          ref={deviceRootRef}
+          className="relative"
+          onMouseEnter={() => {
+            if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setDeviceMenuOpen(true);
+          }}
+          onMouseLeave={() => {
+            if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
+              setDeviceMenuOpen(false);
+              setDeviceHint(null);
+            }
+          }}
+        >
+          <button
+            ref={triggerRef}
+            type="button"
+            onClick={() => {
+              const hover = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+              setDeviceMenuOpen(value => hover ? true : !value);
+            }}
+            aria-label={labels.install}
+            aria-haspopup="menu"
+            aria-expanded={deviceMenuOpen}
+            aria-controls={deviceMenuOpen ? "gs-install-device-options" : undefined}
+            className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-accent)] bg-[var(--apex-accent)] px-3.5 text-xs font-semibold text-white shadow-sm transition-[filter,transform] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
+          >
+            <Download size={15}/>
+            <span className="hidden sm:inline">{labels.install}</span>
+            <motion.span animate={{rotate: deviceMenuOpen ? 180 : 0}} transition={{duration:.18}}>
+              <ChevronDown size={13}/>
+            </motion.span>
+          </button>
+          <AnimatePresence>
+            {deviceMenuOpen && (
+              <motion.div
+                id="gs-install-device-options"
+                role="menu"
+                aria-label={labels.title}
+                initial={{opacity:0,y:-10,scaleY:.92}}
+                animate={{opacity:1,y:0,scaleY:1}}
+                exit={{opacity:0,y:-6,scaleY:.96}}
+                transition={{type:"spring",stiffness:355,damping:30,mass:.72}}
+                className="absolute right-0 top-[calc(100%+8px)] z-[100] w-[264px] origin-top-right overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-2 text-[var(--apex-text)] shadow-[0_18px_55px_rgba(0,0,0,.15)]"
+              >
+                <p className="px-2 pb-1.5 pt-1.5 text-[10px] font-bold uppercase tracking-[.12em] text-[var(--apex-muted)]">
+                  {language === "es" ? "Elegí tu dispositivo" : language === "pt" ? "Escolha seu dispositivo" : "Choose your device"}
+                </p>
+                {([
+                  {id:"windows" as const,label:"Windows",icon:"/platforms/windows.png",description:"Chrome / Edge"},
+                  {id:"mac" as const,label:"macOS",icon:"/platforms/apple.png",description:"Safari / Chrome"},
+                  {id:"android" as const,label:"Android",icon:"/platforms/android.png",description:"Chrome"},
+                  {id:"ios" as const,label:"iPhone / iPad",icon:"/platforms/apple.png",description:"Safari"}
+                ]).map(item => (
+                  <button key={item.id} type="button" role="menuitem"
+                    onClick={() => void chooseDevice(item.id)}
+                    className={
+                      "flex min-h-12 w-full items-center gap-3 rounded-xl px-2.5 text-left transition-colors hover:bg-[var(--apex-bg)] " +
+                      "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
+                      (deviceHint===item.id ? "bg-[var(--apex-accent-soft)]" : "")
+                    }>
+                    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--apex-bg)]">
+                      <img src={item.icon} alt="" aria-hidden="true" className="h-6 w-6 object-contain"/>
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-xs font-semibold">{item.label}</span>
+                      <span className="block text-[10px] text-[var(--apex-muted)]">{item.description}</span>
+                    </span>
+                    {deviceHint===item.id && <Check size={15} className="text-[var(--apex-accent)]"/>}
+                  </button>
+                ))}
+                <AnimatePresence mode="wait">
+                  {deviceHint && (
+                    <motion.div key={deviceHint}
+                      initial={{opacity:0,y:-5}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-5}}
+                      transition={{duration:.18}}
+                      className="mt-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2.5">
+                      <p className="text-[11px] leading-5 text-[var(--apex-text)]">
+                        {(deviceHint==="ios" ?
+                          (language==="es" ? "Abrí Global Stock en Safari, tocá Compartir y Añadir a pantalla de inicio." : "Open Global Stock in Safari, tap Share, then Add to Home Screen.") :
+                          deviceHint==="android" ?
+                          (language==="es" ? "Abrí Global Stock en Chrome de Android y elegí Instalar app." : "Open Global Stock in Chrome on Android and choose Install.") :
+                          deviceHint==="mac" ?
+                          (language==="es" ? "En Mac, abrí Global Stock en Safari o Chrome y usá las opciones de instalación." : "On a Mac, open Global Stock in Safari or Chrome and use the install options.") :
+                          (language==="es" ? "En Windows, abrí Global Stock en Chrome o Edge y elegí Instalar app." : "On Windows, open Global Stock in Chrome or Edge and choose Install."))}
+                      </p>
+                      <a href="/download#download-install"
+                        className="mt-1.5 inline-block text-[11px] font-semibold text-[var(--apex-accent)] hover:underline">
+                        {language === "es" ? "Ver guía de instalación" : "View installation guide"}
+                      </a>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      ) : (
       <button
         ref={triggerRef}
         type="button"
@@ -286,6 +425,7 @@ export function InstallAppButton({ language }: InstallAppButtonProps) {
         <Download size={15} />
         <span className="hidden sm:inline">{labels.install}</span>
       </button>
+      )}
 
       <AnimatePresence>
         {showHelp && (
