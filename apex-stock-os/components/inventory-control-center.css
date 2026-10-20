@@ -4,6 +4,18 @@
 .gs-warehouse-stat{display:flex;align-items:center;gap:12px;min-width:0;min-height:88px;text-align:left;padding:16px;border:1px solid var(--apex-border);border-radius:18px;background:var(--apex-surface-strong);box-shadow:0 3px 14px rgba(0,0,0,.025);transition:transform .22s cubic-bezier(.2,.8,.2,1),border-color .2s,background .2s,box-shadow .2s}
 .gs-warehouse-stat:hover{transform:translateY(-2px);border-color:var(--apex-accent);box-shadow:0 10px 26px rgba(0,0,0,.065)}
 .gs-warehouse-stat[aria-pressed="true"]{border-color:var(--apex-accent);background:var(--apex-accent-soft)}
+/* The selected accent swatch is pale in every theme. On dark surfaces it
+   needs a dark tinted background so native light text remains readable. */
+.dark .gs-warehouse-stat[aria-pressed="true"]{
+  background:color-mix(in srgb,var(--apex-accent) 20%,var(--apex-surface-strong));
+  color:var(--apex-text);
+}
+.dark .gs-warehouse-stat[aria-pressed="true"] .gs-warehouse-stat__number{color:var(--apex-text)}
+.dark .gs-warehouse-stat[aria-pressed="true"] .gs-warehouse-stat__label{color:var(--apex-muted)}
+.dark .gs-warehouse-stat[aria-pressed="true"] .gs-warehouse-stat__icon{
+  background:color-mix(in srgb,var(--apex-accent) 13%,var(--apex-surface-strong));
+  color:var(--apex-accent-bright);
+}
 .gs-warehouse-stat__icon{flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:var(--apex-accent-soft);color:var(--apex-accent)}
 .gs-warehouse-stat__label{display:block;font-size:11px;line-height:1.4;color:var(--apex-muted);font-weight:600}
 .gs-warehouse-stat__number{display:block;margin-top:4px;font-size:22px;letter-spacing:-.04em;line-height:1;font-weight:760;color:var(--apex-text);font-variant-numeric:tabular-nums}

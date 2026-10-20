@@ -200,10 +200,10 @@ test("cash scanner sends product codes without remote sale confirmation", () => 
   assert.match(cashier, /<CashDeviceScanner/);
   assert.match(cashier, /applyCashCode\(raw/);
   assert.match(paired, /crypto\.randomUUID\(\)/);
-  assert.match(paired, /Date\.now\(\)\+10\*60\*1000/);
+  assert.match(paired, /Date\.now\(\)\s*\+\s*10\s*\*\s*60\s*\*\s*1000/);
   assert.match(paired, /\/scan-remote#pair=/);
   assert.match(mobile, /channel\.send\(/);
-  assert.match(mobile, /type:"broadcast",event:"barcode"/);
+  assert.match(mobile, /type:\s*"broadcast",\s*event:\s*"barcode"/);
   assert.doesNotMatch(mobile, /completeSale|global_stock_record_pos_sale/);
   assert.match(camera, /decodeFromVideoDevice/);
 });
@@ -433,4 +433,32 @@ test("Inicio greets verified member by real name and business membership role", 
   assert.match(workspace, /workspaceRoleLabels\[language\]\[memberRole\]/);
   assert.match(workspace, /signedInName \? \x60, \$\{signedInName\}\x60 : ""/);
   assert.equal((workspace.match(/welcomeLabels\[language\]\.greeting/g) ?? []).length, 2);
+});
+
+test("dark inventory selections use a dark tinted surface and readable foreground", () => {
+  const css=file("apex-stock-os/components/inventory-control-center.css");
+  assert.match(css, /\.dark \.gs-warehouse-stat\[aria-pressed="true"\]/);
+  assert.match(css, /color-mix\(in srgb,var\(--apex-accent\) 20%,var\(--apex-surface-strong\)\)/);
+  assert.match(css, /\.dark \.gs-warehouse-stat\[aria-pressed="true"\] \.gs-warehouse-stat__number\{color:var\(--apex-text\)\}/);
+  assert.match(css, /--apex-accent-bright/);
+});
+
+test("remote phone pairing waits for the cash register and acknowledges actual scans", () => {
+  const paired=file("apex-stock-os/components/CashDeviceScanner.tsx");
+  const phone=file("apex-stock-os/app/scan-remote/page.tsx");
+  assert.match(paired, /event: "phone-ready"/);
+  assert.match(paired, /event: "pc-ready"/);
+  assert.match(paired, /event: "scan-received"/);
+  assert.match(paired, /event: "barcode"/);
+  assert.match(paired, /Reintentar/);
+  assert.match(paired, /onCode/);
+  assert.match(phone, /event: "phone-ready"/);
+  assert.match(phone, /event: "pc-ready"/);
+  assert.match(phone, /event: "scan-received"/);
+  assert.match(phone, /pendingRef\.current\.get\(id\)/);
+  assert.match(phone, /setConnected\(true\)/);
+  assert.match(phone, /setCount\(current => current \+ 1\)/);
+  assert.match(phone, /3500/);
+  assert.match(phone, /6000/);
+  assert.doesNotMatch(phone, /completeSale|recordPosSale|global_stock_record_pos_sale/);
 });
