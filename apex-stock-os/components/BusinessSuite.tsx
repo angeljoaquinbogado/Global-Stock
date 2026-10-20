@@ -600,56 +600,50 @@ export function BusinessSuite({
   }, [tab, visibleTabs]);
 
   return (
-    <div className="space-y-5">
-      <section className="apex-card overflow-hidden">
-        <div className="flex flex-col gap-4 border-b border-[var(--apex-border)] p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-              Business OS
-            </div>
-            <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] sm:text-2xl">
-              {tr(language, {
-                es: "Toda la empresa en un solo lugar",
-                en: "Your whole company in one place",
-                pt: "Toda a empresa em um só lugar",
-                fr: "Toute l’entreprise au même endroit",
-                de: "Das ganze Unternehmen an einem Ort"
-              })}
+    <div className="space-y-4">
+      <section className="rounded-[20px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 pb-3 pt-4 sm:px-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--apex-accent)]">
+              {tr(language, { es: "ADMINISTRACIÓN", en: "MANAGEMENT", pt: "ADMINISTRAÇÃO", fr: "GESTION", de: "VERWALTUNG" })}
+            </p>
+            <h2 className="mt-1 text-lg font-semibold tracking-[-.035em] sm:text-xl">
+              {tr(language, { es: "Negocios y locales", en: "Businesses and locations", pt: "Negócios e locais", fr: "Entreprises et sites", de: "Geschäfte und Standorte" })}
             </h2>
-            <p className="mt-1 max-w-3xl text-sm text-[var(--apex-muted)]">
+            <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
               {tr(language, {
-                es: "Caja, inventario, finanzas, CRM, proyectos y equipo conectados con la misma operación.",
-                en: "POS, inventory, finance, CRM, projects and people connected to the same operation."
+                es: "Cada área en su lugar, con acceso rápido a lo que necesitás.",
+                en: "Each area in its place, with quick access to what matters.",
+                pt: "Cada área em seu lugar, com acesso rápido ao que importa.",
+                fr: "Chaque domaine à sa place, avec un accès rapide à l’essentiel.",
+                de: "Jeder Bereich an seinem Platz, mit schnellem Zugriff."
               })}
             </p>
           </div>
-          <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
+          <span className="shrink-0 rounded-full border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-1.5 text-[10px] font-medium text-[var(--apex-muted)]">
             {demoMode
-              ? tr(language, { es: "Modo demo · datos locales", en: "Demo · local data" })
+              ? tr(language, { es: "Demo · datos locales", en: "Demo · local data", pt: "Demo · dados locais", fr: "Démo · données locales", de: "Demo · lokale Daten" })
               : businessId
-                ? tr(language, { es: "Cuenta conectada", en: "Connected account" })
-                : tr(language, { es: "Preparando nube", en: "Preparing cloud" })}
-          </div>
+                ? tr(language, { es: "Cuenta conectada", en: "Account connected", pt: "Conta conectada", fr: "Compte connecté", de: "Konto verbunden" })
+                : tr(language, { es: "Preparando conexión", en: "Connecting", pt: "Conectando", fr: "Connexion", de: "Verbinde" })}
+          </span>
         </div>
-
-        <div className="apex-scrollbar flex gap-2 overflow-x-auto p-3">
+        <nav className="apex-scrollbar mt-4 flex items-center gap-1 overflow-x-auto border-t border-[var(--apex-border)] pt-3"
+          aria-label={tr(language, { es: "Áreas del negocio", en: "Business areas", pt: "Áreas de negócio", fr: "Domaines d’activité", de: "Geschäftsbereiche" })}>
           {visibleTabs.map(({ id, icon: Icon, label }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
+            <button key={id} type="button" onClick={() => setTab(id)}
+              aria-current={tab === id ? "page" : undefined}
               className={
-                "inline-flex min-h-10 shrink-0 items-center gap-2 rounded-xl border px-3 text-xs font-semibold transition " +
+                "inline-flex min-h-9 shrink-0 items-center gap-2 rounded-lg px-3 text-xs font-semibold transition-[background-color,color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
                 (tab === id
-                  ? "border-[#8F0000]/55 bg-[#8F0000]/10 text-[#8F0000]"
-                  : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)]")
-              }
-            >
-              <Icon size={15} />
+                  ? "bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]"
+                  : "text-[var(--apex-muted)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")
+              }>
+              <Icon size={15} aria-hidden="true" />
               {label}
             </button>
           ))}
-        </div>
+        </nav>
       </section>
 
       {tab === "operations" && children}

@@ -397,7 +397,7 @@ export function OperationsCenter({
   demoMode = false
 }: Props) {
   const t = words[language];
-  const [tab, setTab] = useState<Tab>("cash");
+  const [tab, setTab] = useState<Tab>("locations");
   const [loading, setLoading] = useState(false);
   const [cashSession, setCashSession] = useState<CashSession | null>(null);
   const [movements, setMovements] = useState<CashMovement[]>([]);
@@ -1021,30 +1021,33 @@ export function OperationsCenter({
     await reload();
   }
 
+  const operationGroups: Array<{id:string; title:string; tabs:Tab[]}> = [
+    {
+      id:"daily",
+      title: language==="es"?"OPERACIÓN DIARIA":language==="pt"?"OPERAÇÃO DIÁRIA":language==="fr"?"OPÉRATION QUOTIDIENNE":language==="de"?"TAGESGESCHÄFT":"DAILY OPERATIONS",
+      tabs:["cash","customers","expenses","purchases"]
+    },
+    {
+      id:"locations",
+      title:language==="es"?"ESTRUCTURA":language==="pt"?"ESTRUTURA":language==="fr"?"ORGANISATION":language==="de"?"STRUKTUR":"STRUCTURE",
+      tabs:["locations","team"]
+    },
+    {
+      id:"tools",
+      title:language==="es"?"MÁS OPCIONES":language==="pt"?"MAIS OPÇÕES":language==="fr"?"AUTRES OPTIONS":language==="de"?"WEITERE OPTIONEN":"MORE OPTIONS",
+      tabs:["advanced"]
+    }
+  ];
+  const selectedGroup = operationGroups.find(group=>group.tabs.includes(tab));
+
   return (
-    <div className="space-y-5">
-      <section className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
-            Business OS
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-[10px] font-bold uppercase tracking-[.12em] text-[var(--apex-accent)]">
+            {selectedGroup?.title ?? t.title}
           </p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-[-0.045em] sm:text-4xl">
-            {t.title}
-          </h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
-            {t.subtitle}
-          </p>
-          {demoMode ? (
-            <p className="mt-2 inline-flex rounded-full border border-[#8F0000]/30 bg-[#8F0000]/8 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#B20A0A]">
-              {language === "es"
-                ? "Demo · datos temporales"
-                : "Demo · temporary data"}
-            </p>
-          ) : (
-            <p className="mt-2 inline-flex rounded-full border border-[var(--apex-border)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
-              {language === "es" ? "Rol" : "Role"}: {memberRole}
-            </p>
-          )}
+          <h2 className="mt-1 text-xl font-semibold tracking-[-.035em] sm:text-2xl">{t[tab]}</h2>
         </div>
         <button
           type="button"
@@ -1064,7 +1067,7 @@ export function OperationsCenter({
               void reload();
             }
           }}
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-2xl border border-[var(--apex-border)] px-4 text-xs font-semibold"
+          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 text-[11px] font-semibold text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]"
         >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
           {demoMode
@@ -1073,27 +1076,41 @@ export function OperationsCenter({
               : "Reset demo"
             : "Sync"}
         </button>
-      </section>
-
-      <div className="flex gap-2 overflow-x-auto pb-1">
-        {visibleTabs.map(({ id, icon: Icon }) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={
-              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-2xl border px-4 text-xs font-semibold transition " +
-              (tab === id
-                ? "border-[#8F0000] bg-[#8F0000] text-white"
-                : "border-[var(--apex-border)] bg-[var(--apex-surface)]")
-            }
-          >
-            <Icon size={15} />
-            {t[id]}
-          </button>
-        ))}
       </div>
 
+      <div className="min-w-0 xl:grid xl:grid-cols-[210px_minmax(0,1fr)] xl:items-start xl:gap-5">
+        <nav aria-label={t.title}
+          className="apex-scrollbar mb-4 flex min-w-0 gap-3 overflow-x-auto rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-2.5 xl:sticky xl:top-24 xl:mb-0 xl:flex-col xl:gap-4 xl:overflow-visible xl:p-3">
+          {operationGroups.map(group=>{
+            const entries = group.tabs
+              .map(id=>visibleTabs.find(item=>item.id===id))
+              .filter((entry):entry is typeof visibleTabs[number]=>Boolean(entry));
+            if(!entries.length)return null;
+            return (
+              <div key={group.id} className="flex shrink-0 items-center gap-1.5 xl:block">
+                <p className="hidden px-2 text-[9px] font-bold uppercase tracking-[.09em] text-[var(--apex-muted)] xl:block">
+                  {group.title}
+                </p>
+                <div className="flex items-center gap-1 xl:mt-2 xl:flex-col xl:items-stretch">
+                  {entries.map(({id,icon:Icon})=>(
+                    <button key={id} type="button" onClick={()=>setTab(id)}
+                      aria-current={tab===id?"page":undefined}
+                      className={
+                        "flex min-h-10 shrink-0 items-center gap-2.5 rounded-xl px-3 text-left text-xs font-semibold transition-[color,background-color] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)] xl:w-full " +
+                        (tab===id
+                          ? "bg-[var(--apex-accent-soft)] text-[var(--apex-accent)]"
+                          : "text-[var(--apex-muted)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")
+                      }>
+                      <Icon size={16} className="shrink-0" aria-hidden="true"/>
+                      {t[id]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </nav>
+        <div className="min-w-0 space-y-4">
       {tab === "cash" && (
         <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
           <section className="apex-card p-5">
@@ -1408,6 +1425,8 @@ export function OperationsCenter({
           />
         ) : null
       )}
+        </div>
+      </div>
     </div>
   );
 }

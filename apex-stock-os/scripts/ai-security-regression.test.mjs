@@ -294,3 +294,29 @@ test("internal documents and ARCA fiscal issuance are separate workspaces", () =
   assert.match(fiscal, /authorization_code/);
   assert.match(internal, /Documento interno sin validez fiscal/);
 });
+
+test("business areas use a compact primary nav and role-aware grouped operations menu", () => {
+  const suite = file("apex-stock-os/components/BusinessSuite.tsx");
+  const operations = file("apex-stock-os/components/OperationsCenter.tsx");
+  assert.match(suite, /canAccessBusinessSuiteTab\(id, memberRole, demoMode\)/);
+  assert.match(suite, /aria-label=\{tr\(language, \{ es: "Áreas del negocio"/);
+  assert.match(suite, /setTab\(id\)/);
+  assert.match(suite, /tab === "finance"/);
+  assert.match(suite, /tab === "crm"/);
+  assert.match(suite, /tab === "projects"/);
+  assert.match(suite, /tab === "people"/);
+  assert.doesNotMatch(suite, /Toda la empresa en un solo lugar/);
+  assert.match(operations, /const operationGroups:/);
+  assert.match(operations, /visibleTabs\.find\(item=>item\.id===id\)/);
+  assert.match(operations, /canAccessOperationTab\(id, memberRole, demoMode\)/);
+  assert.match(operations, /useState<Tab>\("locations"\)/);
+  assert.match(operations, /xl:grid-cols-\[210px_minmax\(0,1fr\)\]/);
+  assert.match(operations, /tab === "cash"/);
+  assert.match(operations, /tab === "customers"/);
+  assert.match(operations, /tab === "expenses"/);
+  assert.match(operations, /tab === "locations"/);
+  assert.match(operations, /tab === "purchases"/);
+  assert.match(operations, /tab === "team"/);
+  assert.match(operations, /tab === "advanced"/);
+  assert.match(operations, /await reload\(\)/);
+});
