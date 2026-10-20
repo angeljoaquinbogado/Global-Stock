@@ -246,7 +246,8 @@ test("reminder controls, full-size calendar and intelligence launcher remain usa
   assert.match(agenda, /h-9 w-9 shrink-0 place-items-center rounded-full border-2/);
   assert.match(agenda, /aria-pressed=\{note.done\}/);
   assert.match(agenda, /standalone \? "w-full p-4 sm:p-6 lg:p-7"/);
-  assert.match(agenda, /standalone\s*\? "flex h-\[clamp\(54px,8vw,108px\)\]/);
+  assert.match(agenda, /standalone\s*\? "flex h-\[clamp\(46px,6vw,64px\)\]/);
+  assert.match(agenda, /max-w-\[720px\]/);
   assert.match(agenda, /standalone \? "text-xs sm:py-2" : "text-\[9px\]"/);
   assert.match(agenda, /xl:sticky xl:top-24/);
   assert.match(ai, /const \[launcherExpanded, setLauncherExpanded\]/);
