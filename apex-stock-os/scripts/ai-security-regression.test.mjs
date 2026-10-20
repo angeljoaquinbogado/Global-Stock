@@ -364,7 +364,7 @@ test("FX currency selector uses theme-aware animated hover menu without changing
   assert.match(fx, /onMouseLeave=\{\(\) => \{/);
   assert.match(fx, /matchMedia\("\(hover: hover\) and \(pointer: fine\)"\)/);
   assert.match(fx, /<AnimatePresence>/);
-  assert.match(fx, /initial=\{\{opacity:0,y:-9,scaleY:\.95\}\}/);
+  assert.match(fx, /initial=\{\{opacity:0,y:opensAbove \? 9 : -9,scaleY:\.95\}\}/);
   assert.match(fx, /role="listbox"/);
   assert.match(fx, /aria-selected=\{selected\}/);
   assert.match(fx, /bg-\[var\(--apex-accent\)\] text-white/);
