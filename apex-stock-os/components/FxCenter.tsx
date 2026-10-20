@@ -772,7 +772,7 @@ function CurrencySelect({
                       "flex min-h-11 w-full items-center gap-2.5 rounded-xl px-3 text-left text-xs transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
                       (selected
                         ? "bg-[var(--apex-accent)] text-white"
-                        : "text-[var(--apex-text)] hover:bg-[var(--apex-accent-soft)]")
+                        : "text-[var(--apex-text)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")
                     }
                   >
                     <span className={

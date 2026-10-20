@@ -376,7 +376,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
                     className={
                       "flex min-h-12 w-full items-center gap-3 rounded-xl px-2.5 text-left transition-colors hover:bg-[var(--apex-bg)] " +
                       "focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
-                      (deviceHint===item.id ? "bg-[var(--apex-accent-soft)]" : "")
+                      (deviceHint===item.id ? "bg-[var(--apex-bg)]" : "")
                     }>
                     <span className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[var(--apex-bg)]">
                       <img src={item.icon} alt="" aria-hidden="true" className="h-6 w-6 object-contain"/>

@@ -408,3 +408,29 @@ test("every shared dropdown follows workspace theme and adaptive placement", () 
   assert.match(businessType, /opensAbove\?"bottom-\[calc\(100%\+8px\)\] origin-bottom"/);
   assert.match(fx, /opensAbove \? "bottom-full origin-bottom pb-2"/);
 });
+
+test("dropdowns keep readable hover and selected text in both themes", () => {
+  const common = file("apex-stock-os/components/ui/ApexSelect.tsx");
+  const business = file("apex-stock-os/components/BusinessTypePicker.tsx");
+  const fx = file("apex-stock-os/components/FxCenter.tsx");
+  const header = file("apex-stock-os/components/GlobalPreferences.tsx");
+  const install = file("apex-stock-os/components/InstallAppButton.tsx");
+  assert.match(common, /text-\[var\(--apex-text\)\] hover:bg-\[var\(--apex-bg\)\] hover:text-\[var\(--apex-text\)\]/);
+  assert.match(common, /bg-\[var\(--apex-accent\)\] text-white/);
+  assert.match(business, /bg-\[var\(--apex-accent-soft\)\] text-\[#172420\]/);
+  assert.match(business, /active \? "text-\[#44544C\]"/);
+  assert.match(fx, /text-\[var\(--apex-text\)\] hover:bg-\[var\(--apex-bg\)\] hover:text-\[var\(--apex-text\)\]/);
+  assert.match(header, /item\.selected \? "bg-\[var\(--apex-bg\)\]"/);
+  assert.match(install, /deviceHint===item\.id \? "bg-\[var\(--apex-bg\)\]"/);
+});
+test("Inicio greets verified member by real name and business membership role", () => {
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  assert.match(workspace, /supabase\.auth\.getUser\(\)/);
+  assert.match(workspace, /\.from\("global_stock_profiles"\)\s*\.select\("full_name"\)\s*\.eq\("user_id", user\.id\)/);
+  assert.match(workspace, /\.from\("global_stock_members"\)/);
+  assert.match(workspace, /const \[memberRoleReady, setMemberRoleReady\]/);
+  assert.match(workspace, /cloudBusinessId && memberRoleReady/);
+  assert.match(workspace, /workspaceRoleLabels\[language\]\[memberRole\]/);
+  assert.match(workspace, /signedInName \? \x60, \$\{signedInName\}\x60 : ""/);
+  assert.equal((workspace.match(/welcomeLabels\[language\]\.greeting/g) ?? []).length, 2);
+});

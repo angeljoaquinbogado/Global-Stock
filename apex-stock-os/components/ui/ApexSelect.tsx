@@ -281,7 +281,7 @@ export function ApexSelect({
                     className={"flex min-h-10 w-full items-center justify-between gap-3 rounded-xl px-3 text-left transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
                       (active
                         ? "bg-[var(--apex-accent)] text-white"
-                        : "text-[var(--apex-text)] hover:bg-[var(--apex-accent-soft)]")}
+                        : "text-[var(--apex-text)] hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)]")}
                   >
                     <span className="min-w-0 flex-1 truncate">{option.label}</span>
                     {active && <Check size={14} className="shrink-0" aria-hidden="true"/>}

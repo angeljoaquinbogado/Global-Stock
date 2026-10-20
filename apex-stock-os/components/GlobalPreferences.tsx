@@ -496,7 +496,7 @@ function HeaderPreferences({
                     className={
                       "flex min-h-11 w-full items-center gap-2.5 rounded-xl px-2.5 text-left transition-colors " +
                       "hover:bg-[var(--apex-bg)] focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)] " +
-                      (item.selected ? "bg-[var(--apex-accent-soft)]" : "")
+                      (item.selected ? "bg-[var(--apex-bg)]" : "")
                     }>
                     <span className={
                       "grid h-8 w-10 shrink-0 place-items-center rounded-lg text-[11px] font-bold " +

@@ -158,14 +158,14 @@ export function BusinessTypePicker({
             return <button
               key={item.id} type="button" aria-pressed={active} onClick={()=>choose(item)}
               className={"group flex min-h-[110px] flex-col justify-between rounded-2xl border p-3 text-left transition-[transform,background-color,border-color] hover:scale-[1.025] focus-visible:ring-2 focus-visible:ring-[var(--apex-accent)] "+
-                (active?"border-[var(--apex-accent)] bg-[var(--apex-accent-soft)]":"border-[var(--apex-border)] bg-[var(--apex-bg)] hover:border-[var(--apex-accent)]")}>
+                (active?"border-[var(--apex-accent)] bg-[var(--apex-accent-soft)] text-[#172420]":"border-[var(--apex-border)] bg-[var(--apex-bg)] text-[var(--apex-text)] hover:border-[var(--apex-accent)]")}>
               <div className="flex items-start justify-between">
                 <CurrentIcon size={22} className={active?"text-[var(--apex-accent)]":"text-[var(--apex-text)]"} strokeWidth={1.8}/>
                 {active&&<Check size={15} className="text-[var(--apex-accent)]"/>}
               </div>
               <span className="mt-4 block min-w-0">
                 <span className="block text-[11px] font-bold leading-4">{item.label[language]}</span>
-                {language==="es"&&<span className="mt-1 block text-[10px] leading-[14px] text-[var(--apex-muted)]">{item.description}</span>}
+                {language==="es"&&<span className={"mt-1 block text-[10px] leading-[14px] " + (active ? "text-[#44544C]" : "text-[var(--apex-muted)]")}>{item.description}</span>}
               </span>
             </button>;
           })}

@@ -195,6 +195,21 @@ type BusinessWorkspaceProps = {
   demoMode?: boolean;
 };
 
+const welcomeLabels: Record<LanguageCode, { greeting: string; role: string; demo: string }> = {
+  es: { greeting: "Bienvenido", role: "Cargo", demo: "Cuenta de demostración" },
+  en: { greeting: "Welcome", role: "Role", demo: "Demo account" },
+  pt: { greeting: "Bem-vindo", role: "Cargo", demo: "Conta de demonstração" },
+  fr: { greeting: "Bienvenue", role: "Rôle", demo: "Compte de démonstration" },
+  de: { greeting: "Willkommen", role: "Rolle", demo: "Demokonto" }
+};
+const workspaceRoleLabels: Record<LanguageCode, Record<string, string>> = {
+  es: { owner:"Dueño", admin:"Administrador", manager:"Gerente", cashier:"Cajero", warehouse:"Almacén", sales:"Ventas", accountant:"Contador", viewer:"Solo lectura" },
+  en: { owner:"Owner", admin:"Administrator", manager:"Manager", cashier:"Cashier", warehouse:"Warehouse", sales:"Sales", accountant:"Accountant", viewer:"Read only" },
+  pt: { owner:"Proprietário", admin:"Administrador", manager:"Gerente", cashier:"Caixa", warehouse:"Estoque", sales:"Vendas", accountant:"Contador", viewer:"Somente leitura" },
+  fr: { owner:"Propriétaire", admin:"Administrateur", manager:"Responsable", cashier:"Caissier", warehouse:"Stock", sales:"Ventes", accountant:"Comptable", viewer:"Lecture seule" },
+  de: { owner:"Inhaber", admin:"Administrator", manager:"Manager", cashier:"Kasse", warehouse:"Lager", sales:"Verkauf", accountant:"Buchhaltung", viewer:"Nur Lesen" }
+};
+
 type FxMarket = "oficial" | "blue" | "mep" | "ccl" | "tarjeta";
 
 type FxHistoryEntry = {
@@ -1240,6 +1255,8 @@ export function BusinessWorkspace({
   const [memberRole, setMemberRole] = useState(
     demoMode ? "owner" : "viewer"
   );
+  const [memberRoleReady, setMemberRoleReady] = useState(demoMode);
+  const [signedInName, setSignedInName] = useState("");
   const [cloudReady, setCloudReady] = useState(demoMode);
   const cloudHydratedRef = useRef(false);
   const lastMirroredProductsRef = useRef<Map<string,string>>(new Map());
@@ -1370,18 +1387,58 @@ export function BusinessWorkspace({
       );
   }, []);
 
+
   useEffect(() => {
     if (demoMode) {
+      setSignedInName("");
+      return;
+    }
+    const supabase = getSupabaseBrowserClient();
+    if (!supabase) return;
+    let cancelled = false;
+    async function loadSignedInName() {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user || cancelled) return;
+        const metadata = user.user_metadata ?? {};
+        const candidates = [metadata.full_name, metadata.name, metadata.display_name];
+        let name = candidates.find((item): item is string =>
+          typeof item === "string" && item.trim().length > 0 && item.trim().length <= 100
+        )?.trim() ?? "";
+        if (!name) {
+          const { data: profile } = await supabase
+            .from("global_stock_profiles")
+            .select("full_name")
+            .eq("user_id", user.id)
+            .maybeSingle();
+          if (typeof profile?.full_name === "string" && profile.full_name.trim().length <= 100) {
+            name = profile.full_name.trim();
+          }
+        }
+        if (!cancelled) setSignedInName(name);
+      } catch {
+        if (!cancelled) setSignedInName("");
+      }
+    }
+    void loadSignedInName();
+    return () => { cancelled = true; };
+  }, [demoMode]);
+
+  useEffect(() => {
+    if (demoMode) {
+      setMemberRoleReady(true);
       setMemberRole("owner");
       return;
     }
 
     if (!cloudBusinessId) {
+      setMemberRoleReady(false);
       setMemberRole("viewer");
       return;
     }
 
     let cancelled = false;
+    setMemberRoleReady(false);
     const supabase = getSupabaseBrowserClient();
     if (!supabase) return;
     const client = supabase;
@@ -1403,6 +1460,7 @@ export function BusinessWorkspace({
 
       if (!cancelled) {
         setMemberRole(String(data?.role || "viewer"));
+        setMemberRoleReady(true);
       }
     }
 
@@ -3792,6 +3850,20 @@ export function BusinessWorkspace({
               >
                 {labels.nav[activeModule]}
               </motion.p>
+              {activeModule === "overview" && (
+                <div className="mt-1 min-w-0">
+                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
+                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
+                  </p>
+                  {(demoMode || (cloudBusinessId && memberRoleReady)) && (
+                    <p className="truncate text-[10px] text-[var(--apex-muted)]">
+                      {demoMode
+                        ? welcomeLabels[language].demo
+                        : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="hidden min-w-0 lg:block">
@@ -3811,6 +3883,20 @@ export function BusinessWorkspace({
               >
                 {labels.nav[activeModule]}
               </motion.h1>
+              {activeModule === "overview" && (
+                <div className="mt-1 min-w-0">
+                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
+                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
+                  </p>
+                  {(demoMode || (cloudBusinessId && memberRoleReady)) && (
+                    <p className="truncate text-[10px] text-[var(--apex-muted)]">
+                      {demoMode
+                        ? welcomeLabels[language].demo
+                        : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="ml-auto flex items-center gap-2">
