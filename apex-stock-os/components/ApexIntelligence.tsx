@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   ChartNoAxesCombined,
   Minimize2,
+  X,
   PackageSearch,
   Sparkles,
   TrendingUp
@@ -370,6 +371,10 @@ export function ApexIntelligence({
 
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
+  const [launcherExpanded, setLauncherExpanded] = useState(false);
+  const [supportsHover, setSupportsHover] = useState(false);
+  const [hoverDismissed, setHoverDismissed] = useState(false);
+  const [autoRevealCancelled, setAutoRevealCancelled] = useState(false);
   const [pending, setPending] = useState(false);
   const [input, setInput] = useState("");
   const [status, setStatus] = useState<AiStatus>("checking");
@@ -395,6 +400,34 @@ export function ApexIntelligence({
   const lastTouchSendRef = useRef(0);
 
   useEffect(() => setMounted(true), []);
+
+  // Fine-pointer devices reveal the launcher on hover. Touch devices reveal
+  // its label once after five seconds; the X can suppress the automatic reveal.
+  useEffect(() => {
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
+    const update = () => {
+      setSupportsHover(query.matches);
+      setLauncherExpanded(false);
+    };
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted || supportsHover || autoRevealCancelled || open) return;
+    const timer = window.setTimeout(() => setLauncherExpanded(true), 5000);
+    return () => window.clearTimeout(timer);
+  }, [mounted, supportsHover, autoRevealCancelled, open]);
+
+  function activateLauncher() {
+    if (!launcherExpanded) {
+      setLauncherExpanded(true);
+      return;
+    }
+    setOpen(true);
+  }
+
 
   // Identical, revocable AI data consent for PC and Expo Go. A prior legal
   // acceptance does NOT authorize sharing merchant records with a model.
@@ -974,24 +1007,73 @@ export function ApexIntelligence({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label={copy.title}
+      <motion.div
+        initial={false}
+        animate={{ width: launcherExpanded ? 226 : 56 }}
+        transition={{ type: "spring", stiffness: 310, damping: 31, mass: 0.85 }}
+        onMouseEnter={() => {
+          if (supportsHover && !hoverDismissed) setLauncherExpanded(true);
+        }}
+        onMouseLeave={() => {
+          if (supportsHover) {
+            setLauncherExpanded(false);
+            setHoverDismissed(false);
+          }
+        }}
         className={
-          "fixed right-4 z-50 flex h-14 touch-manipulation items-center gap-3 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 text-[var(--apex-text)] shadow-[0_12px_36px_rgba(0,0,0,.14)] transition-[border-color,background-color,box-shadow] hover:border-[var(--apex-accent)] lg:bottom-6 lg:right-6 " +
+          "fixed right-4 z-50 flex h-14 max-w-[calc(100vw-32px)] touch-manipulation items-center overflow-hidden rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)] shadow-[0_12px_36px_rgba(0,0,0,.14)] lg:bottom-6 lg:right-6 " +
           (raiseOnMobile
             ? "bottom-[calc(158px+env(safe-area-inset-bottom,0px))]"
             : "bottom-[calc(88px+env(safe-area-inset-bottom,0px))]")
         }
       >
-        <span className="grid h-9 w-9 place-items-center rounded-full bg-[var(--apex-accent)] text-white">
-          <Sparkles size={16} />
-        </span>
-        <span className="hidden text-sm font-semibold sm:inline">
-          {copy.title}
-        </span>
-      </button>
+        <button
+          type="button"
+          onClick={activateLauncher}
+          aria-label={launcherExpanded ? copy.title : (language === "es" ? "Desplegar Global Intelligence" : "Expand Global Intelligence")}
+          aria-expanded={launcherExpanded}
+          className="flex h-full min-w-0 flex-1 items-center gap-2.5 rounded-full pl-[9px] text-left focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
+        >
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[var(--apex-accent)] text-white">
+            <Sparkles size={16} aria-hidden="true" />
+          </span>
+          <AnimatePresence initial={false}>
+            {launcherExpanded && (
+              <motion.span
+                key="global-intelligence-label"
+                initial={{ opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 6 }}
+                transition={{ duration: 0.18 }}
+                className="whitespace-nowrap text-[12px] font-semibold"
+              >
+                {copy.title}
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </button>
+        <AnimatePresence initial={false}>
+          {launcherExpanded && (
+            <motion.button
+              key="collapse-launcher"
+              type="button"
+              aria-label={language === "es" ? "Ocultar nombre de Global Intelligence" : "Collapse Global Intelligence"}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.8 }}
+              transition={{ duration: 0.14 }}
+              onClick={() => {
+                setLauncherExpanded(false);
+                setAutoRevealCancelled(true);
+                if (supportsHover) setHoverDismissed(true);
+              }}
+              className="mr-2 grid h-8 w-8 shrink-0 place-items-center rounded-full text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-bg)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+            >
+              <X size={15} aria-hidden="true"/>
+            </motion.button>
+          )}
+        </AnimatePresence>
+      </motion.div>
 
       {mounted ? createPortal(panel, document.body) : null}
     </>

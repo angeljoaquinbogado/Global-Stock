@@ -575,16 +575,18 @@ export function NotesHub({
                   selectedNotes.map((note) => (
                     <div
                       key={note.id}
-                      className="flex items-start gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3"
+                      className="flex items-center gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3"
                     >
                       <button
                         type="button"
                         onClick={() => toggleNote(note.id)}
+                        aria-label={note.done ? (language === "es" ? "Marcar pendiente" : "Mark pending") : (language === "es" ? "Marcar completado" : "Mark complete")}
+                        aria-pressed={note.done}
                         className={
-                          "mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border " +
+                          "grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 transition-[background-color,border-color] " +
                           (note.done
-                            ? "border-[#8F0000] bg-[#8F0000] text-white"
-                            : "border-[var(--apex-border)]")
+                            ? "border-[var(--apex-accent)] bg-[var(--apex-accent)] text-white"
+                            : "border-[var(--apex-muted)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)] hover:border-[var(--apex-accent)]")
                         }
                       >
                         {note.done && <Check size={13} />}
@@ -592,7 +594,7 @@ export function NotesHub({
                       <button
                         type="button"
                         onClick={() => removeNote(note.id)}
-                        className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--apex-border)] text-[var(--apex-muted)] transition-colors hover:border-red-500/30 hover:text-red-500"
+                        className="grid h-9 w-9 shrink-0 place-items-center rounded-full border-2 border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)] transition-[border-color,color,background-color] hover:border-red-500/40 hover:bg-red-500/5 hover:text-red-500"
                         aria-label={t.delete}
                       >
                         <Trash2 size={14} />
@@ -620,7 +622,7 @@ export function NotesHub({
         )}
 
         {tab === "calendar" && (
-          <div className="max-w-[430px]">
+          <div className="w-full min-w-0">
             <CompactCalendar
               t={t}
               locale={locale}
@@ -681,10 +683,10 @@ function CompactCalendar({
     <section
       className={
         "apex-card h-fit p-3.5 " +
-        (standalone ? "w-full" : "xl:sticky xl:top-24")
+        (standalone ? "w-full p-4 sm:p-6 lg:p-7" : "xl:sticky xl:top-24")
       }
     >
-      <div className="flex items-center justify-between gap-2">
+      <div className={"flex items-center justify-between gap-2 " + (standalone ? "sm:mb-4" : "")}>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setCalendarMonth(new Date(year-1,month,1))}
             className="grid h-8 w-8 place-items-center rounded-lg border border-[var(--apex-border)] transition-colors hover:bg-[var(--apex-bg)]"
@@ -695,7 +697,7 @@ function CompactCalendar({
         </div>
         <div className="min-w-0 text-center">
           <p className="text-[9px] font-bold uppercase tracking-[0.07em] text-[var(--apex-muted)]">{t.compactCalendar}</p>
-          <h3 className="mt-1 whitespace-nowrap text-[13px] font-semibold capitalize">{monthLabel}</h3>
+          <h3 className={"mt-1 whitespace-nowrap font-semibold capitalize " + (standalone ? "text-base sm:text-xl" : "text-[13px]")}>{monthLabel}</h3>
         </div>
         <div className="flex items-center gap-1">
           <button type="button" onClick={() => setCalendarMonth(new Date(year,month+1,1))}
@@ -707,11 +709,11 @@ function CompactCalendar({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-7 gap-1 text-center">
+      <div className={"mt-3 grid grid-cols-7 text-center " + (standalone ? "gap-1.5 sm:mt-5 sm:gap-3" : "gap-1")}>
         {weekdays.map((weekday, index) => (
           <div
             key={`${weekday}-${index}`}
-            className="py-1 text-[9px] font-bold uppercase text-[var(--apex-muted)]"
+            className={"py-1 font-bold uppercase text-[var(--apex-muted)] " + (standalone ? "text-xs sm:py-2" : "text-[9px]")}
           >
             {weekday}
           </div>
@@ -732,17 +734,22 @@ function CompactCalendar({
               type="button"
               onClick={() => setSelectedDate(key)}
               className={
-                "relative aspect-square max-h-8 rounded-lg text-[10px] font-semibold transition " +
+                "relative font-semibold transition-[background-color,border-color,color,transform] duration-200 " +
+                (standalone
+                  ? "flex h-[clamp(54px,8vw,108px)] w-full items-start justify-start rounded-xl border p-2 text-sm sm:p-3 sm:text-base "
+                  : "aspect-square max-h-8 rounded-lg text-[10px] ") +
                 (selected
-                  ? "bg-[#8F0000] text-white"
-                  : "hover:bg-[var(--apex-surface-strong)]")
+                  ? "border-[var(--apex-accent)] bg-[var(--apex-accent)] text-white"
+                  : standalone
+                    ? "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-soft)]"
+                    : "hover:bg-[var(--apex-surface-strong)]")
               }
             >
               {day}
               {noteCount > 0 && (
                 <span
                   className={
-                    "absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full " +
+                    (standalone ? "absolute bottom-3 left-3 h-1.5 w-1.5 rounded-full " : "absolute bottom-1 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full ") +
                     (selected ? "bg-white" : "bg-[#8F0000]")
                   }
                 />

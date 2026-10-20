@@ -238,3 +238,22 @@ test("integer warehouse steppers and Agenda controls remain native-theme free", 
   assert.match(assistant, /rounded-full border border-\[var\(--apex-border\)\] bg-\[var\(--apex-surface-strong\)\]/);
   assert.match(assistant, /bg-\[var\(--apex-accent\)\] text-white/);
 });
+
+test("reminder controls, full-size calendar and intelligence launcher remain usable", () => {
+  const agenda = file("apex-stock-os/components/NotesHub.tsx");
+  const ai = file("apex-stock-os/components/ApexIntelligence.tsx");
+  assert.match(agenda, /flex items-center gap-3 rounded-2xl border/);
+  assert.match(agenda, /h-9 w-9 shrink-0 place-items-center rounded-full border-2/);
+  assert.match(agenda, /aria-pressed=\{note.done\}/);
+  assert.match(agenda, /standalone \? "w-full p-4 sm:p-6 lg:p-7"/);
+  assert.match(agenda, /standalone\s*\? "flex h-\[clamp\(54px,8vw,108px\)\]/);
+  assert.match(agenda, /standalone \? "text-xs sm:py-2" : "text-\[9px\]"/);
+  assert.match(agenda, /xl:sticky xl:top-24/);
+  assert.match(ai, /const \[launcherExpanded, setLauncherExpanded\]/);
+  assert.match(ai, /\(hover: hover\) and \(pointer: fine\)/);
+  assert.match(ai, /setTimeout\(\(\) => setLauncherExpanded\(true\), 5000\)/);
+  assert.match(ai, /animate=\{\{ width: launcherExpanded \? 226 : 56 \}\}/);
+  assert.match(ai, /onClick=\{activateLauncher\}/);
+  assert.match(ai, /setAutoRevealCancelled\(true\)/);
+  assert.match(ai, /setOpen\(true\)/);
+});
