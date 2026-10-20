@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import type { WorkspaceAccent } from "@/lib/workspace-accent";
 import "./animated-home-dashboard.css";
 import "./premium-charts.css";
@@ -24,7 +24,6 @@ import {
   Cell,
   ComposedChart,
   Line,
-  ReferenceLine,
   ReferenceDot,
   ResponsiveContainer,
   Tooltip,
@@ -249,8 +248,7 @@ export function PremiumCharts({
 }: Props) {
   const reduced = useReducedMotion();
   const t = copy[language];
-  const chartGradient = useId().replace(/:/g, "");
-  const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: true, profit: true });
+  const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: false, profit: false });
   const [graphMode, setGraphMode] = useState<"curve" | "bars">("curve");
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
@@ -461,10 +459,10 @@ export function PremiumCharts({
             <div className="gs-an-chart-toolbar">
               <div className="gs-an-chart-toolbar__copy">
                 <strong>{language === "es" ? "Evolución financiera" : "Financial performance"}</strong>
-                <span>{language === "es" ? "Puntos reales y movimientos de cada día" : "Precise data points and daily movement"}</span>
+                <span>{language === "es" ? "Ingresos por día · activá otras series para comparar" : language === "pt" ? "Receitas diárias · ative outras séries para comparar" : "Daily revenue · enable other series to compare"}</span>
               </div>
               <div className="gs-an-chart-mode" role="group" aria-label={language === "es" ? "Estilo del gráfico" : "Chart style"}>
-                <button type="button" aria-pressed={graphMode === "curve"} onClick={() => setGraphMode("curve")}>{language === "es" ? "Evolución" : language === "pt" ? "Evolução" : "Trend"}</button>
+                <button type="button" aria-pressed={graphMode === "curve"} onClick={() => setGraphMode("curve")}>{language === "es" ? "Tendencia" : language === "pt" ? "Tendência" : "Trend"}</button>
                 <button type="button" aria-pressed={graphMode === "bars"} onClick={() => setGraphMode("bars")}>{language === "es" ? "Columnas" : language === "pt" ? "Colunas" : "Columns"}</button>
               </div>
             </div>
@@ -485,33 +483,27 @@ export function PremiumCharts({
                 onMouseMove={(state: {activeTooltipIndex?: number | string}) => { const i = Number(state?.activeTooltipIndex); if (Number.isInteger(i) && i >= 0 && i < data.length) setFocusIndex(i); }}
                 margin={{ left: 6, right: 12, top: 16, bottom: 8 }}
               >
-                <defs>
-                  <linearGradient id={chartGradient + "-column"} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--home-accent)" stopOpacity={.22} />
-                    <stop offset="100%" stopColor="var(--home-accent)" stopOpacity={.025} />
-                  </linearGradient>
-                  <linearGradient id={chartGradient + "-focus"} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="var(--home-accent)" stopOpacity={.4} />
-                    <stop offset="100%" stopColor="var(--home-accent)" stopOpacity={.06} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid stroke="var(--home-border)"
-                  strokeDasharray="2 6" strokeOpacity={.73} vertical={false} />
+                <CartesianGrid
+                  stroke="var(--home-border)"
+                  strokeOpacity={0.6}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="label"
                   axisLine={false}
                   tickLine={false}
                   stroke="var(--home-muted)"
                   fontSize={11}
-                  tickMargin={12}
+                  tickMargin={16}
                 />
                 <YAxis
                   axisLine={false}
                   tickLine={false}
                   stroke="var(--home-muted)"
-                  fontSize={9}
+                  fontSize={10}
                   width={58}
-                  tickMargin={8}
+                  tickMargin={9}
+                  tickCount={5}
                   tickFormatter={(value) =>
                     new Intl.NumberFormat(locale, {
                       notation: "compact",
@@ -520,8 +512,12 @@ export function PremiumCharts({
                   }
                 />
                 <Tooltip
-                  animationDuration={150}
-                  cursor={{stroke:"var(--home-accent)",strokeOpacity:.46,strokeDasharray:"4 5",strokeWidth:1.2}}
+                  animationDuration={130}
+                  cursor={{
+                    stroke: "var(--home-border)",
+                    strokeOpacity: 0.8,
+                    strokeWidth: 1
+                  }}
                   content={({active,label})=>{
                     const point=active ? data.find(row=>row.label===label) : null;
                     if(!point)return null;
@@ -535,53 +531,77 @@ export function PremiumCharts({
                     </div>;
                   }}
                 />
-                <ReferenceLine
-                  y={0}
-                  stroke="var(--apex-border)"
-                  strokeDasharray="3 6"
-                />
-                {graphMode === "curve" && (
-                  <ReferenceLine x={focused?.label} stroke="var(--home-accent)"
-                    strokeOpacity={.32} strokeDasharray="3 5" ifOverflow="hidden" />
-                )}
                 {graphMode === "curve" && visibleSeries.revenue && (
-                  <Bar dataKey="revenue" name={t.revenue} tooltipType="none"
-                    barSize={31} radius={[7,7,0,0]}
-                    isAnimationActive={!reduced} animationDuration={640}>
-                    {data.map((row,index)=>(
-                      <Cell key={row.label+index}
-                        fill={"url(#"+chartGradient+(index===focusedIndex?"-focus":"-column")+")"} />
-                    ))}
-                  </Bar>
-                )}
-                {graphMode === "curve" && visibleSeries.revenue && (
-                  <Line type="linear" dataKey="revenue" name={t.revenue}
-                    stroke="var(--home-accent)" strokeWidth={3.25}
-                    strokeLinecap="round" strokeLinejoin="round"
-                    dot={{r:4.2,fill:"var(--home-card)",stroke:"var(--home-accent)",strokeWidth:2.5}}
-                    activeDot={{r:7,fill:"var(--home-accent)",stroke:"var(--home-card)",strokeWidth:3}}
-                    isAnimationActive={!reduced} animationDuration={680} />
+                  <Line
+                    type="linear"
+                    dataKey="revenue"
+                    name={t.revenue}
+                    stroke="var(--home-accent)"
+                    strokeWidth={3.1}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    dot={false}
+                    activeDot={{
+                      r:6,
+                      fill:"var(--home-accent)",
+                      stroke:"var(--home-card)",
+                      strokeWidth:3
+                    }}
+                    isAnimationActive={!reduced}
+                    animationDuration={740}
+                  />
                 )}
                 {graphMode === "curve" && visibleSeries.cost && (
-                  <Line type="linear" dataKey="cost" name={t.cost}
-                    stroke="var(--home-muted)" strokeWidth={2}
-                    strokeDasharray="6 5" strokeLinecap="round"
-                    dot={{r:3.3,fill:"var(--home-card)",stroke:"var(--home-muted)",strokeWidth:1.8}}
-                    activeDot={{r:5.2,fill:"var(--home-muted)",stroke:"var(--home-card)",strokeWidth:2}}
-                    isAnimationActive={!reduced} animationDuration={780} />
+                  <Line
+                    type="linear"
+                    dataKey="cost"
+                    name={t.cost}
+                    stroke="var(--home-muted)"
+                    strokeWidth={1.8}
+                    strokeDasharray="5 5"
+                    strokeOpacity={0.84}
+                    strokeLinecap="round"
+                    dot={false}
+                    activeDot={{
+                      r:5,
+                      fill:"var(--home-muted)",
+                      stroke:"var(--home-card)",
+                      strokeWidth:2.5
+                    }}
+                    isAnimationActive={!reduced}
+                    animationDuration={740}
+                  />
                 )}
                 {graphMode === "curve" && visibleSeries.profit && (
-                  <Line type="linear" dataKey="profit" name={t.profit}
-                    stroke="var(--home-text)" strokeWidth={2.45} strokeLinecap="round"
-                    dot={{r:3.5,fill:"var(--home-card)",stroke:"var(--home-text)",strokeWidth:2}}
-                    activeDot={{r:5.5,fill:"var(--home-text)",stroke:"var(--home-card)",strokeWidth:2}}
-                    isAnimationActive={!reduced} animationDuration={830} />
+                  <Line
+                    type="linear"
+                    dataKey="profit"
+                    name={t.profit}
+                    stroke="var(--home-text)"
+                    strokeWidth={2}
+                    strokeOpacity={0.8}
+                    strokeLinecap="round"
+                    dot={false}
+                    activeDot={{
+                      r:5,
+                      fill:"var(--home-text)",
+                      stroke:"var(--home-card)",
+                      strokeWidth:2.5
+                    }}
+                    isAnimationActive={!reduced}
+                    animationDuration={740}
+                  />
                 )}
-                {graphMode === "curve" && focused && visibleSeries.revenue && (
-                  <ReferenceDot x={focused.label} y={focused.revenue} r={11}
-                    fill="var(--home-accent)" fillOpacity={.13}
-                    stroke="var(--home-accent)" strokeOpacity={.25} strokeWidth={1}
-                    ifOverflow="hidden" />
+                {graphMode === "curve" && focusIndex !== null && focused && visibleSeries.revenue && (
+                  <ReferenceDot
+                    x={focused.label}
+                    y={focused.revenue}
+                    r={5}
+                    fill="var(--home-accent)"
+                    stroke="var(--home-card)"
+                    strokeWidth={2}
+                    ifOverflow="hidden"
+                  />
                 )}
                 {graphMode === "bars" && visibleSeries.revenue && <Bar dataKey="revenue" name={t.revenue} fill="var(--home-accent)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
                 {graphMode === "bars" && visibleSeries.cost && <Bar dataKey="cost" name={t.cost} fill="var(--home-muted)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}

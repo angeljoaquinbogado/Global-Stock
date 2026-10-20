@@ -110,25 +110,128 @@
 @media(max-width:800px){.gs-an-chart-spotlight{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:14px}.gs-an-chart-spotlight__hero{grid-column:1/-1}.gs-an-chart-spotlight>div:nth-child(2){padding-left:0;border-left:0}}
 @media(max-width:530px){.gs-an-chart-toolbar{padding:14px}.gs-an-chart-spotlight{margin:0 14px;grid-template-columns:repeat(3,minmax(0,1fr))}.gs-an-chart-spotlight>div{padding:5px 8px}.gs-an-chart-spotlight strong{font-size:13px}.gs-an-chart-spotlight__hero strong{font-size:24px}.gs-an-point-nav{gap:0;padding:6px 8px 14px}.gs-an-point-nav button{font-size:9px;gap:3px}.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame{height:270px;padding:8px 1px}}
 
-/* Precise financial plot: discrete readings, angular movement and depth without wavy interpolation */
-.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame{position:relative;isolation:isolate;background:
-  radial-gradient(ellipse 74% 49% at 56% 23%,color-mix(in srgb,var(--home-accent) 5%,transparent) 0%,transparent 100%),
-  linear-gradient(180deg,var(--home-card),var(--home-bg));}
-.gs-an-premium .gs-an-chart-dashboard .recharts-line-curve{filter:drop-shadow(0 2px 2px rgba(0,0,0,.065));}
-.gs-an-premium .gs-an-chart-dashboard .recharts-dot{transition:opacity .15s ease,filter .15s ease;}
-.gs-an-premium .gs-an-chart-dashboard .recharts-dot:hover{filter:drop-shadow(0 0 5px var(--home-accent));}
-.gs-an-premium .gs-an-chart-dashboard .recharts-cartesian-axis-tick-value{font-variant-numeric:tabular-nums}
-.gs-an-finance-tooltip{pointer-events:none;min-width:207px;padding:14px 15px;border-radius:16px;
-  background:var(--home-card);border:1px solid var(--home-border);color:var(--home-text);
-  box-shadow:0 18px 58px rgba(0,0,0,.14),0 5px 20px rgba(0,0,0,.06);
-  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);}
-.gs-an-finance-tooltip__day{display:block;color:var(--home-text);font-size:12px;font-weight:800;letter-spacing:-.015em;
-  margin-bottom:11px;padding-bottom:10px;border-bottom:1px solid var(--home-border);}
-.gs-an-finance-tooltip>div{display:flex;align-items:center;gap:8px;min-width:0;padding:5px 0;font-size:11px;color:var(--home-muted)}
-.gs-an-finance-tooltip>div strong{color:var(--home-text);font-size:11px;font-weight:730;margin-left:auto;font-variant-numeric:tabular-nums;white-space:nowrap}
-.gs-an-finance-tooltip__dot{display:block;flex:none;width:7px;height:7px;border-radius:50%;background:var(--home-accent)}
-.gs-an-finance-tooltip__dot--cost{background:var(--home-muted)}
-.gs-an-finance-tooltip__dot--profit{background:var(--home-text)}
-.gs-an-finance-tooltip .gs-an-finance-tooltip__margin{margin-top:7px;padding-top:10px;border-top:1px solid var(--home-border)}
-.gs-an-premium .gs-an-chart-mode button[aria-pressed=true]{box-shadow:0 2px 12px rgba(0,0,0,.07)}
-@media(max-width:530px){.gs-an-finance-tooltip{min-width:170px;padding:10px 11px}.gs-an-finance-tooltip>div{font-size:10px}.gs-an-finance-tooltip>div strong{font-size:10px}}
+/* Financial trend: neutral canvas and a single clear primary series.
+   Only affects the financial explorer; other dashboard charts are unchanged. */
+.gs-an-premium .gs-an-chart-dashboard {
+  border:1px solid var(--home-border);
+  border-radius:18px;
+  background:var(--home-card);
+  box-shadow:none;
+}
+.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame {
+  position:relative;
+  isolation:isolate;
+  height:clamp(300px,30vw,388px);
+  background:var(--home-card);
+  border:0;
+  box-shadow:none;
+  padding:8px 14px 0;
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-line-curve {
+  filter:none;
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-cartesian-grid line {
+  stroke:var(--home-border);
+  stroke-opacity:.58;
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-cartesian-axis-tick-value {
+  font-variant-numeric:tabular-nums;
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-tooltip-wrapper {
+  z-index:5;
+}
+.gs-an-premium .gs-an-chart-spotlight {
+  padding-top:12px;
+  padding-bottom:13px;
+}
+.gs-an-premium .gs-an-point-nav {
+  gap:4px;
+  padding:8px 20px 15px;
+}
+.gs-an-premium .gs-an-point-nav button {
+  min-height:34px;
+  border-radius:9px;
+  font-weight:600;
+}
+.gs-an-premium .gs-an-point-nav button span {
+  display:none;
+}
+.gs-an-premium .gs-an-point-nav button[aria-pressed=true] {
+  background:var(--home-accent-soft);
+  color:var(--home-accent);
+}
+.gs-an-premium .gs-an-chart-mode button:focus-visible,
+.gs-an-premium .gs-an-point-nav button:focus-visible {
+  outline:2px solid var(--home-accent);
+  outline-offset:2px;
+}
+.gs-an-finance-tooltip {
+  pointer-events:none;
+  min-width:205px;
+  padding:13px 15px;
+  border-radius:13px;
+  background:var(--home-card);
+  border:1px solid var(--home-border);
+  color:var(--home-text);
+  box-shadow:0 12px 32px rgba(0,0,0,.10);
+}
+.gs-an-finance-tooltip__day {
+  display:block;
+  margin-bottom:9px;
+  padding-bottom:9px;
+  border-bottom:1px solid var(--home-border);
+  font-size:11px;
+  font-weight:750;
+  color:var(--home-text);
+}
+.gs-an-finance-tooltip>div {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 0;
+  font-size:11px;
+  color:var(--home-muted);
+}
+.gs-an-finance-tooltip>div strong {
+  color:var(--home-text);
+  font-weight:720;
+  margin-left:auto;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+}
+.gs-an-finance-tooltip__dot {
+  display:block;
+  flex:none;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--home-accent);
+}
+.gs-an-finance-tooltip__dot--cost {
+  background:var(--home-muted);
+}
+.gs-an-finance-tooltip__dot--profit {
+  background:var(--home-text);
+}
+.gs-an-finance-tooltip .gs-an-finance-tooltip__margin {
+  margin-top:6px;
+  padding-top:9px;
+  border-top:1px solid var(--home-border);
+}
+@media(max-width:530px) {
+  .gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame {
+    height:266px;
+    padding:6px 0 0;
+  }
+  .gs-an-premium .gs-an-point-nav {
+    padding:5px 8px 12px;
+  }
+  .gs-an-finance-tooltip {
+    min-width:168px;
+    padding:10px 11px;
+  }
+  .gs-an-finance-tooltip>div,
+  .gs-an-finance-tooltip>div strong {
+    font-size:10px;
+  }
+}
