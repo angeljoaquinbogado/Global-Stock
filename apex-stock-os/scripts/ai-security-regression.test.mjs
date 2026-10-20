@@ -277,3 +277,20 @@ test("workspace header popovers animate downward without changing the theme swit
   assert.match(install, /showHelp && \(/);
   assert.match(workspace, /onClick=\{onToggleTheme\}/);
 });
+
+test("internal documents and ARCA fiscal issuance are separate workspaces", () => {
+  const workspace = file("apex-stock-os/components/BusinessWorkspace.tsx");
+  const inbox = file("apex-stock-os/components/SmartDocumentInbox.tsx");
+  const fiscal = file("apex-stock-os/components/FiscalDocumentsCenter.tsx");
+  const internal = file("apex-stock-os/components/BusinessOperations.tsx");
+  assert.match(workspace, /activeModule === "arca" && \(\s*<FiscalDocumentsCenter/);
+  assert.match(workspace, /activeModule === "documents" && \(\s*<SmartDocumentInbox/);
+  assert.doesNotMatch(inbox, /<FiscalDocumentsCenter/);
+  assert.doesNotMatch(inbox, /import \{ FiscalDocumentsCenter \}/);
+  assert.match(inbox, /<DocumentsHub/);
+  assert.match(inbox, /fileInputRef\.current\?\.click\(\)/);
+  assert.match(inbox, /registerApprovedExpense\(document\)/);
+  assert.match(fiscal, /issueDocument\(document.id\)/);
+  assert.match(fiscal, /authorization_code/);
+  assert.match(internal, /Documento interno sin validez fiscal/);
+});

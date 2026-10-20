@@ -18,7 +18,6 @@ import {
 import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { DocumentsHub } from "./BusinessOperations";
-import { FiscalDocumentsCenter } from "./FiscalDocumentsCenter";
 import type { LanguageCode } from "./GlobalPreferences";
 
 type Props = {
@@ -452,20 +451,20 @@ export function SmartDocumentInbox({
           <div>
             <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#8F0000]">
               <Sparkles size={13} />
-              Document Intelligence
+              {label(language, "Gestión documental", "Document management")}
             </div>
             <h2 className="mt-2 text-xl font-semibold tracking-[-0.025em] sm:text-2xl">
               {label(
                 language,
-                "Escaneá tickets y facturas sin cargar datos a mano",
-                "Scan receipts and invoices without retyping data"
+                "Comprobantes de compras y gastos",
+                "Purchase and expense documents"
               )}
             </h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-[var(--apex-muted)]">
               {label(
                 language,
-                "Subí una foto o PDF. Global Stock lee proveedor, fecha, número, subtotal, impuestos, total, moneda e ítems. La información queda para revisión antes de afectar la operación.",
-                "Upload a photo or PDF. Global Stock reads supplier, date, number, subtotal, tax, total, currency and line items. Data stays in review before affecting operations."
+                "Escaneá tickets y facturas que recibiste, revisá sus datos y registrá gastos cuando corresponda. Aquí también administrás comprobantes internos; la emisión de facturas oficiales se realiza únicamente en ARCA Facturación.",
+                "Scan receipts and supplier invoices, review their details, and record expenses when appropriate. Manage internal documents here; official fiscal issuance belongs exclusively in ARCA Invoicing."
               )}
             </p>
           </div>
@@ -719,14 +718,6 @@ export function SmartDocumentInbox({
           )}
         </div>
       </section>
-
-      <FiscalDocumentsCenter
-        language={language}
-        currency={currency}
-        locale={locale}
-        businessId={businessId}
-        demoMode={demoMode}
-      />
 
       <DocumentsHub
         language={language}
