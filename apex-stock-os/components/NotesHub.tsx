@@ -622,7 +622,7 @@ export function NotesHub({
         )}
 
         {tab === "calendar" && (
-          <div className="w-full min-w-0">
+          <div className="mx-auto w-full max-w-[720px] min-w-0">
             <CompactCalendar
               t={t}
               locale={locale}
@@ -709,7 +709,7 @@ function CompactCalendar({
         </div>
       </div>
 
-      <div className={"mt-3 grid grid-cols-7 text-center " + (standalone ? "gap-1.5 sm:mt-5 sm:gap-3" : "gap-1")}>
+      <div className={"mt-3 grid grid-cols-7 text-center " + (standalone ? "gap-1.5 sm:mt-4 sm:gap-2" : "gap-1")}>
         {weekdays.map((weekday, index) => (
           <div
             key={`${weekday}-${index}`}
@@ -736,7 +736,7 @@ function CompactCalendar({
               className={
                 "relative font-semibold transition-[background-color,border-color,color,transform] duration-200 " +
                 (standalone
-                  ? "flex h-[clamp(54px,8vw,108px)] w-full items-start justify-start rounded-xl border p-2 text-sm sm:p-3 sm:text-base "
+                  ? "flex h-[clamp(46px,6vw,64px)] w-full items-start justify-start rounded-xl border p-2 text-sm sm:text-base "
                   : "aspect-square max-h-8 rounded-lg text-[10px] ") +
                 (selected
                   ? "border-[var(--apex-accent)] bg-[var(--apex-accent)] text-white"
