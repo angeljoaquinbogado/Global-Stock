@@ -235,3 +235,34 @@
     font-size:10px;
   }
 }
+
+/* Comparison chart: grouped revenue/cost bars + profit line. */
+.gs-an-premium {
+  --gs-an-profit-ink:color-mix(in srgb,var(--home-accent) 34%,#16b6be);
+}
+.gs-an-premium[data-theme="dark"] {
+  --gs-an-profit-ink:color-mix(in srgb,var(--home-accent) 34%,#71dce2);
+}
+.gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame {
+  background:var(--home-card);
+  height:clamp(305px,31vw,390px);
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-cartesian-grid line {
+  stroke-opacity:.48;
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-line-curve {
+  filter:none;
+}
+.gs-an-premium .gs-an-legend__item--profit .gs-an-legend__mark,
+.gs-an-premium .gs-an-series-stats .gs-an-marker--text,
+.gs-an-premium .gs-an-finance-tooltip__dot--profit {
+  background:var(--gs-an-profit-ink);
+}
+.gs-an-premium .gs-an-chart-dashboard .recharts-bar-rectangle {
+  transition:opacity .18s ease;
+}
+@media(max-width:530px) {
+  .gs-an-premium .gs-an-chart-dashboard .gs-an-chart-frame {
+    height:285px;
+  }
+}

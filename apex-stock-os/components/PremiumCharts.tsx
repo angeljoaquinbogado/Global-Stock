@@ -24,7 +24,6 @@ import {
   Cell,
   ComposedChart,
   Line,
-  ReferenceDot,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -248,8 +247,7 @@ export function PremiumCharts({
 }: Props) {
   const reduced = useReducedMotion();
   const t = copy[language];
-  const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: false, profit: false });
-  const [graphMode, setGraphMode] = useState<"curve" | "bars">("curve");
+  const [visibleSeries, setVisibleSeries] = useState({ revenue: true, cost: true, profit: true });
   const [focusIndex, setFocusIndex] = useState<number | null>(null);
 
   const stockData = products
@@ -458,12 +456,8 @@ export function PremiumCharts({
           <div className="gs-an-chart-dashboard">
             <div className="gs-an-chart-toolbar">
               <div className="gs-an-chart-toolbar__copy">
-                <strong>{language === "es" ? "Evolución financiera" : "Financial performance"}</strong>
-                <span>{language === "es" ? "Ingresos por día · activá otras series para comparar" : language === "pt" ? "Receitas diárias · ative outras séries para comparar" : "Daily revenue · enable other series to compare"}</span>
-              </div>
-              <div className="gs-an-chart-mode" role="group" aria-label={language === "es" ? "Estilo del gráfico" : "Chart style"}>
-                <button type="button" aria-pressed={graphMode === "curve"} onClick={() => setGraphMode("curve")}>{language === "es" ? "Tendencia" : language === "pt" ? "Tendência" : "Trend"}</button>
-                <button type="button" aria-pressed={graphMode === "bars"} onClick={() => setGraphMode("bars")}>{language === "es" ? "Columnas" : language === "pt" ? "Colunas" : "Columns"}</button>
+                <strong>{language === "es" ? "Comparación diaria" : language === "pt" ? "Comparação diária" : language === "fr" ? "Comparaison quotidienne" : language === "de" ? "Tagesvergleich" : "Daily comparison"}</strong>
+                <span>{language === "es" ? "Dos columnas para ingresos y costos; una línea para la ganancia." : language === "pt" ? "Duas colunas para receitas e custos; uma linha para o lucro." : language === "fr" ? "Deux colonnes pour revenus et coûts ; une ligne pour le bénéfice." : language === "de" ? "Zwei Säulen für Einnahmen und Kosten, eine Linie für den Gewinn." : "Revenue and cost columns with a profit line."}</span>
               </div>
             </div>
             <div className="gs-an-chart-spotlight">
@@ -480,7 +474,10 @@ export function PremiumCharts({
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart
                 data={data}
+                barGap={5}
+                barCategoryGap="28%"
                 onMouseMove={(state: {activeTooltipIndex?: number | string}) => { const i = Number(state?.activeTooltipIndex); if (Number.isInteger(i) && i >= 0 && i < data.length) setFocusIndex(i); }}
+                onClick={(state: {activeTooltipIndex?: number | string}) => { const i = Number(state?.activeTooltipIndex); if (Number.isInteger(i) && i >= 0 && i < data.length) setFocusIndex(i); }}
                 margin={{ left: 6, right: 12, top: 16, bottom: 8 }}
               >
                 <CartesianGrid
@@ -531,86 +528,51 @@ export function PremiumCharts({
                     </div>;
                   }}
                 />
-                {graphMode === "curve" && visibleSeries.revenue && (
-                  <Line
-                    type="linear"
+                {visibleSeries.revenue && (
+                  <Bar
                     dataKey="revenue"
                     name={t.revenue}
-                    stroke="var(--home-accent)"
-                    strokeWidth={3.1}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    dot={false}
-                    activeDot={{
-                      r:6,
-                      fill:"var(--home-accent)",
-                      stroke:"var(--home-card)",
-                      strokeWidth:3
-                    }}
+                    fill="var(--home-accent)"
+                    maxBarSize={31}
+                    radius={[3,3,0,0]}
                     isAnimationActive={!reduced}
-                    animationDuration={740}
+                    animationDuration={720}
                   />
                 )}
-                {graphMode === "curve" && visibleSeries.cost && (
-                  <Line
-                    type="linear"
+                {visibleSeries.cost && (
+                  <Bar
                     dataKey="cost"
                     name={t.cost}
-                    stroke="var(--home-muted)"
-                    strokeWidth={1.8}
-                    strokeDasharray="5 5"
-                    strokeOpacity={0.84}
-                    strokeLinecap="round"
-                    dot={false}
-                    activeDot={{
-                      r:5,
-                      fill:"var(--home-muted)",
-                      stroke:"var(--home-card)",
-                      strokeWidth:2.5
-                    }}
+                    fill="var(--home-text)"
+                    fillOpacity={.85}
+                    maxBarSize={31}
+                    radius={[3,3,0,0]}
                     isAnimationActive={!reduced}
-                    animationDuration={740}
+                    animationDuration={790}
                   />
                 )}
-                {graphMode === "curve" && visibleSeries.profit && (
+                {visibleSeries.profit && (
                   <Line
                     type="linear"
                     dataKey="profit"
                     name={t.profit}
-                    stroke="var(--home-text)"
-                    strokeWidth={2}
-                    strokeOpacity={0.8}
+                    stroke="var(--gs-an-profit-ink)"
+                    strokeWidth={2.8}
                     strokeLinecap="round"
+                    strokeLinejoin="round"
                     dot={false}
                     activeDot={{
-                      r:5,
-                      fill:"var(--home-text)",
+                      r:5.5,
                       stroke:"var(--home-card)",
-                      strokeWidth:2.5
+                      strokeWidth:2.5,
+                      fill:"var(--gs-an-profit-ink)"
                     }}
                     isAnimationActive={!reduced}
-                    animationDuration={740}
+                    animationDuration={880}
                   />
                 )}
-                {graphMode === "curve" && focusIndex !== null && focused && visibleSeries.revenue && (
-                  <ReferenceDot
-                    x={focused.label}
-                    y={focused.revenue}
-                    r={5}
-                    fill="var(--home-accent)"
-                    stroke="var(--home-card)"
-                    strokeWidth={2}
-                    ifOverflow="hidden"
-                  />
-                )}
-                {graphMode === "bars" && visibleSeries.revenue && <Bar dataKey="revenue" name={t.revenue} fill="var(--home-accent)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
-                {graphMode === "bars" && visibleSeries.cost && <Bar dataKey="cost" name={t.cost} fill="var(--home-muted)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
-                {graphMode === "bars" && visibleSeries.profit && <Bar dataKey="profit" name={t.profit} fill="var(--home-text)" radius={[7,7,0,0]} maxBarSize={32} isAnimationActive={!reduced} animationDuration={550} />}
               </ComposedChart>
             </ResponsiveContainer>
-          </div>
-          <div className="gs-an-point-nav" role="group" aria-label={language === "es" ? "Explorar días" : "Explore periods"}>
-            {data.map((row, index) => <button key={index} type="button" onClick={() => setFocusIndex(index)} aria-pressed={focusedIndex === index} title={row.label}><span />{row.label}</button>)}
           </div>
           </div>
         ) : (
