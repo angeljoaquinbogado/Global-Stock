@@ -182,6 +182,14 @@ export function CashDeviceScanner({ language, onCode }: Props) {
           className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-[var(--apex-border)] px-3 text-xs font-semibold hover:bg-[var(--apex-bg)]">
           <Share2 size={15}/>{language === "es" ? "Compartir" : "Share"}
         </button>
+        <button type="button" onClick={async () => {
+          const channel = channelRef.current;
+          if (channel) await channel.send({ type: "broadcast", event: "pc-disconnect", payload: { at: Date.now() } });
+          setPair(null);
+        }}
+          className="inline-flex h-10 items-center justify-center gap-1.5 rounded-lg border border-[var(--apex-accent)] bg-[var(--apex-accent)] px-3 text-xs font-semibold text-white shadow-sm transition-colors hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--apex-accent)] focus-visible:ring-offset-2">
+          <X size={15}/>{language === "es" ? "Cerrar conexión" : "Disconnect"}
+        </button>
       </div>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p role="status" className="flex items-center gap-1.5 text-[11px] text-[var(--apex-muted)]">
@@ -192,14 +200,6 @@ export function CashDeviceScanner({ language, onCode }: Props) {
           <RefreshCw size={13}/>{language === "es" ? "Reintentar" : "Retry"}
         </button>}
       </div>
-      <button type="button" onClick={async () => {
-        const channel = channelRef.current;
-        if (channel) await channel.send({ type: "broadcast", event: "pc-disconnect", payload: { at: Date.now() } });
-        setPair(null);
-      }}
-        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300">
-        <X size={16}/>{language === "es" ? "Cerrar conexión" : "Disconnect"}
-      </button>
     </div>}
     <p className="mt-2 text-[11px] text-[var(--apex-muted)]">
       {language === "es"
