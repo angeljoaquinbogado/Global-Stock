@@ -202,8 +202,7 @@ test("cash scanner sends product codes without remote sale confirmation", () => 
   assert.match(paired, /crypto\.getRandomValues\(new Uint8Array\(8\)\)/);
   assert.match(paired, /conexión persistente/);
   assert.match(paired, /\/scan-remote#pair=/);
-  assert.match(mobile, /channel\.send\(/);\n  assert.match(mobile, /event:\s*"pc-disconnect"/);\n  assert.match(mobile, /event:\s*"phone-disconnect"/);
-  assert.match(mobile, /type:\s*"broadcast",\s*event:\s*"barcode"/);
+  assert.match(mobile, /channel\\.send\\(/);\n  assert.match(mobile, /event:\\s*"pc-disconnect"/);\n  assert.match(mobile, /event:\\s*"phone-disconnect"/);\n  assert.match(mobile, /type:\s*"broadcast",\s*event:\s*"barcode"/);
   assert.doesNotMatch(mobile, /completeSale|global_stock_record_pos_sale/);
   assert.match(camera, /decodeFromVideoDevice/);
 });
