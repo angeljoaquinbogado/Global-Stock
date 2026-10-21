@@ -6,13 +6,14 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { BarcodeCameraCapture } from "./BarcodeCameraCapture";
 
 type Props = { language: string; onCode: (code: string) => void };
-type Pair = { token: string; expires: number };
+type Pair = { token: string };
 type PairPhase = "connecting" | "waiting" | "paired" | "error";
 
 export function CashDeviceScanner({ language, onCode }: Props) {
   const listener = useRef(onCode);
   const seen = useRef(new Set<string>());
   const [pair, setPair] = useState<Pair | null>(null);
+  const channelRef = useRef<import("@supabase/supabase-js").RealtimeChannel | null>(null);
   const [phase, setPhase] = useState<PairPhase>("connecting");
   const [pairStatus, setPairStatus] = useState("");
   const [copied, setCopied] = useState(false);
@@ -31,8 +32,9 @@ export function CashDeviceScanner({ language, onCode }: Props) {
       return;
     }
     const channel = supabase.channel("gs-remote-scanner-" + pair.token);
+    channelRef.current = channel;
     channel.on("broadcast", { event: "phone-ready" }, () => {
-      if (!alive || Date.now() > pair.expires) return;
+      if (!alive) return;
       setPhase("paired");
       setPairStatus(language === "es"
         ? "Celular vinculado. Escaneá desde el teléfono."
@@ -41,10 +43,15 @@ export function CashDeviceScanner({ language, onCode }: Props) {
       // the phone and the register have found each other.
       void channel.send({ type: "broadcast", event: "pc-ready", payload: { at: Date.now() } });
     });
+    channel.on("broadcast", { event: "phone-disconnect" }, () => {
+      if (!alive) return;
+      setPair(null);
+      setPairStatus(language === "es" ? "El celular se desconectó." : "The phone disconnected.");
+    });
     channel.on("broadcast", { event: "barcode" }, ({ payload }) => {
       const code = typeof payload?.code === "string" ? payload.code.trim() : "";
       const id = typeof payload?.id === "string" ? payload.id : "";
-      if (!alive || Date.now() > pair.expires || !code || code.length > 160
+      if (!alive || !code || code.length > 160
         || !id || id.length > 90 || seen.current.has(id)) return;
       seen.current.add(id);
       if (seen.current.size > 120) seen.current.clear();
@@ -79,25 +86,22 @@ export function CashDeviceScanner({ language, onCode }: Props) {
         return "error";
       });
     }, 15000);
-    const expiryTimer = window.setInterval(() => {
-      if (Date.now() > pair.expires) setPair(current => current?.token === pair.token ? null : current);
-    }, 1000);
     return () => {
       alive = false;
       window.clearTimeout(waitingTimer);
-      window.clearInterval(expiryTimer);
       void supabase.removeChannel(channel);
     };
   }, [pair, language]);
 
   const url = pair && typeof window !== "undefined"
     ? window.location.origin + "/scan-remote#pair=" + encodeURIComponent(pair.token)
-      + "&until=" + pair.expires
     : "";
 
   function startPair() {
     seen.current.clear();
-    setPair({ token: crypto.randomUUID(), expires: Date.now() + 10 * 60 * 1000 });
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    const token = Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("");
+    setPair({ token });
     setCopied(false);
     setPhase("connecting");
     setPairStatus(language === "es" ? "Conectando con el servicio…" : "Connecting to service…");
@@ -147,7 +151,7 @@ export function CashDeviceScanner({ language, onCode }: Props) {
     {pair && <div className="mt-3 space-y-3 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-xs font-semibold">
-          {language === "es" ? "Lector remoto · enlace temporal (10 minutos)" : "Remote scanner · temporary link (10 minutes)"}
+          {language === "es" ? "Lector remoto · conexión persistente" : "Remote scanner · persistent connection"}
         </p>
         <span role="status" className={"rounded-full px-2.5 py-1 text-[10px] font-semibold " + (
           phase === "paired" ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-300" :
@@ -162,8 +166,8 @@ export function CashDeviceScanner({ language, onCode }: Props) {
       </div>
       <p className="text-[11px] leading-relaxed text-[var(--apex-muted)]">
         {language === "es"
-          ? "1. Enviá este enlace a tu celular. 2. Abrilo en el navegador y permití la cámara. 3. Escaneá: el código aparecerá en esta caja. No hace falta cable ni Bluetooth."
-          : "1. Send the link to your phone. 2. Open it and allow camera access. 3. Scan: the barcode appears on this register. No cable or Bluetooth needed."}
+          ? "1. Enviá este enlace a tu celular. 2. Abrilo y permití la cámara. 3. Escaneá: los códigos aparecerán en esta caja. La conexión sigue activa hasta que desconectes uno de los dispositivos."
+          : "1. Send this link to your phone. 2. Open it and allow camera access. 3. Scanned codes appear at this register. The connection stays active until either device disconnects."}
       </p>
       <div className="flex min-w-0 flex-wrap gap-2">
         <input aria-label="Enlace del escáner" readOnly value={url}
@@ -188,9 +192,13 @@ export function CashDeviceScanner({ language, onCode }: Props) {
           <RefreshCw size={13}/>{language === "es" ? "Reintentar" : "Retry"}
         </button>}
       </div>
-      <button type="button" onClick={() => setPair(null)}
-        className="inline-flex items-center gap-1 text-[11px] text-[var(--apex-muted)] hover:text-[var(--apex-text)]">
-        <X size={13}/>{language === "es" ? "Cerrar conexión" : "End connection"}
+      <button type="button" onClick={async () => {
+        const channel = channelRef.current;
+        if (channel) await channel.send({ type: "broadcast", event: "pc-disconnect", payload: { at: Date.now() } });
+        setPair(null);
+      }}
+        className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-red-500/40 bg-red-500/10 px-4 text-sm font-semibold text-red-600 transition-colors hover:bg-red-500/20 dark:text-red-300">
+        <X size={16}/>{language === "es" ? "Cerrar conexión" : "Disconnect"}
       </button>
     </div>}
     <p className="mt-2 text-[11px] text-[var(--apex-muted)]">
