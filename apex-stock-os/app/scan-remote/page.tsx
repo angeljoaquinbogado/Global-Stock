@@ -10,7 +10,6 @@ export default function RemoteScannerPage() {
   const channelRef = useRef<RealtimeChannel | null>(null);
   const pendingRef = useRef(new Map<string, { code: string; timeout: number }>());
   const recentRef = useRef({ code: "", at: 0 });
-  const [expiry, setExpiry] = useState(0);
   const [token, setToken] = useState("");
   const [connected, setConnected] = useState(false);
   const [message, setMessage] = useState("Preparando escáner…");
@@ -22,16 +21,13 @@ export default function RemoteScannerPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.hash.slice(1));
     const pair = params.get("pair") || "";
-    const until = Number(params.get("until") || "0");
-    if (!/^[a-f0-9-]{36}$/i.test(pair) || !Number.isFinite(until)
-      || until < Date.now() || until > Date.now() + 11 * 60 * 1000) {
+    if (!/^[a-f0-9]{16}$/i.test(pair)) {
       setConnected(false);
       setCanRetry(false);
       setMessage("El enlace es inválido o venció. Generá uno nuevo desde Caja Registradora.");
       return;
     }
     setToken(pair);
-    setExpiry(until);
     setConnected(false);
     setCanRetry(false);
     setMessage("Buscando la caja registradora…");
@@ -47,11 +43,18 @@ export default function RemoteScannerPage() {
     const channel = client.channel("gs-remote-scanner-" + pair);
     channelRef.current = channel;
     channel.on("broadcast", { event: "pc-ready" }, () => {
-      if (!alive || Date.now() > until) return;
+      if (!alive) return;
       paired = true;
       setConnected(true);
       setCanRetry(false);
       setMessage("Celular vinculado a la caja. Podés escanear.");
+    });
+    channel.on("broadcast", { event: "pc-disconnect" }, () => {
+      if (!alive) return;
+      paired = false;
+      setConnected(false);
+      setCanRetry(false);
+      setMessage("La caja cerró la conexión. Podés volver a vincularla desde Caja Registradora.");
     });
     channel.on("broadcast", { event: "scan-received" }, ({ payload }) => {
       const id = typeof payload?.id === "string" ? payload.id : "";
@@ -79,7 +82,7 @@ export default function RemoteScannerPage() {
     // A one-time broadcast may be missed if the PC is still subscribing.
     // Retry the pairing hello until the PC confirms the same channel.
     const helloTimer = window.setInterval(() => {
-      if (!alive || paired || Date.now() > until) return;
+      if (!alive || paired) return;
       void channel.send({ type: "broadcast", event: "phone-ready", payload: { at: Date.now() } });
     }, 3500);
     const timeout = window.setTimeout(() => {
@@ -87,18 +90,10 @@ export default function RemoteScannerPage() {
       setCanRetry(true);
       setMessage("La caja no respondió. Dejá Caja Registradora abierta y tocá Reintentar.");
     }, 15000);
-    const expiryTimer = window.setInterval(() => {
-      if (Date.now() > until) {
-        setConnected(false);
-        setCanRetry(false);
-        setMessage("La conexión expiró. Generá otro enlace desde la caja.");
-      }
-    }, 1000);
     return () => {
       alive = false;
       window.clearInterval(helloTimer);
       window.clearTimeout(timeout);
-      window.clearInterval(expiryTimer);
       channelRef.current = null;
       for (const pending of pendingRef.current.values()) window.clearTimeout(pending.timeout);
       pendingRef.current.clear();
@@ -108,7 +103,7 @@ export default function RemoteScannerPage() {
 
   const send = useCallback(async (raw: string) => {
     const code = raw.trim();
-    if (!connected || !token || Date.now() > expiry || !code || code.length > 160) return;
+    if (!connected || !token || !code || code.length > 160) return;
     const now = Date.now();
     if (recentRef.current.code === code && now - recentRef.current.at < 1800) return;
     const channel = channelRef.current;
@@ -132,7 +127,7 @@ export default function RemoteScannerPage() {
       recentRef.current = { code: "", at: 0 };
       setMessage("No se pudo enviar. Revisá la conexión e intentá de nuevo.");
     }
-  }, [connected, expiry, token]);
+  }, [connected, token]);
 
   return <main className="min-h-dvh bg-[#f7f8f9] px-4 py-8 text-[#25272c]">
     <div className="mx-auto max-w-lg space-y-5">
@@ -180,7 +175,7 @@ export default function RemoteScannerPage() {
         <p role="status" className="flex items-start gap-2 text-xs leading-5 text-slate-600">
           <CheckCircle2 className="mt-0.5 shrink-0" size={16}/>{message}
         </p>
-        {canRetry && Date.now() < expiry && <button
+        {canRetry && <button
           type="button" onClick={() => setAttempt(current => current + 1)}
           className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 text-xs font-semibold hover:bg-slate-50">
           <RefreshCw size={15}/>Reintentar conexión
@@ -188,6 +183,17 @@ export default function RemoteScannerPage() {
         <p className="text-xs text-slate-500">
           Lecturas confirmadas: {count}. El celular no puede confirmar pagos.
         </p>
+        <button type="button" onClick={async () => {
+          const channel = channelRef.current;
+          if (channel) await channel.send({ type: "broadcast", event: "phone-disconnect", payload: { at: Date.now() } });
+          setConnected(false);
+          setCanRetry(false);
+          setMessage("Celular desconectado. Volvé a Caja Registradora para generar un nuevo enlace.");
+          channelRef.current = null;
+        }} disabled={!connected}
+          className="inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-red-300 bg-red-50 px-4 text-sm font-semibold text-red-700 transition-colors hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50">
+          Desconectar celular
+        </button>
       </section>
       <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
         <ArrowLeft size={16}/>Volver a Global Stock

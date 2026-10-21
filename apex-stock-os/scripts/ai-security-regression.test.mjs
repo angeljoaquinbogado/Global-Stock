@@ -199,10 +199,12 @@ test("cash scanner sends product codes without remote sale confirmation", () => 
   const camera = file("apex-stock-os/components/BarcodeCameraCapture.tsx");
   assert.match(cashier, /<CashDeviceScanner/);
   assert.match(cashier, /applyCashCode\(raw/);
-  assert.match(paired, /crypto\.randomUUID\(\)/);
-  assert.match(paired, /Date\.now\(\)\s*\+\s*10\s*\*\s*60\s*\*\s*1000/);
+  assert.match(paired, /crypto\.getRandomValues\(new Uint8Array\(8\)\)/);
+  assert.match(paired, /conexión persistente/);
   assert.match(paired, /\/scan-remote#pair=/);
   assert.match(mobile, /channel\.send\(/);
+  assert.match(mobile, /event:\s*"pc-disconnect"/);
+  assert.match(mobile, /event:\s*"phone-disconnect"/);
   assert.match(mobile, /type:\s*"broadcast",\s*event:\s*"barcode"/);
   assert.doesNotMatch(mobile, /completeSale|global_stock_record_pos_sale/);
   assert.match(camera, /decodeFromVideoDevice/);
