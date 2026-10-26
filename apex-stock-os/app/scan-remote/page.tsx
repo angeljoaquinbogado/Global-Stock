@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowLeft, CheckCircle2, RefreshCw, Smartphone } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { BarcodeCameraCapture } from "@/components/BarcodeCameraCapture";
@@ -18,8 +19,22 @@ export default function RemoteScannerPage() {
   const [count, setCount] = useState(0);
   const [attempt, setAttempt] = useState(0);
   const [canRetry, setCanRetry] = useState(false);
+  const [expiryReached, setExpiryReached] = useState(false);
 
   useEffect(() => {
+    if (!expiry) return;
+    const remaining = expiry - Date.now();
+    if (remaining <= 0) {
+      setExpiryReached(true);
+      return;
+    }
+    setExpiryReached(false);
+    const timer = window.setTimeout(() => setExpiryReached(true), remaining);
+    return () => window.clearTimeout(timer);
+  }, [expiry]);
+
+  useEffect(() => {
+    const pendingRequests = pendingRef.current;
     const params = new URLSearchParams(window.location.hash.slice(1));
     const pair = params.get("pair") || "";
     const until = Number(params.get("until") || "0");
@@ -100,8 +115,8 @@ export default function RemoteScannerPage() {
       window.clearTimeout(timeout);
       window.clearInterval(expiryTimer);
       channelRef.current = null;
-      for (const pending of pendingRef.current.values()) window.clearTimeout(pending.timeout);
-      pendingRef.current.clear();
+      for (const pending of pendingRequests.values()) window.clearTimeout(pending.timeout);
+      pendingRequests.clear();
       void client.removeChannel(channel);
     };
   }, [attempt]);
@@ -180,7 +195,7 @@ export default function RemoteScannerPage() {
         <p role="status" className="flex items-start gap-2 text-xs leading-5 text-slate-600">
           <CheckCircle2 className="mt-0.5 shrink-0" size={16}/>{message}
         </p>
-        {canRetry && Date.now() < expiry && <button
+        {canRetry && !expiryReached && <button
           type="button" onClick={() => setAttempt(current => current + 1)}
           className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-slate-300 px-3 text-xs font-semibold hover:bg-slate-50">
           <RefreshCw size={15}/>Reintentar conexión
@@ -189,9 +204,9 @@ export default function RemoteScannerPage() {
           Lecturas confirmadas: {count}. El celular no puede confirmar pagos.
         </p>
       </section>
-      <a href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+      <Link href="/" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
         <ArrowLeft size={16}/>Volver a Global Stock
-      </a>
+      </Link>
     </div>
   </main>;
 }
