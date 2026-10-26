@@ -4492,6 +4492,7 @@ export function BusinessWorkspace({
 
       <ApexIntelligence
         snapshot={snapshot}
+        accent={workspaceAccent}
         demoMode={demoMode}
         businessId={cloudBusinessId}
         raiseOnMobile={
@@ -4887,7 +4888,6 @@ function PosModule({
     setScanEntry("");
     setScanFeedback(`${cashLabels.added}: ${product.name}${variant ? " · " + variant.name : ""} (+1)`);
     setClearCashConfirm(false);
-    cashScanRef.current?.focus();
   }
 
   function applyCashCode(raw: string) {
@@ -4993,7 +4993,7 @@ function PosModule({
                   <h2 className="text-base font-bold">{cashLabels.reader}</h2>
                 </div>
                 <p className="mb-4 text-xs leading-relaxed text-[var(--apex-muted)]">{cashLabels.readerHint}</p>
-                <form className="flex flex-col gap-2 sm:flex-row" onSubmit={(event) => { event.preventDefault(); submitCashCode(); }}>
+                <form className="flex flex-col gap-2 sm:flex-row" onSubmit={(event) => { event.preventDefault(); submitCashCode(); cashScanRef.current?.focus(); }}>
                   <input
                     ref={cashScanRef}
                     autoComplete="off"
@@ -5009,7 +5009,7 @@ function PosModule({
                   </button>
                 </form>
                 {scanFeedback && <p role="status" aria-live="polite" className="mt-3 rounded-xl bg-[var(--apex-bg)] px-3 py-2 text-xs">{scanFeedback}</p>}
-                <CashDeviceScanner language={language} onCode={applyCashCode}/>
+                <CashDeviceScanner language={language} onCode={(code) => { applyCashCode(code); cashScanRef.current?.focus(); }}/>
                 {scanEntry.trim() && (
                   <div className="mt-3 overflow-hidden rounded-xl border border-[var(--apex-border)]">
                     <div className="border-b border-[var(--apex-border)] px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[var(--apex-muted)]">
@@ -5021,7 +5021,7 @@ function PosModule({
                       return (
                         <button key={variantCartKey(product.id, variant?.id)} type="button"
                           disabled={available <= (cart[variantCartKey(product.id, variant?.id)] ?? 0)}
-                          onClick={() => addCashItem(product, variant)}
+                          onClick={() => { addCashItem(product, variant); cashScanRef.current?.focus(); }}
                           className="flex min-h-12 w-full items-center justify-between gap-3 border-b border-[var(--apex-border)] px-3 py-2 text-left last:border-b-0 hover:bg-[var(--apex-bg)] disabled:opacity-40">
                           <span className="min-w-0">
                             <span className="block truncate text-xs font-semibold">{product.name}{variant ? " · " + variant.name : ""}</span>

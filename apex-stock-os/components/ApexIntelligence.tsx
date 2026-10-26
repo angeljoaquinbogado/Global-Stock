@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUp,
+  Send,
   BrainCircuit,
   ChartNoAxesCombined,
   Minimize2,
@@ -25,6 +25,7 @@ import { calculateMetrics, formatMoney } from "@/lib/analytics";
 import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
+import { WORKSPACE_ACCENTS, type WorkspaceAccent } from "@/lib/workspace-accent";
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
@@ -32,6 +33,7 @@ type ApexIntelligenceProps = {
   raiseOnMobile?: boolean;
   demoMode?: boolean;
   businessId?: string | null;
+  accent?: WorkspaceAccent;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
@@ -363,10 +365,12 @@ export function ApexIntelligence({
   appContext = {},
   raiseOnMobile = false,
   demoMode = false,
-  businessId = null
+  businessId = null,
+  accent = "red"
 }: ApexIntelligenceProps) {
   const language = languageFromLocale(snapshot.locale);
   const copy = uiCopy[language];
+  const accentColors = WORKSPACE_ACCENTS[accent];
   const metrics = useMemo(() => calculateMetrics(snapshot), [snapshot]);
 
   const [mounted, setMounted] = useState(false);
@@ -382,6 +386,8 @@ export function ApexIntelligence({
   const [aiConsentLoading, setAiConsentLoading] = useState(!demoMode);
   const [aiConsentSaving, setAiConsentSaving] = useState(false);
   const [aiConsentError, setAiConsentError] = useState("");
+  const [recoveredBusinessId, setRecoveredBusinessId] = useState<string | null>(null);
+  const aiBusinessId = businessId ?? recoveredBusinessId;
   const [mobileViewport, setMobileViewport] = useState<{
     compact: boolean;
     height: number;
@@ -435,7 +441,7 @@ export function ApexIntelligence({
     if (demoMode) { setAiConsent(true); setAiConsentLoading(false); return; }
     setAiConsent(false);
     setAiConsentError("");
-    if (!businessId) { setAiConsentLoading(false); return; }
+    if (!aiBusinessId) { setAiConsentLoading(false); return; }
     let live = true;
     setAiConsentLoading(true);
     void (async () => {
@@ -446,7 +452,7 @@ export function ApexIntelligence({
       const { data, error } = await client.from("global_stock_ai_data_consents")
         .select("approved")
         .eq("user_id", verified.user.id)
-        .eq("business_id", businessId)
+        .eq("business_id", aiBusinessId)
         .maybeSingle();
       if (error) throw error;
       if (live) setAiConsent(data?.approved === true);
@@ -454,10 +460,10 @@ export function ApexIntelligence({
       if (live) setAiConsentError(reason instanceof Error ? reason.message : "No pudimos comprobar el permiso de IA.");
     }).finally(() => { if (live) setAiConsentLoading(false); });
     return () => { live = false; };
-  }, [demoMode, businessId]);
+  }, [demoMode, aiBusinessId]);
 
   async function revokeAiConsent() {
-    if (!businessId || demoMode || aiConsentSaving) return;
+    if (!aiBusinessId || demoMode || aiConsentSaving) return;
     setAiConsentSaving(true);
     try {
       const client = getSupabaseBrowserClient();
@@ -465,7 +471,7 @@ export function ApexIntelligence({
       const { data: verified, error: userError } = await client.auth.getUser();
       if (userError || !verified.user) throw new Error("Tu sesión cambió.");
       const { error } = await client.from("global_stock_ai_data_consents").upsert({
-        user_id: verified.user.id, business_id: businessId,
+        user_id: verified.user.id, business_id: aiBusinessId,
         approved: false, updated_at: new Date().toISOString()
       }, { onConflict: "user_id,business_id" });
       if (error) throw error;
@@ -479,20 +485,87 @@ export function ApexIntelligence({
   }
 
   async function approveAiConsent() {
-    if (aiConsentSaving || demoMode || !businessId) return;
+    if (aiConsentSaving || demoMode) return;
     setAiConsentSaving(true);
     setAiConsentError("");
     try {
       const client = getSupabaseBrowserClient();
-      if (!client) throw new Error("Ingresá a tu cuenta para continuar.");
+      if (!client) throw new Error("Ingresá a una cuenta para continuar.");
       const { data: verified, error: userError } = await client.auth.getUser();
       if (userError || !verified.user) throw new Error("Tu sesión venció. Volvé a entrar.");
+
+      let targetBusinessId = aiBusinessId;
+
+      // Workspace hydration can finish after the assistant first renders.
+      // Recover only an authorized business and never guess across multiple
+      // businesses because the consent must apply to the intended business.
+      if (!targetBusinessId) {
+        const { data: memberships, error: membershipError } = await client
+          .from("global_stock_members")
+          .select("business_id")
+          .eq("user_id", verified.user.id)
+          .eq("active", true)
+          .limit(100);
+
+        if (membershipError) {
+          throw new Error("No pudimos comprobar qué negocio está vinculado a tu cuenta. Recargá la página e intentá nuevamente.");
+        }
+
+        const memberBusinessIds = [...new Set(
+          (memberships ?? [])
+            .map((item) => String(item.business_id || ""))
+            .filter(Boolean)
+        )];
+        const savedBusinessId = window.localStorage.getItem("global-stock-active-business-id");
+
+        if (savedBusinessId && memberBusinessIds.includes(savedBusinessId)) {
+          targetBusinessId = savedBusinessId;
+        } else if (memberBusinessIds.length === 1) {
+          targetBusinessId = memberBusinessIds[0];
+        } else if (memberBusinessIds.length > 1) {
+          throw new Error("Tu cuenta tiene varios negocios. Seleccioná primero el negocio que querés analizar y volvé a abrir Global Intelligence.");
+        } else {
+          const { data: ownedBusinesses, error: ownedError } = await client
+            .from("global_stock_businesses")
+            .select("id")
+            .eq("owner_user_id", verified.user.id)
+            .limit(100);
+
+          if (ownedError) {
+            throw new Error("No pudimos verificar el negocio de esta cuenta. Recargá la página e intentá nuevamente.");
+          }
+
+          const ownedBusinessIds = [...new Set(
+            (ownedBusinesses ?? [])
+              .map((item) => String(item.id || ""))
+              .filter(Boolean)
+          )];
+
+          if (savedBusinessId && ownedBusinessIds.includes(savedBusinessId)) {
+            targetBusinessId = savedBusinessId;
+          } else if (ownedBusinessIds.length === 1) {
+            targetBusinessId = ownedBusinessIds[0];
+          } else if (ownedBusinessIds.length > 1) {
+            throw new Error("Tu cuenta tiene varios negocios. Seleccioná primero el negocio que querés analizar y volvé a abrir Global Intelligence.");
+          }
+        }
+      }
+
+      if (!targetBusinessId) {
+        throw new Error("No encontramos un negocio vinculado a tu cuenta. Completá la configuración del negocio o volvé a iniciar sesión antes de dar el permiso.");
+      }
+
       const { error } = await client.from("global_stock_ai_data_consents").upsert({
-        user_id: verified.user.id, business_id: businessId,
-        approved: true, updated_at: new Date().toISOString()
+        user_id: verified.user.id,
+        business_id: targetBusinessId,
+        approved: true,
+        updated_at: new Date().toISOString()
       }, { onConflict: "user_id,business_id" });
+
       if (error) throw error;
+      if (targetBusinessId !== aiBusinessId) setRecoveredBusinessId(targetBusinessId);
       setAiConsent(true);
+      setAiConsentError("");
     } catch (reason) {
       setAiConsentError(reason instanceof Error ? reason.message : "No pudimos guardar tu permiso.");
     } finally {
@@ -586,7 +659,15 @@ export function ApexIntelligence({
 
   async function ask(message: string) {
     const text = message.trim();
-    if (!text || pending || (!demoMode && !aiConsent) || text.length > 4000) return;
+    if (!text || pending || text.length > 4000) return;
+    if (!demoMode && aiConsentLoading) {
+      setAiConsentError("Todavía estamos comprobando el permiso. Probá de nuevo en un momento.");
+      return;
+    }
+    if (!demoMode && !aiConsent) {
+      setAiConsentError("Para enviar, primero autorizá el uso de datos del negocio desde el aviso breve del chat.");
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -660,7 +741,7 @@ export function ApexIntelligence({
         try {
           const scopedKey = businessStorageKey(
             key,
-            businessId,
+            aiBusinessId,
             demoMode
           );
           const raw = scopedKey
@@ -700,7 +781,7 @@ export function ApexIntelligence({
             clientTimeZone: timeZone,
             appContext: {
               ...appContext,
-              businessId,
+              businessId: aiBusinessId,
               platform: typeof window !== "undefined" && window.ReactNativeWebView
                 ? "Global Stock React Native" : "Global Stock Web",
               ...localModules
@@ -826,10 +907,10 @@ export function ApexIntelligence({
               duration: 0.28,
               ease: [0.32, 0.72, 0, 1]
             }}
-            style={panelStyle}
-            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-lg"
+            style={{ ...panelStyle, "--ai-accent": accentColors.main } as React.CSSProperties}
+            className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-surface-strong)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)]"
           >
-            <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
+            <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white">
                   <BrainCircuit size={19} />
@@ -873,6 +954,7 @@ export function ApexIntelligence({
 
             <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-[var(--apex-border)] px-3 py-3 sm:px-4">
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<PackageSearch size={14} />}
                 value={String(
                   metrics.lowStockCount + metrics.outOfStockCount
@@ -880,11 +962,13 @@ export function ApexIntelligence({
                 label={copy.alerts}
               />
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<TrendingUp size={14} />}
                 value={`${metrics.marginPct.toFixed(1)}%`}
                 label={copy.margin}
               />
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<ChartNoAxesCombined size={14} />}
                 value={String(metrics.inventoryUnits)}
                 label={copy.units}
@@ -892,27 +976,33 @@ export function ApexIntelligence({
             </div>
 
             {!demoMode && (
-              <div className="shrink-0 border-b border-[var(--apex-border)] px-4 py-3">
+              <div className="shrink-0 border-b border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2">
                 {aiConsentLoading ? (
-                  <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando autorización de datos para la IA…</p>
+                  <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando permiso de Global Intelligence…</p>
                 ) : !aiConsent ? (
-                  <div className="space-y-2 rounded-2xl border border-[#8F0000]/25 bg-[#8F0000]/[.06] p-3">
-                    <p className="text-sm font-semibold">Antes de compartir datos del negocio</p>
-                    <p className="text-xs leading-5 text-[var(--apex-muted)]">
-                      Global Intelligence puede enviar al proveedor de IA la consulta y datos necesarios del inventario, ventas, márgenes y actividad.
-                      Es opcional y podés revocarlo desde Configuración o solicitándolo a soporte.
-                    </p>
-                    {aiConsentError && <p role="alert" className="text-xs text-red-500">{aiConsentError}</p>}
+                  <div className="flex items-center gap-3 rounded-xl border px-3 py-2" style={{ borderColor: accentColors.main + "70", backgroundColor: "var(--apex-bg)" }}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold leading-4">Autorizar análisis del negocio</p>
+                      <details className="mt-0.5">
+                        <summary className="cursor-pointer text-[11px] leading-4 text-[var(--apex-muted)]">Qué datos se comparten</summary>
+                        <p className="mt-1 max-w-prose text-[11px] leading-4 text-[var(--apex-muted)]">
+                          Al autorizar, la consulta y los datos necesarios de inventario, ventas, costos, márgenes y actividad se podrán enviar al proveedor de IA para responder. Es opcional y podés revocar el permiso.
+                        </p>
+                      </details>
+                      {aiConsentError && <p role="alert" className="mt-1 text-[11px] leading-4 text-red-500">{aiConsentError}</p>}
+                    </div>
                     <button type="button" onClick={() => void approveAiConsent()}
-                      disabled={aiConsentSaving || !businessId}
-                      className="min-h-10 rounded-xl bg-[#8F0000] px-4 text-xs font-bold text-white disabled:opacity-40">
-                      {aiConsentSaving ? "Guardando permiso…" : "Permitir compartir datos con Global Intelligence"}
+                      disabled={aiConsentSaving}
+                      className="min-h-9 shrink-0 rounded-lg px-3 text-xs font-bold text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-55"
+                      style={{ backgroundColor: accentColors.main }}>
+                      {aiConsentSaving ? "Guardando…" : "Autorizar"}
                     </button>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-[var(--apex-muted)]">
-                    Datos autorizados para este negocio · <button type="button" className="underline" onClick={() => void revokeAiConsent()}>Revocar permiso</button>
-                  </p>
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--apex-muted)]">
+                    <span>Datos autorizados para este negocio</span>
+                    <button type="button" className="shrink-0 underline" onClick={() => void revokeAiConsent()}>Revocar permiso</button>
+                  </div>
                 )}
               </div>
             )}
@@ -934,9 +1024,10 @@ export function ApexIntelligence({
                   }}
                   className={
                     message.role === "user"
-                      ? "ml-10 rounded-[20px] rounded-br-md bg-[#8F0000] px-4 py-3 text-sm leading-6 text-white sm:ml-12"
+                      ? "ml-10 rounded-[20px] rounded-br-md px-4 py-3 text-sm leading-6 text-white sm:ml-12"
                       : "mr-3 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm leading-6 sm:mr-8"
                   }
+                  style={message.role === "user" ? { backgroundColor: accentColors.main } : undefined}
                 >
                   <div className="whitespace-pre-wrap break-words">
                     {message.content}
@@ -955,7 +1046,7 @@ export function ApexIntelligence({
 
             <form
               onSubmit={submit}
-              className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 backdrop-blur-lg sm:p-3"
+              className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:p-3"
             >
               <div className="mb-2 px-1 text-[10px] leading-4 text-[var(--apex-muted)]">
                 {copy.contextHint}
@@ -967,35 +1058,27 @@ export function ApexIntelligence({
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
-                  disabled={aiConsentLoading || (!demoMode && !aiConsent)}
                   maxLength={4000}
                   rows={1}
                   enterKeyHint="send"
                   placeholder={copy.placeholder}
                   className="apex-input max-h-28 min-h-12 flex-1 resize-none px-4 py-3 text-[16px] sm:text-sm"
+                  aria-label={copy.placeholder}
                 />
                 <button
-                  type="button"
-                  disabled={!input.trim() || pending || aiConsentLoading || (!demoMode && !aiConsent)}
-                  onClick={() => {
-                    if (
-                      performance.now() - lastTouchSendRef.current <
-                      700
-                    ) {
-                      return;
-                    }
-                    void ask(input);
+                  type="submit"
+                  disabled={!input.trim() || pending}
+                  className="grid h-10 w-10 shrink-0 cursor-pointer touch-manipulation place-items-center rounded-full p-[2px] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-45"
+                  style={{
+                    background: "linear-gradient(135deg, #ffffff 0%, #555861 13%, #f3f4f6 25%, #777a83 39%, #ffffff 52%, #50535c 66%, #e1e3e7 80%, #858891 92%, #ffffff 100%)",
+                    boxShadow: "inset 0 0 0 1px rgba(255,255,255,.78), 0 2px 8px rgba(0,0,0,.22)"
                   }}
-                  onPointerUp={(event) => {
-                    if (event.pointerType !== "touch") return;
-                    event.preventDefault();
-                    lastTouchSendRef.current = performance.now();
-                    void ask(input);
-                  }}
-                  className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
                   aria-label={copy.send}
+                  title={copy.send}
                 >
-                  <ArrowUp size={18} />
+                  <span className="grid h-full w-full place-items-center rounded-full bg-[var(--apex-surface-strong)] text-[var(--apex-text)]">
+                    <Send size={16} strokeWidth={2} aria-hidden="true" />
+                  </span>
                 </button>
               </div>
             </form>
@@ -1083,15 +1166,17 @@ export function ApexIntelligence({
 function InsightChip({
   icon,
   value,
-  label
+  label,
+  accentColor
 }: {
   icon: React.ReactNode;
   value: string;
   label: string;
+  accentColor: string;
 }) {
   return (
     <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-[#8F0000]">
+      <div className="flex items-center gap-1.5" style={{ color: accentColor }}>
         {icon}
         <span className="text-xs font-bold">{value}</span>
       </div>
