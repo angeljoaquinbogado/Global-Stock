@@ -590,7 +590,11 @@ export function ApexIntelligence({
 
   async function ask(message: string) {
     const text = message.trim();
-    if (!text || pending || (!demoMode && !aiConsent) || text.length > 4000) return;
+    if (!text || pending || text.length > 4000 || aiConsentLoading) return;
+    if (!demoMode && !aiConsent) {
+      setAiConsentError("Antes de enviar, autorizá el uso de datos del negocio con Global Intelligence.");
+      return;
+    }
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
@@ -835,14 +839,7 @@ export function ApexIntelligence({
           >
             <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
-                <span
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white"
-                  style={{
-                    background: "linear-gradient(140deg, " + accentColors.bright + " 0%, " + accentColors.main + " 22%, #505057 39%, #111115 51%, " + accentColors.main + " 78%, " + accentColors.bright + " 100%)",
-                    border: "1px solid rgba(255,255,255,.52)",
-                    boxShadow: "inset 0 1px 1px rgba(255,255,255,.44), inset 0 -2px 3px rgba(0,0,0,.55), 0 0 18px " + accentColors.glow
-                  }}
-                >
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white">
                   <BrainCircuit size={19} />
                 </span>
                 <div className="min-w-0">
@@ -977,37 +974,24 @@ export function ApexIntelligence({
                 {copy.contextHint}
               </div>
 
-              <div
-                className="flex items-end gap-2 rounded-full border p-1.5 sm:p-2"
-                style={{
-                  borderColor: accentColors.bright + "B8",
-                  background: "linear-gradient(112deg, rgba(255,255,255,.26) 0%, " + accentColors.main + " 10%, #29292F 26%, #09090C 52%, " + accentColors.main + " 85%, rgba(255,255,255,.20) 100%)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 4px rgba(0,0,0,.68), 0 8px 24px " + accentColors.glow
-                }}
-              >
+              <div className="flex items-end gap-2">
                 <textarea
                   ref={inputRef}
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
-                  disabled={aiConsentLoading || (!demoMode && !aiConsent)}
                   maxLength={4000}
                   rows={1}
                   enterKeyHint="send"
                   placeholder={copy.placeholder}
-                  className="apex-input max-h-28 min-h-11 flex-1 resize-none rounded-full border-0 bg-transparent px-4 py-3 text-[16px] text-white placeholder:text-white/65 focus:outline-none sm:text-sm"
-                  style={{ background: "transparent", borderColor: "transparent", boxShadow: "none", color: "#fff" }}
+                  className="apex-input max-h-28 min-h-12 flex-1 resize-none px-4 py-3 text-[16px] sm:text-sm"
+                  aria-label={copy.placeholder}
                 />
                 <button
                   type="button"
                   disabled={!input.trim() || pending || aiConsentLoading || (!demoMode && !aiConsent)}
                   onClick={() => {
-                    if (
-                      performance.now() - lastTouchSendRef.current <
-                      700
-                    ) {
-                      return;
-                    }
+                    if (performance.now() - lastTouchSendRef.current < 700) return;
                     void ask(input);
                   }}
                   onPointerUp={(event) => {
@@ -1016,13 +1000,13 @@ export function ApexIntelligence({
                     lastTouchSendRef.current = performance.now();
                     void ask(input);
                   }}
-                  className="grid h-11 w-11 shrink-0 touch-manipulation place-items-center rounded-full border text-white transition active:scale-[.94] disabled:opacity-35"
+                  className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-full border border-white/75 text-[#25262a] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-40"
                   style={{
-                    borderColor: "rgba(255,255,255,.64)",
-                    background: "linear-gradient(138deg, " + accentColors.bright + " 0%, " + accentColors.main + " 22%, #55555C 39%, #101014 51%, " + accentColors.main + " 76%, " + accentColors.bright + " 100%)",
-                    boxShadow: "inset 0 1px 1px rgba(255,255,255,.72), inset 0 -2px 4px rgba(0,0,0,.78), 0 0 0 1px " + accentColors.glow + ", 0 6px 18px rgba(0,0,0,.38)"
+                    background: "linear-gradient(145deg, #ffffff 0%, #e9eaed 10%, #9a9ca3 22%, #fcfcfd 35%, #5d5f66 48%, #c5c7cc 61%, #ffffff 74%, #85878e 87%, #dfe1e4 100%)",
+                    boxShadow: "inset 0 1px 1px rgba(255,255,255,.98), inset 0 -2px 4px rgba(0,0,0,.52), 0 0 0 1px " + accentColors.main + "66, 0 6px 16px rgba(0,0,0,.30)"
                   }}
                   aria-label={copy.send}
+                  title={copy.send}
                 >
                   <Play size={17} fill="currentColor" strokeWidth={1.8} className="translate-x-[1px]" />
                 </button>
