@@ -659,9 +659,13 @@ export function ApexIntelligence({
 
   async function ask(message: string) {
     const text = message.trim();
-    if (!text || pending || text.length > 4000 || aiConsentLoading) return;
+    if (!text || pending || text.length > 4000) return;
+    if (!demoMode && aiConsentLoading) {
+      setAiConsentError("Todavía estamos comprobando el permiso. Probá de nuevo en un momento.");
+      return;
+    }
     if (!demoMode && !aiConsent) {
-      setAiConsentError("Antes de enviar, autorizá el uso de datos del negocio con Global Intelligence.");
+      setAiConsentError("Para enviar, primero autorizá el uso de datos del negocio desde el aviso breve del chat.");
       return;
     }
 
@@ -972,33 +976,33 @@ export function ApexIntelligence({
             </div>
 
             {!demoMode && (
-              <div className="shrink-0 border-b border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3">
+              <div className="shrink-0 border-b border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2">
                 {aiConsentLoading ? (
-                  <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando autorización de datos para la IA…</p>
+                  <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando permiso de Global Intelligence…</p>
                 ) : !aiConsent ? (
-                  <div className="space-y-2 rounded-2xl border p-3" style={{ borderColor: accentColors.main + "70", backgroundColor: "var(--apex-bg)" }}>
-                    <p className="text-sm font-semibold">Antes de compartir datos del negocio</p>
-                    <p className="text-xs leading-5 text-[var(--apex-muted)]">
-                      Global Intelligence puede enviar al proveedor de IA la consulta y datos necesarios del inventario, ventas, márgenes y actividad.
-                      Es opcional y podés revocarlo desde Configuración o solicitándolo a soporte.
-                    </p>
-                    {aiConsentError && <p role="alert" className="text-xs text-red-500">{aiConsentError}</p>}
-                    {!aiBusinessId && (
-                      <p className="text-xs leading-5 text-[var(--apex-muted)]">
-                        Antes de guardar el permiso, comprobaremos qué negocio activo está vinculado a tu cuenta.
-                      </p>
-                    )}
+                  <div className="flex items-center gap-3 rounded-xl border px-3 py-2" style={{ borderColor: accentColors.main + "70", backgroundColor: "var(--apex-bg)" }}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs font-semibold leading-4">Autorizar análisis del negocio</p>
+                      <details className="mt-0.5">
+                        <summary className="cursor-pointer text-[11px] leading-4 text-[var(--apex-muted)]">Qué datos se comparten</summary>
+                        <p className="mt-1 max-w-prose text-[11px] leading-4 text-[var(--apex-muted)]">
+                          Al autorizar, la consulta y los datos necesarios de inventario, ventas, costos, márgenes y actividad se podrán enviar al proveedor de IA para responder. Es opcional y podés revocar el permiso.
+                        </p>
+                      </details>
+                      {aiConsentError && <p role="alert" className="mt-1 text-[11px] leading-4 text-red-500">{aiConsentError}</p>}
+                    </div>
                     <button type="button" onClick={() => void approveAiConsent()}
                       disabled={aiConsentSaving}
-                      className="min-h-10 rounded-xl px-4 text-xs font-bold text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-50"
+                      className="min-h-9 shrink-0 rounded-lg px-3 text-xs font-bold text-white transition hover:brightness-110 disabled:cursor-wait disabled:opacity-55"
                       style={{ backgroundColor: accentColors.main }}>
-                      {aiConsentSaving ? "Verificando y guardando…" : !aiBusinessId ? "Verificar negocio y permitir" : "Permitir compartir datos con Global Intelligence"}
+                      {aiConsentSaving ? "Guardando…" : "Autorizar"}
                     </button>
                   </div>
                 ) : (
-                  <p className="text-[11px] text-[var(--apex-muted)]">
-                    Datos autorizados para este negocio · <button type="button" className="underline" onClick={() => void revokeAiConsent()}>Revocar permiso</button>
-                  </p>
+                  <div className="flex items-center justify-between gap-2 text-[11px] text-[var(--apex-muted)]">
+                    <span>Datos autorizados para este negocio</span>
+                    <button type="button" className="shrink-0 underline" onClick={() => void revokeAiConsent()}>Revocar permiso</button>
+                  </div>
                 )}
               </div>
             )}
@@ -1062,19 +1066,9 @@ export function ApexIntelligence({
                   aria-label={copy.placeholder}
                 />
                 <button
-                  type="button"
-                  disabled={!input.trim() || pending || aiConsentLoading || (!demoMode && !aiConsent)}
-                  onClick={() => {
-                    if (performance.now() - lastTouchSendRef.current < 700) return;
-                    void ask(input);
-                  }}
-                  onPointerUp={(event) => {
-                    if (event.pointerType !== "touch") return;
-                    event.preventDefault();
-                    lastTouchSendRef.current = performance.now();
-                    void ask(input);
-                  }}
-                  className="grid h-10 w-10 shrink-0 touch-manipulation place-items-center rounded-full p-[2px] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-45"
+                  type="submit"
+                  disabled={!input.trim() || pending}
+                  className="grid h-10 w-10 shrink-0 cursor-pointer touch-manipulation place-items-center rounded-full p-[2px] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-45"
                   style={{
                     background: "linear-gradient(135deg, #ffffff 0%, #555861 13%, #f3f4f6 25%, #777a83 39%, #ffffff 52%, #50535c 66%, #e1e3e7 80%, #858891 92%, #ffffff 100%)",
                     boxShadow: "inset 0 0 0 1px rgba(255,255,255,.78), 0 2px 8px rgba(0,0,0,.22)"
