@@ -555,8 +555,6 @@ export function ApexIntelligence({
         throw new Error("No encontramos un negocio vinculado a tu cuenta. Completá la configuración del negocio o volvé a iniciar sesión antes de dar el permiso.");
       }
 
-      if (targetBusinessId !== aiBusinessId) setRecoveredBusinessId(targetBusinessId);
-
       const { error } = await client.from("global_stock_ai_data_consents").upsert({
         user_id: verified.user.id,
         business_id: targetBusinessId,
@@ -565,6 +563,7 @@ export function ApexIntelligence({
       }, { onConflict: "user_id,business_id" });
 
       if (error) throw error;
+      if (targetBusinessId !== aiBusinessId) setRecoveredBusinessId(targetBusinessId);
       setAiConsent(true);
       setAiConsentError("");
     } catch (reason) {
