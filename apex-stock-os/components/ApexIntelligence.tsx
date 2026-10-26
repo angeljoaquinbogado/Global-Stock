@@ -892,11 +892,13 @@ export function ApexIntelligence({
                 label={copy.alerts}
               />
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<TrendingUp size={14} />}
                 value={`${metrics.marginPct.toFixed(1)}%`}
                 label={copy.margin}
               />
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<ChartNoAxesCombined size={14} />}
                 value={String(metrics.inventoryUnits)}
                 label={copy.units}
