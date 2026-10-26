@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  ArrowUp,
+  Play,
   BrainCircuit,
   ChartNoAxesCombined,
   Minimize2,
@@ -25,6 +25,7 @@ import { calculateMetrics, formatMoney } from "@/lib/analytics";
 import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
+import { WORKSPACE_ACCENTS, type WorkspaceAccent } from "@/lib/workspace-accent";
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
@@ -32,6 +33,7 @@ type ApexIntelligenceProps = {
   raiseOnMobile?: boolean;
   demoMode?: boolean;
   businessId?: string | null;
+  accent?: WorkspaceAccent;
 };
 
 type UiLanguage = "es" | "en" | "pt" | "fr" | "de";
@@ -363,10 +365,12 @@ export function ApexIntelligence({
   appContext = {},
   raiseOnMobile = false,
   demoMode = false,
-  businessId = null
+  businessId = null,
+  accent = "red"
 }: ApexIntelligenceProps) {
   const language = languageFromLocale(snapshot.locale);
   const copy = uiCopy[language];
+  const accentColors = WORKSPACE_ACCENTS[accent];
   const metrics = useMemo(() => calculateMetrics(snapshot), [snapshot]);
 
   const [mounted, setMounted] = useState(false);
@@ -826,12 +830,19 @@ export function ApexIntelligence({
               duration: 0.28,
               ease: [0.32, 0.72, 0, 1]
             }}
-            style={panelStyle}
+            style={{ ...panelStyle, "--ai-accent": accentColors.main } as React.CSSProperties}
             className="absolute left-0 right-0 top-0 flex w-full flex-col overflow-hidden bg-[var(--apex-bg)] text-[var(--apex-text)] sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(760px,calc(100dvh-48px))] sm:w-[460px] sm:rounded-[30px] sm:border sm:border-[var(--apex-border)] sm:bg-[var(--apex-surface)] sm:shadow-[0_28px_100px_rgba(0,0,0,.32)] sm:backdrop-blur-lg"
           >
             <header className="flex shrink-0 items-center justify-between border-b border-[var(--apex-border)] px-4 pb-3 pt-[max(14px,env(safe-area-inset-top))] sm:px-5 sm:py-4">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[#8F0000] text-white">
+                <span
+                  className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-white"
+                  style={{
+                    background: "linear-gradient(140deg, " + accentColors.bright + " 0%, " + accentColors.main + " 22%, #505057 39%, #111115 51%, " + accentColors.main + " 78%, " + accentColors.bright + " 100%)",
+                    border: "1px solid rgba(255,255,255,.52)",
+                    boxShadow: "inset 0 1px 1px rgba(255,255,255,.44), inset 0 -2px 3px rgba(0,0,0,.55), 0 0 18px " + accentColors.glow
+                  }}
+                >
                   <BrainCircuit size={19} />
                 </span>
                 <div className="min-w-0">
@@ -873,6 +884,7 @@ export function ApexIntelligence({
 
             <div className="grid shrink-0 grid-cols-3 gap-2 border-b border-[var(--apex-border)] px-3 py-3 sm:px-4">
               <InsightChip
+                accentColor={accentColors.main}
                 icon={<PackageSearch size={14} />}
                 value={String(
                   metrics.lowStockCount + metrics.outOfStockCount
@@ -896,7 +908,7 @@ export function ApexIntelligence({
                 {aiConsentLoading ? (
                   <p role="status" className="text-xs text-[var(--apex-muted)]">Comprobando autorización de datos para la IA…</p>
                 ) : !aiConsent ? (
-                  <div className="space-y-2 rounded-2xl border border-[#8F0000]/25 bg-[#8F0000]/[.06] p-3">
+                  <div className="space-y-2 rounded-2xl border p-3" style={{ borderColor: accentColors.main + "70", backgroundColor: accentColors.glow }}>
                     <p className="text-sm font-semibold">Antes de compartir datos del negocio</p>
                     <p className="text-xs leading-5 text-[var(--apex-muted)]">
                       Global Intelligence puede enviar al proveedor de IA la consulta y datos necesarios del inventario, ventas, márgenes y actividad.
@@ -905,7 +917,8 @@ export function ApexIntelligence({
                     {aiConsentError && <p role="alert" className="text-xs text-red-500">{aiConsentError}</p>}
                     <button type="button" onClick={() => void approveAiConsent()}
                       disabled={aiConsentSaving || !businessId}
-                      className="min-h-10 rounded-xl bg-[#8F0000] px-4 text-xs font-bold text-white disabled:opacity-40">
+                      className="min-h-10 rounded-xl px-4 text-xs font-bold text-white disabled:opacity-40"
+                      style={{ backgroundColor: accentColors.main }}>
                       {aiConsentSaving ? "Guardando permiso…" : "Permitir compartir datos con Global Intelligence"}
                     </button>
                   </div>
@@ -934,9 +947,10 @@ export function ApexIntelligence({
                   }}
                   className={
                     message.role === "user"
-                      ? "ml-10 rounded-[20px] rounded-br-md bg-[#8F0000] px-4 py-3 text-sm leading-6 text-white sm:ml-12"
+                      ? "ml-10 rounded-[20px] rounded-br-md px-4 py-3 text-sm leading-6 text-white sm:ml-12"
                       : "mr-3 rounded-[20px] rounded-bl-md border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-3 text-sm leading-6 sm:mr-8"
                   }
+                  style={message.role === "user" ? { backgroundColor: accentColors.main } : undefined}
                 >
                   <div className="whitespace-pre-wrap break-words">
                     {message.content}
@@ -961,7 +975,14 @@ export function ApexIntelligence({
                 {copy.contextHint}
               </div>
 
-              <div className="flex items-end gap-2">
+              <div
+                className="flex items-end gap-2 rounded-full border p-1.5 sm:p-2"
+                style={{
+                  borderColor: accentColors.bright + "B8",
+                  background: "linear-gradient(112deg, rgba(255,255,255,.26) 0%, " + accentColors.main + " 10%, #29292F 26%, #09090C 52%, " + accentColors.main + " 85%, rgba(255,255,255,.20) 100%)",
+                  boxShadow: "inset 0 1px 0 rgba(255,255,255,.3), inset 0 -2px 4px rgba(0,0,0,.68), 0 8px 24px " + accentColors.glow
+                }}
+              >
                 <textarea
                   ref={inputRef}
                   value={input}
@@ -972,7 +993,8 @@ export function ApexIntelligence({
                   rows={1}
                   enterKeyHint="send"
                   placeholder={copy.placeholder}
-                  className="apex-input max-h-28 min-h-12 flex-1 resize-none px-4 py-3 text-[16px] sm:text-sm"
+                  className="apex-input max-h-28 min-h-11 flex-1 resize-none rounded-full border-0 bg-transparent px-4 py-3 text-[16px] text-white placeholder:text-white/65 focus:outline-none sm:text-sm"
+                  style={{ background: "transparent", borderColor: "transparent", boxShadow: "none", color: "#fff" }}
                 />
                 <button
                   type="button"
@@ -992,10 +1014,15 @@ export function ApexIntelligence({
                     lastTouchSendRef.current = performance.now();
                     void ask(input);
                   }}
-                  className="grid h-12 w-12 shrink-0 touch-manipulation place-items-center rounded-2xl bg-[#8F0000] text-white shadow-[0_10px_30px_rgba(143,0,0,.25)] transition active:scale-[.96] disabled:opacity-35"
+                  className="grid h-11 w-11 shrink-0 touch-manipulation place-items-center rounded-full border text-white transition active:scale-[.94] disabled:opacity-35"
+                  style={{
+                    borderColor: "rgba(255,255,255,.64)",
+                    background: "linear-gradient(138deg, " + accentColors.bright + " 0%, " + accentColors.main + " 22%, #55555C 39%, #101014 51%, " + accentColors.main + " 76%, " + accentColors.bright + " 100%)",
+                    boxShadow: "inset 0 1px 1px rgba(255,255,255,.72), inset 0 -2px 4px rgba(0,0,0,.78), 0 0 0 1px " + accentColors.glow + ", 0 6px 18px rgba(0,0,0,.38)"
+                  }}
                   aria-label={copy.send}
                 >
-                  <ArrowUp size={18} />
+                  <Play size={17} fill="currentColor" strokeWidth={1.8} className="translate-x-[1px]" />
                 </button>
               </div>
             </form>
@@ -1083,15 +1110,17 @@ export function ApexIntelligence({
 function InsightChip({
   icon,
   value,
-  label
+  label,
+  accentColor
 }: {
   icon: React.ReactNode;
   value: string;
   label: string;
+  accentColor: string;
 }) {
   return (
     <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 py-2.5">
-      <div className="flex items-center gap-1.5 text-[#8F0000]">
+      <div className="flex items-center gap-1.5" style={{ color: accentColor }}>
         {icon}
         <span className="text-xs font-bold">{value}</span>
       </div>
