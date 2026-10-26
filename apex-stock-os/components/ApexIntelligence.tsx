@@ -1068,10 +1068,10 @@ export function ApexIntelligence({
                 <button
                   type="submit"
                   disabled={!input.trim() || pending}
-                  className="grid h-10 w-10 shrink-0 cursor-pointer touch-manipulation place-items-center rounded-full p-[2px] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-45"
+                  className="grid h-10 w-10 shrink-0 cursor-pointer touch-manipulation place-items-center rounded-full p-[3px] transition active:scale-[.94] disabled:cursor-not-allowed disabled:opacity-45"
                   style={{
-                    background: "linear-gradient(135deg, #ffffff 0%, #555861 13%, #f3f4f6 25%, #777a83 39%, #ffffff 52%, #50535c 66%, #e1e3e7 80%, #858891 92%, #ffffff 100%)",
-                    boxShadow: "inset 0 0 0 1px rgba(255,255,255,.78), 0 2px 8px rgba(0,0,0,.22)"
+                    background: "linear-gradient(135deg, #ffffff 0%, #252830 9%, #777c86 17%, #e9ebef 26%, #444852 36%, #ffffff 48%, #282c34 59%, #a9aeb8 69%, #3b3f49 80%, #f7f8fa 91%, #555a64 100%)",
+                    boxShadow: "inset 0 0 0 1px rgba(255,255,255,.96), 0 0 0 1px rgba(45,48,55,.58), 0 2px 9px rgba(0,0,0,.25)"
                   }}
                   aria-label={copy.send}
                   title={copy.send}
