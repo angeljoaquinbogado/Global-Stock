@@ -4492,6 +4492,7 @@ export function BusinessWorkspace({
 
       <ApexIntelligence
         snapshot={snapshot}
+        accent={workspaceAccent}
         demoMode={demoMode}
         businessId={cloudBusinessId}
         raiseOnMobile={
