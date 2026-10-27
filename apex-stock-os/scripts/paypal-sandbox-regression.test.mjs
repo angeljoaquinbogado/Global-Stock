@@ -14,6 +14,7 @@ test("PayPal demo is sandbox-only and never accepts a browser-supplied amount", 
   assert.doesNotMatch(helper, /api-m\.paypal\.com(?!\.sandbox)/);
   assert.match(helper, /const DEMO_AMOUNT = "19\.99"/);
   assert.match(helper, /const DEMO_CURRENCY = "USD"/);
+  assert.match(helper, /process.env.VERCEL_URL/);
   assert.match(helper, /custom_id: DEMO_CUSTOM_ID/);
   assert.match(helper, /unit\.amount\?\.value !== DEMO_AMOUNT/);
   assert.match(create, /guardApiRequest\(request/);
