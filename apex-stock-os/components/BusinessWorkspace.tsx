@@ -3730,13 +3730,15 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main data-workspace-accent={workspaceAccent} style={workspaceAccentVars(workspaceAccent)} className={`gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid ${sidebarCollapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[250px_minmax(0,1fr)]"}`}>
-      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`flex w-full items-center ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
-          <Logo withWordmark={!sidebarCollapsed} />
-          <button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] hover:text-[var(--apex-text)]">
-            <Menu size={16} aria-hidden="true" />
-          </button>
+    <main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent), gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
+        <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+          <AnimatePresence initial={false}>
+            {!sidebarCollapsed && <motion.div key="sidebar-brand" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.div>}
+          </AnimatePresence>
+          <motion.button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} whileTap={reduceMotion ? undefined : { scale: 0.92 }} animate={{ rotate: sidebarCollapsed ? 0 : 0 }} transition={{ duration: reduceMotion ? 0 : 0.24, ease: [0.22, 1, 0.36, 1] }} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-colors duration-200 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
+            <motion.span animate={{ rotate: sidebarCollapsed ? 0 : 180 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }}><Menu size={16} aria-hidden="true" /></motion.span>
+          </motion.button>
         </div>
 
         <div className={`relative mt-6 min-h-0 w-full flex-1 ${sidebarCollapsed ? "px-0" : ""}`}>
@@ -3861,8 +3863,8 @@ export function BusinessWorkspace({
               </motion.p>
               {activeModule === "overview" && (
                 <div className="mt-1 min-w-0">
-                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
-                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
+                  <p className="truncate text-base font-semibold tracking-[-0.035em] text-[var(--apex-text)] sm:text-lg">
+                    {language === "es" ? (signedInName ? `¡Hola, ${signedInName}!` : "¡Hola! Bienvenido de nuevo") : `${welcomeLabels[language].greeting}${signedInName ? `, ${signedInName}` : ""}`}
                   </p>
                   {(demoMode || (cloudBusinessId && memberRoleReady)) && (
                     <p className="truncate text-[10px] text-[var(--apex-muted)]">
@@ -3894,8 +3896,8 @@ export function BusinessWorkspace({
               </motion.h1>
               {activeModule === "overview" && (
                 <div className="mt-1 min-w-0">
-                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
-                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
+                  <p className="truncate text-base font-semibold tracking-[-0.035em] text-[var(--apex-text)] sm:text-lg">
+                    {language === "es" ? (signedInName ? `¡Hola, ${signedInName}!` : "¡Hola! Bienvenido de nuevo") : `${welcomeLabels[language].greeting}${signedInName ? `, ${signedInName}` : ""}`}
                   </p>
                   {(demoMode || (cloudBusinessId && memberRoleReady)) && (
                     <p className="truncate text-[10px] text-[var(--apex-muted)]">
