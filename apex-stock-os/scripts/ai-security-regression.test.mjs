@@ -53,7 +53,7 @@ test("Argentina beta stays 18+ and public pages explain storage and marketing", 
   const cookies = file("apex-stock-os/app/legal/cookies/page.tsx");
   assert.match(legal, /18 años o más/);
   assert.match(legal, /operates_in_ar_attested:true/);
-  assert.match(legal, /2026-10-12-v5/);
+  assert.match(legal, /2026-10-27-v6/);
   assert.match(privacy, /Correos de novedades/);
   assert.match(cookies, /Analíticas y seguimiento/);
 });
