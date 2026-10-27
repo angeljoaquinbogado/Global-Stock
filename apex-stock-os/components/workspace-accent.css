@@ -52,3 +52,30 @@
 .gs-app-shell .gs-mobile-dock button[aria-current="page"] {
   background:var(--apex-accent);
 }
+
+
+/* Keep interaction feedback aligned with the selected accent across legacy
+   modules too; semantic error/success colors remain intentionally separate. */
+.gs-app-shell :is(button, a, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline-color: var(--apex-accent) !important;
+}
+.gs-app-shell .apex-input:focus,
+.gs-app-shell .apex-input:focus-visible,
+.gs-app-shell input:not([type="checkbox"]):focus-visible,
+.gs-app-shell select:focus-visible,
+.gs-app-shell textarea:focus-visible {
+  border-color: var(--apex-accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb,var(--apex-accent) 18%,transparent) !important;
+}
+.gs-app-shell ::selection {
+  background: color-mix(in srgb,var(--apex-accent) 28%,transparent);
+}
+.gs-app-shell [class~="bg-[#8f0000]"] { color: #fff; }
+.gs-app-shell [class~="hover:bg-[#8F0000]"]:hover,
+.gs-app-shell [class~="hover:bg-[#8f0000]"]:hover {
+  background-color: var(--apex-accent) !important;
+}
+.gs-app-shell [class~="focus-visible:outline-[#8f0000]"]:focus-visible,
+.gs-app-shell [class~="focus:outline-[#8F0000]"]:focus {
+  outline-color: var(--apex-accent) !important;
+}
