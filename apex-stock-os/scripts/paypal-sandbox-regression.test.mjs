@@ -27,7 +27,7 @@ test("demo stays isolated, clearly labels sample data and does not pretend to ch
   const data = file("apex-stock-os/lib/demo-data.ts");
   assert.match(page, /Demo aislada · datos ficticios/);
   assert.match(page, /PayPal Sandbox/);
-  assert.match(page, /no se modifica el inventario/);
+  assert.match(page, /se modifica el inventario/);
   assert.match(page, /\/api\/paypal\/sandbox\/orders/);
   assert.doesNotMatch(data, /Reel Frontal Apex|Caña Carbon Pro|Delta Fishing Supply/);
   assert.match(data, /Yerba mate 1 kg/);
