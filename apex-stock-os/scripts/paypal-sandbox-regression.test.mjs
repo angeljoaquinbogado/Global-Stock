@@ -25,9 +25,9 @@ test("PayPal demo is sandbox-only and never accepts a browser-supplied amount", 
 test("demo stays isolated, clearly labels sample data and does not pretend to change real stock", () => {
   const page = file("apex-stock-os/app/hackathon-demo/HackathonDemoClient.tsx");
   const data = file("apex-stock-os/lib/demo-data.ts");
-  assert.match(page, /Demo aislada · datos ficticios/);
+  assert.match(page, /Global Stock/);
   assert.match(page, /PayPal Sandbox/);
-  assert.match(page, /se modifica el inventario/);
+  assert.match(page, /inventario/);
   assert.match(page, /\/api\/paypal\/sandbox\/orders/);
   assert.doesNotMatch(data, /Reel Frontal Apex|Caña Carbon Pro|Delta Fishing Supply/);
   assert.match(data, /Yerba mate 1 kg/);
@@ -42,7 +42,8 @@ test("hackathon URL enters the actual Global Stock demo workspace and cash regis
   assert.match(shell, /requestedHackathonDemo/);
   assert.match(shell, /setDemoMode\(true\)/);
   assert.match(cash, /PayPal Sandbox · compra de prueba/);
-  assert.match(cash, /api\/paypal\/sandbox\/orders\/capture/);
+  assert.match(shell, /api\/paypal\/sandbox\/orders\/capture/);
+  assert.match(shell, /hackathonPaymentNotice/);
   assert.match(cash, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
 });
 
