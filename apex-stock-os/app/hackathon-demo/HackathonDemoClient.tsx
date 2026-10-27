@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowUpRight, Boxes, CheckCircle2, CircleAlert, CreditCard,
@@ -126,10 +128,10 @@ export function HackathonDemoClient() {
     <main className="min-h-screen bg-[#f5f5f7] px-4 py-6 text-[#17171a] sm:px-8 sm:py-10">
       <div className="mx-auto max-w-6xl">
         <header className="flex flex-wrap items-center justify-between gap-4">
-          <a href="/" className="flex items-center gap-3" aria-label="Volver a Global Stock">
+          <Link href="/" className="flex items-center gap-3" aria-label="Volver a Global Stock">
             <span className="grid h-11 w-11 place-items-center rounded-2xl bg-[#8f0000] text-white"><Boxes size={22}/></span>
             <span><span className="block text-lg font-semibold tracking-tight">Global Stock</span><span className="block text-xs text-[#696971]">Control total para tu negocio</span></span>
-          </a>
+          </Link>
           <span className="inline-flex items-center gap-2 rounded-full border border-[#dedee4] bg-white px-3 py-2 text-xs font-medium text-[#56565f]"><ShieldCheck size={14}/> Demo aislada · datos ficticios</span>
         </header>
 
@@ -188,7 +190,7 @@ export function HackathonDemoClient() {
           </aside>
         </section>
 
-        <footer className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-[#dedee4] pt-5 text-xs text-[#777780]"><span>Global Stock · PayPal AI Hackathon 2026</span><a href="/" className="inline-flex items-center gap-1 font-medium text-[#8f0000] hover:underline">Volver a la aplicación <ArrowUpRight size={13}/></a></footer>
+        <footer className="mt-7 flex flex-wrap items-center justify-between gap-3 border-t border-[#dedee4] pt-5 text-xs text-[#777780]"><span>Global Stock · PayPal AI Hackathon 2026</span><Link href="/" className="inline-flex items-center gap-1 font-medium text-[#8f0000] hover:underline">Volver a la aplicación <ArrowUpRight size={13}/></Link></footer>
       </div>
     </main>
   );
