@@ -403,17 +403,17 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
         </div>
         {totals && Object.entries(totals.sales_by_method??{}).some(([method,amount])=>method!=="cash"&&amount>0) && (
           <div className="gs-cash-panel p-4 sm:p-5">
-            <h3 className="text-sm font-bold">{language==="es"?"Detalle de cobros por medio":"Payment breakdown"}</h3>
-            <p className="mt-1 text-xs text-[var(--apex-muted)]">{language==="es"?"Estos importes son ventas confirmadas y no se suman al efectivo esperado.":"These are confirmed sales and are not added to expected physical cash."}</p>
+            <h3 className="text-sm font-bold">{language==="es"?"Detalle de cobros por medio":language==="pt"?"Resumo por forma de pagamento":language==="fr"?"Détail par moyen de paiement":language==="de"?"Zahlungsübersicht":"Payment breakdown"}</h3>
+            <p className="mt-1 text-xs text-[var(--apex-muted)]">{language==="es"?"Estos importes son ventas confirmadas y no se suman al efectivo esperado.":language==="pt"?"Estes valores são vendas confirmadas e não entram no dinheiro físico esperado.":language==="fr"?"Ces montants correspondent aux ventes confirmées et ne sont pas ajoutés à l’argent liquide attendu.":language==="de"?"Diese bestätigten Verkäufe werden nicht zum erwarteten Bargeld addiert.":"These are confirmed sales and are not added to expected physical cash."}</p>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
               {Object.entries(totals.sales_by_method).filter(([method,amount])=>method!=="cash"&&amount>0).map(([method,amount])=>(
                 <div key={method} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--apex-border)] px-3 py-2.5 text-xs">
                   <span className="text-[var(--apex-muted)]">{({
-                    debit:language==="es"?"Tarjeta de débito":"Debit card",
-                    credit:language==="es"?"Tarjeta de crédito":"Credit card",
-                    transfer:language==="es"?"Transferencia":"Bank transfer",
+                    debit:language==="es"?"Tarjeta de débito":language==="pt"?"Cartão de débito":language==="fr"?"Carte de débit":language==="de"?"Debitkarte":"Debit card",
+                    credit:language==="es"?"Tarjeta de crédito":language==="pt"?"Cartão de crédito":language==="fr"?"Carte de crédit":language==="de"?"Kreditkarte":"Credit card",
+                    transfer:language==="es"?"Transferencia":language==="pt"?"Transferência":language==="fr"?"Virement":language==="de"?"Überweisung":"Bank transfer",
                     qr:"QR",
-                    account:language==="es"?"Cuenta corriente":"Customer account",
+                    account:language==="es"?"Cuenta corriente":language==="pt"?"Conta do cliente":language==="fr"?"Compte client":language==="de"?"Kundenkonto":"Customer account",
                     paypal:"PayPal"
                   } as Record<string,string>)[method]??method}</span>
                   <strong className="tabular-nums">{money(amount)}</strong>
