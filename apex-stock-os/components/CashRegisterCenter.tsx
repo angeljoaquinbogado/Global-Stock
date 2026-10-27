@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, CheckCircle2, Clock3,
-  History, LockKeyhole, RefreshCw, ShieldCheck, Wallet, XCircle
+  History, LockKeyhole, RefreshCw, ShieldCheck, Wallet, XCircle, CreditCard, ArrowUpRight
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
@@ -144,7 +144,44 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
   const [closingNote,setClosingNote]=useState("");
   const [confirmClose,setConfirmClose]=useState(false);
   const [revision,setRevision]=useState(0);
+  const [paypalConfigured,setPaypalConfigured]=useState(false);
+  const [paypalBusy,setPaypalBusy]=useState(false);
+  const [paypalNotice,setPaypalNotice]=useState("");
   const movementRequest=useRef<{key:string;fingerprint:string}|null>(null);
+
+  useEffect(() => {
+    if (!demoMode) return;
+    let active = true;
+    void fetch("/api/paypal/sandbox/orders", { cache: "no-store" })
+      .then(response => response.ok ? response.json() : null)
+      .then(data => { if (active) setPaypalConfigured(data?.configured === true); })
+      .catch(() => { if (active) setPaypalConfigured(false); });
+
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("paypal");
+    const orderId = params.get("token");
+    if (status === "cancelled") {
+      setPaypalNotice("Compra de prueba cancelada. No se realizó ningún cobro real.");
+      window.history.replaceState({}, "", window.location.pathname);
+    } else if (status === "success" && orderId) {
+      setPaypalBusy(true);
+      void fetch("/api/paypal/sandbox/orders/capture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId })
+      }).then(async response => {
+        const data = await response.json();
+        if (!response.ok) throw new Error("No se pudo confirmar la compra de prueba.");
+        if (active) setPaypalNotice(`Pago de prueba confirmado en PayPal Sandbox: ${data.currency} ${data.amount}. ID: ${data.id}`);
+      }).catch(() => {
+        if (active) setPaypalNotice("No se pudo confirmar el resultado en Sandbox. Revisá el estado del pedido antes de volver a intentar.");
+      }).finally(() => {
+        if (active) setPaypalBusy(false);
+        window.history.replaceState({}, "", window.location.pathname);
+      });
+    }
+    return () => { active = false; };
+  }, [demoMode]);
 
   useEffect(()=>{
     if (!locations.length) {setLocationId("");return;}
@@ -360,6 +397,29 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
       </div>
     </div>
     {demoMode && <p className="gs-cash-note">{t.demo}</p>}
+    {demoMode && (
+      <div className="gs-cash-panel flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+        <div className="min-w-0">
+          <p className="flex items-center gap-2 text-sm font-semibold"><CreditCard size={16} className="text-[var(--apex-accent)]"/> PayPal Sandbox · compra de prueba</p>
+          <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">Probá el flujo de pago sin dinero real. El pedido es fijo y no modifica la caja ni el inventario del demo.</p>
+        </div>
+        <button type="button" disabled={!paypalConfigured || paypalBusy} onClick={async () => {
+          setPaypalBusy(true); setPaypalNotice("");
+          try {
+            const response = await fetch("/api/paypal/sandbox/orders", { method: "POST" });
+            const data = await response.json();
+            if (!response.ok || typeof data.approvalUrl !== "string" || !data.approvalUrl.startsWith("https://www.sandbox.paypal.com/")) throw new Error("sandbox-unavailable");
+            window.location.assign(data.approvalUrl);
+          } catch {
+            setPaypalNotice("PayPal Sandbox no está configurado o no pudo iniciar el checkout. No se realizó ningún cobro.");
+            setPaypalBusy(false);
+          }
+        }} className="gs-cash-primary inline-flex shrink-0 items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-50">
+          <CreditCard size={15}/>{paypalBusy ? "Conectando…" : paypalConfigured ? "Probar pago de US$ 19,99" : "Sandbox no configurado"}<ArrowUpRight size={14}/>
+        </button>
+        {paypalNotice && <p role="status" className="text-xs leading-5 text-[var(--apex-muted)] sm:basis-full">{paypalNotice}</p>}
+      </div>
+    )}
     {!demoMode&&!businessId&&<p className="gs-cash-note">{t.noBusiness}</p>}
     {!canManage&&<p className="gs-cash-note">{t.role}</p>}
     {isOffline&&<p className="gs-cash-note">{t.offline}</p>}
