@@ -33,6 +33,16 @@ test("demo stays isolated, clearly labels sample data and does not pretend to ch
   assert.match(data, /Leche entera 1 L/);
 });
 
+test("public hackathon AI can only access fixed sample data and has no payment or write tools", () => {
+  const route = file("apex-stock-os/app/api/hackathon-demo/assistant/route.ts");
+  assert.match(route, /scope: "public-hackathon-demo-ai", limit: 8/);
+  assert.match(route, /products: demoProducts/);
+  assert.match(route, /dataClassification: "fictional sample data only"/);
+  assert.match(route, /"modify_inventory", "create_purchase_order", "capture_payment"/);
+  assert.match(route, /message.length > 500/);
+  assert.doesNotMatch(route, /authorizeBusinessRequest|global_stock_ai_allow_request/);
+});
+
 test("Global Intelligence voice input is optional and Spanish-Argentina localized", () => {
   const voice = file("apex-stock-os/components/VoiceInputButton.tsx");
   const assistant = file("apex-stock-os/components/ApexIntelligence.tsx");
