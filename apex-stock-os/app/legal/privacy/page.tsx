@@ -13,7 +13,7 @@ export default function PrivacyPage() {
     <LegalArticle
       eyebrow="Privacidad"
       title="Política de privacidad"
-      intro="Versión 2026-10-12-v5. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
+      intro="Versión 2026-10-27-v6. Esta política describe qué información puede procesar Global Stock al crear una cuenta, administrar un negocio, conectar servicios, preparar datos fiscales y utilizar inteligencia artificial. La app móvil registra su aceptación por versión."
     >
       <section>
         <h2>1. Responsable y alcance</h2>
@@ -237,6 +237,16 @@ export default function PrivacyPage() {
           base válida para incorporarlos y de utilizar Global Stock de acuerdo
           con sus propias obligaciones de privacidad. La plataforma no autoriza
           recopilar datos de terceros de forma ilícita.
+        </p>
+      </section>
+
+      <section>
+        <h2>15. Datos de suscripción y pagos</h2>
+        <p>
+          Para gestionar el plan se almacenan el plan seleccionado, el estado de la prueba, fechas de inicio y finalización, solicitudes de cancelación, moneda e importe de referencia. Si se habilita un proveedor de pagos, Global Stock podrá conservar identificadores de transacción o de suscripción y estados devueltos por el proveedor; los datos completos de tarjeta no deben introducirse ni almacenarse en Global Stock. El proveedor procesa los pagos según sus propias condiciones y políticas.
+        </p>
+        <p>
+          La cancelación se registra para gestionar el acceso y evitar nuevos cobros cuando la integración esté habilitada. Los registros mínimos de transacción, consentimiento y cancelación pueden conservarse durante el tiempo necesario para seguridad, resolución de disputas, contabilidad u obligaciones legales. La persona usuaria puede ejercer los derechos de privacidad descritos en esta política a través del correo de soporte.
         </p>
       </section>
 
