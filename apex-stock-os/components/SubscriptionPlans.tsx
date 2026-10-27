@@ -3,12 +3,6 @@
 import { Check, Clock3, CreditCard, Sparkles } from "lucide-react";
 import type { LanguageCode } from "./GlobalPreferences";
 
-const configuredPrice = (value: string | undefined, fallback: number) => {
-  const parsed = Number(value);
-  return value && Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : fallback;
-};
-const trialDays = configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_TRIAL_DAYS, 15);
-
 const plans = [
   {
     id: "free",
@@ -22,7 +16,7 @@ const plans = [
   {
     id: "starter",
     name: "Emprendedor",
-    price: configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_STARTER_PRICE_ARS, 9900),
+    price: 9900,
     suffix: "por mes",
     description: "Para comercios pequeños que necesitan orden diario.",
     features: ["Caja, ventas e inventario", "Proveedores y comprobantes", "Estadísticas del negocio", "Un negocio o local"],
@@ -31,7 +25,7 @@ const plans = [
   {
     id: "pro",
     name: "Profesional",
-    price: configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_PRO_PRICE_ARS, 19900),
+    price: 19900,
     suffix: "por mes",
     description: "Para negocios en crecimiento y equipos con varios locales.",
     features: ["Todo lo de Emprendedor", "Análisis avanzados e IA", "Gestión de varios locales", "Informes y organización avanzados"],
@@ -55,7 +49,7 @@ function formatArs(value: number, language: LanguageCode) {
 
 export function SubscriptionPlans({ language }: { language: LanguageCode }) {
   const t = labels[language];
-  const trialText = t.trial.replace("15", String(trialDays));
+  const trialText = t.trial;
   return (
     <section className="space-y-5" aria-labelledby="subscription-plans-title">
       <header>
