@@ -26,6 +26,7 @@ import { businessStorageKey } from "@/lib/business-storage";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 import { WORKSPACE_ACCENTS, type WorkspaceAccent } from "@/lib/workspace-accent";
+import { VoiceInputButton } from "./VoiceInputButton";
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
@@ -1053,6 +1054,10 @@ export function ApexIntelligence({
               </div>
 
               <div className="flex items-end gap-2">
+                <VoiceInputButton
+                  accentColor={accentColors.main}
+                  onTranscript={(transcript) => setInput((current) => current.trim() ? `${current.trim()} ${transcript}` : transcript)}
+                />
                 <textarea
                   ref={inputRef}
                   value={input}
