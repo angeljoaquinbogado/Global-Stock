@@ -442,7 +442,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                   <View style={{ flexDirection: "row", gap: 7 }}>
                     {([
                       { id: "free", name: language === "es" ? "Gratis" : "Free", price: "$0" },
-                      { id: "starter", name: "Emprendedor", price: "$9.900 ARS" },
+                      { id: "starter", name: "Emprendedor", price: "US$ 10 / mes" },
                       { id: "pro", name: "Profesional", price: "$19.900" }
                     ] as const).map(plan => (
                       <Pressable key={plan.id} accessibilityRole="radio" accessibilityState={{ selected: selectedPlan === plan.id }}
