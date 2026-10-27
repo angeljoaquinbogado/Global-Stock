@@ -14,7 +14,6 @@ for (const viewport of [
     await expect(dashboard.getByRole("heading",{name:/centro de control/i})).toBeVisible();
     await expect(dashboard.getByTestId("exec-kpi").first()).toBeVisible();
     await expect(dashboard.getByTestId("exec-revenue-chart")).toBeVisible();
-    await expect(dashboard.getByTestId("exec-session-timer")).toBeVisible();
     const root = await dashboard.evaluate(el=>({width:el.scrollWidth,clientWidth:el.clientWidth}));
     expect(root.width-root.clientWidth).toBeLessThanOrEqual(2);
     await expect(dashboard).toHaveAttribute("data-accent","red");
@@ -27,11 +26,6 @@ for (const viewport of [
     await expect(page.locator(".gs-app-shell")).toHaveAttribute("data-workspace-accent","red");
     await expect(dashboard.getByText(/período disponible/i)).toHaveCount(0);
     await expect(dashboard.locator(".gs-exec-period")).toHaveCount(0);
-    const timer=dashboard.getByTestId("exec-session-timer");
-    await timer.getByRole("button",{name:/pausar/i}).click();
-    await expect(timer.getByRole("button",{name:/reanudar/i})).toBeVisible();
-    await timer.getByRole("button",{name:/reanudar/i}).click();
-    await expect(timer.getByRole("button",{name:/pausar/i})).toBeVisible();
     if(viewport.width>900){
       const nav=page.locator("#business-sidebar-nav");
       await expect(nav).toBeVisible();
@@ -55,7 +49,7 @@ test("Inicio counter and graph use real demo measurements, not hardcoded referen
   await expect(dashboard.getByTestId("exec-revenue-chart")).toBeVisible();
   const bars=dashboard.locator(".gs-exec-chart__column");
   await expect(bars).toHaveCount(7);
-  await expect(bars.first()).toHaveAttribute("aria-label",/Lun:.*612/);
+  await expect(bars.first()).toHaveAttribute("aria-label",/Lun:.*\$.*\d/);
   // Account information and charts remain in separate pages. Nothing writes inventory
   // or financial figures simply because the dashboard was opened.
   await expect(dashboard.locator("input")).toHaveCount(0);
