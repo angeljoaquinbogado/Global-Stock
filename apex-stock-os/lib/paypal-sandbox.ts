@@ -6,7 +6,7 @@ const DEMO_CURRENCY = "USD";
 const DEMO_CUSTOM_ID = "global-stock-hackathon-demo-v1";
 
 function publicDemoOrigin() {
-  const deploymentHost = process.env.VERCEL_URL?.trim().replace(/^https?:\\/\\//i, "").replace(/\\/+$/, "");
+  const deploymentHost = process.env.VERCEL_URL?.trim().replace(/^https?:\/\//i, "").replace(/\/+$/, "");
   if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) {
     return `https://${deploymentHost}`;
   }
