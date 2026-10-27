@@ -107,6 +107,7 @@ export function ApexShell() {
   const [onboardedUserId, setOnboardedUserId] = useState<string | null>(null);
   const [hackathonPaymentNotice, setHackathonPaymentNotice] = useState("");
   const [hackathonDemo, setHackathonDemo] = useState(false);
+  const [paypalPanelOpen, setPaypalPanelOpen] = useState(true);
   const [paypalSandboxConfigured, setPaypalSandboxConfigured] = useState(false);
   const [paypalSandboxBusy, setPaypalSandboxBusy] = useState(false);
   const [paypalSandboxError, setPaypalSandboxError] = useState("");
@@ -432,7 +433,7 @@ export function ApexShell() {
 
   return (
     <MotionConfig reducedMotion="user">
-      {hackathonDemo && <div className={`fixed bottom-4 left-4 z-[190] w-[min(92vw,390px)] rounded-2xl border p-4 shadow-2xl ${dark ? "border-white/15 bg-[#18181b] text-white" : "border-[#dedee4] bg-white text-[#1d1d1f]"}`}>
+      {hackathonDemo && paypalPanelOpen && <div className={`fixed bottom-4 left-4 z-[190] w-[min(92vw,390px)] rounded-2xl border p-4 shadow-2xl ${dark ? "border-white/15 bg-[#18181b] text-white" : "border-[#dedee4] bg-white text-[#1d1d1f]"}`}>
         <p className="text-sm font-semibold">PayPal Sandbox · demo del hackathon</p>
         <p className={`mt-1 text-xs leading-5 ${dark ? "text-white/65" : "text-[#666670]"}`}>Compra ficticia de US$ 19,99. No afecta ventas, inventario ni arqueo de caja.</p>
         <button type="button" onClick={() => void startHackathonSandboxCheckout()}
@@ -441,9 +442,10 @@ export function ApexShell() {
           {paypalSandboxBusy ? "Conectando…" : paypalSandboxConfigured ? "Probar pago Sandbox" : "Sandbox no configurado"}
         </button>
         {paypalSandboxError && <p role="alert" className="mt-2 text-xs">{paypalSandboxError}</p>}
-        <button type="button" onClick={() => { setHackathonDemo(false); window.history.replaceState({}, "", window.location.pathname); }}
+        <button type="button" onClick={() => setPaypalPanelOpen(false)}
           className={`ml-2 rounded-lg px-3 py-2 text-xs font-medium ${dark ? "text-white/70" : "text-[#666670]"}`}>Ocultar</button>
       </div>}
+      {hackathonDemo && !paypalPanelOpen && <button type="button" onClick={() => setPaypalPanelOpen(true)} className={`fixed bottom-4 left-4 z-[190] inline-flex min-h-11 items-center gap-2 rounded-full border px-4 py-3 text-sm font-semibold shadow-xl ${dark ? "border-white/15 bg-[#18181b] text-white" : "border-[#dedee4] bg-white text-[#1d1d1f]"}`} aria-label="Volver a abrir PayPal Sandbox">PayPal Sandbox <span aria-hidden="true">↗</span></button>}
       {hackathonPaymentNotice && <div role="status" className={`fixed bottom-4 right-4 z-[200] max-w-[min(92vw,440px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl ${dark ? "border-white/15 bg-[#18181b] text-white" : "border-[#dedee4] bg-white text-[#1d1d1f]"}`}>{hackathonPaymentNotice}<button type="button" onClick={() => setHackathonPaymentNotice("")} className="ml-3 rounded-lg px-2 py-1 text-xs font-semibold text-[#8f0000]">Cerrar</button></div>}
       <BusinessWorkspace
         dark={dark}
