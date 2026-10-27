@@ -22,7 +22,9 @@ test("desktop navigation has an accessible collapse and expand control", async (
   assert.match(workspace, /const \[sidebarCollapsed, setSidebarCollapsed\] = useState\(false\)/);
   assert.match(workspace, /setSidebarCollapsed\(value => !value\)/);
   assert.match(workspace, /aria-label=\{sidebarCollapsed \? "Expandir menú lateral" : "Contraer menú lateral"\}/);
-  assert.match(workspace, /lg:grid-cols-\[76px_minmax\(0,1fr\)\]/);
+  assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \? "76px minmax\(0, 1fr\)" : "250px minmax\(0, 1fr\)"/);
+  assert.match(workspace, /transition-\[grid-template-columns\]/);
+  assert.match(workspace, /!sidebarCollapsed && <motion\.div key="sidebar-brand"/);
 });
 
 test("shared focus and selection feedback follows the selected workspace accent", async () => {
