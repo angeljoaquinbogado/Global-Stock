@@ -30,7 +30,23 @@ test("subscription migration creates a 15-day trial with owner-only RLS and guar
   assert.match(sql, /ON CONFLICT \(user_id\) DO NOTHING/);
 });
 
-test("subscription pricing uses round USD values and cancellation cannot be reinstated", async () => {\n  const plans = await read("components/SubscriptionPlans.tsx");\n  const webSignup = await read("components/AuthScreen.tsx");\n  const mobileSignup = await read("../apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");\n  const migration = await read("supabase/migrations/20261027_global_stock_usd_pricing_irreversible_cancel.sql");\n  assert.match(plans, /price: 10/);\n  assert.match(plans, /price: 20/);\n  assert.match(plans, /currency: "USD"/);\n  assert.match(webSignup, /US\\$ 10/);\n  assert.match(webSignup, /US\\$ 20/);\n  assert.match(mobileSignup, /US\\$ 10 \\/ mes/);\n  assert.match(mobileSignup, /US\\$ 20 \\/ mes/);\n  assert.match(migration, /price_usd integer/);\n  assert.match(migration, /SUBSCRIPTION_CANCELLATION_CANNOT_BE_REVERSED/);\n});\n\ntest("subscription cancellation is exposed in both account surfaces and calls PayPal only server-side", async () => {
+test("subscription pricing uses round USD values and cancellation cannot be reinstated", async () => {
+  const plans = await read("components/SubscriptionPlans.tsx");
+  const webSignup = await read("components/AuthScreen.tsx");
+  const mobileSignup = await read("../apps/global-stocks-mobile/src/components/NativeAuthLanding.tsx");
+  const migration = await read("supabase/migrations/20261027_global_stock_usd_pricing_irreversible_cancel.sql");
+  assert.match(plans, /price: 10/);
+  assert.match(plans, /price: 20/);
+  assert.match(plans, /currency: "USD"/);
+  assert.match(webSignup, /US\\$ 10/);
+  assert.match(webSignup, /US\\$ 20/);
+  assert.match(mobileSignup, /US\\$ 10 \\/ mes/);
+  assert.match(mobileSignup, /US\\$ 20 \\/ mes/);
+  assert.match(migration, /price_usd integer/);
+  assert.match(migration, /SUBSCRIPTION_CANCELLATION_CANNOT_BE_REVERSED/);
+});
+
+test("subscription cancellation is exposed in both account surfaces and calls PayPal only server-side", async () => {
   const web = await read("components/SubscriptionManagement.tsx");
   const mobile = await read("../apps/global-stocks-mobile/src/components/NativeSubscriptionManagement.tsx");
   const route = await read("app/api/billing/cancel/route.ts");
