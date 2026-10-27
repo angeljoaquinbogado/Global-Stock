@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
-import { HackathonDemoClient } from "./HackathonDemoClient";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = {
+export const metadata = {
   title: "Global Stock — Demo del hackathon",
-  description: "Demo integrada de Global Stock, Global Intelligence y PayPal Developer Sandbox.",
+  description: "Demo pública de Global Stock con datos de ejemplo y PayPal Developer Sandbox.",
   robots: { index: false, follow: false }
 };
 
 export default function HackathonDemoPage() {
-  return <HackathonDemoClient />;
+  redirect("/?hackathon-demo=1");
 }
