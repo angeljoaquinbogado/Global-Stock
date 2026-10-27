@@ -31,7 +31,7 @@ test("privacy and cookie disclosures are accessible from footer", async ({ page 
   await page.goto("/download", { waitUntil: "domcontentloaded" });
   await expect(page.locator("footer").getByRole("link", { name: "Cookies y almacenamiento" })).toHaveAttribute("href", "/legal/cookies");
   await page.goto("/legal/privacy", { waitUntil: "domcontentloaded" });
-  await expect(page.getByText("Versión 2026-10-12-v5", { exact: false })).toBeVisible();
+  await expect(page.getByText("Versión 2026-10-27-v6", { exact: false })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Correos de novedades" })).toBeVisible();
   await page.goto("/legal/terms", { waitUntil: "domcontentloaded" });
   await expect(page.getByText(/al menos 18 años/)).toBeVisible();
