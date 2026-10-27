@@ -7,14 +7,14 @@ import path from "node:path";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file) => readFile(path.join(root, file), "utf8");
 
-test("PayPal Sandbox panel can be hidden and reopened without dismissing demo mode", async () => {
+test("PayPal is not shown as a floating notification and plan choices live in account", async () => {
   const shell = await read("components/ApexShell.tsx");
-  assert.match(shell, /const \[paypalPanelOpen, setPaypalPanelOpen\] = useState\(true\)/);
-  assert.match(shell, /hackathonDemo && paypalPanelOpen/);
-  assert.match(shell, /onClick=\{\(\) => setPaypalPanelOpen\(false\)\}/);
-  assert.match(shell, /hackathonDemo && !paypalPanelOpen/);
-  assert.match(shell, /setPaypalPanelOpen\(true\)/);
-  assert.doesNotMatch(shell, /onClick=\{\(\) => \{ setHackathonDemo\(false\); window\.history\.replaceState/);
+  const account = await read("components/WorkspaceAccountPanel.tsx");
+  const plans = await read("components/SubscriptionPlans.tsx");
+  assert.doesNotMatch(shell, /paypalPanelOpen|hackathonPaymentNotice|PayPal Sandbox · demo del hackathon/);
+  assert.match(account, /SubscriptionPlans/);
+  assert.match(plans, /Prueba gratuita/);
+  assert.match(plans, /15 días/);
 });
 
 test("desktop navigation has an accessible collapse and expand control", async () => {
