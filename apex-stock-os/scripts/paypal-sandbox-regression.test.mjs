@@ -22,16 +22,14 @@ test("PayPal demo is sandbox-only and never accepts a browser-supplied amount", 
   assert.doesNotMatch(create, /body\.amount|body\.price|body\.currency/);
 });
 
-test("demo stays isolated, clearly labels sample data and does not pretend to change real stock", () => {
-  const page = file("apex-stock-os/app/hackathon-demo/HackathonDemoClient.tsx");
+test("hackathon demo uses the app's own sample data and does not ship a disconnected mock page", () => {
+  const page = file("apex-stock-os/app/hackathon-demo/page.tsx");
   const data = file("apex-stock-os/lib/demo-data.ts");
-  assert.match(page, /Global Stock/);
-  assert.match(page, /PayPal Sandbox/);
-  assert.match(page, /inventario/);
-  assert.match(page, /\/api\/paypal\/sandbox\/orders/);
+  assert.match(page, /redirect\("\/\?hackathon-demo=1"\)/);
   assert.doesNotMatch(data, /Reel Frontal Apex|Caña Carbon Pro|Delta Fishing Supply/);
   assert.match(data, /Yerba mate 1 kg/);
   assert.match(data, /Leche entera 1 L/);
+  assert.doesNotMatch(page, /HackathonDemoClient/);
 });
 
 test("hackathon URL enters the actual Global Stock demo workspace and cash register owns Sandbox checkout", () => {
@@ -47,14 +45,14 @@ test("hackathon URL enters the actual Global Stock demo workspace and cash regis
   assert.match(cash, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
 });
 
-test("public hackathon AI can only access fixed sample data and has no payment or write tools", () => {
-  const route = file("apex-stock-os/app/api/hackathon-demo/assistant/route.ts");
-  assert.match(route, /scope: "public-hackathon-demo-ai", limit: 8/);
-  assert.match(route, /products: demoProducts/);
-  assert.match(route, /dataClassification: "fictional sample data only"/);
-  assert.match(route, /"modify_inventory", "create_purchase_order", "capture_payment"/);
-  assert.match(route, /message.length > 500/);
-  assert.doesNotMatch(route, /authorizeBusinessRequest|global_stock_ai_allow_request/);
+test("hackathon demo reuses the real Global Intelligence assistant rather than a second mock AI", () => {
+  const assistant = file("apex-stock-os/components/ApexIntelligence.tsx");
+  const shell = file("apex-stock-os/components/ApexShell.tsx");
+  assert.match(assistant, /Global Intelligence/);
+  assert.match(assistant, /<VoiceInputButton/);
+  assert.match(assistant, /<VoiceOutputButton/);
+  assert.match(shell, /requestedHackathonDemo/);
+  assert.doesNotMatch(shell, /HackathonDemoClient/);
 });
 
 test("Global Intelligence voice input is optional and Spanish-Argentina localized", () => {
