@@ -95,7 +95,7 @@ export function SubscriptionManagement({ language, demoMode }: { language: Langu
           </div>
           {status === "trialing" && <p className="text-xs leading-5 text-[var(--apex-muted)]">{t.noCharge}</p>}
           {status === "expired" && <p className="text-sm leading-5 text-amber-700 dark:text-amber-300">{t.noCharge}</p>}
-          {status === "cancelled" && <p className="text-sm text-[var(--apex-muted)]">{t.cancelledNotice}</p>}
+          {status === "cancelled" && !notice && <p className="text-sm text-[var(--apex-muted)]">{t.cancelledNotice}</p>}
           {notice && <p role="status" className="flex items-start gap-2 text-sm text-emerald-700 dark:text-emerald-300"><CheckCircle2 size={16}/>{notice}</p>}
           {error && <p role="alert" className="flex items-start gap-2 text-sm text-red-600 dark:text-red-300"><CircleAlert size={16}/>{error}</p>}
           {status !== "cancelled" && status !== "expired" && <button type="button" onClick={() => void cancel()} disabled={busy || loading} className="inline-flex min-h-10 items-center gap-2 rounded-xl border border-red-500/30 px-4 text-sm font-semibold text-red-700 hover:bg-red-500/5 disabled:opacity-50 dark:text-red-300">{busy ? <Loader2 className="animate-spin" size={15}/> : <XCircle size={15}/>} {busy ? t.cancelling : subscription.provider_subscription_id ? t.cancelPaid : t.cancel}</button>}
