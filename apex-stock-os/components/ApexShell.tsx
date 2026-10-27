@@ -403,7 +403,7 @@ export function ApexShell() {
 
   return (
     <MotionConfig reducedMotion="user">
-      {hackathonPaymentNotice && <div role="status" className="fixed bottom-4 right-4 z-[200] max-w-[min(92vw,440px)] rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-panel)] px-4 py-3 text-sm text-[var(--apex-text)] shadow-2xl">{hackathonPaymentNotice}<button type="button" onClick={() => setHackathonPaymentNotice("")} className="ml-3 rounded-lg px-2 py-1 text-xs font-semibold text-[var(--apex-accent)]">Cerrar</button></div>}
+      {hackathonPaymentNotice && <div role="status" className={`fixed bottom-4 right-4 z-[200] max-w-[min(92vw,440px)] rounded-2xl border px-4 py-3 text-sm shadow-2xl ${dark ? "border-white/15 bg-[#18181b] text-white" : "border-[#dedee4] bg-white text-[#1d1d1f]"}`}>{hackathonPaymentNotice}<button type="button" onClick={() => setHackathonPaymentNotice("")} className="ml-3 rounded-lg px-2 py-1 text-xs font-semibold text-[#8f0000]">Cerrar</button></div>}
       <BusinessWorkspace
         dark={dark}
         language={language}
