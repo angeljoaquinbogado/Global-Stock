@@ -163,8 +163,22 @@ export function ApexShell() {
       setCurrency(storedCurrency);
     }
 
+    const requestedHackathonDemo = new URLSearchParams(window.location.search).get("hackathon-demo") === "1";
     const demoActive =
       window.localStorage.getItem(DEMO_ACTIVE_KEY) === "1";
+
+    if (requestedHackathonDemo && !demoActive) {
+      window.localStorage.setItem(DEMO_BACKUP_KEY, JSON.stringify(captureGlobalStockStorage()));
+      clearGlobalStockStorage();
+      window.localStorage.setItem(DEMO_ACTIVE_KEY, "1");
+      setDemoMode(true);
+      setAuthenticated(true);
+      setReady(true);
+      if (!new URLSearchParams(window.location.search).has("paypal")) {
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+      return;
+    }
 
     if (demoActive) {
       setDemoMode(true);
