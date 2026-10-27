@@ -38,10 +38,10 @@ test("subscription pricing uses round USD values and cancellation cannot be rein
   assert.match(plans, /price: 10/);
   assert.match(plans, /price: 20/);
   assert.match(plans, /currency: "USD"/);
-  assert.match(webSignup, /US\\$ 10/);
-  assert.match(webSignup, /US\\$ 20/);
-  assert.match(mobileSignup, /US\\$ 10 \\/ mes/);
-  assert.match(mobileSignup, /US\\$ 20 \\/ mes/);
+  assert.match(webSignup, /US\$ 10/);
+  assert.match(webSignup, /US\$ 20/);
+  assert.match(mobileSignup, /US\$ 10 \/ mes/);
+  assert.match(mobileSignup, /US\$ 20 \/ mes/);
   assert.match(migration, /price_usd integer/);
   assert.match(migration, /SUBSCRIPTION_CANCELLATION_CANNOT_BE_REVERSED/);
 });
