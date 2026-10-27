@@ -34,6 +34,18 @@ test("demo stays isolated, clearly labels sample data and does not pretend to ch
   assert.match(data, /Leche entera 1 L/);
 });
 
+test("hackathon URL enters the actual Global Stock demo workspace and cash register owns Sandbox checkout", () => {
+  const page = file("apex-stock-os/app/hackathon-demo/page.tsx");
+  const shell = file("apex-stock-os/components/ApexShell.tsx");
+  const cash = file("apex-stock-os/components/CashRegisterCenter.tsx");
+  assert.match(page, /redirect\("\/\?hackathon-demo=1"\)/);
+  assert.match(shell, /requestedHackathonDemo/);
+  assert.match(shell, /setDemoMode\(true\)/);
+  assert.match(cash, /PayPal Sandbox · compra de prueba/);
+  assert.match(cash, /api\/paypal\/sandbox\/orders\/capture/);
+  assert.match(cash, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
+});
+
 test("public hackathon AI can only access fixed sample data and has no payment or write tools", () => {
   const route = file("apex-stock-os/app/api/hackathon-demo/assistant/route.ts");
   assert.match(route, /scope: "public-hackathon-demo-ai", limit: 8/);
