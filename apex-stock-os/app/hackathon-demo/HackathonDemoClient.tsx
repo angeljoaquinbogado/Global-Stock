@@ -21,6 +21,7 @@ export function HackathonDemoClient() {
   const [checkoutMessage, setCheckoutMessage] = useState("");
   const [paypalReady, setPaypalReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [assistantBusy, setAssistantBusy] = useState(false);
 
   const lowStock = useMemo(
     () => demoProducts.filter((product) => product.stock <= product.minStock)
@@ -64,19 +65,39 @@ export function HackathonDemoClient() {
     return () => { active = false; };
   }, []);
 
-  function askAssistant() {
-    const normalized = question.toLocaleLowerCase("es-AR");
+  async function askAssistant() {
+    const prompt = question.trim();
+    if (!prompt || assistantBusy) return;
+    setAssistantBusy(true);
+    try {
+      const response = await fetch("/api/hackathon-demo/assistant", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: prompt })
+      });
+      const data = await response.json();
+      if (response.ok && typeof data.answer === "string") {
+        setAnswer(data.answer);
+        return;
+      }
+    } catch {
+      // A local sample-data fallback keeps the demo explainable when AI is unavailable.
+    } finally {
+      setAssistantBusy(false);
+    }
+
+    const normalized = prompt.toLocaleLowerCase("es-AR");
     if (/repon|falt|stock|compr|proveedor|agotad/.test(normalized)) {
       const lines = lowStock.slice(0, 4).map((product, index) =>
         `${index + 1}. ${product.name}: quedan ${product.stock}, mínimo ${product.minStock}. Proveedor: ${product.supplier}.`
       );
       setAnswer(lines.length
-        ? `Revisé el inventario de ejemplo. Priorizaría estos productos:\n\n${lines.join("\n")}\n\nEsto es una recomendación de la demo; todavía no se creó ninguna orden ni se contactó a proveedores.`
+        ? `Respuesta local de respaldo basada en datos ficticios. Priorizaría estos productos:\\n\\n${lines.join("\\n")}\\n\\nNo se creó ninguna orden ni se contactó a proveedores.`
         : "No aparecen productos por debajo del mínimo en los datos de ejemplo.");
     } else if (/venta|ingres|ganan|margen/.test(normalized)) {
-      setAnswer("En esta demo estoy mostrando inventario de ejemplo. Para responder sobre ventas o ganancias reales, Global Intelligence debe usar el contexto autorizado del negocio conectado; no voy a inventar esas cifras.");
+      setAnswer("Esta demo usa inventario y tendencias ficticias. Para responder sobre ventas o ganancias reales, Global Intelligence necesita el contexto autorizado del negocio conectado; no voy a inventar cifras.");
     } else {
-      setAnswer("Soy Global Intelligence. En esta demo puedo priorizar el inventario de ejemplo y explicar qué conviene revisar. Probá preguntarme qué productos hay que reponer.");
+      setAnswer("La IA del servidor no está disponible en este momento. Esta respuesta de respaldo usa únicamente datos ficticios. Probá preguntarme qué productos hay que reponer.");
     }
   }
 
@@ -150,7 +171,7 @@ export function HackathonDemoClient() {
                 <textarea id="assistant-question" value={question} onChange={(event) => setQuestion(event.target.value)} rows={3} maxLength={500} className="min-w-0 flex-1 resize-y rounded-xl border border-white/15 bg-white/[.06] px-3 py-3 text-sm text-white outline-none focus:border-white/40" />
                 <VoiceInputButton accentColor="#8f0000" onTranscript={(text) => setQuestion((current) => current.trim() ? `${current.trim()} ${text}` : text)} />
               </div>
-              <button type="button" onClick={askAssistant} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#17171b] transition hover:bg-white/90"><Sparkles size={15}/> Analizar inventario</button>
+              <button type="button" onClick={() => void askAssistant()} disabled={assistantBusy || !question.trim()} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#17171b] transition hover:bg-white/90 disabled:cursor-wait disabled:opacity-60"><Sparkles size={15}/> {assistantBusy ? "Analizando…" : "Analizar inventario"}</button>
               {answer && <div className="mt-4 whitespace-pre-wrap rounded-2xl border border-white/10 bg-white/[.05] p-4 text-sm leading-6 text-white/85">{answer}</div>}
             </section>
 
