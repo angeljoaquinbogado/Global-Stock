@@ -32,17 +32,20 @@ test("hackathon demo uses the app's own sample data and does not ship a disconne
   assert.doesNotMatch(page, /HackathonDemoClient/);
 });
 
-test("hackathon URL enters the actual Global Stock demo workspace and cash register owns Sandbox checkout", () => {
+test("hackathon URL enters the actual Global Stock demo workspace and Sandbox checkout stays outside cash closeout", () => {
   const page = file("apex-stock-os/app/hackathon-demo/page.tsx");
   const shell = file("apex-stock-os/components/ApexShell.tsx");
   const cash = file("apex-stock-os/components/CashRegisterCenter.tsx");
   assert.match(page, /redirect\("\/\?hackathon-demo=1"\)/);
   assert.match(shell, /requestedHackathonDemo/);
   assert.match(shell, /setDemoMode\(true\)/);
-  assert.match(cash, /PayPal Sandbox · compra de prueba/);
+  assert.doesNotMatch(cash, /PayPal Sandbox|paypalConfigured|paypalBusy/);
+  assert.match(shell, /PayPal Sandbox · demo del hackathon/);
+  assert.match(shell, /startHackathonSandboxCheckout/);
+  assert.match(shell, /sandbox-unavailable/);
   assert.match(shell, /api\/paypal\/sandbox\/orders\/capture/);
   assert.match(shell, /hackathonPaymentNotice/);
-  assert.match(cash, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
+  assert.match(shell, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
 });
 
 test("hackathon demo reuses the real Global Intelligence assistant rather than a second mock AI", () => {
