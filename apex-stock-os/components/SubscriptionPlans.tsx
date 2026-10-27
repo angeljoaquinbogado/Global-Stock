@@ -26,7 +26,7 @@ const plans = [
   {
     id: "pro",
     name: "Profesional",
-    price: 10,
+    price: 5,
     suffix: "por mes",
     description: "Para negocios en crecimiento y equipos con varios locales.",
     features: ["Todo lo de Emprendedor", "Análisis avanzados e IA", "Gestión de varios locales", "Informes y organización avanzados"],
