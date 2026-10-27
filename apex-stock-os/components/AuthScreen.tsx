@@ -701,7 +701,7 @@ export function AuthScreen({
                           {([
                             { id: "free", title: language === "es" ? "Gratis" : "Free", price: "$0", detail: language === "es" ? "Funciones básicas" : "Basic features" },
                             { id: "starter", title: "Emprendedor", price: "US$ 10", detail: language === "es" ? "USD / mes · cobro aún desactivado" : "USD / month · billing not enabled" },
-                            { id: "pro", title: "Profesional", price: "$19.900", detail: language === "es" ? "Por mes luego de elegir pagar" : "Monthly after choosing to pay" }
+                            { id: "pro", title: "Profesional", price: "US$ 20", detail: language === "es" ? "USD / mes · cobro aún desactivado" : "USD / month · billing not enabled" }
                           ] as const).map((plan) => (
                             <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
                               aria-pressed={selectedPlan === plan.id}
