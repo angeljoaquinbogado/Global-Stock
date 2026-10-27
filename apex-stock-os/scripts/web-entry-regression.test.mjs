@@ -22,7 +22,9 @@ test("PC website builds its own Next.js app, never an Expo Web export", () => {
 
 test("original responsive PC entry stays separate from Expo Go source", () => {
   assert.match(web("app/page.tsx"), /<ApexShell\s*\/>/);
-  assert.match(web("components/BusinessWorkspace.tsx"), /lg:grid-cols-\[250px_minmax\(0,1fr\)\]/);
+  const workspace = web("components/BusinessWorkspace.tsx");
+  assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \? "76px minmax\(0, 1fr\)" : "250px minmax\(0, 1fr\)"/);
+  assert.match(workspace, /transition-\[grid-template-columns\]/);
   assert.match(repo("apps/global-stocks-mobile/index.ts"), /import App from "\.\/App"/);
   assert.doesNotMatch(repo("apps/global-stocks-mobile/index.ts"), /\.\/src\/components\/UnifiedApp/);
 });
