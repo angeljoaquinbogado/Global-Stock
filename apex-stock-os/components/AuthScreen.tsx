@@ -700,7 +700,7 @@ export function AuthScreen({
                         <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
                           {([
                             { id: "free", title: language === "es" ? "Gratis" : "Free", price: "$0", detail: language === "es" ? "Funciones básicas" : "Basic features" },
-                            { id: "starter", title: "Emprendedor", price: "$9.900", detail: language === "es" ? "Por mes luego de elegir pagar" : "Monthly after choosing to pay" },
+                            { id: "starter", title: "Emprendedor", price: "$9.900", detail: language === "es" ? "ARS / mes · pago confirmado" : "ARS / month · confirmed payment" },
                             { id: "pro", title: "Profesional", price: "$19.900", detail: language === "es" ? "Por mes luego de elegir pagar" : "Monthly after choosing to pay" }
                           ] as const).map((plan) => (
                             <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
