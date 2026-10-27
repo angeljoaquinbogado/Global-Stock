@@ -3734,6 +3734,7 @@ export function BusinessWorkspace({
       <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
         <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
           <AnimatePresence initial={false}>
+            {sidebarCollapsed && <motion.div key="sidebar-mark" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.div>}
             {!sidebarCollapsed && <motion.div key="sidebar-brand" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.div>}
           </AnimatePresence>
           <motion.button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
@@ -3773,7 +3774,7 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id}>
+                  <section key={group.id} className={sidebarCollapsed ? "relative pb-2 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-px after:bg-[var(--apex-border)] last:after:hidden" : "relative"}>
                     <p className={`mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70 ${sidebarCollapsed ? "sr-only" : ""}`}>
                       {navigationGroupLabels[language][group.id]}
                     </p>
@@ -3787,10 +3788,12 @@ export function BusinessWorkspace({
                             key={id}
                             type="button"
                             onClick={() => setActiveModule(id)}
+                            title={labels.nav[id]}
+                            aria-label={labels.nav[id]}
                             className={
-                              "flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150 " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
+                              "group relative flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow,transform] duration-200 hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
                               (active
-                                ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.18)]"
+                                ? "bg-[var(--apex-accent)] text-white shadow-[0_8px_22px_var(--apex-accent-glow)]"
                                 : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
                             }
                           >
@@ -3798,6 +3801,7 @@ export function BusinessWorkspace({
                             <span className={sidebarCollapsed ? "sr-only" : "truncate"}>
                               {labels.nav[id]}
                             </span>
+                            {sidebarCollapsed && <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[80] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">{labels.nav[id]}</span>}
                           </button>
                         );
                       })}
@@ -3805,10 +3809,11 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`}
+                          className={`group relative flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={16} aria-hidden="true" />
                           <span className={sidebarCollapsed ? "sr-only" : "min-w-0 break-words"}>{legalLinkLabels[language][id]}</span>
+                          {sidebarCollapsed && <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[80] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">{legalLinkLabels[language][id]}</span>}
                         </a>
                       ))}
                     </div>
