@@ -105,6 +105,35 @@ export function ApexShell() {
   const [authUserId, setAuthUserId] = useState<string | null>(null);
   const [legalApprovedUserId, setLegalApprovedUserId] = useState<string | null>(null);
   const [onboardedUserId, setOnboardedUserId] = useState<string | null>(null);
+  const [hackathonPaymentNotice, setHackathonPaymentNotice] = useState("");
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("paypal");
+    const orderId = params.get("token");
+    if (status === "cancelled") {
+      setHackathonPaymentNotice("Compra de prueba cancelada. No se realizó ningún cobro real.");
+      window.history.replaceState({}, "", "/?hackathon-demo=1");
+      return;
+    }
+    if (status !== "success" || !orderId) return;
+    let active = true;
+    setHackathonPaymentNotice("Confirmando el resultado de PayPal Sandbox…");
+    void fetch("/api/paypal/sandbox/orders/capture", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ orderId })
+    }).then(async response => {
+      const data = await response.json();
+      if (!response.ok) throw new Error("capture-failed");
+      if (active) setHackathonPaymentNotice(`Pago de prueba confirmado en PayPal Sandbox: ${data.currency} ${data.amount}. ID: ${data.id}`);
+    }).catch(() => {
+      if (active) setHackathonPaymentNotice("No se pudo confirmar el resultado en Sandbox. Revisá el estado del pedido antes de volver a intentar.");
+    }).finally(() => {
+      window.history.replaceState({}, "", "/?hackathon-demo=1");
+    });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     // One-time Expo Keychain-to-WebView migration. Tokens are transferred only
@@ -374,6 +403,7 @@ export function ApexShell() {
 
   return (
     <MotionConfig reducedMotion="user">
+      {hackathonPaymentNotice && <div role="status" className="fixed bottom-4 right-4 z-[200] max-w-[min(92vw,440px)] rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-panel)] px-4 py-3 text-sm text-[var(--apex-text)] shadow-2xl">{hackathonPaymentNotice}<button type="button" onClick={() => setHackathonPaymentNotice("")} className="ml-3 rounded-lg px-2 py-1 text-xs font-semibold text-[var(--apex-accent)]">Cerrar</button></div>}
       <BusinessWorkspace
         dark={dark}
         language={language}
