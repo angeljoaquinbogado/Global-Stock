@@ -4,7 +4,7 @@
 
 ## Short description
 
-Global Stock Intelligence helps small businesses manage inventory and purchasing through natural-language and voice interactions. Instead of navigating multiple screens, a merchant can ask for low-stock insights, review a suggested restock, and continue through a confirmed PayPal Sandbox checkout when the order and merchant account are eligible. The agent uses authorized application context, explains its recommendations, and keeps the merchant in control of financial actions.
+Global Stock is an Argentina-first business-management application. The current hackathon branch adds a unified demo workspace with Argentine sample inventory, Spanish-Argentina voice dictation, and a fixed-price PayPal Developer Sandbox checkout. The dedicated demo is isolated from real businesses and real money. This is an implementation checkpoint, not yet a final hackathon submission: the PayPal checkout still needs to be tied to a genuinely AI-assisted, reviewable store-order workflow before it can be described as fundamental to the product.
 
 ## Problem
 
@@ -12,17 +12,18 @@ Small retailers lose time moving between stock lists, sales reports, supplier or
 
 ## Proposed solution
 
-Global Stock Intelligence combines a business-management application with a tool-using AI assistant. The assistant can interpret typed or spoken requests, summarize permitted inventory and sales data, prepare a reviewable restock draft, and guide the user into an eligible PayPal Sandbox checkout. PayPal is part of the actual demo journey; it is not merely a logo or an unrelated payment button.
+Global Stock combines inventory management with Global Intelligence. The existing authenticated assistant can use authorized business context; the hackathon branch adds voice dictation and a focused, isolated demo route. The demo checkout uses real PayPal Sandbox API traffic with a server-fixed amount and validated capture, but it is currently a separate test purchase. Do not claim the required AI-to-PayPal workflow is complete until the assistant and checkout share a verified order/cart flow.
 
 ## What changed during the hackathon
 
-Global Stock existed before the event. The entrant must document the significant post-1 October 2026 changes with dated commits and a before/after summary. Planned work includes:
-- An explicit, allowlisted agent action layer with authorization and confirmation gates.
-- Voice input and optional speech output with accessible controls and typed fallback.
-- A PayPal Developer Sandbox checkout workflow integrated with the agent's order/review journey.
-- End-to-end tests and an English judge setup guide.
+The branch feature/paypal-ai-hackathon contains dated commits after 1 October 2026. Implemented changes currently include:
+- Replaced unrelated fishing-store demo fixtures with neutral Argentine small-business sample inventory.
+- Added a unified /hackathon-demo page in Global Stock's visual language, with sample stock, voice dictation, and an explicitly isolated checkout demonstration.
+- Added server-only PayPal Developer Sandbox order creation/capture endpoints with a fixed USD 19.99 amount, order ownership checks, and no browser-supplied amount.
+- Added optional es-AR dictation to the existing Global Intelligence chat with typed fallback.
+- Added regression tests and Sandbox setup documentation.
 
-Only list an item as implemented after it has been completed and verified. Replace this section with the exact delivered changes and commit links before submission.
+**Still required before submission:** make PayPal checkout part of a genuinely AI-assisted order/cart workflow, test the full checkout and cancellation flow using Sandbox buyer accounts, run all release/type/build checks, fix the critical Next.js dependency advisory reported by CI, and verify the final judge experience. Do not list any unfinished item as delivered.
 
 ## Technology
 
