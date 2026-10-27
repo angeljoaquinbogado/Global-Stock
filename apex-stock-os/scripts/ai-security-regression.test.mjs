@@ -88,9 +88,16 @@ test("native and web expose Caja without duplicating Cotizaciones or bypassing s
   assert.doesNotMatch(web, /\{ id: "pos", icon:/);
   const cashRegister = file("apex-stock-os/components/CashRegisterCenter.tsx");
   const shifts = file("apex-stock-os/supabase/migrations/20261016_cash_register_shifts.sql");
+  const paymentBreakdown = file("apex-stock-os/supabase/migrations/20261027_cash_shift_payment_breakdown.sql");
   assert.match(cashRegister, /global_stock_open_cash_shift/);
   assert.match(cashRegister, /global_stock_close_cash_shift/);
   assert.match(cashRegister, /global_stock_cash_shift_snapshot/);
+  assert.match(cashRegister, /name:t\.otherSales/);
+  assert.match(cashRegister, /sales_by_method/);
+  assert.match(cashRegister, /not added to expected physical cash/i);
+  assert.match(paymentBreakdown, /'sales_by_method',method_breakdown/);
+  assert.match(paymentBreakdown, /group by p\.method/);
+  assert.match(paymentBreakdown, /expected_total := shift_row\.opening_amount\+cash_sales\+income_total-outgoing_total/);
   assert.match(shifts, /global_stock_can_write\(target_business_id,'cash'\)/);
   assert.match(shifts, /gs_cash_one_open_shift_per_location/);
   assert.match(roles, /cash: \["owner", "admin", "manager", "cashier", "sales"\]/);
