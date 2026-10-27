@@ -3,6 +3,12 @@
 import { Check, Clock3, CreditCard, Sparkles } from "lucide-react";
 import type { LanguageCode } from "./GlobalPreferences";
 
+const configuredPrice = (value: string | undefined, fallback: number) => {
+  const parsed = Number(value);
+  return value && Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed) : fallback;
+};
+const trialDays = configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_TRIAL_DAYS, 15);
+
 const plans = [
   {
     id: "free",
@@ -16,7 +22,7 @@ const plans = [
   {
     id: "starter",
     name: "Emprendedor",
-    price: 9900,
+    price: configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_STARTER_PRICE_ARS, 9900),
     suffix: "por mes",
     description: "Para comercios pequeños que necesitan orden diario.",
     features: ["Caja, ventas e inventario", "Proveedores y comprobantes", "Estadísticas del negocio", "Un negocio o local"],
@@ -25,7 +31,7 @@ const plans = [
   {
     id: "pro",
     name: "Profesional",
-    price: 19900,
+    price: configuredPrice(process.env.NEXT_PUBLIC_GLOBAL_STOCK_PRO_PRICE_ARS, 19900),
     suffix: "por mes",
     description: "Para negocios en crecimiento y equipos con varios locales.",
     features: ["Todo lo de Emprendedor", "Análisis avanzados e IA", "Gestión de varios locales", "Informes y organización avanzados"],
@@ -49,6 +55,7 @@ function formatArs(value: number, language: LanguageCode) {
 
 export function SubscriptionPlans({ language }: { language: LanguageCode }) {
   const t = labels[language];
+  const trialText = t.trial.replace("15", String(trialDays));
   return (
     <section className="space-y-5" aria-labelledby="subscription-plans-title">
       <header>
@@ -65,12 +72,12 @@ export function SubscriptionPlans({ language }: { language: LanguageCode }) {
                 {plan.name}
               </div>
               <p className="mt-4 text-3xl font-semibold tracking-tight">{plan.price === 0 ? "$0" : formatArs(plan.price, language)}</p>
-              <p className="mt-1 text-xs text-[var(--apex-muted)]">{plan.price === 0 ? t.trial : t.perMonth}</p>
+              <p className="mt-1 text-xs text-[var(--apex-muted)]">{plan.price === 0 ? trialText : t.perMonth}</p>
               <p className="mt-3 min-h-10 text-sm text-[var(--apex-muted)]">{plan.description}</p>
               <ul className="mt-4 flex-1 space-y-2.5">
                 {plan.features.map((feature) => <li key={feature} className="flex items-start gap-2 text-sm"><Check size={16} className="mt-0.5 shrink-0 text-[#8F0000]"/><span>{feature}</span></li>)}
               </ul>
-              {plan.id === "free" && <p className="mt-5 rounded-xl bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-medium">{t.trial}</p>}
+              {plan.id === "free" && <p className="mt-5 rounded-xl bg-[var(--apex-surface-strong)] px-3 py-2 text-xs font-medium">{trialText}</p>}
             </article>
           );
         })}
