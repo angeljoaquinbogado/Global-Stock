@@ -56,6 +56,21 @@ SYNC_WEBHOOK_SECRET=
 
 La `SUPABASE_SERVICE_ROLE_KEY` nunca debe exponerse al cliente ni usar el prefijo `NEXT_PUBLIC_`.
 
+## Demo del PayPal AI Hackathon
+
+Abrí `/hackathon-demo` para una única experiencia integrada de Global Stock: inventario de muestra argentino, dictado por voz de Global Intelligence y checkout de PayPal Developer Sandbox. No es una segunda app ni una tienda real; todos los registros son ficticios y están aislados del workspace de usuarios. La consulta de voz no modifica registros, y el checkout de prueba no toca el inventario real.
+
+Para activar el checkout en local:
+
+1. Creá una REST app en **PayPal Developer Dashboard → Sandbox**.
+2. Copiá el Client ID y Secret de Sandbox a `.env.local` como `PAYPAL_CLIENT_ID` y `PAYPAL_CLIENT_SECRET`.
+3. Definí `NEXT_PUBLIC_APP_URL=http://localhost:3000` en local. En el despliegue de demo, usá la URL HTTPS pública exacta.
+4. Reiniciá Next.js y abrí `/hackathon-demo`. Usá una cuenta de comprador Sandbox; no uses credenciales live.
+
+El importe es fijo en el servidor (USD 19,99), no se acepta un monto desde el navegador, los endpoints se conectan exclusivamente a `api-m.sandbox.paypal.com` y el capture valida ID, estado, moneda, importe e identificador de la orden antes de confirmar. Sin credenciales, la demo explica que el checkout no está configurado en vez de simular un pago. No habilitar ni promocionar esta ruta como checkout de producción.
+
+Global Intelligence también incorpora dictado en español argentino cuando el navegador soporta Web Speech API; el texto sigue disponible como alternativa.
+
 ## Arquitectura
 
 ```text
