@@ -47,8 +47,8 @@ test("hackathon URL enters the actual Global Stock demo workspace and Sandbox ch
   assert.match(account, /<SubscriptionPlans language={language} \/>/);
   assert.match(plans, /Prueba gratuita/);
   assert.match(plans, /15 días/);
-  assert.match(plans, /9900/);
-  assert.match(plans, /19900/);
+  assert.match(plans, /price: 10/);
+  assert.match(plans, /price: 20/);
   assert.match(plans, /La contratación y los cobros todavía no están activados/);
   assert.doesNotMatch(plans, /window\.location\.assign|fetch\("\/api\/paypal/);
 });
