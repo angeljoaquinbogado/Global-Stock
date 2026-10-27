@@ -49,7 +49,7 @@ test("hackathon URL enters the actual Global Stock demo workspace and Sandbox ch
   assert.match(plans, /15 días/);
   assert.match(plans, /price: 10/);
   assert.match(plans, /price: 20/);
-  assert.match(plans, /La contratación y los cobros todavía no están activados/);
+  assert.match(plans, /los cobros reales siguen desactivados/);
   assert.doesNotMatch(plans, /window\.location\.assign|fetch\("\/api\/paypal/);
 });
 
