@@ -1203,6 +1203,7 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
   useEffect(() => {
     try {
@@ -3729,11 +3730,16 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main data-workspace-accent={workspaceAccent} style={workspaceAccentVars(workspaceAccent)} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[250px_minmax(0,1fr)]">
-      <aside className="relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] px-4 py-5 lg:flex lg:flex-col">
-        <Logo withWordmark />
+    <main data-workspace-accent={workspaceAccent} style={workspaceAccentVars(workspaceAccent)} className={`gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid ${sidebarCollapsed ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[250px_minmax(0,1fr)]"}`}>
+      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
+        <div className={`flex w-full items-center ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+          <Logo withWordmark={!sidebarCollapsed} />
+          <button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] hover:text-[var(--apex-text)]">
+            <Menu size={16} aria-hidden="true" />
+          </button>
+        </div>
 
-        <div className="relative mt-6 min-h-0 flex-1">
+        <div className={`relative mt-6 min-h-0 w-full flex-1 ${sidebarCollapsed ? "px-0" : ""}`}>
           <nav
             id="business-sidebar-nav"
             ref={sidebarNavRef}
@@ -3762,7 +3768,7 @@ export function BusinessWorkspace({
 
                 return (
                   <section key={group.id}>
-                    <p className="mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70">
+                    <p className={`mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70 ${sidebarCollapsed ? "sr-only" : ""}`}>
                       {navigationGroupLabels[language][group.id]}
                     </p>
 
@@ -3776,14 +3782,14 @@ export function BusinessWorkspace({
                             type="button"
                             onClick={() => setActiveModule(id)}
                             className={
-                              "flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150 " +
+                              "flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow] duration-150 " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
                               (active
                                 ? "bg-[#8F0000] text-white shadow-[0_8px_22px_rgba(143,0,0,.18)]"
                                 : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
                             }
                           >
                             <Icon size={16} />
-                            <span className="truncate">
+                            <span className={sidebarCollapsed ? "sr-only" : "truncate"}>
                               {labels.nav[id]}
                             </span>
                           </button>
@@ -3793,10 +3799,10 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className="flex min-h-10 w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000]"
+                          className={`flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-colors hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#8F0000] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`}
                         >
                           <Icon size={16} aria-hidden="true" />
-                          <span className="min-w-0 break-words">{legalLinkLabels[language][id]}</span>
+                          <span className={sidebarCollapsed ? "sr-only" : "min-w-0 break-words"}>{legalLinkLabels[language][id]}</span>
                         </a>
                       ))}
                     </div>
@@ -3809,7 +3815,8 @@ export function BusinessWorkspace({
 
         </div>
 
-        <div className="mt-auto space-y-3 pt-4">
+        <div className={`mt-auto w-full space-y-3 pt-4 ${sidebarCollapsed ? "px-0" : ""}`}>
+          {!sidebarCollapsed && <>
           <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
               {labels.businessSummary}
@@ -3827,13 +3834,14 @@ export function BusinessWorkspace({
             )}
           </div>
 
+          </>}
           <button
             type="button"
             onClick={onSignOut}
-            className="flex w-full items-center gap-3 rounded-2xl border border-[var(--apex-border)] px-3 py-3 text-sm font-semibold text-[var(--apex-muted)]"
+            className={`flex w-full items-center rounded-2xl border border-[var(--apex-border)] py-3 text-sm font-semibold text-[var(--apex-muted)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`}
           >
             <LogOut size={17} />
-            {labels.signOut}
+            {!sidebarCollapsed && labels.signOut}
           </button>
         </div>
       </aside>
