@@ -497,11 +497,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                 </Pressable>
               </View> : null}
               <Pressable accessibilityRole="button" accessibilityLabel={signup ? t.create : t.login}
-                disabled={loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))}
+                disabled={loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !selectedPlan || !adultConfirmed || !termsConfirmed))}
                 onPress={submit}
                 style={({pressed}) => [
                   styles.primary,
-                  (loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
+                  (loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !selectedPlan || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
                   pressed && styles.pressed
                 ]}>
                 {loading ? <ActivityIndicator color="#fff"/> : <>
