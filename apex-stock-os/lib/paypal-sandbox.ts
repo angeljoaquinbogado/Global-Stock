@@ -5,6 +5,22 @@ const DEMO_AMOUNT = "19.99";
 const DEMO_CURRENCY = "USD";
 const DEMO_CUSTOM_ID = "global-stock-hackathon-demo-v1";
 
+function publicDemoOrigin() {
+  const deploymentHost = process.env.VERCEL_URL?.trim().replace(/^https?:\\/\\//i, "").replace(/\\/+$/, "");
+  if (deploymentHost && /^[a-z0-9.-]+$/i.test(deploymentHost)) {
+    return `https://${deploymentHost}`;
+  }
+  const configured = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (configured) {
+    const url = new URL(configured);
+    if (url.protocol === "https:" || url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+      return url.origin;
+    }
+    throw new Error("PAYPAL_PUBLIC_APP_URL_INVALID");
+  }
+  return "http://localhost:3000";
+}
+
 type PayPalLink = { rel?: string; href?: string };
 type PayPalOrder = {
   id?: string;
@@ -77,8 +93,8 @@ export async function createSandboxDemoOrder() {
         brand_name: "Global Stock Demo",
         user_action: "PAY_NOW",
         shipping_preference: "NO_SHIPPING",
-        return_url: `${process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000"}/hackathon-demo?paypal=success`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000"}/hackathon-demo?paypal=cancelled`
+        return_url: `${publicDemoOrigin()}/hackathon-demo?paypal=success`,
+        cancel_url: `${publicDemoOrigin()}/hackathon-demo?paypal=cancelled`
       }
     }),
     cache: "no-store",
