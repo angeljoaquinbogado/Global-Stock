@@ -241,22 +241,22 @@ export default function PrivacyPage() {
       </section>
 
       <section>
-        <h2>15. Datos de suscripción y pagos</h2>
-        <p>
-          Para gestionar el plan se almacenan el plan seleccionado, el estado de la prueba, fechas de inicio y finalización, solicitudes de cancelación, moneda e importe de referencia. Si se habilita un proveedor de pagos, Global Stock podrá conservar identificadores de transacción o de suscripción y estados devueltos por el proveedor; los datos completos de tarjeta no deben introducirse ni almacenarse en Global Stock. El proveedor procesa los pagos según sus propias condiciones y políticas.
-        </p>
-        <p>
-          La cancelación se registra para gestionar el acceso y evitar nuevos cobros cuando la integración esté habilitada. Los registros mínimos de transacción, consentimiento y cancelación pueden conservarse durante el tiempo necesario para seguridad, resolución de disputas, contabilidad u obligaciones legales. La persona usuaria puede ejercer los derechos de privacidad descritos en esta política a través del correo de soporte.
-        </p>
-      </section>
-
-      <section>
         <h2>14. Cambios</h2>
         <p>
           Esta política puede actualizarse cuando cambien las funciones,
           proveedores o requisitos aplicables. La fecha visible en el documento
           indica la versión vigente publicada. Los cambios materiales deben
           comunicarse de forma razonable cuando corresponda.
+        </p>
+      </section>
+
+      <section>
+        <h2>15. Datos de suscripción y pagos</h2>
+        <p>
+          Para gestionar el plan se almacenan el plan seleccionado, el estado de la prueba, fechas de inicio y finalización, solicitudes de cancelación, moneda e importe de referencia. Si se habilita un proveedor de pagos, Global Stock podrá conservar identificadores de transacción o de suscripción y estados devueltos por el proveedor; los datos completos de tarjeta no deben introducirse ni almacenarse en Global Stock. El proveedor procesa los pagos según sus propias condiciones y políticas.
+        </p>
+        <p>
+          La cancelación se registra para gestionar el acceso y evitar nuevos cobros cuando la integración esté habilitada. Los registros mínimos de transacción, consentimiento y cancelación pueden conservarse durante el tiempo necesario para seguridad, resolución de disputas, contabilidad u obligaciones legales. La persona usuaria puede ejercer los derechos de privacidad descritos en esta política a través del correo de soporte.
         </p>
       </section>
     </LegalArticle>
