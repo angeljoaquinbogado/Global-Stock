@@ -41,6 +41,7 @@ function LazyPanel({
 
     let activated = false;
     let observer: IntersectionObserver | null = null;
+    let checkPosition = () => {};
     const activate = () => {
       if (activated) return;
       activated = true;
@@ -49,7 +50,7 @@ function LazyPanel({
       window.removeEventListener("scroll", checkPosition);
       window.removeEventListener("resize", checkPosition);
     };
-    const checkPosition = () => {
+    checkPosition = () => {
       const rect = el.getBoundingClientRect();
       if (rect.top < window.innerHeight + 650 && rect.bottom > -650) activate();
     };
