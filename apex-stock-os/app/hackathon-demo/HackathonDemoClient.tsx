@@ -25,6 +25,7 @@ export function HackathonDemoClient() {
   const [paypalReady, setPaypalReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [assistantBusy, setAssistantBusy] = useState(false);
+  const [assistantSuggestsCheckout, setAssistantSuggestsCheckout] = useState(false);
 
   const lowStock = useMemo(
     () => demoProducts.filter((product) => product.stock <= product.minStock)
@@ -71,6 +72,7 @@ export function HackathonDemoClient() {
   async function askAssistant() {
     const prompt = question.trim();
     if (!prompt || assistantBusy) return;
+    setAssistantSuggestsCheckout(/compr|checkout|paypal|pedido de prueba|venta online/.test(prompt.toLocaleLowerCase("es-AR")));
     setAssistantBusy(true);
     try {
       const response = await fetch("/api/hackathon-demo/assistant", {
@@ -178,16 +180,20 @@ export function HackathonDemoClient() {
               {answer && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[.05] p-4 text-sm leading-6 text-white/85"><div className="whitespace-pre-wrap">{answer}</div><div className="mt-3 flex justify-end"><VoiceOutputButton text={answer} compact darkSurface /></div></div>}
             </section>
 
-            <section className="rounded-[28px] border border-[#e5e5ea] bg-white p-5 shadow-[0_16px_50px_rgba(20,20,30,.05)] sm:p-6">
-              <div className="flex items-center gap-3"><span className="grid h-10 w-10 place-items-center rounded-2xl bg-[#f0f3ff] text-[#3454a1]"><CreditCard size={19}/></span><div><h2 className="font-semibold">Tienda online · checkout</h2><p className="mt-0.5 text-xs text-[#777780]">PayPal Developer Sandbox</p></div></div>
-              <p className="mt-4 text-sm leading-6 text-[#686872]">Probá un pedido ficticio de USD 19,99. El importe está fijado en el servidor y se procesa exclusivamente en Sandbox; no es una venta real ni cambia el inventario del negocio.</p>
-              <div className="mt-4 flex items-center justify-between rounded-2xl bg-[#f7f7f9] p-4"><div><p className="text-sm font-medium">Pedido de prueba</p><p className="mt-1 text-xs text-[#777780]">1 artículo ficticio · sin envío</p></div><p className="text-lg font-semibold">US$ 19,99</p></div>
-              <button type="button" onClick={() => void startCheckout()} disabled={!paypalReady || busy} className="mt-4 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#003087] px-4 text-sm font-semibold text-white transition hover:bg-[#01266a] disabled:cursor-not-allowed disabled:opacity-50"><CreditCard size={16}/>{busy ? "Conectando con Sandbox…" : paypalReady ? "Probar checkout PayPal" : "PayPal Sandbox no configurado"}<ArrowUpRight size={15}/></button>
-              {!paypalReady && <p className="mt-3 text-xs leading-5 text-[#777780]">El servidor necesita PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET de una aplicación Sandbox. Las credenciales no se exponen al navegador.</p>}
-              {checkoutMessage && <div role={checkout === "error" ? "alert" : "status"} className={`mt-3 rounded-xl p-3 text-xs leading-5 ${checkout === "error" ? "bg-[#fdeaea] text-[#9d2020]" : "bg-[#eef7f1] text-[#17683d]"}`}>{checkoutMessage}</div>}
-              {checkout === "complete" && <div className="mt-3 flex items-center gap-2 text-xs font-medium text-[#17683d]"><PackageCheck size={15}/> Compra de prueba confirmada</div>}
-              <p className="mt-4 flex items-start gap-2 text-[11px] leading-5 text-[#777780]"><ShieldCheck size={14} className="mt-0.5 shrink-0"/> La demo está separada de las cuentas, los datos y los pagos reales de Global Stock.</p>
-            </section>
+            {answer && assistantSuggestsCheckout && (
+              <section className="rounded-[24px] border border-[#d9dfea] bg-white p-5 shadow-[0_12px_36px_rgba(20,20,30,.05)]">
+                <div className="flex items-center gap-2 text-sm font-semibold"><CreditCard size={16} className="text-[#003087}"/> Acción confirmable · PayPal Sandbox</div>
+                <p className="mt-2 text-xs leading-5 text-[#686872]">Pediste probar una compra online. Revisá el importe de prueba y confirmá para abrir PayPal Sandbox; no se usa dinero real ni se modifica el inventario.</p>
+                <div className="mt-3 flex items-center justify-between rounded-xl bg-[#f7f7f9] px-3 py-3"><span className="text-xs font-medium">Pedido ficticio</span><span className="text-base font-semibold">US$ 19,99</span></div>
+                <button type="button" onClick={() => void startCheckout()} disabled={!paypalReady || busy} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#003087] px-4 text-sm font-semibold text-white transition hover:bg-[#01266a] disabled:cursor-not-allowed disabled:opacity-50"><CreditCard size={15}/>{busy ? "Conectando con Sandbox…" : paypalReady ? "Confirmar y abrir PayPal" : "PayPal Sandbox no configurado"}<ArrowUpRight size={14}/></button>
+                {!paypalReady && <p className="mt-2 text-[11px] leading-5 text-[#777780]">El servidor necesita PAYPAL_CLIENT_ID y PAYPAL_CLIENT_SECRET de una aplicación Sandbox; las credenciales nunca se envían al navegador.</p>}
+              </section>
+            )}
+            {checkoutMessage && (
+              <div role={checkout === "error" ? "alert" : "status"} className={`rounded-2xl p-4 text-xs leading-5 ${checkout === "error" ? "border border-[#f4caca] bg-[#fdeaea] text-[#9d2020]" : "border border-[#cce7d7] bg-[#eef7f1] text-[#17683d]"}`}>
+                {checkoutMessage}
+              </div>
+            )}
           </aside>
         </section>
 
