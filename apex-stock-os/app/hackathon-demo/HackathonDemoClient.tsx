@@ -182,7 +182,7 @@ export function HackathonDemoClient() {
 
             {answer && assistantSuggestsCheckout && (
               <section className="rounded-[24px] border border-[#d9dfea] bg-white p-5 shadow-[0_12px_36px_rgba(20,20,30,.05)]">
-                <div className="flex items-center gap-2 text-sm font-semibold"><CreditCard size={16} className="text-[#003087}"/> Acción confirmable · PayPal Sandbox</div>
+                <div className="flex items-center gap-2 text-sm font-semibold"><CreditCard size={16} className="text-[#003087]"/> Acción confirmable · PayPal Sandbox</div>
                 <p className="mt-2 text-xs leading-5 text-[#686872]">Pediste probar una compra online. Revisá el importe de prueba y confirmá para abrir PayPal Sandbox; no se usa dinero real ni se modifica el inventario.</p>
                 <div className="mt-3 flex items-center justify-between rounded-xl bg-[#f7f7f9] px-3 py-3"><span className="text-xs font-medium">Pedido ficticio</span><span className="text-base font-semibold">US$ 19,99</span></div>
                 <button type="button" onClick={() => void startCheckout()} disabled={!paypalReady || busy} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-[#003087] px-4 text-sm font-semibold text-white transition hover:bg-[#01266a] disabled:cursor-not-allowed disabled:opacity-50"><CreditCard size={15}/>{busy ? "Conectando con Sandbox…" : paypalReady ? "Confirmar y abrir PayPal" : "PayPal Sandbox no configurado"}<ArrowUpRight size={14}/></button>
