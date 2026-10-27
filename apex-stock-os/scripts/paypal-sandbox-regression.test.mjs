@@ -48,6 +48,6 @@ test("Global Intelligence voice input is optional and Spanish-Argentina localize
   const assistant = file("apex-stock-os/components/ApexIntelligence.tsx");
   assert.match(voice, /next\.lang = "es-AR"/);
   assert.match(voice, /disabled={!supported}/);
-  assert.match(voice, /next\.abort\(\)/);
+  assert.match(voice, /recognition\.current\?\.abort\(\)/);
   assert.match(assistant, /<VoiceInputButton/);
 });
