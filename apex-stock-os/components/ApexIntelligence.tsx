@@ -27,6 +27,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { BusinessSnapshot, ChatMessage } from "@/lib/types";
 import { WORKSPACE_ACCENTS, type WorkspaceAccent } from "@/lib/workspace-accent";
 import { VoiceInputButton } from "./VoiceInputButton";
+import { VoiceOutputButton } from "./VoiceOutputButton";
 
 type ApexIntelligenceProps = {
   snapshot: BusinessSnapshot;
@@ -1033,6 +1034,7 @@ export function ApexIntelligence({
                   <div className="whitespace-pre-wrap break-words">
                     {message.content}
                   </div>
+                  {message.role === "assistant" && <div className="mt-2 flex justify-end"><VoiceOutputButton text={message.content} accentColor={accentColors.main} compact /></div>
                 </motion.div>
               ))}
 
