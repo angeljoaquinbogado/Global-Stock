@@ -175,7 +175,7 @@ export function HackathonDemoClient() {
                 <VoiceInputButton accentColor="#8f0000" onTranscript={(text) => setQuestion((current) => current.trim() ? `${current.trim()} ${text}` : text)} />
               </div>
               <button type="button" onClick={() => void askAssistant()} disabled={assistantBusy || !question.trim()} className="mt-3 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-white px-4 text-sm font-semibold text-[#17171b] transition hover:bg-white/90 disabled:cursor-wait disabled:opacity-60"><Sparkles size={15}/> {assistantBusy ? "Analizando…" : "Analizar inventario"}</button>
-              {answer && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[.05] p-4 text-sm leading-6 text-white/85"><div className="whitespace-pre-wrap">{answer}</div><div className="mt-3 flex justify-end"><VoiceOutputButton text={answer} compact /></div></div>}
+              {answer && <div className="mt-4 rounded-2xl border border-white/10 bg-white/[.05] p-4 text-sm leading-6 text-white/85"><div className="whitespace-pre-wrap">{answer}</div><div className="mt-3 flex justify-end"><VoiceOutputButton text={answer} compact darkSurface /></div></div>}
             </section>
 
             <section className="rounded-[28px] border border-[#e5e5ea] bg-white p-5 shadow-[0_16px_50px_rgba(20,20,30,.05)] sm:p-6">
