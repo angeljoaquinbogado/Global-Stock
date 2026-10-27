@@ -3,7 +3,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, CheckCircle2, Clock3,
-  History, LockKeyhole, RefreshCw, ShieldCheck, Wallet, XCircle, CreditCard, ArrowUpRight
+  History, LockKeyhole, RefreshCw, ShieldCheck, Wallet, XCircle, CreditCard
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
