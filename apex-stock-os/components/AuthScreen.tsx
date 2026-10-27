@@ -314,6 +314,7 @@ export function AuthScreen({
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
   const [adultConsent, setAdultConsent] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "starter" | "pro" | "">("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState(() =>
     isSupabaseConfigured() ? "" : "demo@globalstock.local"
@@ -379,7 +380,7 @@ export function AuthScreen({
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
-    if (nextMode === "signup") setAdultConsent(false);
+    if (nextMode === "signup") { setAdultConsent(false); setSelectedPlan(""); }
     setError("");
     setNotice("");
     setShowPassword(false);
@@ -423,7 +424,12 @@ export function AuthScreen({
       return;
     }
 
-    if (mode === "signup" && !adultConsent) {
+    if (mode === "signup" && !selectedPlan) {
+      setError(language === "es" ? "Elegí un plan para continuar." : "Choose a plan to continue.");
+      return;
+    }
+
+    if (mode === "signup" && (!adultConsent || !selectedPlan)) {
       setError("Para crear la cuenta necesitás tener 18 años o más y aceptar las condiciones de la beta argentina.");
       return;
     }
@@ -536,6 +542,7 @@ export function AuthScreen({
             full_name: name.trim(),
             // Step 2 is completed after the user has a verified session.
             global_stock_onboarding: "pending",
+            global_stock_selected_plan: selectedPlan || "free",
             global_stock_legal_accepted: true,
             global_stock_terms_version: TERMS_VERSION,
             global_stock_privacy_version: PRIVACY_VERSION,
@@ -684,6 +691,32 @@ export function AuthScreen({
                       </span>
                       {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
                     </div>
+
+                    {mode === "signup" && (
+                      <fieldset className="space-y-2">
+                        <legend className={`mb-1 block text-[12px] font-medium ${muted}`}>
+                          {language === "es" ? "Elegí tu plan (15 días de prueba, sin cobro automático)" : language === "pt" ? "Escolha seu plano (15 dias de teste, sem cobrança automática)" : language === "fr" ? "Choisissez votre offre (15 jours d’essai, sans débit automatique)" : language === "de" ? "Wähle deinen Tarif (15 Tage Test, keine automatische Abbuchung)" : "Choose your plan (15-day trial, no automatic charge)"}
+                        </legend>
+                        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
+                          {([
+                            { id: "free", title: language === "es" ? "Gratis" : "Free", price: "$0", detail: language === "es" ? "Funciones básicas" : "Basic features" },
+                            { id: "starter", title: "Emprendedor", price: "$9.900", detail: language === "es" ? "Por mes luego de elegir pagar" : "Monthly after choosing to pay" },
+                            { id: "pro", title: "Profesional", price: "$19.900", detail: language === "es" ? "Por mes luego de elegir pagar" : "Monthly after choosing to pay" }
+                          ] as const).map((plan) => (
+                            <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
+                              aria-pressed={selectedPlan === plan.id}
+                              className={`min-h-[68px] rounded-xl border px-2 py-2 text-left transition-colors ${selectedPlan === plan.id ? "border-[#8F0000] bg-[#8F0000]/10 ring-1 ring-[#8F0000]/30" : dark ? "border-white/15 hover:bg-white/5" : "border-[#B7A6A3] hover:bg-black/[.03]"}`}>
+                              <span className="block text-[11px] font-semibold">{plan.title}</span>
+                              <span className="mt-0.5 block text-sm font-bold">{plan.price}</span>
+                              <span className={`mt-0.5 block text-[9px] leading-3 ${muted}`}>{plan.detail}</span>
+                            </button>
+                          ))}
+                        </div>
+                        <p className={`text-[10px] leading-4 ${muted}`}>
+                          {language === "es" ? "La prueba termina a los 15 días. No se te cobra automáticamente: vas a tener que confirmar una contratación paga." : "The trial ends after 15 days. You will not be charged automatically; you must confirm a paid subscription."}
+                        </p>
+                      </fieldset>
+                    )}
 
                     {mode === "signup" && (
                       <label className="flex cursor-pointer items-start gap-2.5">
