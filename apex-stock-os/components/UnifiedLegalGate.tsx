@@ -4,8 +4,8 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { useEffect, useRef, useState } from "react";
 import { ShieldCheck, ExternalLink, Loader2 } from "lucide-react";
 
-export const TERMS_VERSION = "2026-10-11-ar-beta";
-export const PRIVACY_VERSION = "2026-10-12-v5";
+export const TERMS_VERSION = "2026-10-27-ar-suscripciones";
+export const PRIVACY_VERSION = "2026-10-27-v6";
 
 type Props = {
   client: SupabaseClient;
