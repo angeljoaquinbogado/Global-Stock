@@ -17,7 +17,7 @@ const plans = [
   {
     id: "starter",
     name: "Emprendedor",
-    price: 10,
+    price: 5,
     suffix: "por mes",
     description: "Para comercios pequeños que necesitan orden diario.",
     features: ["Caja, ventas e inventario", "Proveedores y comprobantes", "Estadísticas del negocio", "Un negocio o local"],
@@ -26,7 +26,7 @@ const plans = [
   {
     id: "pro",
     name: "Profesional",
-    price: 20,
+    price: 10,
     suffix: "por mes",
     description: "Para negocios en crecimiento y equipos con varios locales.",
     features: ["Todo lo de Emprendedor", "Análisis avanzados e IA", "Gestión de varios locales", "Informes y organización avanzados"],
