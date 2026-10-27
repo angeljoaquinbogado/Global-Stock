@@ -47,8 +47,12 @@ test("public hackathon AI can only access fixed sample data and has no payment o
 test("Global Intelligence voice input is optional and Spanish-Argentina localized", () => {
   const voice = file("apex-stock-os/components/VoiceInputButton.tsx");
   const assistant = file("apex-stock-os/components/ApexIntelligence.tsx");
+  const output = file("apex-stock-os/components/VoiceOutputButton.tsx");
   assert.match(voice, /next\.lang = "es-AR"/);
   assert.match(voice, /disabled={!supported}/);
   assert.match(voice, /recognition\.current\?\.abort\(\)/);
   assert.match(assistant, /<VoiceInputButton/);
+  assert.match(assistant, /<VoiceOutputButton/);
+  assert.match(output, /utterance.lang = "es-AR"/);
+  assert.match(output, /window.speechSynthesis.cancel\(\)/);
 });
