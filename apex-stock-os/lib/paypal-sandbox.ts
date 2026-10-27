@@ -93,8 +93,8 @@ export async function createSandboxDemoOrder() {
         brand_name: "Global Stock Demo",
         user_action: "PAY_NOW",
         shipping_preference: "NO_SHIPPING",
-        return_url: `${publicDemoOrigin()}/hackathon-demo?paypal=success`,
-        cancel_url: `${publicDemoOrigin()}/hackathon-demo?paypal=cancelled`
+        return_url: `${publicDemoOrigin()}/?hackathon-demo=1&paypal=success`,
+        cancel_url: `${publicDemoOrigin()}/?hackathon-demo=1&paypal=cancelled`
       }
     }),
     cache: "no-store",
