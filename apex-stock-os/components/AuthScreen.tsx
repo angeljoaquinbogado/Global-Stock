@@ -429,7 +429,7 @@ export function AuthScreen({
       return;
     }
 
-    if (mode === "signup" && (!adultConsent || !selectedPlan)) {
+    if (mode === "signup" && !adultConsent) {
       setError("Para crear la cuenta necesitás tener 18 años o más y aceptar las condiciones de la beta argentina.");
       return;
     }
@@ -755,7 +755,7 @@ export function AuthScreen({
                       <div role="status" data-testid="auth-feedback-notice" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
                     )}
 
-                    <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
+                    <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && (!adultConsent || !selectedPlan))}
                       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
                       {mode === "signin" && remainingLockSeconds > 0
