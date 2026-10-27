@@ -156,30 +156,6 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
       .then(response => response.ok ? response.json() : null)
       .then(data => { if (active) setPaypalConfigured(data?.configured === true); })
       .catch(() => { if (active) setPaypalConfigured(false); });
-
-    const params = new URLSearchParams(window.location.search);
-    const status = params.get("paypal");
-    const orderId = params.get("token");
-    if (status === "cancelled") {
-      setPaypalNotice("Compra de prueba cancelada. No se realizó ningún cobro real.");
-      window.history.replaceState({}, "", window.location.pathname);
-    } else if (status === "success" && orderId) {
-      setPaypalBusy(true);
-      void fetch("/api/paypal/sandbox/orders/capture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderId })
-      }).then(async response => {
-        const data = await response.json();
-        if (!response.ok) throw new Error("No se pudo confirmar la compra de prueba.");
-        if (active) setPaypalNotice(`Pago de prueba confirmado en PayPal Sandbox: ${data.currency} ${data.amount}. ID: ${data.id}`);
-      }).catch(() => {
-        if (active) setPaypalNotice("No se pudo confirmar el resultado en Sandbox. Revisá el estado del pedido antes de volver a intentar.");
-      }).finally(() => {
-        if (active) setPaypalBusy(false);
-        window.history.replaceState({}, "", window.location.pathname);
-      });
-    }
     return () => { active = false; };
   }, [demoMode]);
 
