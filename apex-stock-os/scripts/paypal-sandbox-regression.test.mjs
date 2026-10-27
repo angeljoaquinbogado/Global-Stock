@@ -40,12 +40,17 @@ test("hackathon URL enters the actual Global Stock demo workspace and Sandbox ch
   assert.match(shell, /requestedHackathonDemo/);
   assert.match(shell, /setDemoMode\(true\)/);
   assert.doesNotMatch(cash, /PayPal Sandbox|paypalConfigured|paypalBusy/);
-  assert.match(shell, /PayPal Sandbox · demo del hackathon/);
-  assert.match(shell, /startHackathonSandboxCheckout/);
-  assert.match(shell, /sandbox-unavailable/);
-  assert.match(shell, /api\/paypal\/sandbox\/orders\/capture/);
-  assert.match(shell, /hackathonPaymentNotice/);
-  assert.match(shell, /data\.approvalUrl\.startsWith\("https:\/\/www\.sandbox\.paypal\.com\/"\)/);
+  assert.doesNotMatch(shell, /PayPal Sandbox · demo del hackathon/);
+  assert.doesNotMatch(shell, /paypalPanelOpen|hackathonPaymentNotice|startHackathonSandboxCheckout/);
+  const plans = file("apex-stock-os/components/SubscriptionPlans.tsx");
+  const account = file("apex-stock-os/components/WorkspaceAccountPanel.tsx");
+  assert.match(account, /<SubscriptionPlans language={language} \/>/);
+  assert.match(plans, /Prueba gratuita/);
+  assert.match(plans, /15 días/);
+  assert.match(plans, /9900/);
+  assert.match(plans, /19900/);
+  assert.match(plans, /La contratación y los cobros todavía no están activados/);
+  assert.doesNotMatch(plans, /window\.location\.assign|fetch\("\/api\/paypal/);
 });
 
 test("hackathon demo reuses the real Global Intelligence assistant rather than a second mock AI", () => {
