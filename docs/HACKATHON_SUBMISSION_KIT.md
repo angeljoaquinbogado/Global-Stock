@@ -23,7 +23,7 @@ The branch feature/paypal-ai-hackathon contains dated commits after 1 October 20
 - Added optional es-AR dictation to the existing Global Intelligence chat with typed fallback.
 - Added regression tests and Sandbox setup documentation.
 
-**Still required before submission:** make PayPal checkout part of a genuinely AI-assisted order/cart workflow, test the full checkout and cancellation flow using Sandbox buyer accounts, run all release/type/build checks, fix the critical Next.js dependency advisory reported by CI, and verify the final judge experience. Do not list any unfinished item as delivered.
+**Still required before submission:** make PayPal checkout part of a genuinely AI-assisted order/cart workflow, test the full checkout and cancellation flow using Sandbox buyer accounts, run all release/type/build checks after the Next.js 16.4.3 security patch and verify the final judge experience. Do not list any unfinished item as delivered.
 
 ## Technology
 
