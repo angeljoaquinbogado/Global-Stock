@@ -58,7 +58,7 @@ must(unifiedShell.includes('https://globalstocks.vercel.app') &&
   unifiedShell.includes('message.type === "open_scanner"') &&
   webScanner.includes("globalstock:native-barcode") &&
   webShell.includes("UnifiedLegalGate") &&
-  webLegal.includes("2026-10-12-v5"),
+  webLegal.includes("2026-10-27-v6"),
   "Shared web infrastructure remains available without replacing native screens.");
 must(app.includes("NativeLegalGate") && app.includes("legalUserId !== user.id"), "The legal consent gate must precede business access.");
 must(
@@ -91,8 +91,8 @@ must(
 );
 must(legal.includes("adult_18_attested:true") && legal.includes("operates_in_ar_attested:true") && legal.includes("terms_version") && legal.includes("privacy_version"), "Adult and Argentina eligibility with legal versions must be recorded.");
 must(legal.includes("LEGAL_TERMS_VERSION = \"2026-10-27-ar-suscripciones\"") && legal.includes("/legal/privacy") && legal.includes("/legal/terms"), "Consent must provide access to both legal documents.");
-must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-12-v5"') &&
-  privacy.includes("Versión 2026-10-12-v5") &&
+must(legal.includes('LEGAL_PRIVACY_VERSION = "2026-10-27-v6"') &&
+  privacy.includes("Versión 2026-10-27-v6") &&
   privacy.includes("CUIT"),
   "Fiscal-data privacy notice must trigger a new versioned mobile acceptance.");
 must(ai.includes("global_stock_ai_data_consents") && ai.includes("approved: true"), "AI context requires explicit opt-in.");
