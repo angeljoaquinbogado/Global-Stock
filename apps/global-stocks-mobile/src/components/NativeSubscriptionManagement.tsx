@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { CalendarClock, CheckCircle2, XCircle } from "lucide-react-native";
 
-type Subscription = { user_id: string; plan_key: "free" | "starter" | "pro"; status: "trialing" | "active" | "past_due" | "cancelled" | "expired"; trial_ends_at: string; current_period_end: string | null; provider_subscription_id: string | null; cancel_at_period_end: boolean };
+type Subscription = { user_id: string; plan_key: "free" | "starter" | "pro"; status: "trialing" | "active" | "past_due" | "cancelled" | "expired"; trial_ends_at: string; current_period_end: string | null; provider_subscription_id: string | null; cancel_at_period_end: boolean; price_usd?: number };
 type Props = { client: SupabaseClient; userId: string; dark: boolean };
 
 export default function NativeSubscriptionManagement({ client, userId, dark }: Props) {
@@ -22,7 +22,7 @@ export default function NativeSubscriptionManagement({ client, userId, dark }: P
   const refresh = useCallback(async () => {
     setLoading(true); setError("");
     const { data, error: readError } = await client.from("global_stock_subscriptions")
-      .select("user_id,plan_key,status,trial_ends_at,current_period_end,provider_subscription_id,cancel_at_period_end")
+      .select("user_id,plan_key,status,trial_ends_at,current_period_end,provider_subscription_id,cancel_at_period_end,price_usd")
       .eq("user_id", userId).maybeSingle();
     if (readError) setError("No pudimos consultar tu suscripción.");
     else setItem(data as Subscription | null);
@@ -43,7 +43,7 @@ export default function NativeSubscriptionManagement({ client, userId, dark }: P
         const { error: updateError } = await client.from("global_stock_subscriptions").update({ cancel_at_period_end: true }).eq("user_id", userId);
         if (updateError) throw new Error("No se pudo cancelar el período de prueba.");
       }
-      setNotice("La suscripción quedó cancelada. Tus datos no se borraron.");
+      setNotice("La suscripción quedó cancelada definitivamente. No se puede restablecer; para volver tendrás que contratar un plan nuevo si está disponible. Tus datos no se borraron.");
       setConfirm(false);
       await refresh();
     } catch (reason) { setError(reason instanceof Error ? reason.message : "No se pudo cancelar la suscripción."); }
@@ -58,7 +58,7 @@ export default function NativeSubscriptionManagement({ client, userId, dark }: P
       <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}><CalendarClock size={19} color={red}/><Text style={{ color: fg, fontSize: 16, fontWeight: "800", flex: 1 }}>Tu suscripción</Text><Pressable onPress={() => void refresh()} accessibilityRole="button"><Text style={{ color: red, fontSize: 12 }}>Actualizar</Text></Pressable></View>
       {loading ? <ActivityIndicator color={red}/> : item ? <>
         <View style={{ backgroundColor: dark ? "#22232B" : "#F4F4F7", borderRadius: 12, padding: 12, gap: 5 }}>
-          <Text style={{ color: fg, fontSize: 15, fontWeight: "700" }}>{plan}</Text>
+          <Text style={{ color: fg, fontSize: 15, fontWeight: "700" }}>{plan}</Text>{item.plan_key !== "free" ? <Text style={{ color: fg, fontSize: 13, fontWeight: "700" }}>US$ {item.price_usd || (item.plan_key === "pro" ? 20 : 10)} / mes</Text> : null}
           <Text style={{ color: muted, fontSize: 12 }}>{status === "trialing" ? `Prueba gratuita hasta ${date(item.trial_ends_at)}` : status === "active" ? "Suscripción activa" : status === "expired" ? "Prueba finalizada" : status === "cancelled" ? "Cancelada" : "Pago pendiente"}</Text>
         </View>
         {status === "trialing" ? <Text style={{ color: muted, fontSize: 12, lineHeight: 18 }}>No se te cobrará automáticamente al terminar la prueba. Para contratar un plan pago tendrás que confirmarlo.</Text> : null}
