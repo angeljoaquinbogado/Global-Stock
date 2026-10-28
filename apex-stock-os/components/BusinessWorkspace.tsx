@@ -1129,7 +1129,7 @@ const navigationGroups: Array<{
   id: NavigationGroupId;
   modules: readonly ModuleId[];
 }> = [
-  { id: "core", modules: ["overview", "cash", "inventory", "online"] },
+  { id: "core", modules: ["cash", "inventory", "online"] },
   { id: "analysis", modules: ["charts", "activities"] },
   { id: "organization", modules: ["suppliers", "purchases", "notes"] },
   { id: "management", modules: ["documents", "arca", "operations"] },
@@ -3827,6 +3827,31 @@ export function BusinessWorkspace({
             className={`gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none ${sidebarCollapsed ? "flex flex-col items-center py-4 space-y-1" : ""}`}
           >
             <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
+              {visibleModuleIds.has("overview") && (
+                <div className={`mb-3 border-b border-gray-100 pb-3 dark:border-gray-800 ${sidebarCollapsed ? "flex w-full flex-col items-center" : ""}`}>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModule("overview")}
+                    title={labels.nav.overview}
+                    aria-label={labels.nav.overview}
+                    className={
+                      "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " hover:translate-x-[1px] " +
+                      (activeModule === "overview"
+                        ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
+                        : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
+                    }
+                  >
+                    <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out " + (activeModule === "overview" ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100")} />
+                    <Store size={18} strokeWidth={1.6} />
+                    <AnimatePresence initial={false}>
+                      {!sidebarCollapsed && <motion.span key="nav-label-home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14, delay: reduceMotion || sidebarCollapsed ? 0 : 0.12 }} className="min-w-0 flex-1 truncate whitespace-nowrap">
+                        {labels.nav.overview}
+                      </motion.span>}
+                    </AnimatePresence>
+                    {sidebarCollapsed && <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[80] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">{labels.nav.overview}</span>}
+                  </button>
+                </div>
+              )}
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
