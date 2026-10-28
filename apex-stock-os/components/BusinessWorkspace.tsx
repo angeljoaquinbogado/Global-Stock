@@ -3797,9 +3797,9 @@ export function BusinessWorkspace({
               if (!scrollSidebarByKeyboard(event.key)) return;
               event.preventDefault();
             }}
-            className="gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none"
+            className={`gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none ${sidebarCollapsed ? "flex flex-col items-center py-4 space-y-1" : ""}`}
           >
-            <div className="w-full min-w-0 pb-4">
+            <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
@@ -3816,7 +3816,7 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className="min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-white/10 last:pb-0">
+                  <section key={group.id} className="w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0">
                     {sidebarCollapsed ? (
                       <motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">
                         
@@ -3839,9 +3839,9 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-300 ease-in-out hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
+                              "group relative flex min-w-0 items-center text-[13px] font-semibold transition-all duration-300 ease-in-out ease-in-out " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "mx-1 min-h-10 w-[calc(100%-0.5rem)] rounded-xl py-2.5 gap-3 px-3") + " hover:translate-x-[1px] " +
                               (active
-                                ? "bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-white"
+                                ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
                             }
                           >
@@ -3859,7 +3859,7 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "mx-1 min-h-10 w-[calc(100%-0.5rem)] rounded-xl py-2.5 gap-3 px-3"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={16} aria-hidden="true" />
                           <AnimatePresence initial={false}>
@@ -3901,7 +3901,7 @@ export function BusinessWorkspace({
           <button
             type="button"
             onClick={onSignOut}
-            className={`flex w-full items-center rounded-2xl border border-[var(--apex-border)] py-3 text-sm font-semibold text-[var(--apex-muted)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`}
+            className={`flex items-center rounded-xl border border-[var(--apex-border)] py-3 text-sm font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-3"}`}
           >
             <LogOut size={17} />
             {!sidebarCollapsed && labels.signOut}
