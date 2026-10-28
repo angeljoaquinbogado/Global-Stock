@@ -31,6 +31,9 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('<Logo className="h-12 w-12 shrink-0 object-contain'));
   assert.ok(workspace.includes('absolute bottom-0 right-0 grid h-6 w-6'));
   assert.ok(workspace.includes('transition-opacity duration-300 ease-out group-hover:opacity-45'));
+  assert.ok(workspace.includes('absolute right-0 top-1/2 w-1 -translate-y-1/2 origin-center rounded-l-full bg-black transition-all duration-300 ease-out dark:bg-white'));
+  assert.ok(workspace.includes('h-3/4 opacity-0 scale-y-0 group-hover:opacity-100 group-hover:scale-y-100'));
+  assert.ok(workspace.includes('h-3/4 opacity-100 scale-y-100'));
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
   assert.ok(workspace.includes('min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px]'));
