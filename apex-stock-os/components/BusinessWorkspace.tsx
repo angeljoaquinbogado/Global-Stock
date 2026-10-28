@@ -3788,7 +3788,7 @@ export function BusinessWorkspace({
             }}
             className="gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none"
           >
-            <div className="min-w-[218px] space-y-5 pb-4">
+            <div className="w-full min-w-0 space-y-5 pb-4">
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
