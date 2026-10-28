@@ -3870,7 +3870,7 @@ export function BusinessWorkspace({
                           >
                             <span
                               aria-hidden="true"
-                              className={"pointer-events-none absolute right-0 top-1/2 w-1 -translate-y-1/2 origin-center rounded-l-full bg-black transition-all duration-300 ease-out dark:bg-white " + (active ? "h-3/4 opacity-100 scale-y-100" : "h-3/4 opacity-0 scale-y-0 group-hover:opacity-100 group-hover:scale-y-100")}
+                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out " + (active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100")}
                             />
                             <Icon size={18} strokeWidth={1.6} />
                             <AnimatePresence initial={false}>
@@ -3890,7 +3890,7 @@ export function BusinessWorkspace({
                         >
                           <span
                             aria-hidden="true"
-                            className="pointer-events-none absolute right-0 top-1/2 h-3/4 w-1 -translate-y-1/2 origin-center rounded-l-full bg-black opacity-0 scale-y-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-y-100 dark:bg-white"
+                            className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100"
                           />
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                           <AnimatePresence initial={false}>
