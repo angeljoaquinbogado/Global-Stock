@@ -29,7 +29,7 @@ import {
   Sun,
   Truck,
   X
-} from "lucide-react";
+  PanelLeft,} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateMetrics,
@@ -3763,16 +3763,46 @@ export function BusinessWorkspace({
   return (
     <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
       <motion.aside animate={{ width: sidebarCollapsed ? 76 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"} `}>
-          <AnimatePresence initial={false}>
-            {sidebarCollapsed && <motion.button type="button" key="sidebar-mark" onClick={() => setSidebarCollapsed(value => !value)} aria-label="Expandir menú lateral" title="Expandir menú lateral" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.button>}
-            {!sidebarCollapsed && <motion.button type="button" key="sidebar-brand" onClick={() => setSidebarCollapsed(value => !value)} aria-label="Contraer menú lateral" title="Contraer menú lateral" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.button>}
-          </AnimatePresence>
-          <motion.button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
-            <motion.span aria-hidden="true" className="flex w-[18px] flex-col items-center justify-center gap-[4px]" animate={{ gap: sidebarCollapsed ? 4 : 5 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 1, 1] }}>
-              <motion.span className="block h-[2px] w-[18px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 16 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
-              <motion.span className="block h-[2px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 11, x: sidebarCollapsed ? 0 : -2 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
-              <motion.span className="block h-[2px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 15 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
+        <div className={`flex w-full items-center ${sidebarCollapsed ? "justify-center" : "justify-start"}`}>
+          <motion.button
+            type="button"
+            onClick={() => setSidebarCollapsed(value => !value)}
+            aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
+            title={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
+            initial="rest"
+            whileHover="hover"
+            whileTap={reduceMotion ? undefined : { scale: 0.94 }}
+            className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-colors duration-200 hover:border-[var(--apex-border)] hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+          >
+            <motion.span
+              aria-hidden="true"
+              variants={{
+                rest: { y: "0%", opacity: 1 },
+                hover: { y: "100%", opacity: 0 },
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+              className="absolute inset-0 grid place-items-center"
+            >
+              <Logo />
+            </motion.span>
+            <motion.span
+              aria-hidden="true"
+              variants={{
+                rest: { y: "-100%", opacity: 0 },
+                hover: { y: "0%", opacity: 1 },
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 30,
+              }}
+              className="absolute inset-0 grid place-items-center"
+            >
+              <PanelLeft size={21} strokeWidth={1.8} />
             </motion.span>
           </motion.button>
         </div>
