@@ -806,7 +806,8 @@ export function AuthScreen({
                     </button>
                   </p>
                   </>
-                  )}\n                </motion.div>
+                  )}
+                </motion.div>
               </AnimatePresence>
             </div>
           </AuthSplitMotion>
