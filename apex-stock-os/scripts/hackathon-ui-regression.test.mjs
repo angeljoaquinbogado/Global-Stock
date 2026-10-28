@@ -24,9 +24,11 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(!workspace.includes("onMouseEnter={() => setSidebarCollapsed"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(false)}"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(true)"));
-  assert.ok(workspace.includes('className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl'));
+  assert.ok(workspace.includes('className="group relative grid h-12 w-12 shrink-0 place-items-center rounded-xl'));
   assert.ok(workspace.includes('<PanelLeft size={11} strokeWidth={1.8} />'));
-  assert.ok(workspace.includes('group-hover:opacity-100 group-focus-visible:opacity-100'));
+  assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100'));
+  assert.ok(workspace.includes('<Logo className="h-10 w-10 shrink-0 object-contain'));
+  assert.ok(workspace.includes('translate-y-1 rounded-lg border border-[var(--apex-border)]'));
   assert.ok(workspace.includes('group-hover:opacity-40'));
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
@@ -40,7 +42,8 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl'));
   assert.ok(workspace.includes('justify-between gap-2'));
   assert.ok(workspace.includes('border-b border-gray-100 pb-4 dark:border-white/10'));
-  assert.ok(workspace.includes('"min-h-10 w-full gap-3 rounded-xl px-3 py-2"'));
+  assert.ok(workspace.includes('min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px]'));
+  assert.ok(workspace.includes('"w-full"'));
   assert.ok(workspace.includes('text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('border-t border-gray-100 pt-4 dark:border-gray-800'));
   assert.ok(workspace.includes('aria-label={language === "es" ? "Expandir menú lateral" : "Expand sidebar"}'));
