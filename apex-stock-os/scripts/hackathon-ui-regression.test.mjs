@@ -19,26 +19,24 @@ test("PayPal is not shown as a floating notification and plan choices live in ac
 
 test("desktop sidebar only expands by explicit click and uses minimal section dots", async () => {
   const workspace = await read("components/BusinessWorkspace.tsx");
-  assert.match(workspace, /const \\[sidebarCollapsed, setSidebarCollapsed\\] = useState\\(true\\)/);
-  assert.doesNotMatch(workspace, /sidebarHovered|onMouseEnter=\\{\\(\\) => setSidebarCollapsed/);
-  assert.match(workspace, /onClick=\\{\\(\\) => setSidebarCollapsed\\(value => !value\\)\\}/);
-  assert.match(workspace, /aria-label=\\{sidebarCollapsed \\? "Expandir menú lateral" : "Contraer menú lateral"\\}/);
-  assert.match(workspace, /after:content-\\[\'•\'\\]/);
-  assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \\? "76px minmax\\(0, 1fr\\)" : "250px minmax\\(0, 1fr\\)"/);
-  assert.match(workspace, /transition-\\[grid-template-columns\\]/);
+  assert.ok(workspace.includes('const [sidebarCollapsed, setSidebarCollapsed] = useState(true)'));
+  assert.ok(!workspace.includes("sidebarHovered"));
+  assert.ok(!workspace.includes("onMouseEnter={() => setSidebarCollapsed"));
+  assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(value => !value)}"));
+  assert.ok(workspace.includes('aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}'));
+  assert.ok(workspace.includes("after:content-['•']"));
+  assert.ok(workspace.includes('overview: "/dashboard"'));
+  assert.ok(workspace.includes('inventory: "/inventory"'));
+  assert.ok(workspace.includes('pos: "/sales"'));
+  assert.ok(workspace.includes('charts: "/analytics"'));
+  assert.ok(workspace.includes('settings: "/settings"'));
+  assert.ok(workspace.includes("window.history.pushState"));
+  assert.ok(workspace.includes("SF Pro Display"));
+  assert.ok(workspace.includes("rounded-full border border-[#8F0000]/20"));
+  assert.ok(workspace.includes('gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)"'));
+  assert.ok(workspace.includes("transition-[grid-template-columns]"));
 });
 
-test("workspace sections maintain clean shareable URLs and premium greeting hierarchy", async () => {
-  const workspace = await read("components/BusinessWorkspace.tsx");
-  assert.match(workspace, /overview: "\\/dashboard"/);
-  assert.match(workspace, /inventory: "\\/inventory"/);
-  assert.match(workspace, /pos: "\\/sales"/);
-  assert.match(workspace, /charts: "\\/analytics"/);
-  assert.match(workspace, /settings: "\\/settings"/);
-  assert.match(workspace, /window\\.history\\.pushState/);
-  assert.match(workspace, /SF Pro Display/);
-  assert.match(workspace, /rounded-full border border-\\[#8F0000\\]\\/20/);
-});
 test("shared focus and selection feedback follows the selected workspace accent", async () => {
   const css = await read("components/workspace-accent.css");
   assert.match(css, /\.gs-app-shell \.apex-input:focus/);
