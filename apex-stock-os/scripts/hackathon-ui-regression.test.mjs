@@ -35,7 +35,7 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('scale-y-0 group-hover:scale-y-100'));
   assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100'));
   assert.ok(workspace.includes('active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"'));
-  assert.equal((workspace.match(/absolute right-0 top-1\/2/g) || []).length, 2);
+  assert.equal((workspace.match(/absolute right-0 top-1\/2/g) || []).length, 3);
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
   assert.ok(workspace.includes('min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px]'));
@@ -62,7 +62,7 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("border-t border-gray-100"));
   assert.ok(workspace.includes("text-xs font-semibold leading-5"));
   assert.ok(!workspace.includes("•"));
-  assert.ok(workspace.includes('modules: ["overview", "cash", "inventory", "online"]'));
+  assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
   assert.ok(workspace.includes("bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"));
   assert.ok(workspace.includes("flex flex-col items-center py-4 space-y-1"));
   assert.ok(workspace.includes("mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0"));
