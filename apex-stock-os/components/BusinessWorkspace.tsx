@@ -3764,13 +3764,13 @@ export function BusinessWorkspace({
   return (
     <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
       <motion.aside animate={{ width: sidebarCollapsed ? 76 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`mb-4 flex w-full shrink-0 items-center ${sidebarCollapsed ? "flex-col justify-center gap-2" : "justify-between gap-2"}`}>
+        <div className={`mb-4 flex w-full shrink-0 items-center border-b border-[var(--apex-border)] pb-4 ${sidebarCollapsed ? "flex-col justify-center gap-2.5" : "justify-between gap-2"}`}>
           <button
             type="button"
             onClick={() => setActiveModule("overview")}
             aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
             title={language === "es" ? "Inicio" : "Home"}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-all duration-300 ease-in-out hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-all duration-300 ease-in-out hover:border-[var(--apex-border)] hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
           >
             <Logo />
           </button>
@@ -3782,7 +3782,9 @@ export function BusinessWorkspace({
             aria-expanded={!sidebarCollapsed}
             className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
           >
-            <PanelLeft size={19} strokeWidth={1.8} />
+            <motion.span aria-hidden="true" animate={{ rotate: sidebarCollapsed ? 0 : 180 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="grid place-items-center">
+              <PanelLeft size={19} strokeWidth={1.8} />
+            </motion.span>
           </button>
         </div>
 
@@ -3797,7 +3799,7 @@ export function BusinessWorkspace({
             }}
             className="gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none"
           >
-            <div className="w-full min-w-0 space-y-2 pb-4">
+            <div className="w-full min-w-0 space-y-3 pb-4">
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
@@ -3814,7 +3816,7 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className="min-w-0 border-b border-[var(--apex-border)] pb-3 last:border-b-0 last:pb-0">
+                  <section key={group.id} className="min-w-0 border-b border-[var(--apex-border)] pb-4 last:border-b-0 last:pb-0">
                     {sidebarCollapsed ? (
                       <motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">
                         •
@@ -3837,7 +3839,7 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow,transform] duration-200 hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
+                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-300 ease-in-out hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-2.5 px-3") + " " +
                               (active
                                 ? "bg-[var(--apex-accent)] text-white shadow-[0_8px_22px_var(--apex-accent-glow)]"
                                 : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
@@ -3857,7 +3859,7 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-2.5 px-3"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={16} aria-hidden="true" />
                           <AnimatePresence initial={false}>
