@@ -1129,7 +1129,7 @@ const navigationGroups: Array<{
   id: NavigationGroupId;
   modules: readonly ModuleId[];
 }> = [
-  { id: "core", modules: ["cash", "inventory", "online"] },
+  { id: "core", modules: ["overview", "cash", "inventory", "online"] },
   { id: "analysis", modules: ["charts", "activities"] },
   { id: "organization", modules: ["suppliers", "purchases", "notes"] },
   { id: "management", modules: ["documents", "arca", "operations"] },
@@ -3829,7 +3829,7 @@ export function BusinessWorkspace({
             <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
-                  .filter((id) => id !== "overview" && visibleModuleIds.has(id))
+                  .filter((id) => visibleModuleIds.has(id))
                   .map((id) =>
                     modules.find((module) => module.id === id)
                   )
