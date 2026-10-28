@@ -3764,28 +3764,46 @@ export function BusinessWorkspace({
   return (
     <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "84px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
       <motion.aside animate={{ width: sidebarCollapsed ? 84 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-gray-200 bg-[var(--apex-surface)] dark:border-white/10 py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-1" : "px-4"}`}>
-        <div className={`mb-4 flex w-full shrink-0 items-center justify-between gap-2 border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "px-1" : ""}`}>
-          <button
-            type="button"
-            onClick={() => setActiveModule("overview")}
-            aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
-            title={language === "es" ? "Inicio" : "Home"}
-            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)]"
-          >
-            <Logo className="h-8 w-8" />
-          </button>
-          <button
-            type="button"
-            onClick={() => setSidebarCollapsed(value => !value)}
-            aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}
-            title={sidebarCollapsed ? (language === "es" ? "Expandir menú" : "Expand menu") : (language === "es" ? "Contraer menú" : "Collapse menu")}
-            aria-expanded={!sidebarCollapsed}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300"
-          >
-            <motion.span aria-hidden="true" animate={{ rotate: sidebarCollapsed ? 0 : 180 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="grid place-items-center">
-              <PanelLeft size={19} strokeWidth={1.8} />
-            </motion.span>
-          </button>
+        <div className={`mb-4 flex w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "justify-center px-0" : "justify-between gap-2"}`}>
+          {sidebarCollapsed ? (
+            <button
+              type="button"
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label={language === "es" ? "Expandir menú lateral" : "Expand sidebar"}
+              title={language === "es" ? "Expandir menú" : "Expand menu"}
+              aria-expanded={false}
+              className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.06]"
+            >
+              <Logo className="h-8 w-8" />
+              <span aria-hidden="true" className="absolute bottom-0 right-0 grid h-4 w-4 place-items-center rounded-md border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-sm">
+                <PanelLeft size={11} strokeWidth={1.8} />
+              </span>
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveModule("overview")}
+                aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
+                title={language === "es" ? "Inicio" : "Home"}
+                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)]"
+              >
+                <Logo className="h-8 w-8" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label={language === "es" ? "Contraer menú lateral" : "Collapse sidebar"}
+                title={language === "es" ? "Contraer menú" : "Collapse menu"}
+                aria-expanded={true}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300"
+              >
+                <motion.span aria-hidden="true" animate={{ rotate: 180 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="grid place-items-center">
+                  <PanelLeft size={18} strokeWidth={1.8} />
+                </motion.span>
+              </button>
+            </>
+          )}
         </div>
 
         <div className={`relative mt-1 min-h-0 w-full flex-1 ${sidebarCollapsed ? "px-0" : ""}`}>
@@ -3899,7 +3917,7 @@ export function BusinessWorkspace({
             onClick={onSignOut}
             className={`flex items-center rounded-xl border border-[var(--apex-border)] py-3 text-sm font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-3"}`}
           >
-            <LogOut size={17} />
+            <LogOut size={18} strokeWidth={1.6} />
             {!sidebarCollapsed && labels.signOut}
           </button>
         </div>
