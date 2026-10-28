@@ -13,7 +13,9 @@ test("signup requires an explicit plan and stores it as account metadata on web 
   const mobileApp = await read("../apps/global-stocks-mobile/App.tsx");
   assert.match(web, /selectedPlan/);
   assert.match(web, /global_stock_selected_plan: selectedPlan/);
-  assert.match(web, /15 días de prueba, sin cobro automático/);
+  assert.match(web, /global_stock_selected_plan: "pending"/);
+  assert.match(web, /PASO 2 DE 2/);
+  assert.match(web, /US\\\$ 10 \/ mes/);
   assert.match(mobile, /selectedPlan/);
   assert.match(mobile, /15 días de prueba sin cobro automático/);
   assert.match(mobileApp, /global_stock_selected_plan: selectedPlan/);
