@@ -1203,7 +1203,9 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarPinned, setSidebarPinned] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
+  const sidebarCollapsed = !sidebarPinned && !sidebarHovered;
   const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
   useEffect(() => {
     try {
@@ -3731,13 +3733,13 @@ export function BusinessWorkspace({
 
   return (
     <main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent), gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
-      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"}`}>
+      <aside onMouseEnter={() => setSidebarHovered(true)} onMouseLeave={() => setSidebarHovered(false)} className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
+        <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"} `}>
           <AnimatePresence initial={false}>
             {sidebarCollapsed && <motion.div key="sidebar-mark" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.div>}
             {!sidebarCollapsed && <motion.div key="sidebar-brand" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.div>}
           </AnimatePresence>
-          <motion.button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
+          <motion.button type="button" onClick={() => setSidebarPinned(value => !value)} aria-label={sidebarPinned ? "Desanclar menú lateral" : "Fijar menú lateral"} title={sidebarPinned ? "Desanclar menú" : "Fijar menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
             <motion.span aria-hidden="true" className="flex w-[18px] flex-col items-center justify-center gap-[4px]" animate={{ gap: sidebarCollapsed ? 4 : 5 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 1, 1] }}>
               <motion.span className="block h-[2px] w-[18px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 16 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
               <motion.span className="block h-[2px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 11, x: sidebarCollapsed ? 0 : -2 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
