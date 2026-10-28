@@ -3772,7 +3772,7 @@ export function BusinessWorkspace({
             title={language === "es" ? "Inicio" : "Home"}
             className={`grid shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] opacity-95 transition-all duration-300 ease-in-out hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] ${sidebarCollapsed ? "h-9 w-9" : "h-11 w-11"}`}
           >
-            <Logo />
+            <Logo className={sidebarCollapsed ? "h-6 w-6" : "h-7 w-7"} />
           </button>
           <button
             type="button"
@@ -3802,7 +3802,7 @@ export function BusinessWorkspace({
             <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
-                  .filter((id) => visibleModuleIds.has(id))
+                  .filter((id) => id !== "overview" && visibleModuleIds.has(id))
                   .map((id) =>
                     modules.find((module) => module.id === id)
                   )
@@ -3816,18 +3816,14 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className="w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0">
-                    {sidebarCollapsed ? (
-                      <motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">
-                        
-                      </motion.div>
-                    ) : (
+                  <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "space-y-1" : ""}`}>
+                    {!sidebarCollapsed && (
                       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-bold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
                     )}
 
-                    <div className="min-w-0 space-y-0.5">
+                    <div className={`min-w-0 space-y-0.5 ${sidebarCollapsed ? "flex flex-col items-center" : ""}`}>
                       {groupItems.map(({ id, icon: Icon }) => {
                         const active = activeModule === id;
 
