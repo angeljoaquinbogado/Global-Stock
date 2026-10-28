@@ -314,7 +314,6 @@ export function AuthScreen({
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
   const [adultConsent, setAdultConsent] = useState(false);
-  const [selectedPlan, setSelectedPlan] = useState<"free" | "starter" | "pro" | "">("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState(() =>
     isSupabaseConfigured() ? "" : "demo@globalstock.local"
@@ -380,7 +379,7 @@ export function AuthScreen({
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
-    if (nextMode === "signup") { setAdultConsent(false); setSelectedPlan(""); }
+    if (nextMode === "signup") { setAdultConsent(false); }
     setError("");
     setNotice("");
     setShowPassword(false);
@@ -421,11 +420,6 @@ export function AuthScreen({
 
     if (mode === "signup" && name.trim().length < 2) {
       setError(labels.invalidName);
-      return;
-    }
-
-    if (mode === "signup" && !selectedPlan) {
-      setError(language === "es" ? "Elegí un plan para continuar." : "Choose a plan to continue.");
       return;
     }
 
@@ -542,7 +536,7 @@ export function AuthScreen({
             full_name: name.trim(),
             // Step 2 is completed after the user has a verified session.
             global_stock_onboarding: "pending",
-            global_stock_selected_plan: selectedPlan || "free",
+            global_stock_selected_plan: "pending",
             global_stock_legal_accepted: true,
             global_stock_terms_version: TERMS_VERSION,
             global_stock_privacy_version: PRIVACY_VERSION,
@@ -692,31 +686,7 @@ export function AuthScreen({
                       {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
                     </div>
 
-                    {mode === "signup" && (
-                      <fieldset className="space-y-2">
-                        <legend className={`mb-1 block text-[12px] font-medium ${muted}`}>
-                          {language === "es" ? "Elegí tu plan (15 días de prueba, sin cobro automático)" : language === "pt" ? "Escolha seu plano (15 dias de teste, sem cobrança automática)" : language === "fr" ? "Choisissez votre offre (15 jours d’essai, sans débit automatique)" : language === "de" ? "Wähle deinen Tarif (15 Tage Test, keine automatische Abbuchung)" : "Choose your plan (15-day trial, no automatic charge)"}
-                        </legend>
-                        <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-3">
-                          {([
-                            { id: "free", title: language === "es" ? "Gratis" : "Free", price: "$0", detail: language === "es" ? "Funciones básicas" : "Basic features" },
-                            { id: "starter", title: "Emprendedor", price: "US$ 5", detail: language === "es" ? "USD / mes · cobro aún desactivado" : "USD / month · billing not enabled" },
-                            { id: "pro", title: "Profesional", price: "US$ 10", detail: language === "es" ? "USD / mes · cobro aún desactivado" : "USD / month · billing not enabled" }
-                          ] as const).map((plan) => (
-                            <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)}
-                              aria-pressed={selectedPlan === plan.id}
-                              className={`min-h-[68px] rounded-xl border px-2 py-2 text-left transition-colors ${selectedPlan === plan.id ? "border-[#8F0000] bg-[#8F0000]/10 ring-1 ring-[#8F0000]/30" : dark ? "border-white/15 hover:bg-white/5" : "border-[#B7A6A3] hover:bg-black/[.03]"}`}>
-                              <span className="block text-[11px] font-semibold">{plan.title}</span>
-                              <span className="mt-0.5 block text-sm font-bold">{plan.price}</span>
-                              <span className={`mt-0.5 block text-[9px] leading-3 ${muted}`}>{plan.detail}</span>
-                            </button>
-                          ))}
-                        </div>
-                        <p className={`text-[10px] leading-4 ${muted}`}>
-                          {language === "es" ? "La prueba termina a los 15 días. No se te cobra automáticamente: vas a tener que confirmar una contratación paga." : "The trial ends after 15 days. You will not be charged automatically; you must confirm a paid subscription."}
-                        </p>
-                      </fieldset>
-                    )}
+
 
                     {mode === "signup" && (
                       <label className="flex cursor-pointer items-start gap-2.5">
@@ -724,7 +694,10 @@ export function AuthScreen({
                           type="checkbox" checked={adultConsent} required
                           onChange={event => setAdultConsent(event.target.checked)}
                           aria-label="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
-                          className="mt-0.5 h-4 w-4 shrink-0 accent-[#8F0000]"/>
+                          className="peer sr-only"/>
+                        <span aria-hidden="true" className={`relative mt-[1px] grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border transition-all duration-200 ${adultConsent ? "border-[#8F0000] bg-[#8F0000] scale-100" : dark ? "border-white/40 bg-white/5" : "border-[#A99B9D] bg-transparent"}`}>
+                          <motion.span animate={{ scale: adultConsent ? 1 : 0, opacity: adultConsent ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="h-1.5 w-1.5 rounded-full bg-white"/>
+                        </span>
                         <span className={`text-[11px] leading-[1.5] ${muted}`}>
                           {micro.legal}{" "}
                           <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#8F0000]">
@@ -755,7 +728,7 @@ export function AuthScreen({
                       <div role="status" data-testid="auth-feedback-notice" className={`rounded-lg border border-[#8F0000]/25 bg-[#8F0000]/5 px-3 py-2 text-[11px] leading-4 ${dark ? "text-[#F2B8BF]" : "text-[#71242D]"}`}>{notice}</div>
                     )}
 
-                    <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && (!adultConsent || !selectedPlan))}
+                    <button type="submit" disabled={pending || (siteKey.length > 0 && !captchaToken) || (mode === "signin" && remainingLockSeconds > 0) || (mode === "signup" && !adultConsent)}
                       className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-[14px] font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition-[background-color,box-shadow] hover:bg-[#AA101E] hover:shadow-[0_10px_26px_rgba(143,0,0,.32)] disabled:cursor-not-allowed disabled:opacity-55">
                       {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
                       {mode === "signin" && remainingLockSeconds > 0
