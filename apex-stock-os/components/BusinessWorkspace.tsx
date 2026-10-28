@@ -3868,6 +3868,10 @@ export function BusinessWorkspace({
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
                             }
                           >
+                            <span
+                              aria-hidden="true"
+                              className={"pointer-events-none absolute right-0 top-1/2 w-1 -translate-y-1/2 origin-center rounded-l-full bg-black transition-all duration-300 ease-out dark:bg-white " + (active ? "h-3/4 opacity-100 scale-y-100" : "h-3/4 opacity-0 scale-y-0 group-hover:opacity-100 group-hover:scale-y-100")}
+                            />
                             <Icon size={18} strokeWidth={1.6} />
                             <AnimatePresence initial={false}>
                               {!sidebarCollapsed && <motion.span key="nav-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14, delay: reduceMotion || sidebarCollapsed ? 0 : 0.12 }} className="min-w-0 flex-1 truncate whitespace-nowrap">
@@ -3884,6 +3888,10 @@ export function BusinessWorkspace({
                           href={href}
                           className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]}
                         >
+                          <span
+                            aria-hidden="true"
+                            className="pointer-events-none absolute right-0 top-1/2 h-3/4 w-1 -translate-y-1/2 origin-center rounded-l-full bg-black opacity-0 scale-y-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-y-100 dark:bg-white"
+                          />
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                           <AnimatePresence initial={false}>
                             {!sidebarCollapsed && <motion.span key="legal-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14, delay: reduceMotion || sidebarCollapsed ? 0 : 0.12 }} className="min-w-0 flex-1 truncate whitespace-nowrap">{legalLinkLabels[language][id]}</motion.span>}
