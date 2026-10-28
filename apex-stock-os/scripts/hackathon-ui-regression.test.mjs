@@ -38,7 +38,7 @@ test("desktop sidebar only expands by explicit click and uses minimal section do
   assert.ok(workspace.includes("SF Pro Display"));
   assert.ok(workspace.includes("rounded-full border border-[#8F0000]/20"));
   assert.ok(workspace.includes('gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)"'));
-  assert.ok(workspace.includes("transition-[grid-template-columns]"));
+  assert.ok(workspace.includes('animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }}'));
 });
 
 test("shared focus and selection feedback follows the selected workspace accent", async () => {
