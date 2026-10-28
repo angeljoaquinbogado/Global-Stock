@@ -1204,7 +1204,7 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [routingReady, setRoutingReady] = useState(false);
 
   const moduleRoutes: Record<ModuleId, string> = {
@@ -3762,15 +3762,15 @@ export function BusinessWorkspace({
   }
 
   return (
-    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
-      <motion.aside animate={{ width: sidebarCollapsed ? 76 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`mb-4 flex w-full shrink-0 items-center border-b border-[var(--apex-border)] pb-4 ${sidebarCollapsed ? "flex-col justify-center gap-2.5" : "justify-between gap-2"}`}>
+    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "84px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
+      <motion.aside animate={{ width: sidebarCollapsed ? 84 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-1" : "px-4"}`}>
+        <div className={`mb-4 flex w-full shrink-0 items-center border-b border-[var(--apex-border)] pb-4 ${sidebarCollapsed ? "flex-row justify-between gap-1" : "justify-between gap-2"}`}>
           <button
             type="button"
             onClick={() => setActiveModule("overview")}
             aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
             title={language === "es" ? "Inicio" : "Home"}
-            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-all duration-300 ease-in-out hover:border-[var(--apex-border)] hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+            className={`grid shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-all duration-300 ease-in-out hover:border-[var(--apex-border)] hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "h-9 w-9" : "h-11 w-11"}`}
           >
             <Logo />
           </button>
@@ -3780,7 +3780,7 @@ export function BusinessWorkspace({
             aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}
             title={sidebarCollapsed ? (language === "es" ? "Expandir menú" : "Expand menu") : (language === "es" ? "Contraer menú" : "Collapse menu")}
             aria-expanded={!sidebarCollapsed}
-            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+            className={`grid shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "h-7 w-7" : "h-9 w-9"}`}
           >
             <motion.span aria-hidden="true" animate={{ rotate: sidebarCollapsed ? 0 : 180 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="grid place-items-center">
               <PanelLeft size={19} strokeWidth={1.8} />
@@ -3839,7 +3839,7 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-300 ease-in-out hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-2.5 px-3") + " " +
+                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-all duration-300 ease-in-out hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
                               (active
                                 ? "bg-[var(--apex-accent)] text-white shadow-[0_8px_22px_var(--apex-accent-glow)]"
                                 : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
@@ -3859,7 +3859,7 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-2.5 px-3"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={16} aria-hidden="true" />
                           <AnimatePresence initial={false}>
