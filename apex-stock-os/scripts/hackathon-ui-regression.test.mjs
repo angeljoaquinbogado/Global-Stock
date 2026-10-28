@@ -23,11 +23,15 @@ test("desktop sidebar only expands by explicit click and uses minimal section do
   assert.ok(!workspace.includes("sidebarHovered"));
   assert.ok(!workspace.includes("onMouseEnter={() => setSidebarCollapsed"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(value => !value)}"));
-  assert.ok(workspace.includes('aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}'));
+  assert.ok(workspace.includes('onClick={() => setActiveModule("overview")}'));
+  assert.ok(workspace.includes('aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}'));
+  assert.ok(workspace.includes("<PanelLeft size={19} strokeWidth={1.8} />"));
+  assert.ok(workspace.includes("border-b border-[var(--apex-border)]"));
+  assert.ok(workspace.includes("text-xs font-bold leading-5"));
   assert.ok(workspace.includes('aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]"'));
   assert.ok(workspace.includes("stiffness: 300, damping: 30"));
-  assert.ok(workspace.includes("text-xs font-medium leading-5"));
-  assert.ok(workspace.includes("w-full min-w-0 space-y-5 pb-4"));
+  assert.ok(workspace.includes("text-xs font-bold leading-5"));
+  assert.ok(workspace.includes("w-full min-w-0 space-y-2 pb-4"));
   assert.ok(workspace.includes("AnimatePresence initial={false}"));
   assert.ok(workspace.includes('overview: "/dashboard"'));
   assert.ok(workspace.includes('inventory: "/inventory"'));
