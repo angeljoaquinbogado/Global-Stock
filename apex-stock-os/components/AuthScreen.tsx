@@ -805,7 +805,8 @@ export function AuthScreen({
                       {mode === "signin" ? micro.openAccount : micro.back}
                     </button>
                   </p>
-                  </>\n                  )}\n                </motion.div>
+                  </>
+                  )}\n                </motion.div>
               </AnimatePresence>
             </div>
           </AuthSplitMotion>
