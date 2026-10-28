@@ -28,8 +28,9 @@ import {
   Store,
   Sun,
   Truck,
-  X
-  PanelLeft,} from "lucide-react";
+  X,
+  PanelLeft,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   calculateMetrics,
