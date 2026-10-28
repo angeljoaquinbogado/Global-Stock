@@ -31,10 +31,10 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('<Logo className="h-12 w-12 shrink-0 object-contain'));
   assert.ok(workspace.includes('absolute bottom-0 right-0 grid h-6 w-6'));
   assert.ok(workspace.includes('transition-opacity duration-300 ease-out group-hover:opacity-45'));
-  assert.ok(workspace.includes('-translate-y-1/2 w-[3.5px] h-6 bg-black rounded-l-full origin-right opacity-0 scale-y-0 transition-all duration-300 ease-out'));
-  assert.ok(workspace.includes('opacity-0 scale-y-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-y-100'));
-  assert.ok(workspace.includes('-translate-y-1/2 w-[3.5px] h-6 bg-black rounded-l-full origin-right opacity-0 scale-y-0 transition-all duration-300 ease-out group-hover:opacity-100 group-hover:scale-y-100'));
-  assert.ok(workspace.includes('active ? "opacity-100 scale-y-100" : "group-hover:opacity-100 group-hover:scale-y-100"'));
+  assert.ok(workspace.includes('-translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out'));
+  assert.ok(workspace.includes('scale-y-0 group-hover:scale-y-100'));
+  assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100'));
+  assert.ok(workspace.includes('active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100"'));
   assert.equal((workspace.match(/absolute right-0 top-1\/2/g) || []).length, 2);
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
@@ -42,8 +42,8 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('"w-full"'));
   assert.ok(workspace.includes('focus-visible:outline-[var(--apex-accent)]'));
   assert.ok(workspace.includes('onClick={() => setActiveModule("overview")}'));
-  assert.ok(!workspace.includes('{ id: "core", modules: ["overview", "cash", "inventory", "online"] }'));
-  assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
+  assert.ok(workspace.includes('{ id: "core", modules: ["overview", "cash", "inventory", "online"] }'));
+  assert.ok(workspace.includes('modules: ["overview", "cash", "inventory", "online"]'));
   assert.ok(!workspace.includes('<motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">'));
   assert.ok(workspace.includes('<Logo className="h-8 w-8" />'));
   assert.ok(workspace.includes('className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl'));
