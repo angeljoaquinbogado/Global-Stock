@@ -27,7 +27,7 @@ test("desktop sidebar only expands by explicit click and uses minimal section do
   assert.ok(workspace.includes('aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]"'));
   assert.ok(workspace.includes("stiffness: 300, damping: 30"));
   assert.ok(workspace.includes("text-xs font-medium leading-5"));
-  assert.ok(workspace.includes("min-w-[218px] space-y-5 pb-4"));
+  assert.ok(workspace.includes("w-full min-w-0 space-y-5 pb-4"));
   assert.ok(workspace.includes("AnimatePresence initial={false}"));
   assert.ok(workspace.includes('overview: "/dashboard"'));
   assert.ok(workspace.includes('inventory: "/inventory"'));
