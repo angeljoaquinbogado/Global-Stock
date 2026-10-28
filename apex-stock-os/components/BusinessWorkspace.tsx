@@ -1204,7 +1204,7 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [routingReady, setRoutingReady] = useState(false);
 
   const moduleRoutes: Record<ModuleId, string> = {
