@@ -32,7 +32,12 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("text-xs font-bold leading-5"));
   assert.ok(!workspace.includes("•"));
   assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
-  assert.ok(workspace.includes("bg-gray-100 text-gray-800 dark:bg-white/10 dark:text-white"));
+  assert.ok(workspace.includes("bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"));
+  assert.ok(workspace.includes("flex flex-col items-center py-4 space-y-1"));
+  assert.ok(workspace.includes("mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0"));
+  assert.ok(workspace.includes("transition-all duration-300 ease-in-out"));
+  assert.ok(workspace.includes("border-b border-gray-100 pb-4 dark:border-white/10"));
+  assert.ok(workspace.includes("hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700"));
   assert.ok(workspace.includes("stiffness: 300, damping: 30"));
   assert.ok(workspace.includes("text-xs font-bold leading-5"));
   assert.ok(workspace.includes("w-full min-w-0 pb-4"));
