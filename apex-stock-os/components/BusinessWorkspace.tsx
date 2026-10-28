@@ -1203,9 +1203,38 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [sidebarPinned, setSidebarPinned] = useState(false);
-  const [sidebarHovered, setSidebarHovered] = useState(false);
-  const sidebarCollapsed = !sidebarPinned && !sidebarHovered;
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [routingReady, setRoutingReady] = useState(false);
+
+  const moduleRoutes: Record<ModuleId, string> = {
+    overview: "/dashboard", pos: "/sales", cash: "/cash-register", online: "/online-store",
+    inventory: "/inventory", charts: "/analytics", purchases: "/restocking", suppliers: "/suppliers",
+    activities: "/activity", documents: "/documents", notes: "/agenda", operations: "/businesses",
+    arca: "/invoicing", account: "/account", settings: "/settings"
+  };
+  const routeModules = Object.fromEntries(
+    Object.entries(moduleRoutes).map(([module, route]) => [route, module])
+  ) as Record<string, ModuleId>;
+
+  useEffect(() => {
+    const syncFromPath = () => {
+      const path = window.location.pathname.replace(/\/$/, "") || "/dashboard";
+      const module = routeModules[path];
+      if (module) setActiveModule(module);
+    };
+    syncFromPath();
+    setRoutingReady(true);
+    window.addEventListener("popstate", syncFromPath);
+    return () => window.removeEventListener("popstate", syncFromPath);
+  }, []);
+
+  useEffect(() => {
+    if (!routingReady) return;
+    const nextPath = moduleRoutes[activeModule];
+    if (window.location.pathname !== nextPath) {
+      window.history.pushState({ module: activeModule }, "", nextPath);
+    }
+  }, [activeModule, routingReady]);
   const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
   useEffect(() => {
     try {
@@ -3733,13 +3762,13 @@ export function BusinessWorkspace({
 
   return (
     <main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent), gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
-      <aside onMouseEnter={() => setSidebarHovered(true)} onMouseLeave={() => setSidebarHovered(false)} className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
+      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
         <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"} `}>
           <AnimatePresence initial={false}>
-            {sidebarCollapsed && <motion.div key="sidebar-mark" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.div>}
-            {!sidebarCollapsed && <motion.div key="sidebar-brand" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.div>}
+            {sidebarCollapsed && <motion.button type="button" key="sidebar-mark" onClick={() => setSidebarCollapsed(value => !value)} aria-label="Expandir menú lateral" title="Expandir menú lateral" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.button>}
+            {!sidebarCollapsed && <motion.button type="button" key="sidebar-brand" onClick={() => setSidebarCollapsed(value => !value)} aria-label="Contraer menú lateral" title="Contraer menú lateral" initial={{ opacity: 0, x: -8, width: 0 }} animate={{ opacity: 1, x: 0, width: "auto" }} exit={{ opacity: 0, x: -8, width: 0 }} transition={{ duration: reduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] }} className="min-w-0 overflow-hidden"><Logo withWordmark /></motion.button>}
           </AnimatePresence>
-          <motion.button type="button" onClick={() => setSidebarPinned(value => !value)} aria-label={sidebarPinned ? "Desanclar menú lateral" : "Fijar menú lateral"} title={sidebarPinned ? "Desanclar menú" : "Fijar menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
+          <motion.button type="button" onClick={() => setSidebarCollapsed(value => !value)} aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"} title={sidebarCollapsed ? "Expandir menú" : "Contraer menú"} whileTap={reduceMotion ? undefined : { scale: 0.9 }} whileHover={reduceMotion ? undefined : { scale: 1.04 }} className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-accent)] shadow-sm transition-all duration-300 hover:border-[var(--apex-accent)] hover:shadow-[0_0_0_3px_var(--apex-accent-glow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]">
             <motion.span aria-hidden="true" className="flex w-[18px] flex-col items-center justify-center gap-[4px]" animate={{ gap: sidebarCollapsed ? 4 : 5 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 1, 1] }}>
               <motion.span className="block h-[2px] w-[18px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 16 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
               <motion.span className="block h-[2px] rounded-full bg-current" animate={{ width: sidebarCollapsed ? 18 : 11, x: sidebarCollapsed ? 0 : -2 }} transition={{ duration: reduceMotion ? 0 : 0.28 }} />
@@ -3776,7 +3805,7 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className={sidebarCollapsed ? "relative pb-2 after:absolute after:bottom-0 after:left-2 after:right-2 after:h-px after:bg-[var(--apex-border)] last:after:hidden" : "relative"}>
+                  <section key={group.id} className="relative pb-2 after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:content-['•'] after:text-[var(--apex-accent)] after:text-sm after:leading-none last:after:hidden">
                     <p className={`mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70 ${sidebarCollapsed ? "sr-only" : ""}`}>
                       {navigationGroupLabels[language][group.id]}
                     </p>
@@ -3874,15 +3903,13 @@ export function BusinessWorkspace({
               </motion.p>
               {activeModule === "overview" && (
                 <div className="mt-1 min-w-0">
-                  <p className="truncate text-base font-semibold tracking-[-0.035em] text-[var(--apex-text)] sm:text-lg">
+                  <p className="truncate text-[17px] font-semibold leading-snug tracking-[-0.035em] text-[var(--apex-text)] sm:text-[19px]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif' }}>
                     {language === "es" ? (signedInName ? `¡Hola, ${signedInName}!` : "¡Hola! Bienvenido de nuevo") : `${welcomeLabels[language].greeting}${signedInName ? `, ${signedInName}` : ""}`}
                   </p>
                   {(demoMode || (cloudBusinessId && memberRoleReady)) && (
-                    <p className="truncate text-[10px] text-[var(--apex-muted)]">
-                      {demoMode
-                        ? welcomeLabels[language].demo
-                        : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
-                    </p>
+                    <span className="mt-1.5 inline-flex max-w-full items-center rounded-full border border-[#8F0000]/20 bg-[#8F0000]/[0.07] px-2.5 py-1 text-[10px] font-semibold tracking-[0.015em] text-[#8F0000] dark:border-white/10 dark:bg-white/[0.06] dark:text-[var(--apex-text)]">
+                      {demoMode ? welcomeLabels[language].demo : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
+                    </span>
                   )}
                 </div>
               )}
@@ -3901,7 +3928,7 @@ export function BusinessWorkspace({
                 initial={reduceMotion ? false : { opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: reduceMotion ? 0 : 0.18 }}
-                className="mt-1 truncate text-lg font-semibold tracking-[-0.03em]"
+                className="mt-1 truncate text-[22px] font-semibold leading-tight tracking-[-0.045em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif' }}
               >
                 {labels.nav[activeModule]}
               </motion.h1>
