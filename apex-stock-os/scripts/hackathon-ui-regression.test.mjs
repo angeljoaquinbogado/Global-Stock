@@ -24,12 +24,12 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(!workspace.includes("onMouseEnter={() => setSidebarCollapsed"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(false)}"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(true)"));
-  assert.ok(workspace.includes('className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl'));
+  assert.ok(workspace.includes('className="group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl'));
   assert.ok(workspace.includes('<PanelLeft size={11} strokeWidth={1.8} />'));
-  assert.ok(workspace.includes('-translate-y-2.5 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90'));
-  assert.ok(workspace.includes('backdrop-blur-sm transition-all duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100'));
-  assert.ok(workspace.includes('<Logo className="h-10 w-10 shrink-0 object-contain'));
-  assert.ok(workspace.includes('absolute bottom-0 right-0 grid h-[18px] w-[18px]'));
+  assert.ok(workspace.includes('-translate-y-2 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90'));
+  assert.ok(workspace.includes('pointer-events-none absolute bottom-0 right-0 grid h-6 w-6 -translate-y-2 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90 text-[var(--apex-muted)] opacity-0 shadow-md backdrop-blur-md transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:bg-gray-900/90'));
+  assert.ok(workspace.includes('<Logo className="h-12 w-12 shrink-0 object-contain'));
+  assert.ok(workspace.includes('absolute bottom-0 right-0 grid h-6 w-6'));
   assert.ok(workspace.includes('group-hover:scale-[0.94] group-hover:opacity-45'));
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
   assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
