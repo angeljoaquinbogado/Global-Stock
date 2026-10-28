@@ -3764,15 +3764,15 @@ export function BusinessWorkspace({
   return (
     <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "84px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
       <motion.aside animate={{ width: sidebarCollapsed ? 84 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-gray-200 bg-[var(--apex-surface)] dark:border-white/10 py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-1" : "px-4"}`}>
-        <div className={`mb-4 flex w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "flex-row justify-between gap-1" : "justify-between gap-2"}`}>
+        <div className={`mb-4 flex w-full shrink-0 items-center justify-between gap-2 border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "px-1" : ""}`}>
           <button
             type="button"
             onClick={() => setActiveModule("overview")}
             aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
             title={language === "es" ? "Inicio" : "Home"}
-            className={`grid shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] opacity-95 transition-all duration-300 ease-in-out hover:opacity-75 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] ${sidebarCollapsed ? "h-9 w-9" : "h-11 w-11"}`}
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)]"
           >
-            <Logo className={sidebarCollapsed ? "h-6 w-6" : "h-7 w-7"} />
+            <Logo className="h-8 w-8" />
           </button>
           <button
             type="button"
@@ -3780,7 +3780,7 @@ export function BusinessWorkspace({
             aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}
             title={sidebarCollapsed ? (language === "es" ? "Expandir menú" : "Expand menu") : (language === "es" ? "Contraer menú" : "Collapse menu")}
             aria-expanded={!sidebarCollapsed}
-            className={`grid shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300 ${sidebarCollapsed ? "h-7 w-7" : "h-9 w-9"}`}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300"
           >
             <motion.span aria-hidden="true" animate={{ rotate: sidebarCollapsed ? 0 : 180 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="grid place-items-center">
               <PanelLeft size={19} strokeWidth={1.8} />
@@ -3818,7 +3818,7 @@ export function BusinessWorkspace({
                 return (
                   <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "space-y-1" : ""}`}>
                     {!sidebarCollapsed && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-bold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-semibold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
                     )}
@@ -3835,7 +3835,7 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative flex min-w-0 items-center text-[13px] font-semibold transition-all duration-300 ease-in-out " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "mx-1 min-h-10 w-[calc(100%-0.5rem)] rounded-xl py-2.5 gap-3 px-3") + " hover:translate-x-[1px] " +
+                              "group relative flex min-w-0 items-center text-[13px] font-semibold transition-all duration-300 ease-in-out " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2") + " hover:translate-x-[1px] " +
                               (active
                                 ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
@@ -3855,7 +3855,7 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "mx-1 min-h-10 w-[calc(100%-0.5rem)] rounded-xl py-2.5 gap-3 px-3"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                           <AnimatePresence initial={false}>
@@ -3874,7 +3874,7 @@ export function BusinessWorkspace({
 
         </div>
 
-        <div className={`mt-auto w-full space-y-3 pt-4 ${sidebarCollapsed ? "px-0" : ""}`}>
+        <div className={`mt-auto w-full min-w-0 space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800 ${sidebarCollapsed ? "px-0" : "px-1"}`}>
           {!sidebarCollapsed && <>
           <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
             <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
