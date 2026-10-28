@@ -47,7 +47,7 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("border-b border-gray-100 pb-4 dark:border-white/10"));
   assert.ok(workspace.includes("hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700"));
   assert.ok(workspace.includes("stiffness: 300, damping: 30"));
-  assert.ok(workspace.includes("text-xs font-bold leading-5"));
+  assert.ok(workspace.includes("text-xs font-semibold leading-5"));
   assert.ok(workspace.includes("w-full min-w-0 pb-4"));
   assert.ok(workspace.includes("AnimatePresence initial={false}"));
   assert.ok(workspace.includes('overview: "/dashboard"'));
