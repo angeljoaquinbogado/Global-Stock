@@ -117,15 +117,15 @@ export function AuthSplitMotion({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: reduce ? 0 : .28, delay: reduce ? 0 : .36 }}
-            className="w-full min-w-0"
+            className="w-full min-w-0 max-w-full overflow-hidden px-1"
           >
             <p className="mb-5 text-[10px] font-semibold uppercase tracking-[.3em] text-[#F4ABB3]">GLOBAL STOCK</p>
-            <h2 className="text-[clamp(2.4rem,4.5vw,5.5rem)] leading-[1.02] tracking-[-.055em] text-[#FFF5F1]"
+            <h2 className="max-w-full break-words text-pretty text-[clamp(2rem,3.3vw,4rem)] leading-[1.04] tracking-[-.055em] text-[#FFF5F1]"
               style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}>
               {lines[0]}
               <span className="block italic text-[#EEC2C7]">{lines[1]}</span>
             </h2>
-            <p className="mt-6 max-w-[32ch] text-[clamp(.83rem,1.05vw,1rem)] leading-[1.75] text-[#E5C9CD]">{description}</p>
+            <p className="mt-6 max-w-[30ch] break-words text-[clamp(.8rem,1vw,.98rem)] leading-[1.7] text-[#E5C9CD]">{description}</p>
           </motion.div>
         </AnimatePresence>
       </div>
@@ -144,7 +144,7 @@ export function AuthSplitMotion({
         }
       >
         <div className={
-          "mx-auto flex w-full max-w-[570px] min-h-full shrink-0 flex-col justify-center " +
+          "mx-auto flex w-full max-w-[570px] min-h-full min-w-0 shrink-0 flex-col justify-center px-1 sm:px-2 " +
           (scrollable ? "py-4 lg:py-6" : "py-0")
         }>
           {children}
