@@ -3761,8 +3761,8 @@ export function BusinessWorkspace({
   }
 
   return (
-    <main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent), gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid transition-[grid-template-columns] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]">
-      <aside className={`relative sticky top-0 hidden h-screen border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 transition-[padding] duration-300 ease-out lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
+    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
+      <motion.aside animate={{ width: sidebarCollapsed ? 76 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
         <div className={`flex w-full items-center transition-all duration-300 ease-out ${sidebarCollapsed ? "justify-center" : "justify-between"} `}>
           <AnimatePresence initial={false}>
             {sidebarCollapsed && <motion.button type="button" key="sidebar-mark" onClick={() => setSidebarCollapsed(value => !value)} aria-label="Expandir menú lateral" title="Expandir menú lateral" initial={{ opacity: 0, scale: 0.72, rotate: -10 }} animate={{ opacity: 1, scale: 1, rotate: 0 }} exit={{ opacity: 0, scale: 0.72, rotate: 10 }} transition={{ duration: reduceMotion ? 0 : 0.28, ease: [0.22, 1, 0.36, 1] }} className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"><Logo /></motion.button>}
@@ -3786,9 +3786,9 @@ export function BusinessWorkspace({
               if (!scrollSidebarByKeyboard(event.key)) return;
               event.preventDefault();
             }}
-            className="gs-sidebar-nav h-full overflow-y-auto pr-1 pt-1 outline-none"
+            className="gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none"
           >
-            <div className="space-y-5 pb-4">
+            <div className="min-w-[218px] space-y-5 pb-4">
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
@@ -3805,12 +3805,18 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className="relative pb-2 after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:content-['•'] after:text-[var(--apex-accent)] after:text-sm after:leading-none last:after:hidden">
-                    <p className={`mb-1.5 px-3 text-[9px] font-bold uppercase tracking-[0.14em] text-[var(--apex-muted)]/70 ${sidebarCollapsed ? "sr-only" : ""}`}>
-                      {navigationGroupLabels[language][group.id]}
-                    </p>
+                  <section key={group.id} className="min-w-0 pb-1">
+                    {sidebarCollapsed ? (
+                      <motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">
+                        •
+                      </motion.div>
+                    ) : (
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-medium leading-5 tracking-[-0.01em] text-[var(--apex-muted)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
+                        {navigationGroupLabels[language][group.id]}
+                      </motion.p>
+                    )}
 
-                    <div className="space-y-1">
+                    <div className="min-w-0 space-y-1">
                       {groupItems.map(({ id, icon: Icon }) => {
                         const active = activeModule === id;
 
@@ -3822,16 +3828,18 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow,transform] duration-200 hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
+                              "group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold transition-[background-color,color,box-shadow,transform] duration-200 hover:translate-x-[1px] " + (sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3") + " " +
                               (active
                                 ? "bg-[var(--apex-accent)] text-white shadow-[0_8px_22px_var(--apex-accent-glow)]"
                                 : "text-[var(--apex-muted)] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)]")
                             }
                           >
                             <Icon size={16} />
-                            <span className={sidebarCollapsed ? "sr-only" : "truncate"}>
-                              {labels.nav[id]}
-                            </span>
+                            <AnimatePresence initial={false}>
+                              {!sidebarCollapsed && <motion.span key="nav-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14, delay: reduceMotion || sidebarCollapsed ? 0 : 0.12 }} className="min-w-0 flex-1 truncate whitespace-nowrap">
+                                {labels.nav[id]}
+                              </motion.span>}
+                            </AnimatePresence>
                             {sidebarCollapsed && <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[80] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">{labels.nav[id]}</span>}
                           </button>
                         );
@@ -3840,10 +3848,12 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative flex min-h-10 w-full items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative mx-1 flex min-h-10 w-[calc(100%-0.5rem)] min-w-0 items-center rounded-xl py-2.5 text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-200 hover:translate-x-[1px] hover:bg-[var(--apex-surface-strong)] hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "justify-center px-0" : "gap-3 px-3"}`} title={legalLinkLabels[language][id]}
                         >
                           <Icon size={16} aria-hidden="true" />
-                          <span className={sidebarCollapsed ? "sr-only" : "min-w-0 break-words"}>{legalLinkLabels[language][id]}</span>
+                          <AnimatePresence initial={false}>
+                            {!sidebarCollapsed && <motion.span key="legal-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14, delay: reduceMotion || sidebarCollapsed ? 0 : 0.12 }} className="min-w-0 flex-1 truncate whitespace-nowrap">{legalLinkLabels[language][id]}</motion.span>}
+                          </AnimatePresence>
                           {sidebarCollapsed && <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[80] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-2 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">{legalLinkLabels[language][id]}</span>}
                         </a>
                       ))}
@@ -3886,7 +3896,7 @@ export function BusinessWorkspace({
             {!sidebarCollapsed && labels.signOut}
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
       <section className="min-w-0 pb-28 lg:pb-0">
         <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-lg">
@@ -4557,7 +4567,7 @@ export function BusinessWorkspace({
           activeModule
         }}
       />
-    </main>
+    </motion.main>
   );
 }
 
