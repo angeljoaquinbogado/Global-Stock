@@ -3774,8 +3774,8 @@ export function BusinessWorkspace({
               aria-expanded={false}
               className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.06]"
             >
-              <Logo className="h-8 w-8" />
-              <span aria-hidden="true" className="absolute bottom-0 right-0 grid h-4 w-4 place-items-center rounded-md border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] shadow-sm">
+              <Logo className="h-8 w-8 transition-opacity duration-200 group-hover:opacity-40" />
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 grid h-4 w-4 place-items-center rounded-md border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
                 <PanelLeft size={11} strokeWidth={1.8} />
               </span>
             </button>
@@ -3786,7 +3786,7 @@ export function BusinessWorkspace({
                 onClick={() => setActiveModule("overview")}
                 aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
                 title={language === "es" ? "Inicio" : "Home"}
-                className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-opacity duration-200 hover:opacity-80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)]"
+                className="group grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.06]"
               >
                 <Logo className="h-8 w-8" />
               </button>
@@ -3836,7 +3836,7 @@ export function BusinessWorkspace({
                 return (
                   <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "space-y-1" : ""}`}>
                     {!sidebarCollapsed && (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-semibold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
                     )}
@@ -3915,7 +3915,7 @@ export function BusinessWorkspace({
           <button
             type="button"
             onClick={onSignOut}
-            className={`flex items-center rounded-xl border border-[var(--apex-border)] py-3 text-sm font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-3"}`}
+            className={`flex min-h-10 items-center rounded-xl border border-transparent text-sm font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:border-white/10 dark:hover:bg-white/[0.06] ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-3 py-2"}`}
           >
             <LogOut size={18} strokeWidth={1.6} />
             {!sidebarCollapsed && labels.signOut}
