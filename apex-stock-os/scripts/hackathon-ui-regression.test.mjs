@@ -26,6 +26,12 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(true)"));
   assert.ok(workspace.includes('className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl'));
   assert.ok(workspace.includes('<PanelLeft size={11} strokeWidth={1.8} />'));
+  assert.ok(workspace.includes('group-hover:opacity-100 group-focus-visible:opacity-100'));
+  assert.ok(workspace.includes('group-hover:opacity-40'));
+  assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
+  assert.ok(workspace.includes('hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)]'));
+  assert.ok(workspace.includes('"w-full gap-3 px-3 py-2"'));
+  assert.ok(workspace.includes('focus-visible:outline-[var(--apex-accent)]'));
   assert.ok(workspace.includes('onClick={() => setActiveModule("overview")}'));
   assert.ok(!workspace.includes('{ id: "core", modules: ["overview", "cash", "inventory", "online"] }'));
   assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
