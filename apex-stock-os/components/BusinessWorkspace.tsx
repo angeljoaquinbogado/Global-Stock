@@ -3764,51 +3764,30 @@ export function BusinessWorkspace({
   return (
     <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "76px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid">
       <motion.aside animate={{ width: sidebarCollapsed ? 76 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-[var(--apex-border)] bg-[var(--apex-surface)] py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}>
-        <div className={`flex w-full items-center ${sidebarCollapsed ? "justify-center" : "justify-start"}`}>
-          <motion.button
+        <div className={`mb-4 flex w-full shrink-0 items-center ${sidebarCollapsed ? "flex-col justify-center gap-2" : "justify-between gap-2"}`}>
+          <button
+            type="button"
+            onClick={() => setActiveModule("overview")}
+            aria-label={language === "es" ? "Ir a Inicio" : "Go to Home"}
+            title={language === "es" ? "Inicio" : "Home"}
+            className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-all duration-300 ease-in-out hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+          >
+            <Logo />
+          </button>
+          <button
             type="button"
             onClick={() => setSidebarCollapsed(value => !value)}
-            aria-label={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
-            title={sidebarCollapsed ? "Expandir menú lateral" : "Contraer menú lateral"}
-            initial="rest"
-            whileHover="hover"
-            whileTap={reduceMotion ? undefined : { scale: 0.94 }}
-            className="relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-xl border border-transparent bg-transparent text-[var(--apex-accent)] transition-colors duration-200 hover:border-[var(--apex-border)] hover:bg-[var(--apex-surface-strong)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
+            aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}
+            title={sidebarCollapsed ? (language === "es" ? "Expandir menú" : "Expand menu") : (language === "es" ? "Contraer menú" : "Collapse menu")}
+            aria-expanded={!sidebarCollapsed}
+            whileTap={undefined}
+            className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "" : ""}`}
           >
-            <motion.span
-              aria-hidden="true"
-              variants={{
-                rest: { y: "0%", opacity: 1 },
-                hover: { y: "100%", opacity: 0 },
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
-              className="absolute inset-0 grid place-items-center"
-            >
-              <Logo />
-            </motion.span>
-            <motion.span
-              aria-hidden="true"
-              variants={{
-                rest: { y: "-100%", opacity: 0 },
-                hover: { y: "0%", opacity: 1 },
-              }}
-              transition={{
-                type: "spring",
-                stiffness: 300,
-                damping: 30,
-              }}
-              className="absolute inset-0 grid place-items-center"
-            >
-              <PanelLeft size={21} strokeWidth={1.8} />
-            </motion.span>
-          </motion.button>
+            <PanelLeft size={19} strokeWidth={1.8} />
+          </button>
         </div>
 
-        <div className={`relative mt-6 min-h-0 w-full flex-1 ${sidebarCollapsed ? "px-0" : ""}`}>
+        <div className={`relative mt-1 min-h-0 w-full flex-1 ${sidebarCollapsed ? "px-0" : ""}`}>
           <nav
             id="business-sidebar-nav"
             ref={sidebarNavRef}
@@ -3819,7 +3798,7 @@ export function BusinessWorkspace({
             }}
             className="gs-sidebar-nav h-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none"
           >
-            <div className="w-full min-w-0 space-y-5 pb-4">
+            <div className="w-full min-w-0 space-y-2 pb-4">
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
@@ -3836,18 +3815,18 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className="min-w-0 pb-1">
+                  <section key={group.id} className="min-w-0 border-b border-[var(--apex-border)] pb-3 last:border-b-0 last:pb-0">
                     {sidebarCollapsed ? (
                       <motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">
                         •
                       </motion.div>
                     ) : (
-                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-medium leading-5 tracking-[-0.01em] text-[var(--apex-muted)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="mb-1.5 min-h-5 px-3 text-xs font-bold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
                     )}
 
-                    <div className="min-w-0 space-y-1">
+                    <div className="min-w-0 space-y-0.5">
                       {groupItems.map(({ id, icon: Icon }) => {
                         const active = activeModule === id;
 
