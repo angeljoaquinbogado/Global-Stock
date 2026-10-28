@@ -17,11 +17,15 @@ test("PayPal is not shown as a floating notification and plan choices live in ac
   assert.match(plans, /15 días/);
 });
 
-test("desktop navigation has an accessible collapse and expand control", async () => {
+test("desktop navigation hover-expands and can be pinned accessibly", async () => {
   const workspace = await read("components/BusinessWorkspace.tsx");
-  assert.match(workspace, /const \[sidebarCollapsed, setSidebarCollapsed\] = useState\(false\)/);
-  assert.match(workspace, /setSidebarCollapsed\(value => !value\)/);
-  assert.match(workspace, /aria-label=\{sidebarCollapsed \? "Expandir menú lateral" : "Contraer menú lateral"\}/);
+  assert.match(workspace, /const \[sidebarPinned, setSidebarPinned\] = useState\(false\)/);
+  assert.match(workspace, /const \[sidebarHovered, setSidebarHovered\] = useState\(false\)/);
+  assert.match(workspace, /const sidebarCollapsed = !sidebarPinned && !sidebarHovered/);
+  assert.match(workspace, /onMouseEnter=\{\(\) => setSidebarHovered\(true\)\}/);
+  assert.match(workspace, /onMouseLeave=\{\(\) => setSidebarHovered\(false\)\}/);
+  assert.match(workspace, /setSidebarPinned\(value => !value\)/);
+  assert.match(workspace, /aria-label=\{sidebarPinned \? "Desanclar menú lateral" : "Fijar menú lateral"\}/);
   assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \? "76px minmax\(0, 1fr\)" : "250px minmax\(0, 1fr\)"/);
   assert.match(workspace, /transition-\[grid-template-columns\]/);
   assert.match(workspace, /!sidebarCollapsed && <motion\.div key="sidebar-brand"/);
