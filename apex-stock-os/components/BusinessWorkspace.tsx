@@ -3780,8 +3780,7 @@ export function BusinessWorkspace({
             aria-label={sidebarCollapsed ? (language === "es" ? "Expandir menú lateral" : "Expand sidebar") : (language === "es" ? "Contraer menú lateral" : "Collapse sidebar")}
             title={sidebarCollapsed ? (language === "es" ? "Expandir menú" : "Expand menu") : (language === "es" ? "Contraer menú" : "Collapse menu")}
             aria-expanded={!sidebarCollapsed}
-            whileTap={undefined}
-            className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "" : ""}`}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:border-[var(--apex-accent)] hover:bg-[var(--apex-accent-glow)] hover:text-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)]"
           >
             <PanelLeft size={19} strokeWidth={1.8} />
           </button>
