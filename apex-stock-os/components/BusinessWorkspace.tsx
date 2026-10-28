@@ -3772,11 +3772,11 @@ export function BusinessWorkspace({
               aria-label={language === "es" ? "Expandir menú lateral" : "Expand sidebar"}
               title={language === "es" ? "Expandir menú" : "Expand menu"}
               aria-expanded={false}
-              className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.06]"
+              className="group relative grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.08]"
             >
-              <Logo className="h-8 w-8 transition-opacity duration-200 group-hover:opacity-40" />
-              <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 grid h-4 w-4 place-items-center rounded-md border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] opacity-0 shadow-sm transition-opacity duration-150 group-hover:opacity-100 group-focus-visible:opacity-100">
-                <PanelLeft size={11} strokeWidth={1.8} />
+              <Logo className="h-10 w-10 shrink-0 object-contain transition-transform duration-200 group-hover:scale-[0.94] group-hover:opacity-45" />
+              <span aria-hidden="true" className="pointer-events-none absolute bottom-0 right-0 grid h-[18px] w-[18px] translate-y-1 rounded-lg border border-[var(--apex-border)] bg-[var(--apex-surface)] text-[var(--apex-muted)] opacity-0 shadow-sm transition-all duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-visible:translate-y-0 group-focus-visible:opacity-100">
+                <span className="grid h-full w-full place-items-center"><PanelLeft size={11} strokeWidth={1.8} /></span>
               </span>
             </button>
           ) : (
@@ -3853,7 +3853,7 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative flex min-w-0 items-center text-[13px] font-semibold transition-all duration-300 ease-in-out " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2") + " hover:translate-x-[1px] " +
+                              "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " hover:translate-x-[1px] " +
                               (active
                                 ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
@@ -3915,7 +3915,7 @@ export function BusinessWorkspace({
           <button
             type="button"
             onClick={onSignOut}
-            className={`flex min-h-10 items-center rounded-xl border border-transparent text-sm font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:border-white/10 dark:hover:bg-white/[0.06] ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-3 py-2"}`}
+            className={`flex min-h-10 items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:border-white/10 dark:hover:bg-white/[0.06] ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full"}`}
           >
             <LogOut size={18} strokeWidth={1.6} />
             {!sidebarCollapsed && labels.signOut}
