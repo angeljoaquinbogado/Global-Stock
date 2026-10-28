@@ -3766,7 +3766,7 @@ export function BusinessWorkspace({
       <motion.aside animate={{ width: sidebarCollapsed ? 84 : 250 }} transition={{ type: "spring", stiffness: 300, damping: 30, mass: 0.85 }} className={`relative sticky top-0 hidden h-screen min-w-0 overflow-hidden border-r border-gray-200 bg-[var(--apex-surface)] dark:border-white/10 py-5 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-1" : "px-4"}`}>
         <div className={`mb-4 flex w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "relative justify-center px-0" : "justify-between gap-2 px-4"}`}>
           {sidebarCollapsed ? (
-            <div className="group relative flex h-12 w-12 shrink-0 items-center justify-center rounded-xl">
+            <div className="group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl">
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}
@@ -3775,7 +3775,7 @@ export function BusinessWorkspace({
                 aria-expanded={false}
                 className="absolute inset-0 grid place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.08]"
               >
-                <Logo className="h-10 w-10 shrink-0 object-contain transition-transform duration-200 group-hover:scale-[0.94] group-hover:opacity-45" />
+                <Logo className="h-12 w-12 shrink-0 object-contain transition-opacity duration-300 ease-out group-hover:opacity-45" />
               </button>
               <button
                 type="button"
@@ -3783,7 +3783,7 @@ export function BusinessWorkspace({
                 aria-label={language === "es" ? "Expandir menú lateral" : "Expand sidebar"}
                 title={language === "es" ? "Expandir menú" : "Expand menu"}
                 aria-expanded={false}
-                className="absolute bottom-0 right-0 grid h-[18px] w-[18px] -translate-y-2.5 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90 text-[var(--apex-muted)] opacity-0 shadow-sm backdrop-blur-sm transition-all duration-200 ease-out group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:bg-gray-900/90"
+                className="pointer-events-none absolute bottom-0 right-0 grid h-6 w-6 -translate-y-2 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90 text-[var(--apex-muted)] opacity-0 shadow-md backdrop-blur-md transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:bg-gray-900/90"
               >
                 <PanelLeft size={11} strokeWidth={1.8} />
               </button>
