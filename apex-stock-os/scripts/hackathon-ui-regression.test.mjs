@@ -17,20 +17,28 @@ test("PayPal is not shown as a floating notification and plan choices live in ac
   assert.match(plans, /15 días/);
 });
 
-test("desktop navigation hover-expands and can be pinned accessibly", async () => {
+test("desktop sidebar only expands by explicit click and uses minimal section dots", async () => {
   const workspace = await read("components/BusinessWorkspace.tsx");
-  assert.match(workspace, /const \[sidebarPinned, setSidebarPinned\] = useState\(false\)/);
-  assert.match(workspace, /const \[sidebarHovered, setSidebarHovered\] = useState\(false\)/);
-  assert.match(workspace, /const sidebarCollapsed = !sidebarPinned && !sidebarHovered/);
-  assert.match(workspace, /onMouseEnter=\{\(\) => setSidebarHovered\(true\)\}/);
-  assert.match(workspace, /onMouseLeave=\{\(\) => setSidebarHovered\(false\)\}/);
-  assert.match(workspace, /setSidebarPinned\(value => !value\)/);
-  assert.match(workspace, /aria-label=\{sidebarPinned \? "Desanclar menú lateral" : "Fijar menú lateral"\}/);
-  assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \? "76px minmax\(0, 1fr\)" : "250px minmax\(0, 1fr\)"/);
-  assert.match(workspace, /transition-\[grid-template-columns\]/);
-  assert.match(workspace, /!sidebarCollapsed && <motion\.div key="sidebar-brand"/);
+  assert.match(workspace, /const \\[sidebarCollapsed, setSidebarCollapsed\\] = useState\\(true\\)/);
+  assert.doesNotMatch(workspace, /sidebarHovered|onMouseEnter=\\{\\(\\) => setSidebarCollapsed/);
+  assert.match(workspace, /onClick=\\{\\(\\) => setSidebarCollapsed\\(value => !value\\)\\}/);
+  assert.match(workspace, /aria-label=\\{sidebarCollapsed \\? "Expandir menú lateral" : "Contraer menú lateral"\\}/);
+  assert.match(workspace, /after:content-\\[\'•\'\\]/);
+  assert.match(workspace, /gridTemplateColumns: sidebarCollapsed \\? "76px minmax\\(0, 1fr\\)" : "250px minmax\\(0, 1fr\\)"/);
+  assert.match(workspace, /transition-\\[grid-template-columns\\]/);
 });
 
+test("workspace sections maintain clean shareable URLs and premium greeting hierarchy", async () => {
+  const workspace = await read("components/BusinessWorkspace.tsx");
+  assert.match(workspace, /overview: "\\/dashboard"/);
+  assert.match(workspace, /inventory: "\\/inventory"/);
+  assert.match(workspace, /pos: "\\/sales"/);
+  assert.match(workspace, /charts: "\\/analytics"/);
+  assert.match(workspace, /settings: "\\/settings"/);
+  assert.match(workspace, /window\\.history\\.pushState/);
+  assert.match(workspace, /SF Pro Display/);
+  assert.match(workspace, /rounded-full border border-\\[#8F0000\\]\\/20/);
+});
 test("shared focus and selection feedback follows the selected workspace accent", async () => {
   const css = await read("components/workspace-accent.css");
   assert.match(css, /\.gs-app-shell \.apex-input:focus/);
