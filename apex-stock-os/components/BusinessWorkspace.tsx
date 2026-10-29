@@ -1205,7 +1205,7 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
-  const [hoveredSidebarModule, setHoveredSidebarModule] = useState<ModuleId | null>(null);
+  const [hoveredSidebarModule, setHoveredSidebarModule] = useState<string | null>(null);
   const [routingReady, setRoutingReady] = useState(false);
 
   const moduleRoutes: Record<ModuleId, string> = {
@@ -3882,7 +3882,7 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]}
+                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]} onMouseEnter={() => setHoveredSidebarModule(id)} onMouseLeave={() => setHoveredSidebarModule(null)}
                         >
                           <span
                             aria-hidden="true"
