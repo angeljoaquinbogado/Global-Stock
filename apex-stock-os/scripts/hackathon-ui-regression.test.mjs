@@ -31,10 +31,8 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('<Logo className="absolute inset-0 h-12 w-12 shrink-0 object-contain transition-all duration-300 ease-out group-hover:-translate-y-8 group-hover:opacity-0" />'));
   assert.ok(workspace.includes('<PanelLeft size={20} strokeWidth={1.8} />'));
   assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
-  assert.ok(workspace.includes('-translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out'));
-  assert.ok(workspace.includes('group-hover:scale-y-100 group-hover:opacity-100'));
-  assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100')) || assert.ok(workspace.includes('rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out'));
-  assert.ok(workspace.includes('((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100 opacity-100" : "")'));
+  assert.ok(workspace.includes('right-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 rounded-l-full origin-center bg-black transition-transform duration-200 ease-out'));
+  assert.ok(workspace.includes('((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")'));
   assert.ok(workspace.includes("onMouseEnter={() => setHoveredSidebarModule(id)}"));
   assert.ok(workspace.includes("onMouseLeave={() => setHoveredSidebarModule(null)}"));
   assert.equal((workspace.match(/absolute right-0 top-1\/2/g) || []).length, 2);
