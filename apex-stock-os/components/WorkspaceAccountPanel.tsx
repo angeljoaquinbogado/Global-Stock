@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { LogOut, ShieldCheck, UserRound } from "lucide-react";
+import { SubscriptionPlans } from "./SubscriptionPlans";
+import { SubscriptionManagement } from "./SubscriptionManagement";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 import type { LanguageCode } from "./GlobalPreferences";
 
@@ -48,6 +50,8 @@ export function WorkspaceAccountPanel({ language, demoMode, onSignOut }: {
         <p className="flex items-center gap-2 text-xs text-[var(--apex-muted)]"><ShieldCheck size={16} className="text-[#8F0000]"/>{demoMode ? t.demo : t.session}</p>
         <button type="button" onClick={onSignOut} className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-[var(--apex-border)] px-4 text-sm font-semibold hover:bg-[var(--apex-surface-strong)]"><LogOut size={17}/>{t.signout}</button>
       </section>
+      <SubscriptionManagement language={language} demoMode={demoMode} />
+      <SubscriptionPlans language={language} />
     </div>
   );
 }

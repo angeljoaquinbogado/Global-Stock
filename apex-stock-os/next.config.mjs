@@ -77,6 +77,25 @@ const nextConfig = {
     { source: "/native-app", destination: "/", permanent: false },
     { source: "/native-app/:path*", destination: "/", permanent: false }
   ],
+  // Workspace sections are client-side modules; rewrite their shareable URLs
+  // to the same app shell so direct visits and browser refreshes keep working.
+  rewrites: async () => [
+    { source: "/dashboard", destination: "/" },
+    { source: "/sales", destination: "/" },
+    { source: "/cash-register", destination: "/" },
+    { source: "/online-store", destination: "/" },
+    { source: "/inventory", destination: "/" },
+    { source: "/analytics", destination: "/" },
+    { source: "/restocking", destination: "/" },
+    { source: "/suppliers", destination: "/" },
+    { source: "/activity", destination: "/" },
+    { source: "/documents", destination: "/" },
+    { source: "/agenda", destination: "/" },
+    { source: "/businesses", destination: "/" },
+    { source: "/invoicing", destination: "/" },
+    { source: "/account", destination: "/" },
+    { source: "/settings", destination: "/" }
+  ],
   headers: async () => [
     {
       source: "/api/:path*",

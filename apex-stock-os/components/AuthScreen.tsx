@@ -313,6 +313,8 @@ export function AuthScreen({
   const labels = copy[language];
   const reduceMotion = useReducedMotion();
   const [mode, setMode] = useState<Mode>("signin");
+  const [planStep, setPlanStep] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "starter" | "pro">("free");
   const [adultConsent, setAdultConsent] = useState(false);
   const [name, setName] = useState("");
   const [email, setEmail] = useState(() =>
@@ -379,7 +381,8 @@ export function AuthScreen({
 
   function selectMode(nextMode: Mode) {
     setMode(nextMode);
-    if (nextMode === "signup") setAdultConsent(false);
+    setPlanStep(false);
+    if (nextMode === "signup") { setAdultConsent(false); }
     setError("");
     setNotice("");
     setShowPassword(false);
@@ -521,7 +524,11 @@ export function AuthScreen({
           if (profileError) throw profileError;
         }
 
-        onAuthenticated();
+        if (data.user?.user_metadata?.global_stock_onboarding === "pending") {
+          setPlanStep(true);
+        } else {
+          onAuthenticated();
+        }
         return;
       }
 
@@ -536,6 +543,7 @@ export function AuthScreen({
             full_name: name.trim(),
             // Step 2 is completed after the user has a verified session.
             global_stock_onboarding: "pending",
+            global_stock_selected_plan: "pending",
             global_stock_legal_accepted: true,
             global_stock_terms_version: TERMS_VERSION,
             global_stock_privacy_version: PRIVACY_VERSION,
@@ -556,7 +564,7 @@ export function AuthScreen({
       }
 
       if (data.session) {
-        onAuthenticated();
+        setPlanStep(true);
       } else {
         setMode("signin");
         setNotice(labels.accountCreated);
@@ -628,6 +636,50 @@ export function AuthScreen({
                   exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -7 }}
                   transition={{ duration: reduceMotion ? 0 : .24, delay: reduceMotion ? 0 : .24 }}
                 >
+                  {mode === "signup" && planStep ? (
+                    <section className="space-y-5 py-4" aria-labelledby="gs-plan-step-title">
+                      <div>
+                        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[.24em] text-[#8F0000]">GLOBAL STOCK · PASO 2 DE 2</p>
+                        <h1 id="gs-plan-step-title" className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">{language === "es" ? "Elegí cómo empezar." : "Choose how to get started."}</h1>
+                        <p className={`mt-2 text-sm leading-6 ${muted}`}>{language === "es" ? "Podés comenzar gratis. Los planes pagos no generan cobros automáticos y la contratación está desactivada por ahora." : "Start for free. Paid plans do not charge automatically, and checkout is currently disabled."}</p>
+                      </div>
+                      <div className="grid gap-3">
+                        {([
+                          { id: "free", title: language === "es" ? "Gratis" : "Free", price: "US$ 0", detail: language === "es" ? "Funciones esenciales para empezar" : "Essential tools to get started" },
+                          { id: "starter", title: language === "es" ? "Emprendedor" : "Starter", price: "US$ 5 / mes", detail: language === "es" ? "Más herramientas para el día a día" : "More tools for everyday work" },
+                          { id: "pro", title: "Profesional", price: "US$ 10 / mes", detail: language === "es" ? "IA avanzada y gestión multi-tienda" : "Advanced AI and multi-store management" }
+                        ] as const).map(plan => (
+                          <button key={plan.id} type="button" onClick={() => setSelectedPlan(plan.id)} aria-pressed={selectedPlan === plan.id}
+                            className={`flex items-center justify-between gap-4 rounded-2xl border p-4 text-left transition-all duration-200 ${selectedPlan === plan.id ? "border-[#8F0000] bg-[#8F0000]/[.08] ring-1 ring-[#8F0000]/25" : dark ? "border-white/15 bg-white/[.025] hover:bg-white/[.06]" : "border-black/10 bg-white/50 hover:bg-white"}`}>
+                            <span className="min-w-0"><span className="block text-sm font-semibold">{plan.title}</span><span className={`mt-1 block text-xs ${muted}`}>{plan.detail}</span></span>
+                            <span className="shrink-0 text-sm font-semibold">{plan.price}</span>
+                          </button>
+                        ))}
+                      </div>
+                      <button type="button" disabled={pending} onClick={async () => {
+                        if (pendingRef.current) return;
+                        pendingRef.current = true; setPending(true); setError("");
+                        try {
+                          const supabase = getSupabaseBrowserClient();
+                          if (supabase) {
+                            const { error: updateError } = await supabase.auth.updateUser({ data: { global_stock_selected_plan: selectedPlan, global_stock_onboarding: "completed" } });
+                            if (updateError) throw updateError;
+                          }
+                          setPlanStep(false);
+                          onAuthenticated();
+                        } catch {
+                          setError(labels.authError);
+                        } finally {
+                          pendingRef.current = false; setPending(false);
+                        }
+                      }} className="flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#8F0000] px-4 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.22)] transition hover:bg-[#AA101E] disabled:opacity-60">
+                        {pending ? <Loader2 className="animate-spin" size={16}/> : <ArrowRight size={16}/>}
+                        {language === "es" ? "Continuar a Global Stock" : "Continue to Global Stock"}
+                      </button>
+                      {error && <p role="alert" className="rounded-xl border border-red-400/30 bg-red-500/10 p-3 text-xs text-red-600">{error}</p>}
+                    </section>
+                  ) : (
+                  <>
                   <div className="mb-7">
                     <h1 className="text-[clamp(1.55rem,2.25vw,2.05rem)] font-semibold tracking-[-.048em]">
 {mode === "signin" ? labels.signIn : labels.signUp}
@@ -685,13 +737,18 @@ export function AuthScreen({
                       {mode === "signup" && <span className={`mt-1 block text-[10px] ${muted}`}>{labels.invalidPassword}</span>}
                     </div>
 
+
+
                     {mode === "signup" && (
                       <label className="flex cursor-pointer items-start gap-2.5">
                         <input
                           type="checkbox" checked={adultConsent} required
                           onChange={event => setAdultConsent(event.target.checked)}
                           aria-label="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
-                          className="mt-0.5 h-4 w-4 shrink-0 accent-[#8F0000]"/>
+                          className="peer sr-only"/>
+                        <span aria-hidden="true" className={`relative mt-[1px] grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full border transition-all duration-200 ${adultConsent ? "border-[#8F0000] bg-[#8F0000] scale-100" : dark ? "border-white/40 bg-white/5" : "border-[#A99B9D] bg-transparent"}`}>
+                          <motion.span animate={{ scale: adultConsent ? 1 : 0, opacity: adultConsent ? 1 : 0 }} transition={{ type: "spring", stiffness: 300, damping: 30 }} className="h-1.5 w-1.5 rounded-full bg-white"/>
+                        </span>
                         <span className={`text-[11px] leading-[1.5] ${muted}`}>
                           {micro.legal}{" "}
                           <a href="/legal/terms" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[#8F0000]">
@@ -748,6 +805,8 @@ export function AuthScreen({
                       {mode === "signin" ? micro.openAccount : micro.back}
                     </button>
                   </p>
+                  </>
+                  )}
                 </motion.div>
               </AnimatePresence>
             </div>

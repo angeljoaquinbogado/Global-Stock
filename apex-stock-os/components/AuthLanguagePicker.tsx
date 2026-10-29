@@ -111,6 +111,8 @@ export function AuthLanguagePicker({
         aria-expanded={open}
         aria-controls={open ? "gs-auth-language-options" : undefined}
         onClick={toggle}
+        onMouseEnter={() => { setFocusedIndex(currentIndex); setOpen(true); }}
+        onMouseLeave={() => { /* Keep the menu open while pointer is inside the picker. */ }}
         onKeyDown={onTriggerKeyDown}
         data-testid="auth-language-trigger"
         className={
@@ -137,12 +139,12 @@ export function AuthLanguagePicker({
             initial={reduceMotion ? false : { opacity: 0, y: -5, scale: .97 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -4, scale: .98 }}
-            transition={{ duration: reduceMotion ? 0 : .17, ease: [0.22, 1, .36, 1] }}
+            transition={reduceMotion ? { duration: 0 } : { type: "spring", stiffness: 300, damping: 30 }}
             onKeyDown={onMenuKeyDown}
             className={
               "absolute right-0 top-[calc(100%+9px)] z-[80] w-[204px] origin-top-right overflow-hidden " +
               "rounded-2xl border p-1.5 shadow-[0_18px_55px_rgba(0,0,0,.23)] " +
-              (dark ? "border-white/15 bg-[#252027] text-white" : "border-[#E8DFDC] bg-[#FFFCFA] text-[#241A1D]")
+              (dark ? "border-white/15 bg-[#252027]/75 text-white backdrop-blur-xl" : "border-[#E8DFDC]/80 bg-[#FFFCFA]/75 text-[#241A1D] backdrop-blur-xl")
             }
           >
             {locales.map((item, index) => (

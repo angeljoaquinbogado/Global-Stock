@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, CheckCircle2, Clock3,
+  ArrowDownLeft, ArrowRight, ArrowUpRight, Banknote, CheckCircle2, Clock3, CreditCard,
   History, LockKeyhole, RefreshCw, ShieldCheck, Wallet, XCircle
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -22,6 +22,7 @@ type Adjustment = {
 };
 type Snapshot = {
   opening:number;cash_sales:number;other_sales:number;sales_count:number;
+  sales_by_method:Record<string,number>;
   incomes:number;outgoings:number;expected:number;closed:boolean;
 };
 type Location = {id:string;name:string};
@@ -146,6 +147,8 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
   const [revision,setRevision]=useState(0);
   const movementRequest=useRef<{key:string;fingerprint:string}|null>(null);
 
+
+
   useEffect(()=>{
     if (!locations.length) {setLocationId("");return;}
     setLocationId(old=>locations.some(loc=>loc.id===old)?old:locations[0].id);
@@ -223,6 +226,7 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
       setSnapshot({
         opening:asNum(v.opening),cash_sales:asNum(v.cash_sales),
         other_sales:asNum(v.other_sales),sales_count:asNum(v.sales_count),
+        sales_by_method:Object.fromEntries(Object.entries(v.sales_by_method??{}).map(([key,value])=>[key,asNum(value)])),
         incomes:asNum(v.incomes),outgoings:asNum(v.outgoings),
         expected:asNum(v.expected),closed:Boolean(v.closed)
       });
@@ -239,7 +243,7 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
     const rows=movements.filter(m=>m.id.startsWith(displayed.id+"-"));
     const incoming=rows.filter(m=>m.kind==="income"||m.kind==="deposit").reduce((sum,m)=>sum+m.amount,0);
     const outgoing=rows.filter(m=>m.kind==="withdrawal"||m.kind==="expense").reduce((sum,m)=>sum+m.amount,0);
-    return {opening:displayed.opening_amount,cash_sales:0,other_sales:0,sales_count:0,
+    return {opening:displayed.opening_amount,cash_sales:0,other_sales:0,sales_count:0,sales_by_method:{},
       incomes:incoming,outgoings:outgoing,expected:displayed.opening_amount+incoming-outgoing,
       closed:displayed.status==="closed"} as Snapshot;
   },[demoMode,displayed,movements]);
@@ -360,6 +364,7 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
       </div>
     </div>
     {demoMode && <p className="gs-cash-note">{t.demo}</p>}
+
     {!demoMode&&!businessId&&<p className="gs-cash-note">{t.noBusiness}</p>}
     {!canManage&&<p className="gs-cash-note">{t.role}</p>}
     {isOffline&&<p className="gs-cash-note">{t.offline}</p>}
@@ -388,6 +393,7 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
           {[
             {name:t.cashExpected,value:totals?.expected??null,icon:<Banknote size={18}/>},
             {name:t.cashSales,value:totals?.cash_sales??null,icon:<ArrowDownLeft size={18}/>},
+            {name:t.otherSales,value:totals?.other_sales??null,icon:<CreditCard size={18}/>},
             {name:t.manualIncome,value:totals?.incomes??null,icon:<ArrowDownLeft size={18}/>},
             {name:t.manualExpense,value:totals?.outgoings??null,icon:<ArrowUpRight size={18}/>}
           ].map(row=><div className="gs-cash-stat" key={row.name}>
@@ -395,6 +401,27 @@ export function CashRegisterCenter({language,businessId,demoMode,locations,money
             <strong className="mt-3 block truncate text-[clamp(16px,2.2vw,24px)] font-bold tracking-tight tabular-nums">{row.value===null?"—":money(row.value)}</strong>
           </div>)}
         </div>
+        {totals && Object.entries(totals.sales_by_method??{}).some(([method,amount])=>method!=="cash"&&amount>0) && (
+          <div className="gs-cash-panel p-4 sm:p-5">
+            <h3 className="text-sm font-bold">{language==="es"?"Detalle de cobros por medio":language==="pt"?"Resumo por forma de pagamento":language==="fr"?"Détail par moyen de paiement":language==="de"?"Zahlungsübersicht":"Payment breakdown"}</h3>
+            <p className="mt-1 text-xs text-[var(--apex-muted)]">{language==="es"?"Estos importes son ventas confirmadas y no se suman al efectivo esperado.":language==="pt"?"Estes valores são vendas confirmadas e não entram no dinheiro físico esperado.":language==="fr"?"Ces montants correspondent aux ventes confirmées et ne sont pas ajoutés à l’argent liquide attendu.":language==="de"?"Diese bestätigten Verkäufe werden nicht zum erwarteten Bargeld addiert.":"These are confirmed sales and are not added to expected physical cash."}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+              {Object.entries(totals.sales_by_method).filter(([method,amount])=>method!=="cash"&&amount>0).map(([method,amount])=>(
+                <div key={method} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--apex-border)] px-3 py-2.5 text-xs">
+                  <span className="text-[var(--apex-muted)]">{({
+                    debit:language==="es"?"Tarjeta de débito":language==="pt"?"Cartão de débito":language==="fr"?"Carte de débit":language==="de"?"Debitkarte":"Debit card",
+                    credit:language==="es"?"Tarjeta de crédito":language==="pt"?"Cartão de crédito":language==="fr"?"Carte de crédit":language==="de"?"Kreditkarte":"Credit card",
+                    transfer:language==="es"?"Transferencia":language==="pt"?"Transferência":language==="fr"?"Virement":language==="de"?"Überweisung":"Bank transfer",
+                    qr:"QR",
+                    account:language==="es"?"Cuenta corriente":language==="pt"?"Conta do cliente":language==="fr"?"Compte client":language==="de"?"Kundenkonto":"Customer account",
+                    paypal:"PayPal"
+                  } as Record<string,string>)[method]??method}</span>
+                  <strong className="tabular-nums">{money(amount)}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1.2fr)_minmax(315px,.8fr)]">
           <div className="space-y-4">
             <div className="gs-cash-panel p-4 sm:p-5">

@@ -432,7 +432,7 @@ function MobileApp() {
     }
   }
 
-  async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt", captchaToken?: string) {
+  async function register(fullName: string, email: string, password: string, language: "es" | "en" | "pt", selectedPlan: "free" | "starter" | "pro", captchaToken?: string) {
     setRegisteredNeedsConfirmation(false);
     if (!supabase) return;
     setAuthLoading(true);
@@ -451,6 +451,7 @@ function MobileApp() {
             app: "global_stock",
             full_name: fullName.trim(),
             global_stock_onboarding: "pending",
+            global_stock_selected_plan: selectedPlan,
             global_stock_legal_accepted: true,
             global_stock_terms_version: LEGAL_TERMS_VERSION,
             global_stock_privacy_version: LEGAL_PRIVACY_VERSION,

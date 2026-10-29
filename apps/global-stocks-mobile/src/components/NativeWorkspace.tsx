@@ -27,6 +27,7 @@ import NativeAssistant from "./NativeAssistant";
 import NativeSettings from "./NativeSettings";
 import NativeCashRegister from "./NativeCashRegister";
 import NativePrintCenter from "./NativePrintCenter";
+import NativeSubscriptionManagement from "./NativeSubscriptionManagement";
 
 type Module = "overview" | "pos" | "cash" | "inventory" | "scan" | "charts" | "activities" |
   "notes" | "purchases" | "suppliers" | "online" | "documents" | "fiscal" | "operations" | "settings" | "account";
@@ -646,6 +647,7 @@ export default function NativeWorkspace({
         <View style={s.bigCard}>
           <Text style={s.sectionTitle}>Cuenta actual</Text>
           <Text style={s.meta}>Tu sesión está vinculada a tu cuenta de Global Stock.</Text>
+          <NativeSubscriptionManagement client={client} userId={userId} dark={dark} />
           <Action p={p} onPress={requestSignOut}>Cerrar sesión</Action>
         </View>
       </> : null}

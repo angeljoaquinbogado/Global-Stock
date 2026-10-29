@@ -39,16 +39,38 @@ function LazyPanel({
       return () => cancelAnimationFrame(frame);
     }
 
-    const observer = new IntersectionObserver(
+    let activated = false;
+    let observer: IntersectionObserver | null = null;
+    let checkPosition = () => {};
+    const activate = () => {
+      if (activated) return;
+      activated = true;
+      setNear(true);
+      observer?.disconnect();
+      window.removeEventListener("scroll", checkPosition);
+      window.removeEventListener("resize", checkPosition);
+    };
+    checkPosition = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight + 650 && rect.bottom > -650) activate();
+    };
+    observer = new IntersectionObserver(
       ([entry]) => {
-        if (!entry?.isIntersecting) return;
-        setNear(true);
-        observer.disconnect();
+        if (entry?.isIntersecting) activate();
       },
       { rootMargin: "650px 0px", threshold: 0 }
     );
     observer.observe(el);
-    return () => observer.disconnect();
+    // A geometry-based fallback covers browser engines where IO can miss a
+    // large placeholder after programmatic scrollIntoView during lazy hydration.
+    window.addEventListener("scroll", checkPosition, { passive: true });
+    window.addEventListener("resize", checkPosition);
+    checkPosition();
+    return () => {
+      observer?.disconnect();
+      window.removeEventListener("scroll", checkPosition);
+      window.removeEventListener("resize", checkPosition);
+    };
   }, []);
 
   // Keep a real wrapper rect so observers work in every browser engine.

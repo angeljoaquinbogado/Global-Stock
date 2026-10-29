@@ -26,7 +26,7 @@ type Language = "es" | "en" | "pt";
 type Stage = "welcome" | "signin" | "signup";
 type Props = {
   onSubmit: (email: string, password: string, captchaToken?: string) => void;
-  onRegister: (name: string, email: string, password: string, language: Language, captchaToken?: string) => void;
+  onRegister: (name: string, email: string, password: string, language: Language, plan: "free" | "starter" | "pro", captchaToken?: string) => void;
   onSocial: (provider: "google") => void;
   registrationComplete: boolean;
   onDemo: () => void;
@@ -135,6 +135,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   const [captchaError, setCaptchaError] = useState("");
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
+  const [selectedPlan, setSelectedPlan] = useState<"free" | "starter" | "pro" | null>(null);
   const [password, setPassword] = useState("");
   const [revealPassword, setRevealPassword] = useState(false);
   const [adultConfirmed, setAdultConfirmed] = useState(false);
@@ -282,7 +283,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
   }
   function submit() {
     if (loading || switchingRef.current || !email.trim() || password.length < 8 ||
-        (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) return;
+        (signup && (fullName.trim().length < 2 || !selectedPlan || !adultConfirmed || !termsConfirmed))) return;
     if (captchaEnabled === null) {
       setCaptchaError("No se pudo comprobar la protección antibots. Revisá la conexión e intentá nuevamente.");
       return;
@@ -293,7 +294,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
       setCaptchaOpen(true);
       return;
     }
-    if (signup) onRegister(fullName.trim(), email.trim(), password, language);
+    if (signup && selectedPlan) onRegister(fullName.trim(), email.trim(), password, language, selectedPlan);
     else onSubmit(email.trim(), password);
   }
 
@@ -301,7 +302,7 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
     if (!captchaOpen || loading) return;
     setCaptchaOpen(false);
     setCaptchaError("");
-    if (signup) onRegister(fullName.trim(), email.trim(), password, language, token);
+    if (signup && selectedPlan) onRegister(fullName.trim(), email.trim(), password, language, selectedPlan, token);
     else onSubmit(email.trim(), password, token);
   }
   function openLegal(path: "terms" | "privacy") {
@@ -436,6 +437,28 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                 </View>
               </View>
               {signup ? (
+                <View style={{ gap: 8 }}>
+                  <Text style={styles.fieldLabel}>{language === "es" ? "Elegí tu plan · 15 días de prueba sin cobro automático" : language === "pt" ? "Escolha seu plano · 15 dias de teste sem cobrança automática" : "Choose your plan · 15-day trial, no automatic charge"}</Text>
+                  <View style={{ flexDirection: "row", gap: 7 }}>
+                    {([
+                      { id: "free", name: language === "es" ? "Gratis" : "Free", price: "$0" },
+                      { id: "starter", name: "Emprendedor", price: "US$ 5 / mes" },
+                      { id: "pro", name: "Profesional", price: "US$ 10 / mes" }
+                    ] as const).map(plan => (
+                      <Pressable key={plan.id} accessibilityRole="radio" accessibilityState={{ selected: selectedPlan === plan.id }}
+                        onPress={() => setSelectedPlan(plan.id)}
+                        style={{ flex: 1, minHeight: 62, borderRadius: 12, borderWidth: 1, borderColor: selectedPlan === plan.id ? p.red : p.border, backgroundColor: selectedPlan === plan.id ? p.red + "12" : p.surface, padding: 8, justifyContent: "center" }}>
+                        <Text style={{ color: p.title, fontSize: 10, fontWeight: "700" }}>{plan.name}</Text>
+                        <Text style={{ color: p.title, fontSize: 13, fontWeight: "800", marginTop: 3 }}>{plan.price}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Text style={{ color: p.secondary, fontSize: 10, lineHeight: 14 }}>
+                    {language === "es" ? "Al finalizar la prueba no se te cobra automáticamente. Los planes pagos requerirán confirmación." : "No automatic charge after the trial. Paid plans require confirmation."}
+                  </Text>
+                </View>
+              ) : null}
+              {signup ? (
                 <View style={styles.consents}>
                   <Pressable accessibilityRole="checkbox"
                     accessibilityLabel="Declaro ser mayor de 18 años y aceptar los términos y la privacidad"
@@ -474,11 +497,11 @@ export default function NativeAuthLanding({ onSubmit, onRegister, onSocial, regi
                 </Pressable>
               </View> : null}
               <Pressable accessibilityRole="button" accessibilityLabel={signup ? t.create : t.login}
-                disabled={loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))}
+                disabled={loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !selectedPlan || !adultConfirmed || !termsConfirmed))}
                 onPress={submit}
                 style={({pressed}) => [
                   styles.primary,
-                  (loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
+                  (loading || captchaEnabled === null || !email.trim() || password.length < 8 || (signup && (fullName.trim().length < 2 || !selectedPlan || !adultConfirmed || !termsConfirmed))) && { opacity: 0.48 },
                   pressed && styles.pressed
                 ]}>
                 {loading ? <ActivityIndicator color="#fff"/> : <>

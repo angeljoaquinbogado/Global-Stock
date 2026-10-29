@@ -22,7 +22,7 @@ test("desktop shows all six groups in order, correct entries, working routes, an
   await expect(groupHeadings).toHaveText(["Principal", "Análisis", "Organización", "Gestión", "Ajustes", "Legal"]);
   const sections = nav.locator("section");
   const groupContent = [
-    ["Inicio", "Caja Registradora", "Almacén", "Ventas (Punto de venta)", "Tienda online"],
+    ["Inicio", "Caja Registradora", "Almacén", "Tienda online"],
     ["Gráficos", "Actividad"],
     ["Proveedores", "Reposición", "Agenda"],
     ["Comprobantes", "ARCA Facturación", "Negocios / Locales"],

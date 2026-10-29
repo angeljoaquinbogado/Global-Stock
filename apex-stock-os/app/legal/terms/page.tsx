@@ -12,7 +12,7 @@ export default function TermsPage() {
     <LegalArticle
       eyebrow="Términos"
       title="Términos de uso"
-      intro="Versión 2026-10-11-ar-beta. Estos términos regulan el acceso y uso de Global Stock. La app móvil registra la aceptación expresa antes del primer uso. La publicación de esta página no habilita automáticamente operaciones comerciales o fiscales en todas las jurisdicciones."
+      intro="Versión 2026-10-27-ar-suscripciones. Estos términos regulan el acceso y uso de Global Stock. La app móvil registra la aceptación expresa antes del primer uso. La publicación de esta página no habilita automáticamente operaciones comerciales o fiscales en todas las jurisdicciones."
     >
       <section>
         <h2>1. Operador</h2>
@@ -173,15 +173,29 @@ export default function TermsPage() {
       </section>
 
       <section>
-        <h2>14. Contacto</h2>
+        <h2>14. Planes, prueba gratuita, pagos y cancelación</h2>
         <p>
-          Consultas de soporte:{" "}
-          <a href="mailto:support.globalstock@gmail.com">
-            support.globalstock@gmail.com
-          </a>. Consultas legales o de privacidad:{" "}
-          <a href="mailto:support.globalstock@gmail.com">
-            support.globalstock@gmail.com
-          </a>.
+          Al crear una cuenta, la persona usuaria elige un plan y puede acceder a una prueba de 15 días. La prueba no requiere tarjeta y no genera un cobro automático al finalizar. Para contratar un plan pago deberá confirmarse una contratación posterior cuando el checkout esté habilitado. Los precios de referencia publicados son US$ 10 por mes para Emprendedor y US$ 20 por mes para Profesional. Son importes de referencia en dólares estadounidenses, no una autorización de débito ni una oferta de cobro activa. Antes de habilitar la contratación se informarán y aceptarán expresamente el importe final, moneda de cobro, impuestos, método de pago y condiciones aplicables. Mientras el checkout no esté habilitado, no se realizarán cobros.
+        </p>
+        <p>
+          La persona usuaria puede cancelar desde Cuenta / Suscripción. La cancelación es definitiva para esa suscripción y no existe una opción para restablecerla; para volver deberá contratar un plan nuevo si está disponible. La cancelación no elimina los datos del negocio. Si en el futuro existe una suscripción de pago, el panel indicará el estado y el mecanismo aplicable para cancelarla; los cobros procesados por un proveedor externo pueden requerir confirmación de ese proveedor. Global Stock no promete reembolsos automáticos: se respetarán los derechos irrenunciables y las reglas de revocación, devolución y protección al consumidor que resulten aplicables. Antes de habilitar cobros reales se publicarán las condiciones específicas de renovación, impuestos, moneda, facturación, reembolsos y cancelación.
+        </p>
+        <p>
+          La prueba puede finalizar al cumplirse el plazo o cancelarse por la persona usuaria. La disponibilidad de funciones luego de la prueba puede limitarse hasta que elija una opción disponible. No se borrarán automáticamente los datos por el solo vencimiento de la prueba; su conservación y eliminación se rigen por la política de privacidad y las obligaciones legales aplicables.
+        </p>
+      </section>
+
+      <section>
+        <h2>15. Alcance de esta información</h2>
+        <p>
+          Estas condiciones describen el funcionamiento previsto para la beta argentina y no sustituyen el asesoramiento jurídico ni garantizan por sí solas el cumplimiento de todas las normas aplicables. Antes de ofrecer suscripciones con cobro recurrente se revisarán las condiciones finales con asesoramiento profesional y se activarán únicamente los medios de pago configurados y probados.
+        </p>
+      </section>
+
+      <section>
+        <h2>16. Contacto</h2>
+        <p>
+          Consultas de soporte: <a href="mailto:support.globalstock@gmail.com">support.globalstock@gmail.com</a>. Consultas legales o de privacidad: <a href="mailto:support.globalstock@gmail.com">support.globalstock@gmail.com</a>.
         </p>
       </section>
     </LegalArticle>
