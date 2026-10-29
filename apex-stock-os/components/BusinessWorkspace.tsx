@@ -1205,6 +1205,7 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  const [hoveredSidebarModule, setHoveredSidebarModule] = useState<ModuleId | null>(null);
   const [routingReady, setRoutingReady] = useState(false);
 
   const moduleRoutes: Record<ModuleId, string> = {
@@ -3852,6 +3853,8 @@ export function BusinessWorkspace({
                             key={id}
                             type="button"
                             onClick={() => setActiveModule(id)}
+                            onMouseEnter={() => setHoveredSidebarModule(id)}
+                            onMouseLeave={() => setHoveredSidebarModule(null)}
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
@@ -3863,7 +3866,7 @@ export function BusinessWorkspace({
                           >
                             <span
                               aria-hidden="true"
-                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out " + (active ? "scale-y-100 opacity-100" : "group-hover:scale-y-100 group-hover:opacity-100")}
+                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100 opacity-100" : "")}
                             />
                             <Icon size={18} strokeWidth={1.6} />
                             <AnimatePresence initial={false}>
