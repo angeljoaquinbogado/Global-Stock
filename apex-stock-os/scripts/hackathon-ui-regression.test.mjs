@@ -24,13 +24,13 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(!workspace.includes("onMouseEnter={() => setSidebarCollapsed"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(false)}"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(true)"));
-  assert.ok(workspace.includes('className="group relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl'));
+  assert.ok(workspace.includes('className="group relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl'));
   assert.ok(workspace.includes('<PanelLeft size={11} strokeWidth={1.8} />'));
-  assert.ok(workspace.includes('-translate-y-2 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90'));
-  assert.ok(workspace.includes('pointer-events-none absolute bottom-0 right-0 grid h-6 w-6 -translate-y-2 place-items-center rounded-xl border border-[var(--apex-border)] bg-white/90 text-[var(--apex-muted)] opacity-0 shadow-md backdrop-blur-md transition-all duration-300 ease-out group-hover:pointer-events-auto group-hover:translate-y-0 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:translate-y-0 group-focus-within:opacity-100 dark:bg-gray-900/90'));
+  assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
+  assert.ok(workspace.includes('group-hover:-translate-y-8 group-hover:opacity-0'));
   assert.ok(workspace.includes('<Logo className="h-12 w-12 shrink-0 object-contain'));
-  assert.ok(workspace.includes('absolute bottom-0 right-0 grid h-6 w-6'));
-  assert.ok(workspace.includes('transition-opacity duration-300 ease-out group-hover:opacity-45'));
+  assert.ok(workspace.includes('<PanelLeft size={20} strokeWidth={1.8} />'));
+  assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
   assert.ok(workspace.includes('-translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out'));
   assert.ok(workspace.includes('scale-y-0 group-hover:scale-y-100'));
   assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100'));
@@ -42,8 +42,8 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('"w-full"'));
   assert.ok(workspace.includes('focus-visible:outline-[var(--apex-accent)]'));
   assert.ok(workspace.includes('onClick={() => setActiveModule("overview")}'));
-  assert.ok(workspace.includes('{ id: "core", modules: ["cash", "inventory", "online"] }'));
-  assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
+  assert.ok(workspace.includes('{ id: "core", modules: ["overview", "cash", "inventory", "online"] }'));
+  assert.ok(workspace.includes('modules: ["overview", "cash", "inventory", "online"]'));
   assert.ok(workspace.includes('onClick={() => setActiveModule("overview")}'));
   assert.ok(workspace.includes('labels.nav.overview'));
   assert.ok(!workspace.includes('<motion.div aria-hidden="true" initial={false} animate={{ opacity: 1 }} className="flex h-5 items-center justify-center text-sm leading-none text-[var(--apex-muted)]">'));
@@ -62,7 +62,7 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("border-t border-gray-100"));
   assert.ok(workspace.includes("text-xs font-semibold leading-5"));
   assert.ok(!workspace.includes("•"));
-  assert.ok(workspace.includes('modules: ["cash", "inventory", "online"]'));
+  assert.ok(workspace.includes('modules: ["overview", "cash", "inventory", "online"]'));
   assert.ok(workspace.includes("bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"));
   assert.ok(workspace.includes("flex flex-col items-center py-4 space-y-1"));
   assert.ok(workspace.includes("mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0"));
