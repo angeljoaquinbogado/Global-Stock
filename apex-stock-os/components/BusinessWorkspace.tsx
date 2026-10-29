@@ -3863,7 +3863,7 @@ export function BusinessWorkspace({
                           >
                             <span
                               aria-hidden="true"
-                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out " + (active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100")}
+                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black transition-transform duration-300 ease-out " + (active ? "scale-y-100" : "scale-y-0 group-hover:scale-y-100")}
                             />
                             <Icon size={18} strokeWidth={1.6} />
                             <AnimatePresence initial={false}>
