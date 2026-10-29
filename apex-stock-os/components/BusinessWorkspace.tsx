@@ -3837,11 +3837,13 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "space-y-1" : ""}`}>
-                    {!sidebarCollapsed && (
+                  <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "border-t-0 pb-1 pt-1 first:pt-0 space-y-1" : ""}`}>
+                    {!sidebarCollapsed ? (
                       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.16, delay: reduceMotion ? 0 : 0.12 }} className="min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
+                    ) : (
+                      <span aria-hidden="true" className="mx-auto mb-1 block h-1 w-1 rounded-full bg-[var(--apex-text)]" />
                     )}
 
                     <div className={`min-w-0 space-y-0.5 ${sidebarCollapsed ? "flex flex-col items-center" : ""}`}>
@@ -3858,7 +3860,7 @@ export function BusinessWorkspace({
                             title={labels.nav[id]}
                             aria-label={labels.nav[id]}
                             className={
-                              "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " hover:translate-x-[1px] " +
+                              "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " +
                               ((hoveredSidebarModule ? hoveredSidebarModule === id : active)
                                 ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
@@ -3882,11 +3884,11 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-all duration-300 ease-in-out hover:translate-x-[1px] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]} onMouseEnter={() => setHoveredSidebarModule(id)} onMouseLeave={() => setHoveredSidebarModule(null)}
+                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`} title={legalLinkLabels[language][id]} onMouseEnter={() => setHoveredSidebarModule(id)} onMouseLeave={() => setHoveredSidebarModule(null)}
                         >
                           <span
                             aria-hidden="true"
-                            className="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100"
+                            className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 rounded-l-full origin-center bg-black transition-transform duration-200 ease-out " + (hoveredSidebarModule === id ? "scale-y-100" : "scale-y-0")}
                           />
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" />
                           <AnimatePresence initial={false}>
