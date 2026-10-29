@@ -25,10 +25,10 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(false)}"));
   assert.ok(workspace.includes("onClick={() => setSidebarCollapsed(true)"));
   assert.ok(workspace.includes('className="group relative grid h-12 w-12 shrink-0 place-items-center overflow-hidden rounded-2xl'));
-  assert.ok(workspace.includes('<PanelLeft size={11} strokeWidth={1.8} />'));
+  assert.ok(workspace.includes('<PanelLeft size={20} strokeWidth={1.8} />'));
   assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
   assert.ok(workspace.includes('group-hover:-translate-y-8 group-hover:opacity-0'));
-  assert.ok(workspace.includes('<Logo className="h-12 w-12 shrink-0 object-contain'));
+  assert.ok(workspace.includes('<Logo className="absolute inset-0 h-12 w-12 shrink-0 object-contain transition-all duration-300 ease-out group-hover:-translate-y-8 group-hover:opacity-0" />'));
   assert.ok(workspace.includes('<PanelLeft size={20} strokeWidth={1.8} />'));
   assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
   assert.ok(workspace.includes('-translate-y-1/2 w-1.5 h-3/4 bg-black rounded-l-full origin-center transition-all duration-300 ease-out'));
