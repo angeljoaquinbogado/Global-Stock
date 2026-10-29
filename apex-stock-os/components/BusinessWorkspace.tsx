@@ -3859,14 +3859,14 @@ export function BusinessWorkspace({
                             aria-label={labels.nav[id]}
                             className={
                               "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " hover:translate-x-[1px] " +
-                              (active
+                              ((hoveredSidebarModule ? hoveredSidebarModule === id : active)
                                 ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
                                 : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
                             }
                           >
                             <span
                               aria-hidden="true"
-                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100 opacity-100" : "")}
+                              className={"pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 w-[3px] h-3/4 rounded-l-full origin-center bg-black transition-transform duration-200 ease-out " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")}
                             />
                             <Icon size={18} strokeWidth={1.6} />
                             <AnimatePresence initial={false}>
