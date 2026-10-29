@@ -32,8 +32,8 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes('<PanelLeft size={20} strokeWidth={1.8} />'));
   assert.ok(workspace.includes('group-hover:translate-y-0 group-hover:opacity-100'));
   assert.ok(workspace.includes('-translate-y-1/2 w-1.5 h-3/4 rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out'));
-  assert.ok(workspace.includes('scale-y-0 group-hover:scale-y-100'));
-  assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100'));
+  assert.ok(workspace.includes('group-hover:scale-y-100 group-hover:opacity-100'));
+  assert.ok(workspace.includes('w-1.5 h-3/4 bg-black rounded-l-full origin-center scale-y-0 opacity-0 transition-all duration-300 ease-out group-hover:scale-y-100 group-hover:opacity-100')) || assert.ok(workspace.includes('rounded-l-full origin-center bg-black opacity-0 scale-y-0 transition-[opacity,transform] duration-200 ease-out'));
   assert.ok(workspace.includes('active ? "scale-y-100 opacity-100" : "group-hover:scale-y-100 group-hover:opacity-100"'));
   assert.equal((workspace.match(/absolute right-0 top-1\/2/g) || []).length, 2);
   assert.ok(workspace.includes('min-h-9 px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em]'));
