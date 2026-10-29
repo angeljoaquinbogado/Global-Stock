@@ -62,11 +62,13 @@ test("desktop sidebar keeps home on the logo and uses neutral collapsed navigati
   assert.ok(workspace.includes("border-t border-gray-100"));
   assert.ok(workspace.includes("text-xs font-semibold leading-5"));
   assert.ok(!workspace.includes("•"));
+  assert.ok(workspace.includes('h-1 w-1 rounded-full bg-[var(--apex-text)]'));
+  assert.ok(workspace.includes('border-t-0 pb-1 pt-1 first:pt-0 space-y-1'));
   assert.ok(workspace.includes('modules: ["overview", "cash", "inventory", "online"]'));
   assert.ok(workspace.includes("bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"));
   assert.ok(workspace.includes("flex flex-col items-center py-4 space-y-1"));
   assert.ok(workspace.includes("mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0"));
-  assert.ok(workspace.includes("transition-all duration-300 ease-in-out"));
+  assert.ok(workspace.includes("transition-colors duration-200"));
   assert.ok(workspace.includes("border-b border-gray-100 pb-4 dark:border-white/10"));
   assert.ok(workspace.includes("hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700"));
   assert.ok(workspace.includes("stiffness: 300, damping: 30"));
