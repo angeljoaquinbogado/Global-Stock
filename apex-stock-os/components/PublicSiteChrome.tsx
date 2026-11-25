@@ -27,7 +27,6 @@ function PublicFooter() {
   return (
     <footer className="gs-public-footer">
       <div className="gs-pub-footer-inner">
-        {/* Columna 1: Logo y breve explicación */}
         <div className="gs-pub-footer-col gs-pub-footer-brand-col">
           <div className="gs-pub-footer-head-slot">
             <Link href={isDownloadPage ? "#inicio" : "/download"} className="gs-pub-footer-brand">
@@ -56,7 +55,6 @@ function PublicFooter() {
           </p>
         </div>
 
-        {/* Columna 2: Secciones (las mismas de la barra de navegación) */}
         <div className="gs-pub-footer-col">
           <div className="gs-pub-footer-head-slot">
             <p className="gs-pub-footer-heading">Secciones</p>
@@ -72,7 +70,6 @@ function PublicFooter() {
           </ul>
         </div>
 
-        {/* Columna 3: Acceso y contacto */}
         <div className="gs-pub-footer-col">
           <div className="gs-pub-footer-head-slot">
             <p className="gs-pub-footer-heading">Acceso y contacto</p>
@@ -101,7 +98,6 @@ function PublicFooter() {
           </ul>
         </div>
 
-        {/* Columna 4: Seguridad y legal */}
         <div className="gs-pub-footer-col">
           <div className="gs-pub-footer-head-slot">
             <p className="gs-pub-footer-heading">Seguridad y legal</p>
@@ -152,45 +148,21 @@ export function PublicSiteChrome({
   const isDownloadRoute = hideHeader || downloadBrand || pathname === "/download";
 
   useEffect(() => {
-    const syncTheme = () => {
-      try {
-        const innerThemed = document.querySelector("body [data-download-theme]");
-        const innerVal = innerThemed?.getAttribute("data-download-theme");
-        const saved =
-          window.localStorage.getItem("gs-download-theme") ||
-          window.localStorage.getItem("download-theme");
-        const rootVal = document.documentElement.getAttribute("data-download-theme");
-
-        const resolved =
-          saved === "light" || saved === "dark"
-            ? saved
-            : innerVal === "light" || innerVal === "dark"
-              ? innerVal
-              : rootVal === "light" || rootVal === "dark"
-                ? rootVal
-                : "light";
-
-        if (document.documentElement.getAttribute("data-download-theme") !== resolved) {
-          document.documentElement.setAttribute("data-download-theme", resolved);
-        }
-        document.querySelectorAll("[data-download-theme]").forEach((el) => {
-          if (el !== document.documentElement && el.getAttribute("data-download-theme") !== resolved) {
-            el.setAttribute("data-download-theme", resolved);
-          }
-        });
-      } catch {
-        // ignore storage restrictions
-      }
-    };
-
-    syncTheme();
-    const observer = new MutationObserver(syncTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      subtree: true,
-      attributeFilter: ["data-download-theme"]
-    });
-    return () => observer.disconnect();
+    try {
+      const saved =
+        window.localStorage.getItem("gs-download-theme") ||
+        window.localStorage.getItem("download-theme");
+      const current = document.documentElement.getAttribute("data-download-theme");
+      const resolved =
+        saved === "light" || saved === "dark"
+          ? saved
+          : current === "light" || current === "dark"
+            ? current
+            : "light";
+      document.documentElement.setAttribute("data-download-theme", resolved);
+    } catch {
+      // ignore storage restrictions
+    }
   }, [pathname]);
 
   if (isDownloadRoute) {

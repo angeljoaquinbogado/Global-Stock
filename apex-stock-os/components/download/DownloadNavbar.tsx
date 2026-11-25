@@ -31,16 +31,6 @@ const DOCK_ICONS = {
   help: HelpCircle
 } as const;
 
-function applyThemeEverywhere(nextTheme: "dark" | "light") {
-  const root = document.documentElement;
-  root.setAttribute("data-download-theme", nextTheme);
-  document.querySelectorAll("[data-download-theme]").forEach((el) => {
-    if (el !== root) {
-      el.setAttribute("data-download-theme", nextTheme);
-    }
-  });
-}
-
 function DefaultBrandMark() {
   return (
     <>
@@ -80,45 +70,35 @@ function DefaultBrandMark() {
 }
 
 function NavbarThemeButton() {
-  const [theme, setTheme] = useState<"dark" | "light">("dark");
+  const [theme, setTheme] = useState<"dark" | "light">("light");
 
   useEffect(() => {
     const root = document.documentElement;
+    let initial: "dark" | "light" = "light";
 
-    const readTheme = (): "dark" | "light" => {
-      try {
-        const stored =
-          window.localStorage.getItem("gs-download-theme") ||
-          window.localStorage.getItem("download-theme");
-        if (stored === "light" || stored === "dark") return stored;
-      } catch {
-        // ignore storage errors
+    try {
+      const stored =
+        window.localStorage.getItem("gs-download-theme") ||
+        window.localStorage.getItem("download-theme");
+      if (stored === "light" || stored === "dark") {
+        initial = stored;
+      } else {
+        const attr = root.getAttribute("data-download-theme");
+        if (attr === "light" || attr === "dark") initial = attr;
       }
-      const attr = root.getAttribute("data-download-theme");
-      if (attr === "light" || attr === "dark") return attr;
-      return "dark";
-    };
+    } catch {
+      // ignore storage errors
+    }
 
-    const initial = readTheme();
-    applyThemeEverywhere(initial);
+    root.setAttribute("data-download-theme", initial);
     setTheme(initial);
-
-    const observer = new MutationObserver(() => {
-      const current = root.getAttribute("data-download-theme");
-      if (current === "light" || current === "dark") {
-        applyThemeEverywhere(current);
-        setTheme(current);
-      }
-    });
-    observer.observe(root, { attributes: true, attributeFilter: ["data-download-theme"] });
-    return () => observer.disconnect();
   }, []);
 
   function toggleTheme() {
     const nextTheme: "dark" | "light" = theme === "dark" ? "light" : "dark";
     const root = document.documentElement;
     root.classList.add("gs-theme-switching");
-    applyThemeEverywhere(nextTheme);
+    root.setAttribute("data-download-theme", nextTheme);
     setTheme(nextTheme);
 
     try {
@@ -128,11 +108,9 @@ function NavbarThemeButton() {
       // ignore storage errors
     }
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        root.classList.remove("gs-theme-switching");
-      });
-    });
+    window.setTimeout(() => {
+      root.classList.remove("gs-theme-switching");
+    }, 60);
   }
 
   const isDark = theme === "dark";
@@ -151,7 +129,8 @@ function NavbarThemeButton() {
 }
 
 export function DownloadNavbar({
-  brand
+  brand,
+  themeToggle
 }: {
   brand?: ReactNode;
   themeToggle?: ReactNode;
@@ -230,6 +209,7 @@ export function DownloadNavbar({
   }
 
   const brandContent = brand ?? <DefaultBrandMark />;
+  const themeControl = themeToggle ?? <NavbarThemeButton />;
 
   return (
     <div className="dl-nav-wrap">
@@ -281,7 +261,7 @@ export function DownloadNavbar({
         </nav>
 
         <div className="dl-nav-actions">
-          <NavbarThemeButton />
+          {themeControl}
 
           <Link href="/" className="dl-btn-primary dl-nav-cta">
             Abrir app
