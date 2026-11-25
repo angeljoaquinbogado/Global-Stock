@@ -17,39 +17,10 @@ const LEGAL_NAV_LINKS = [
 
 function PublicFooter() {
   return (
-    <footer
-      className="gs-public-footer"
-      style={{
-        marginTop: "auto",
-        borderTop: "1px solid var(--gs-pub-border)",
-        backgroundColor: "var(--gs-pub-bg-subtle)",
-        color: "var(--gs-pub-fg)",
-        padding: "2.5rem 1.25rem 2rem"
-      }}
-    >
-      <div
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "space-between",
-          gap: "2rem"
-        }}
-      >
-        <div style={{ maxWidth: 320 }}>
-          <Link
-            href="/download"
-            className="gs-download-brand"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "0.55rem",
-              textDecoration: "none",
-              color: "var(--gs-pub-fg)",
-              fontWeight: 700
-            }}
-          >
+    <footer className="gs-public-footer">
+      <div className="gs-pub-footer-inner">
+        <div className="gs-pub-footer-brand-col">
+          <Link href="/download" className="gs-pub-footer-brand">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <rect x="2" y="2" width="20" height="20" rx="6" fill="#8F0000" />
               <path
@@ -69,45 +40,15 @@ function PublicFooter() {
             </svg>
             <span>Global Stock</span>
           </Link>
-          <p
-            className="gs-footer-muted"
-            style={{
-              marginTop: "0.65rem",
-              fontSize: "0.875rem",
-              color: "var(--gs-pub-fg-muted)",
-              lineHeight: 1.55
-            }}
-          >
+          <p className="gs-pub-footer-desc">
             Gestión comercial de stock, ventas y caja en computadora y celular.
           </p>
         </div>
 
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "2.5rem" }}>
+        <div className="gs-pub-footer-cols">
           <div>
-            <p
-              className="gs-footer-heading"
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "var(--gs-pub-fg-muted)",
-                margin: 0
-              }}
-            >
-              Plataforma
-            </p>
-            <ul
-              className="gs-footer-links"
-              style={{
-                listStyle: "none",
-                margin: "0.75rem 0 0",
-                padding: 0,
-                display: "grid",
-                gap: "0.5rem",
-                fontSize: "0.9rem"
-              }}
-            >
+            <p className="gs-pub-footer-heading">Plataforma</p>
+            <ul className="gs-pub-footer-list">
               <li>
                 <Link href="/" className="gs-pub-footer-link">
                   Crear cuenta gratis
@@ -132,30 +73,8 @@ function PublicFooter() {
           </div>
 
           <div>
-            <p
-              className="gs-footer-heading"
-              style={{
-                fontSize: "0.75rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                color: "var(--gs-pub-fg-muted)",
-                margin: 0
-              }}
-            >
-              Seguridad y legal
-            </p>
-            <ul
-              className="gs-footer-links"
-              style={{
-                listStyle: "none",
-                margin: "0.75rem 0 0",
-                padding: 0,
-                display: "grid",
-                gap: "0.5rem",
-                fontSize: "0.9rem"
-              }}
-            >
+            <p className="gs-pub-footer-heading">Seguridad y legal</p>
+            <ul className="gs-pub-footer-list">
               <li>
                 <Link href="/legal/security" className="gs-pub-footer-link">
                   Seguridad
@@ -181,17 +100,7 @@ function PublicFooter() {
         </div>
       </div>
 
-      <div
-        className="gs-footer-bottom"
-        style={{
-          maxWidth: 1180,
-          margin: "2rem auto 0",
-          paddingTop: "1.25rem",
-          borderTop: "1px solid var(--gs-pub-border)",
-          fontSize: "0.8125rem",
-          color: "var(--gs-pub-fg-muted)"
-        }}
-      >
+      <div className="gs-pub-footer-bottom">
         © {new Date().getFullYear()} Global Stock · Todos los derechos reservados.
       </div>
     </footer>

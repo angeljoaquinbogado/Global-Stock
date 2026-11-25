@@ -13,16 +13,18 @@ import {
   Layers,
   LifeBuoy,
   Menu,
-  Scale,
+  Moon,
   ShieldCheck,
+  Sparkles,
   Store,
+  Sun,
   X
 } from "lucide-react";
-import { DownloadThemeToggle } from "@/components/DownloadTheme";
 import { NAV_LINKS } from "./content";
+
 const DOCK_ICONS = {
   home: Home,
-  compare: Scale,
+  compare: Sparkles,
   layers: Layers,
   store: Store,
   download: Download,
@@ -67,9 +69,77 @@ function DefaultBrandMark() {
   );
 }
 
+function NavbarThemeButton() {
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
+
+  useEffect(() => {
+    const root = document.documentElement;
+    const readTheme = (): "dark" | "light" => {
+      const attr = root.getAttribute("data-download-theme");
+      if (attr === "light" || attr === "dark") return attr;
+      try {
+        const stored =
+          window.localStorage.getItem("gs-download-theme") ||
+          window.localStorage.getItem("download-theme");
+        if (stored === "light" || stored === "dark") return stored;
+      } catch {
+        // ignore storage errors
+      }
+      return "dark";
+    };
+
+    const initial = readTheme();
+    root.setAttribute("data-download-theme", initial);
+    setTheme(initial);
+
+    const observer = new MutationObserver(() => {
+      const current = root.getAttribute("data-download-theme");
+      if (current === "light" || current === "dark") {
+        setTheme(current);
+      }
+    });
+    observer.observe(root, { attributes: true, attributeFilter: ["data-download-theme"] });
+    return () => observer.disconnect();
+  }, []);
+
+  function toggleTheme() {
+    const nextTheme: "dark" | "light" = theme === "dark" ? "light" : "dark";
+    const root = document.documentElement;
+    root.classList.add("gs-theme-switching");
+    root.setAttribute("data-download-theme", nextTheme);
+    setTheme(nextTheme);
+
+    try {
+      window.localStorage.setItem("gs-download-theme", nextTheme);
+      window.localStorage.setItem("download-theme", nextTheme);
+    } catch {
+      // ignore storage errors
+    }
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        root.classList.remove("gs-theme-switching");
+      });
+    });
+  }
+
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      className="dl-icon-btn dl-theme-btn"
+      aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
+      title={isDark ? "Tema claro" : "Tema oscuro"}
+    >
+      {isDark ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
+    </button>
+  );
+}
+
 export function DownloadNavbar({
-  brand,
-  themeToggle
+  brand
 }: {
   brand?: ReactNode;
   themeToggle?: ReactNode;
@@ -80,34 +150,6 @@ export function DownloadNavbar({
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeHref, setActiveHref] = useState<string>(isDownloadPage ? "#inicio" : "");
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
-
-  // Evita lag de repintado al alternar tema claro/oscuro desactivando transiciones durante 1 frame
-  useEffect(() => {
-    const root = document.documentElement;
-    let rafId = 0;
-
-    const observer = new MutationObserver((mutations) => {
-      for (const m of mutations) {
-        if (m.attributeName === "data-download-theme") {
-          root.classList.add("gs-theme-switching");
-          cancelAnimationFrame(rafId);
-          rafId = requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              root.classList.remove("gs-theme-switching");
-            });
-          });
-          break;
-        }
-      }
-    });
-
-    observer.observe(root, { attributes: true, attributeFilter: ["data-download-theme"] });
-    return () => {
-      observer.disconnect();
-      cancelAnimationFrame(rafId);
-      root.classList.remove("gs-theme-switching");
-    };
-  }, []);
 
   useEffect(() => {
     if (!isDownloadPage) {
@@ -176,7 +218,6 @@ export function DownloadNavbar({
   }
 
   const brandContent = brand ?? <DefaultBrandMark />;
-  const themeControl = themeToggle ?? <DownloadThemeToggle />;
 
   return (
     <div className="dl-nav-wrap">
@@ -195,7 +236,7 @@ export function DownloadNavbar({
           onMouseLeave={() => setHoveredHref(null)}
         >
           {NAV_LINKS.map((item) => {
-            const Icon = DOCK_ICONS[item.icon];
+            const Icon = DOCK_ICONS[item.icon] ?? Sparkles;
             const isActive = isDownloadPage && activeHref === item.href;
             const isExpanded = hoveredHref === item.href;
             const targetHref = resolveHref(item.href);
@@ -228,7 +269,7 @@ export function DownloadNavbar({
         </nav>
 
         <div className="dl-nav-actions">
-          {themeControl}
+          <NavbarThemeButton />
 
           <Link href="/" className="dl-btn-primary dl-nav-cta">
             Abrir app
@@ -277,7 +318,7 @@ export function DownloadNavbar({
 
             <nav className="dl-mobile-links" aria-label="Secciones">
               {NAV_LINKS.map((item) => {
-                const Icon = DOCK_ICONS[item.icon];
+                const Icon = DOCK_ICONS[item.icon] ?? Sparkles;
                 const isActive = isDownloadPage && activeHref === item.href;
                 const targetHref = resolveHref(item.href);
 

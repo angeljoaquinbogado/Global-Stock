@@ -18,7 +18,13 @@ html.gs-theme-switching *::after {
   will-change: transform;
 }
 
-/* Evita desenfoques anidados dentro de la barra Dock para mantener 60 FPS en GPU integrada */
+.dl-theme-btn {
+  display: inline-grid !important;
+  place-items: center !important;
+  flex-shrink: 0;
+}
+
+/* Evita desenfoques anidados dentro de la barra Dock para mantener 60 FPS */
 .dl-dock-nav,
 .dl-dock-item {
   -webkit-backdrop-filter: none !important;
@@ -48,7 +54,119 @@ html.gs-theme-switching *::after {
   white-space: nowrap;
 }
 
-/* ───── Tokens unificados (soporta DownloadNavbar + todas las secciones públicas) ───── */
+/* ───── Footer unificado (se adapta a modo oscuro y claro en /download y en todas las rutas) ───── */
+.gs-public-footer {
+  margin-top: auto;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: #0b0c10;
+  color: #f5f5f7;
+  padding: 2.75rem 1.25rem 2.1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+[data-download-theme="light"] .gs-public-footer {
+  border-top: 1px solid rgba(20, 19, 18, 0.1);
+  background-color: #f1eee7;
+  color: #141312;
+}
+
+.gs-pub-footer-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 2.25rem;
+}
+
+.gs-pub-footer-brand-col {
+  max-width: 320px;
+}
+
+.gs-pub-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  color: inherit;
+  font-weight: 700;
+  font-size: 1.02rem;
+}
+
+.gs-pub-footer-desc {
+  margin: 0.7rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.58;
+  color: #9fa5b4;
+}
+
+[data-download-theme="light"] .gs-pub-footer-desc {
+  color: #524e48;
+}
+
+.gs-pub-footer-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2.75rem;
+}
+
+.gs-pub-footer-heading {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #9fa5b4;
+}
+
+[data-download-theme="light"] .gs-pub-footer-heading {
+  color: #524e48;
+}
+
+.gs-pub-footer-list {
+  list-style: none;
+  margin: 0.8rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  font-size: 0.9rem;
+}
+
+.gs-pub-footer-link {
+  text-decoration: none;
+  color: #cfd2db;
+  transition: color 0.16s ease, transform 0.16s ease;
+  display: inline-block;
+}
+
+[data-download-theme="light"] .gs-pub-footer-link {
+  color: #383530;
+}
+
+.gs-pub-footer-link:hover {
+  color: #ff7b7b;
+  transform: translateX(2px);
+}
+
+[data-download-theme="light"] .gs-pub-footer-link:hover {
+  color: #8f0000;
+}
+
+.gs-pub-footer-bottom {
+  max-width: 1180px;
+  margin: 2.1rem auto 0;
+  padding-top: 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  font-size: 0.8125rem;
+  color: #9fa5b4;
+}
+
+[data-download-theme="light"] .gs-pub-footer-bottom {
+  border-top: 1px solid rgba(20, 19, 18, 0.1);
+  color: #524e48;
+}
+
+/* ───── Tokens unificados para secciones públicas (/support, /about, /legal/*) ───── */
 .gs-pub-shell {
   --dl-bg: #faf9f6;
   --dl-bg-elevated: #ffffff;
@@ -162,37 +280,25 @@ html.gs-theme-switching *::after {
   background-size: 100% 100%, 24px 24px;
 }
 
-.gs-pub-footer-link {
-  text-decoration: none;
-  color: var(--gs-pub-fg-secondary);
-  transition: color 0.16s ease, transform 0.16s ease;
-  display: inline-block;
-}
-
-.gs-pub-footer-link:hover {
-  color: var(--gs-pub-accent-text);
-  transform: translateX(2px);
-}
-
-/* Normalización de subpáginas (/about, /legal/*) en modo claro */
-[data-download-theme="light"] .gs-pub-shell [class*="bg-[#0"],
-[data-download-theme="light"] .gs-pub-shell [class*="bg-[#1"],
-[data-download-theme="light"] .gs-pub-shell [class*="bg-zinc-9"],
-[data-download-theme="light"] .gs-pub-shell [class*="bg-neutral-9"],
-[data-download-theme="light"] .gs-pub-shell [class*="bg-black"] {
+/* Normalización de subpáginas (/about, /legal/*) en modo claro sin afectar navbar/footer */
+[data-download-theme="light"] .gs-pub-shell main [class*="bg-[#0"],
+[data-download-theme="light"] .gs-pub-shell main [class*="bg-[#1"],
+[data-download-theme="light"] .gs-pub-shell main [class*="bg-zinc-9"],
+[data-download-theme="light"] .gs-pub-shell main [class*="bg-neutral-9"],
+[data-download-theme="light"] .gs-pub-shell main [class*="bg-black"] {
   background-color: var(--gs-pub-surface) !important;
   border-color: var(--gs-pub-border-strong) !important;
   box-shadow: var(--gs-pub-shadow-sm);
 }
 
-[data-download-theme="light"] .gs-pub-shell [class*="text-white"] {
+[data-download-theme="light"] .gs-pub-shell main [class*="text-white"] {
   color: var(--gs-pub-fg) !important;
 }
 
-[data-download-theme="light"] .gs-pub-shell [class*="text-zinc-"],
-[data-download-theme="light"] .gs-pub-shell [class*="text-neutral-"],
-[data-download-theme="light"] .gs-pub-shell [class*="text-slate-"],
-[data-download-theme="light"] .gs-pub-shell [class*="text-gray-"] {
+[data-download-theme="light"] .gs-pub-shell main [class*="text-zinc-"],
+[data-download-theme="light"] .gs-pub-shell main [class*="text-neutral-"],
+[data-download-theme="light"] .gs-pub-shell main [class*="text-slate-"],
+[data-download-theme="light"] .gs-pub-shell main [class*="text-gray-"] {
   color: var(--gs-pub-fg-secondary) !important;
 }
 
@@ -500,7 +606,6 @@ html.gs-theme-switching *::after {
   transform: scale(0.98);
 }
 
-/* Franja inferior simétrica de 3 columnas */
 .gs-sup-tips-section {
   padding: clamp(1.35rem, 3vw, 1.85rem);
   border-radius: 26px;
