@@ -79,7 +79,6 @@ export function DownloadNavbar({
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeHref, setActiveHref] = useState<string>(isDownloadPage ? "#inicio" : "");
-  const [hoveredHref, setHoveredHref] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isDownloadPage) {
@@ -160,15 +159,10 @@ export function DownloadNavbar({
           {brandContent}
         </Link>
 
-        <nav
-          className="dl-dock-nav"
-          aria-label="Secciones de la página"
-          onMouseLeave={() => setHoveredHref(null)}
-        >
+        <nav className="dl-dock-nav" aria-label="Secciones de la página">
           {NAV_LINKS.map((item) => {
             const Icon = DOCK_ICONS[item.icon] ?? Sparkles;
             const isActive = isDownloadPage && activeHref === item.href;
-            const isExpanded = hoveredHref === item.href;
             const targetHref = resolveHref(item.href);
 
             return (
@@ -177,15 +171,10 @@ export function DownloadNavbar({
                 href={targetHref}
                 aria-label={item.label}
                 aria-current={isActive ? "location" : undefined}
-                onMouseEnter={() => setHoveredHref(item.href)}
-                onFocus={() => setHoveredHref(item.href)}
-                onBlur={() => setHoveredHref(null)}
                 onClick={() => {
                   if (isDownloadPage) setActiveHref(item.href);
                 }}
-                className={`dl-dock-item ${isActive ? "is-active" : ""} ${
-                  isExpanded ? "is-expanded" : ""
-                }`}
+                className={`dl-dock-item ${isActive ? "is-active" : ""}`}
               >
                 <span className="dl-dock-icon-box" aria-hidden="true">
                   <Icon size={17} strokeWidth={2.1} />
