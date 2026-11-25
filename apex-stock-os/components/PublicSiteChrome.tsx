@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowLeft, ArrowRight, Home, Info, LifeBuoy, Menu, ShieldCheck, X } from "lucide-react";
-import { DownloadThemeToggle } from "@/components/DownloadTheme";
+import { DownloadNavbar } from "@/components/download/DownloadNavbar";
+import "@/app/download/download.css";
 import "./public-chrome.css";
-const PUBLIC_NAV_ITEMS = [
-  { label: "Inicio", href: "/download", icon: Home },
-  { label: "Quiénes somos", href: "/about", icon: Info },
-  { label: "Soporte", href: "/support", icon: LifeBuoy },
-  { label: "Seguridad y legal", href: "/legal/security", icon: ShieldCheck }
-] as const;
 
 const LEGAL_NAV_LINKS = [
   { label: "Seguridad", href: "/legal/security" },
@@ -56,13 +50,23 @@ function PublicFooter() {
               fontWeight: 700
             }}
           >
-            <img
-              src="/brand/global-stock-mark.svg"
-              alt=""
-              width={24}
-              height={24}
-              aria-hidden="true"
-            />
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <rect x="2" y="2" width="20" height="20" rx="6" fill="#8F0000" />
+              <path
+                d="M7 15.5L10.5 12L13 14.5L17 9.5"
+                stroke="#FFFFFF"
+                strokeWidth="2.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M14.2 9.5H17V12.3"
+                stroke="#FFFFFF"
+                strokeWidth="2.1"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
             <span>Global Stock</span>
           </Link>
           <p
@@ -105,22 +109,22 @@ function PublicFooter() {
               }}
             >
               <li>
-                <Link href="/" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/" className="gs-pub-footer-link">
                   Crear cuenta gratis
                 </Link>
               </li>
               <li>
-                <Link href="/" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/" className="gs-pub-footer-link">
                   Iniciar sesión
                 </Link>
               </li>
               <li>
-                <Link href="/about" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/about" className="gs-pub-footer-link">
                   Quiénes somos
                 </Link>
               </li>
               <li>
-                <Link href="/support" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/support" className="gs-pub-footer-link">
                   Soporte
                 </Link>
               </li>
@@ -153,22 +157,22 @@ function PublicFooter() {
               }}
             >
               <li>
-                <Link href="/legal/security" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/legal/security" className="gs-pub-footer-link">
                   Seguridad
                 </Link>
               </li>
               <li>
-                <Link href="/legal/privacy" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/legal/privacy" className="gs-pub-footer-link">
                   Privacidad
                 </Link>
               </li>
               <li>
-                <Link href="/legal/terms" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/legal/terms" className="gs-pub-footer-link">
                   Términos de uso
                 </Link>
               </li>
               <li>
-                <Link href="/legal/cookies" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                <Link href="/legal/cookies" className="gs-pub-footer-link">
                   Cookies
                 </Link>
               </li>
@@ -205,8 +209,6 @@ export function PublicSiteChrome({
   language?: string;
 }) {
   const pathname = usePathname() || "";
-  const [mobileOpen, setMobileOpen] = useState(false);
-
   const isDownloadRoute = hideHeader || downloadBrand || pathname === "/download";
 
   useEffect(() => {
@@ -225,10 +227,6 @@ export function PublicSiteChrome({
     }
   }, [pathname]);
 
-  useEffect(() => {
-    setMobileOpen(false);
-  }, [pathname]);
-
   if (isDownloadRoute) {
     return (
       <>
@@ -240,126 +238,8 @@ export function PublicSiteChrome({
 
   return (
     <div className="gs-pub-shell">
-      <div className="gs-pub-nav-wrap">
-        <header className="gs-pub-nav-pill">
-          <Link href="/download" className="gs-pub-brand" aria-label="Global Stock - Inicio">
-            <img
-              src="/brand/global-stock-mark.svg"
-              alt=""
-              width={26}
-              height={26}
-              aria-hidden="true"
-            />
-            <span>Global Stock</span>
-          </Link>
-
-          <nav className="gs-pub-links" aria-label="Secciones públicas">
-            {PUBLIC_NAV_ITEMS.map((item) => {
-              const Icon = item.icon;
-              const active =
-                item.href === "/legal/security"
-                  ? pathname.startsWith("/legal")
-                  : pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`gs-pub-link ${active ? "is-active" : ""}`}
-                >
-                  <Icon size={15} aria-hidden="true" />
-                  <span>{item.label}</span>
-                </Link>
-              );
-            })}
-          </nav>
-
-          <div className="gs-pub-actions">
-            <DownloadThemeToggle />
-
-            <Link href="/" className="gs-pub-cta">
-              Abrir app
-              <ArrowRight size={15} aria-hidden="true" />
-            </Link>
-
-            <button
-              type="button"
-              className="gs-pub-burger"
-              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
-              aria-expanded={mobileOpen}
-              onClick={() => setMobileOpen((prev) => !prev)}
-            >
-              {mobileOpen ? <X size={19} aria-hidden="true" /> : <Menu size={19} aria-hidden="true" />}
-            </button>
-          </div>
-        </header>
-
-        {mobileOpen && (
-          <>
-            <button
-              type="button"
-              className="gs-pub-backdrop"
-              aria-label="Cerrar menú lateral"
-              onClick={() => setMobileOpen(false)}
-            />
-            <aside className="gs-pub-drawer" aria-label="Menú de navegación">
-              <div className="gs-pub-drawer-head">
-                <Link href="/download" className="gs-pub-brand" onClick={() => setMobileOpen(false)}>
-                  <img
-                    src="/brand/global-stock-mark.svg"
-                    alt=""
-                    width={24}
-                    height={24}
-                    aria-hidden="true"
-                  />
-                  <span>Global Stock</span>
-                </Link>
-                <button
-                  type="button"
-                  className="gs-pub-burger"
-                  aria-label="Cerrar menú"
-                  onClick={() => setMobileOpen(false)}
-                >
-                  <X size={18} aria-hidden="true" />
-                </button>
-              </div>
-
-              <nav className="gs-pub-drawer-links" aria-label="Páginas">
-                {PUBLIC_NAV_ITEMS.map((item) => {
-                  const Icon = item.icon;
-                  const active =
-                    item.href === "/legal/security"
-                      ? pathname.startsWith("/legal")
-                      : pathname === item.href;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`gs-pub-drawer-link ${active ? "is-active" : ""}`}
-                      onClick={() => setMobileOpen(false)}
-                    >
-                      <Icon size={17} aria-hidden="true" />
-                      <span>{item.label}</span>
-                    </Link>
-                  );
-                })}
-              </nav>
-
-              <div className="gs-pub-drawer-theme">
-                <span>Apariencia (Claro / Oscuro)</span>
-                <DownloadThemeToggle />
-              </div>
-
-              <Link href="/" className="gs-pub-cta" style={{ display: "inline-flex", width: "100%" }}>
-                Crear cuenta o iniciar sesión
-                <ArrowRight size={15} aria-hidden="true" />
-              </Link>
-            </aside>
-          </>
-        )}
-      </div>
-
+      <DownloadNavbar />
       <div style={{ flex: 1 }}>{children}</div>
-
       <PublicFooter />
     </div>
   );
@@ -426,8 +306,7 @@ export function LegalArticle({
     <PublicSiteChrome language={language}>
       <main className="gs-legal-wrap">
         <Link href={backHref} className="gs-legal-back">
-          <ArrowLeft size={15} aria-hidden="true" />
-          <span>{backLabel}</span>
+          <span>← {backLabel}</span>
         </Link>
 
         <article className="gs-legal-card">
