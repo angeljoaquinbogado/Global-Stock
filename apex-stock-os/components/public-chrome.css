@@ -1,3 +1,61 @@
+/* ───── Barra deslizadora (scrollbar) adaptativa al tema claro y oscuro ───── */
+html[data-download-theme="light"] {
+  color-scheme: light;
+  scrollbar-color: rgba(20, 19, 18, 0.26) #f1eee7;
+  scrollbar-width: thin;
+}
+
+html[data-download-theme="dark"],
+html:has([data-download-theme="dark"]) {
+  color-scheme: dark;
+  scrollbar-color: rgba(255, 255, 255, 0.24) #08090d;
+  scrollbar-width: thin;
+}
+
+html[data-download-theme="light"]::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html[data-download-theme="light"]::-webkit-scrollbar-track,
+html[data-download-theme="light"]::-webkit-scrollbar-corner {
+  background: #f1eee7;
+}
+
+html[data-download-theme="light"]::-webkit-scrollbar-thumb {
+  background-color: rgba(20, 19, 18, 0.24);
+  border-radius: 999px;
+  border: 2px solid #f1eee7;
+}
+
+html[data-download-theme="light"]::-webkit-scrollbar-thumb:hover {
+  background-color: #8f0000;
+}
+
+html[data-download-theme="dark"]::-webkit-scrollbar,
+html:has([data-download-theme="dark"])::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+html[data-download-theme="dark"]::-webkit-scrollbar-track,
+html[data-download-theme="dark"]::-webkit-scrollbar-corner,
+html:has([data-download-theme="dark"])::-webkit-scrollbar-track,
+html:has([data-download-theme="dark"])::-webkit-scrollbar-corner {
+  background: #08090d;
+}
+
+html[data-download-theme="dark"]::-webkit-scrollbar-thumb,
+html:has([data-download-theme="dark"])::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.22);
+  border-radius: 999px;
+  border: 2px solid #08090d;
+}
+
+html[data-download-theme="dark"]::-webkit-scrollbar-thumb:hover,
+html:has([data-download-theme="dark"])::-webkit-scrollbar-thumb:hover {
+  background-color: #b30000;
+}
 /* ───── Optimización GPU 60 FPS para Dock y cambio de tema ───── */
 html.gs-theme-switching *,
 html.gs-theme-switching *::before,

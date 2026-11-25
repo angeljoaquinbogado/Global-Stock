@@ -5,9 +5,31 @@ import { Moon, Sun } from "lucide-react";
 
 const THEME_EVENT = "gs-theme-change";
 
-function applyThemeSync(nextTheme: "dark" | "light") {
+function getSystemTheme(): "dark" | "light" {
+  if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  }
+  return "light";
+}
+
+function getStoredTheme(): "dark" | "light" | null {
+  try {
+    const stored =
+      window.localStorage.getItem("gs-download-theme") ||
+      window.localStorage.getItem("download-theme");
+    if (stored === "light" || stored === "dark") return stored;
+  } catch {
+    // ignorar restricciones de almacenamiento
+  }
+  return null;
+}
+
+function setDomTheme(nextTheme: "dark" | "light", withTransitionFreeze: boolean) {
   const root = document.documentElement;
-  root.classList.add("gs-theme-switching");
+  if (withTransitionFreeze) {
+    root.classList.add("gs-theme-switching");
+  }
+
   root.setAttribute("data-download-theme", nextTheme);
 
   const themedNodes = document.querySelectorAll("[data-download-theme]");
@@ -18,49 +40,23 @@ function applyThemeSync(nextTheme: "dark" | "light") {
     }
   }
 
-  try {
-    window.localStorage.setItem("gs-download-theme", nextTheme);
-    window.localStorage.setItem("download-theme", nextTheme);
-  } catch {
-    // ignorar restricciones de almacenamiento
-  }
-
-  window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: nextTheme }));
-
-  requestAnimationFrame(() => {
+  if (withTransitionFreeze) {
     requestAnimationFrame(() => {
-      root.classList.remove("gs-theme-switching");
+      requestAnimationFrame(() => {
+        root.classList.remove("gs-theme-switching");
+      });
     });
-  });
+  }
 }
 
 export function DownloadThemeToggle() {
-  const [theme, setTheme] = useState<"dark" | "light">("light");
+  const [theme, setTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
-    const root = document.documentElement;
-    let initial: "dark" | "light" = "light";
+    const stored = getStoredTheme();
+    const initial = stored ?? getSystemTheme();
 
-    try {
-      const stored =
-        window.localStorage.getItem("gs-download-theme") ||
-        window.localStorage.getItem("download-theme");
-      if (stored === "light" || stored === "dark") {
-        initial = stored;
-      } else {
-        const attr = root.getAttribute("data-download-theme");
-        if (attr === "light" || attr === "dark") initial = attr;
-      }
-    } catch {
-      // ignorar restricciones de almacenamiento
-    }
-
-    root.setAttribute("data-download-theme", initial);
-    const themedNodes = document.querySelectorAll("[data-download-theme]");
-    for (let i = 0; i < themedNodes.length; i++) {
-      const el = themedNodes[i];
-      if (el !== root) el.setAttribute("data-download-theme", initial);
-    }
+    setDomTheme(initial, false);
     setTheme(initial);
 
     const onThemeEvent = (e: Event) => {
@@ -70,14 +66,41 @@ export function DownloadThemeToggle() {
       }
     };
 
+    const mediaQuery =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-color-scheme: dark)")
+        : null;
+
+    const onSystemThemeChange = (e: MediaQueryListEvent) => {
+      if (!getStoredTheme()) {
+        const sysTheme: "dark" | "light" = e.matches ? "dark" : "light";
+        setDomTheme(sysTheme, true);
+        setTheme(sysTheme);
+      }
+    };
+
     window.addEventListener(THEME_EVENT, onThemeEvent);
-    return () => window.removeEventListener(THEME_EVENT, onThemeEvent);
+    mediaQuery?.addEventListener("change", onSystemThemeChange);
+
+    return () => {
+      window.removeEventListener(THEME_EVENT, onThemeEvent);
+      mediaQuery?.removeEventListener("change", onSystemThemeChange);
+    };
   }, []);
 
   function handleToggle() {
     const nextTheme: "dark" | "light" = theme === "dark" ? "light" : "dark";
     setTheme(nextTheme);
-    applyThemeSync(nextTheme);
+    setDomTheme(nextTheme, true);
+
+    try {
+      window.localStorage.setItem("gs-download-theme", nextTheme);
+      window.localStorage.setItem("download-theme", nextTheme);
+    } catch {
+      // ignorar restricciones de almacenamiento
+    }
+
+    window.dispatchEvent(new CustomEvent(THEME_EVENT, { detail: nextTheme }));
   }
 
   const isDark = theme === "dark";

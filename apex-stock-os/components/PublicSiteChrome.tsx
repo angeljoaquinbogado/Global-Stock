@@ -152,14 +152,21 @@ export function PublicSiteChrome({
       const saved =
         window.localStorage.getItem("gs-download-theme") ||
         window.localStorage.getItem("download-theme");
-      const current = document.documentElement.getAttribute("data-download-theme");
+      const systemPrefersDark =
+        typeof window.matchMedia === "function" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
       const resolved =
         saved === "light" || saved === "dark"
           ? saved
-          : current === "light" || current === "dark"
-            ? current
+          : systemPrefersDark
+            ? "dark"
             : "light";
       document.documentElement.setAttribute("data-download-theme", resolved);
+      document.querySelectorAll("[data-download-theme]").forEach((el) => {
+        if (el !== document.documentElement && el.getAttribute("data-download-theme") !== resolved) {
+          el.setAttribute("data-download-theme", resolved);
+        }
+      });
     } catch {
       // ignore storage restrictions
     }
