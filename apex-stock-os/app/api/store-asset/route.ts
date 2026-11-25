@@ -54,10 +54,10 @@ function isPrivateIpv6(address: string) {
     normalized.startsWith("feb") ||
     normalized.startsWith("fc") ||
     normalized.startsWith("fd") ||
-    normalized.startsWith("::ffff:127.") ||
-    normalized.startsWith("::ffff:10.") ||
-    normalized.startsWith("::ffff:192.168.") ||
-    normalized.startsWith("::ffff:172.")
+    (normalized.startsWith("::ffff:") &&
+      (normalized.includes(".")
+        ? isPrivateIpv4(normalized.slice(7))
+        : true))
   );
 }
 
@@ -230,13 +230,40 @@ export async function GET(request: NextRequest) {
           );
         }
 
-        const bytes = await response.arrayBuffer();
-
-        if (bytes.byteLength > MAX_IMAGE_BYTES) {
+        if (!response.body) {
           return NextResponse.json(
-            { error: "IMAGE_TOO_LARGE" },
-            { status: 413 }
+            { error: "ASSET_UNREACHABLE" },
+            { status: 422 }
           );
+        }
+
+        const reader = response.body.getReader();
+        const chunks: Uint8Array[] = [];
+        let received = 0;
+
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            received += value.byteLength;
+            if (received > MAX_IMAGE_BYTES) {
+              await reader.cancel("IMAGE_TOO_LARGE").catch(() => {});
+              return NextResponse.json(
+                { error: "IMAGE_TOO_LARGE" },
+                { status: 413 }
+              );
+            }
+            chunks.push(value);
+          }
+        } finally {
+          reader.releaseLock();
+        }
+
+        const bytes = new Uint8Array(received);
+        let offset = 0;
+        for (const chunk of chunks) {
+          bytes.set(chunk, offset);
+          offset += chunk.byteLength;
         }
 
         return new NextResponse(bytes, {

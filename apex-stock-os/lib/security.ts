@@ -15,6 +15,7 @@ const rateBuckets =
   (securityGlobal.__globalStockRateBuckets = new Map<string, RateBucket>());
 
 const MAX_RATE_BUCKETS = 12_000;
+let lastPruneAt = 0;
 
 export class ApiSecurityError extends Error {
   status: number;
@@ -72,18 +73,17 @@ function clientIdentity(request: Request) {
 function pruneRateBuckets(now: number) {
   if (rateBuckets.size < MAX_RATE_BUCKETS) return;
 
-  for (const [key, bucket] of rateBuckets) {
-    if (bucket.resetAt <= now) rateBuckets.delete(key);
+  if (now - lastPruneAt >= 5_000) {
+    lastPruneAt = now;
+    for (const [key, bucket] of rateBuckets) {
+      if (bucket.resetAt <= now) rateBuckets.delete(key);
+    }
   }
 
-  if (rateBuckets.size <= MAX_RATE_BUCKETS) return;
-
-  const overflow = rateBuckets.size - MAX_RATE_BUCKETS;
-  let removed = 0;
-  for (const key of rateBuckets.keys()) {
-    rateBuckets.delete(key);
-    removed += 1;
-    if (removed >= overflow) break;
+  while (rateBuckets.size > MAX_RATE_BUCKETS) {
+    const oldestKey = rateBuckets.keys().next().value;
+    if (!oldestKey) break;
+    rateBuckets.delete(oldestKey);
   }
 }
 

@@ -35,6 +35,7 @@ const contentSecurityPolicy = [
   "font-src 'self' data:",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://accounts.google.com https://challenges.cloudflare.com",
   "worker-src 'self' blob:",
+  "child-src 'self' blob: https://www.google.com https://maps.google.com https://accounts.google.com https://challenges.cloudflare.com",
   "media-src 'self' blob:",
   "manifest-src 'self'",
   "frame-src 'self' https://www.google.com https://maps.google.com https://accounts.google.com https://challenges.cloudflare.com",
@@ -53,7 +54,7 @@ const securityHeaders = [
   {
     key: "Permissions-Policy",
     value:
-      "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), browsing-topics=()"
+      "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=(), hid=(), idle-detection=(), accelerometer=(), gyroscope=(), magnetometer=(), display-capture=(), screen-wake-lock=(), browsing-topics=()"
   },
   ...(isProduction && !localBrowserQaHttp
     ? [

@@ -22,6 +22,10 @@ function isPrivateIpv4(address: string) {
 
 function isPrivateIpv6(address: string) {
   const value = address.toLowerCase();
+  if (value.startsWith("::ffff:")) {
+    const mapped = value.slice(7);
+    return mapped.includes(".") ? isPrivateIpv4(mapped) : true;
+  }
   return (
     value === "::" ||
     value === "::1" ||
@@ -30,11 +34,7 @@ function isPrivateIpv6(address: string) {
     value.startsWith("fe8") ||
     value.startsWith("fe9") ||
     value.startsWith("fea") ||
-    value.startsWith("feb") ||
-    value.startsWith("::ffff:127.") ||
-    value.startsWith("::ffff:10.") ||
-    value.startsWith("::ffff:192.168.") ||
-    value.startsWith("::ffff:172.")
+    value.startsWith("feb")
   );
 }
 

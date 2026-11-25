@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
 import {
   extractBusinessDocument,
@@ -7,6 +8,7 @@ import {
 } from "@/lib/ai-provider";
 import {
   authorizeApiRequest,
+  authorizeBusinessRequest,
   isApiAuthAvailable
 } from "@/lib/server-auth";
 import {
@@ -105,8 +107,10 @@ export async function POST(request: Request) {
   const filename = body.filename?.trim() || "document";
   const mimeType = body.mimeType?.trim().toLowerCase() || "";
   const base64 = body.base64?.trim() || "";
-  const language = body.language?.trim() || "es";
-  const currency = body.currency?.trim().toUpperCase() || "ARS";
+  const languageRaw = body.language?.trim() || "es";
+  const currencyRaw = body.currency?.trim().toUpperCase() || "ARS";
+  const businessId =
+    typeof body.businessId === "string" ? body.businessId.trim() : "";
 
   if (
     !base64 ||
@@ -120,13 +124,83 @@ export async function POST(request: Request) {
     );
   }
 
+  if (businessId) {
+    if (
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+        businessId
+      )
+    ) {
+      return NextResponse.json(
+        { code: "INVALID_BUSINESS" },
+        { status: 400, headers: noStoreHeaders() }
+      );
+    }
+
+    const businessAuth = await authorizeBusinessRequest(request, businessId);
+    if (!businessAuth.ok) {
+      return NextResponse.json(
+        { code: businessAuth.code },
+        { status: businessAuth.status, headers: noStoreHeaders() }
+      );
+    }
+  }
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  const bearerToken = request.headers.get("authorization")?.trim();
+  if (!supabaseUrl || !publishableKey || !bearerToken?.startsWith("Bearer ")) {
+    return NextResponse.json(
+      { code: "AUTH_NOT_CONFIGURED" },
+      { status: 503, headers: noStoreHeaders() }
+    );
+  }
+
+  const merchantClient = createClient(supabaseUrl, publishableKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    },
+    global: { headers: { Authorization: bearerToken } }
+  });
+
+  const { data: quota, error: quotaError } = await merchantClient.rpc(
+    "global_stock_ai_allow_request"
+  );
+  if (quotaError || !quota || typeof quota !== "object") {
+    return NextResponse.json(
+      { code: "AI_USAGE_PROTECTION_UNAVAILABLE" },
+      { status: 503, headers: noStoreHeaders() }
+    );
+  }
+
+  const quotaState = quota as { allowed?: boolean; retryAfter?: number };
+  if (quotaState.allowed !== true) {
+    const retryAfter = Math.max(
+      1,
+      Math.min(86400, Math.trunc(Number(quotaState.retryAfter) || 60))
+    );
+    return NextResponse.json(
+      { code: "AI_RATE_LIMIT", retryAfter },
+      {
+        status: 429,
+        headers: { ...noStoreHeaders(), "Retry-After": String(retryAfter) }
+      }
+    );
+  }
+
+  const language = /^[a-z]{2,8}(?:-[A-Za-z0-9]{2,8})?$/.test(languageRaw)
+    ? languageRaw
+    : "es";
+  const currency = /^[A-Z]{3}$/.test(currencyRaw) ? currencyRaw : "ARS";
+
   try {
     const document = await extractBusinessDocument({
       base64,
       mimeType,
       filename: filename.replace(/[\x00-\x1F\x7F]/g, "").slice(0, 180),
-      language: language.slice(0, 12),
-      currency: currency.slice(0, 3)
+      language,
+      currency
     });
 
     return NextResponse.json(

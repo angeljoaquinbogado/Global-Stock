@@ -162,13 +162,18 @@ export async function GET(request: NextRequest) {
             sold30d: 0
           };
 
+          const isAnonymousRequest = !request.headers.get("authorization");
           return NextResponse.json(
             {
               product,
               source: "openfoodfacts",
               needsCommercialData: true
             },
-            { headers: noStoreHeaders() }
+            {
+              headers: isAnonymousRequest
+                ? { "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=86400" }
+                : noStoreHeaders()
+            }
           );
         }
       }
