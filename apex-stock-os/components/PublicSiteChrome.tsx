@@ -15,17 +15,17 @@ function PublicBrand({
 }) {
   if (downloadBrand) {
     if (compact) {
-      return <DownloadLogo className="h-9 w-9 shrink-0" />;
+      return <DownloadLogo className="h-8 w-8 shrink-0" />;
     }
 
     return (
-      <div className="gs-download-brand flex items-center gap-3 text-white">
-        <DownloadLogo className="h-10 w-10 shrink-0" alt="" />
-        <div className="leading-none">
-          <div className="text-[15px] font-semibold tracking-[-0.03em]">
-            Global Stock
-          </div>
-        </div>
+      <div className="gs-download-brand flex items-center gap-2.5 text-white">
+        <span className="grid h-8 w-8 shrink-0 place-items-center">
+          <DownloadLogo className="h-7 w-7" alt="" />
+        </span>
+        <span className="text-[16px] font-bold tracking-[-0.025em]">
+          Global Stock
+        </span>
       </div>
     );
   }
@@ -44,7 +44,7 @@ export function PublicHeader({
 }) {
   return (
     <header className="gs-public-header sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
-      <div className="mx-auto flex min-h-[68px] w-full max-w-[1240px] items-center justify-between gap-6 px-5 sm:px-8">
+      <div className="mx-auto flex min-h-[68px] w-full max-w-[1180px] items-center justify-between gap-6 px-[clamp(1.125rem,4vw,2.5rem)]">
         <Link href="/download" aria-label="Global Stock" className="shrink-0">
           <span className="sm:hidden">
             <PublicBrand compact downloadBrand={downloadBrand} />
@@ -55,40 +55,22 @@ export function PublicHeader({
         </Link>
 
         <nav className="gs-download-nav hidden items-center gap-7 text-[13px] font-medium text-white/52 lg:flex">
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/download"
-          >
+          <Link className="transition-colors duration-150 hover:text-white" href="/download">
             Inicio
           </Link>
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/download#download-features"
-          >
-            Producto
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#comparativa">
+            Ventajas
           </Link>
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/download#download-feature-catalog"
-          >
-            Funcionalidades
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#funciones">
+            Funciones
           </Link>
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/download#download-sectors"
-          >
-            Para quién
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#rubros">
+            Rubros
           </Link>
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/download#download-install"
-          >
+          <Link className="transition-colors duration-150 hover:text-white" href="/download#instalar">
             Instalar
           </Link>
-          <Link
-            className="transition-colors duration-150 hover:text-white"
-            href="/support"
-          >
+          <Link className="transition-colors duration-150 hover:text-white" href="/support">
             Soporte
           </Link>
         </nav>
@@ -105,7 +87,7 @@ export function PublicHeader({
             </Link>
             <Link
               href="/"
-              className="gs-download-primary-action inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#8F0000] hover:shadow-[0_14px_34px_rgba(143,0,0,.32)]"
+              className="gs-download-primary-action inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#a60000]"
             >
               Abrir Global Stock
             </Link>
@@ -124,77 +106,85 @@ export function PublicFooter({
   downloadBrand?: boolean;
 }) {
   return (
-    <footer className="gs-public-footer border-t border-white/[0.045] bg-[#060607]">
-      <div className="mx-auto w-full max-w-[1240px] px-5 py-14 sm:px-8">
-        <div className="grid gap-12 lg:grid-cols-[1.25fr_.75fr_.75fr_.75fr]">
+    <footer className="gs-public-footer border-t border-white/[0.08] bg-[#08090c] text-white">
+      <div className="mx-auto w-full max-w-[1180px] px-[clamp(1.125rem,4vw,2.5rem)] py-12">
+        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-10">
           <div>
             <PublicBrand downloadBrand={downloadBrand} />
-            <p className="mt-5 max-w-sm text-sm leading-6 text-[#96969f]">
-              Plataforma gratuita para conectar ventas, stock, caja, compras,
-              proveedores, finanzas y gestión.
+            <p className="gs-footer-muted mt-3.5 max-w-sm text-sm leading-6 text-white/68">
+              Sistema de gestión comercial para conectar inventario, punto de venta,
+              caja diaria, compras y reportes desde el celular o la computadora.
             </p>
-            <div className="mt-6 inline-flex min-h-9 items-center gap-2 rounded-full bg-white/[0.035] px-3 text-[11px] font-medium text-white/42">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Gratis · Aplicación web disponible
-            </div>
           </div>
 
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/30">
-              Producto
+            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+              Secciones
             </p>
-            <div className="mt-4 grid gap-3 text-sm text-white/52">
-              <Link href="/download#download-features" className="transition-colors hover:text-white">
-                Producto
+            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
+              <Link href="/download#inicio" className="transition-colors hover:text-white">
+                Inicio
               </Link>
-              <Link href="/download#download-feature-catalog" className="transition-colors hover:text-white">
-                Funcionalidades
+              <Link href="/download#comparativa" className="transition-colors hover:text-white">
+                Ventajas
               </Link>
-              <Link href="/download#download-install" className="transition-colors hover:text-white">
+              <Link href="/download#funciones" className="transition-colors hover:text-white">
+                Funciones
+              </Link>
+              <Link href="/download#rubros" className="transition-colors hover:text-white">
+                Rubros
+              </Link>
+              <Link href="/download#instalar" className="transition-colors hover:text-white">
                 Instalar
               </Link>
+              <Link href="/download#preguntas" className="transition-colors hover:text-white">
+                Preguntas frecuentes
+              </Link>
             </div>
           </div>
 
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/30">
-              Compañía
+            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+              Plataforma
             </p>
-            <div className="mt-4 grid gap-3 text-sm text-white/52">
+            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
+              <Link href="/" className="transition-colors hover:text-white">
+                Crear cuenta gratis
+              </Link>
+              <Link href="/" className="transition-colors hover:text-white">
+                Iniciar sesión
+              </Link>
               <Link href="/about" className="transition-colors hover:text-white">
                 Quiénes somos
               </Link>
               <Link href="/support" className="transition-colors hover:text-white">
                 Soporte
               </Link>
-              <Link href="/download#download-sectors" className="transition-colors hover:text-white">
-                Sectores
-              </Link>
             </div>
           </div>
 
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[.16em] text-white/30">
-              Legal
+            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+              Seguridad y legal
             </p>
-            <div className="mt-4 grid gap-3 text-sm text-white/52">
+            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
+              <Link href="/legal/security" className="transition-colors hover:text-white">
+                Seguridad
+              </Link>
               <Link href="/legal/privacy" className="transition-colors hover:text-white">
                 Privacidad
               </Link>
-              <Link href="/legal/cookies" className="transition-colors hover:text-white">
-                Cookies y almacenamiento
-              </Link>
               <Link href="/legal/terms" className="transition-colors hover:text-white">
-                Términos
+                Términos de uso
               </Link>
-              <Link href="/legal/security" className="transition-colors hover:text-white">
-                Seguridad
+              <Link href="/legal/cookies" className="transition-colors hover:text-white">
+                Cookies
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-white/[0.045] pt-6 text-[11px] text-white/28 sm:flex-row sm:items-center sm:justify-between">
+        <div className="gs-footer-bottom mt-10 flex flex-col gap-2 border-t border-white/[0.08] pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
           <p>© 2026 Global Stock. Todos los derechos reservados.</p>
           <p>Buenos Aires, Argentina</p>
         </div>
@@ -213,7 +203,6 @@ export function PublicPage({
   if (downloadBrand) {
     return (
       <DownloadThemeRoot>
-        <PublicHeader downloadBrand />
         {children}
         <PublicFooter downloadBrand />
       </DownloadThemeRoot>

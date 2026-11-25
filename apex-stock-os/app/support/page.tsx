@@ -1,98 +1,52 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Mail, ShieldCheck, Wrench } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
-import { AccountDeletionCard } from "@/components/AccountDeletionCard";
 import { PublicPage } from "@/components/PublicSiteChrome";
+import { SupportInteractive } from "@/components/support/SupportInteractive";
 
 export const metadata: Metadata = {
-  title: "Soporte — Global Stock",
-  description: "Soporte, privacidad y solicitudes de cuenta de Global Stock."
+  title: "Soporte y ayuda | Global Stock",
+  description:
+    "Asistencia para configurar tu negocio, instalar Global Stock en celular o computadora y resolver dudas sobre stock, ventas y caja."
 };
 
 export default function SupportPage() {
   return (
-    <PublicPage downloadBrand>
-      <main className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-500">
-          Soporte
+    <PublicPage>
+      <main className="mx-auto w-full max-w-5xl px-5 py-14 sm:px-8 sm:py-20">
+        <Link
+          href="/download"
+          className="inline-flex items-center gap-2 text-xs font-semibold text-white/60 transition-colors hover:text-white"
+        >
+          <ArrowLeft size={14} />
+          Volver a la página principal
+        </Link>
+
+        <p className="mt-6 text-xs font-bold uppercase tracking-[0.18em] text-[#ef5350]">
+          Soporte técnico
         </p>
-        <h1 className="mt-4 max-w-4xl text-5xl font-semibold tracking-[-0.06em] sm:text-6xl">
-          Ayuda para usar, proteger o cerrar tu cuenta.
+        <h1 className="mt-3 text-[clamp(2rem,4.5vw,3.1rem)] font-semibold leading-[1.08] tracking-[-0.04em] text-white">
+          Ayuda para empezar y resolver dudas
         </h1>
-        <p className="mt-5 max-w-3xl text-base leading-8 text-white/58">
-          Global Stock es operado por Angel Joaquin Bogado desde la Provincia de
-          Buenos Aires, Argentina.
+        <p className="mt-4 max-w-2xl text-base leading-7 text-white/65">
+          Escribinos si necesitás asistencia con tu cuenta, la instalación en tus dispositivos o la configuración
+          inicial de tu inventario y caja.
         </p>
 
-        <div className="mt-10 grid gap-3 md:grid-cols-3">
-          <article className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
-            <Mail size={19} className="text-red-500" />
-            <h2 className="mt-4 text-lg font-semibold">Soporte general</h2>
-            <p className="mt-2 text-sm leading-6 text-white/52">
-              Problemas de acceso, instalación, funciones o integraciones.
-            </p>
-            <a
-              className="mt-4 inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-              href="mailto:support.globalstock@gmail.com"
-            >
-              support.globalstock@gmail.com
-            </a>
-          </article>
+        <SupportInteractive />
 
-          <article className="rounded-[26px] border border-white/10 bg-white/[0.035] p-5">
-            <ShieldCheck size={19} className="text-red-500" />
-            <h2 className="mt-4 text-lg font-semibold">
-              Privacidad y asuntos legales
-            </h2>
-            <p className="mt-2 text-sm leading-6 text-white/52">
-              Solicitudes sobre datos personales, privacidad o condiciones.
-            </p>
-            <a
-              className="mt-4 inline-flex min-h-11 items-center rounded-2xl border border-white/12 px-4 text-sm font-semibold"
-              href="mailto:support.globalstock@gmail.com"
-            >
-              support.globalstock@gmail.com
-            </a>
-          </article>
-
-          <AccountDeletionCard />
+        <div className="mt-10 flex flex-wrap gap-6 border-t border-white/10 pt-6 text-sm text-white/55">
+          <Link href="/legal/terms" className="hover:text-white">
+            Términos de uso
+          </Link>
+          <Link href="/legal/privacy" className="hover:text-white">
+            Política de privacidad
+          </Link>
+          <Link href="/legal/security" className="hover:text-white">
+            Seguridad
+          </Link>
         </div>
-
-        <section className="mt-10 rounded-[28px] border border-white/10 bg-black p-6">
-          <div className="flex items-start gap-3">
-            <Wrench size={18} className="mt-1 shrink-0 text-red-500" />
-            <div>
-              <h2 className="text-sm font-semibold">Información útil</h2>
-              <p className="mt-2 text-sm leading-7 text-white/54">
-                Para acelerar un caso de soporte, incluí el dispositivo,
-                navegador, pantalla donde ocurrió el problema y los pasos para
-                reproducirlo. No envíes contraseñas, claves API ni tokens por
-                correo.
-              </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                <Link
-                  href="/legal/privacy"
-                  className="rounded-xl border border-white/10 px-3 py-2 text-xs"
-                >
-                  Privacidad
-                </Link>
-                <Link
-                  href="/legal/security"
-                  className="rounded-xl border border-white/10 px-3 py-2 text-xs"
-                >
-                  Seguridad
-                </Link>
-                <Link
-                  href="/legal/terms"
-                  className="rounded-xl border border-white/10 px-3 py-2 text-xs"
-                >
-                  Términos
-                </Link>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
     </PublicPage>
   );
