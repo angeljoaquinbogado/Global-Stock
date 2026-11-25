@@ -78,11 +78,7 @@
 }
 
 /* Adaptación del Footer global al tema claro */
-[data-download-theme="light"] .gs-public-footer {
-  background-color: #f1eee7 !important;
-  color: #141312 !important;
-  border-top-color: rgba(20, 19, 18, 0.1) !important;
-}
+[data-download-theme="light"] 
 
 [data-download-theme="light"] .gs-public-footer .gs-download-brand {
   color: #141312 !important;

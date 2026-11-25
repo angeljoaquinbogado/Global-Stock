@@ -126,11 +126,13 @@ export function PublicSiteChrome({
         window.localStorage.getItem("gs-download-theme") ||
         window.localStorage.getItem("download-theme") ||
         document.documentElement.getAttribute("data-download-theme");
-      if (saved === "light" || saved === "dark") {
-        document.documentElement.setAttribute("data-download-theme", saved);
-      } else if (!document.documentElement.getAttribute("data-download-theme")) {
-        document.documentElement.setAttribute("data-download-theme", "dark");
-      }
+      const resolved = saved === "light" || saved === "dark" ? saved : "dark";
+      document.documentElement.setAttribute("data-download-theme", resolved);
+      document.querySelectorAll("[data-download-theme]").forEach((el) => {
+        if (el !== document.documentElement) {
+          el.setAttribute("data-download-theme", resolved);
+        }
+      });
     } catch {
       // ignore storage restrictions
     }

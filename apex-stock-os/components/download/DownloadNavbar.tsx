@@ -31,6 +31,16 @@ const DOCK_ICONS = {
   help: HelpCircle
 } as const;
 
+function applyThemeEverywhere(nextTheme: "dark" | "light") {
+  const root = document.documentElement;
+  root.setAttribute("data-download-theme", nextTheme);
+  document.querySelectorAll("[data-download-theme]").forEach((el) => {
+    if (el !== root) {
+      el.setAttribute("data-download-theme", nextTheme);
+    }
+  });
+}
+
 function DefaultBrandMark() {
   return (
     <>
@@ -74,9 +84,8 @@ function NavbarThemeButton() {
 
   useEffect(() => {
     const root = document.documentElement;
+
     const readTheme = (): "dark" | "light" => {
-      const attr = root.getAttribute("data-download-theme");
-      if (attr === "light" || attr === "dark") return attr;
       try {
         const stored =
           window.localStorage.getItem("gs-download-theme") ||
@@ -85,16 +94,19 @@ function NavbarThemeButton() {
       } catch {
         // ignore storage errors
       }
+      const attr = root.getAttribute("data-download-theme");
+      if (attr === "light" || attr === "dark") return attr;
       return "dark";
     };
 
     const initial = readTheme();
-    root.setAttribute("data-download-theme", initial);
+    applyThemeEverywhere(initial);
     setTheme(initial);
 
     const observer = new MutationObserver(() => {
       const current = root.getAttribute("data-download-theme");
       if (current === "light" || current === "dark") {
+        applyThemeEverywhere(current);
         setTheme(current);
       }
     });
@@ -106,7 +118,7 @@ function NavbarThemeButton() {
     const nextTheme: "dark" | "light" = theme === "dark" ? "light" : "dark";
     const root = document.documentElement;
     root.classList.add("gs-theme-switching");
-    root.setAttribute("data-download-theme", nextTheme);
+    applyThemeEverywhere(nextTheme);
     setTheme(nextTheme);
 
     try {

@@ -55,19 +55,20 @@ html.gs-theme-switching *::after {
 }
 
 /* ───── Footer unificado (se adapta a modo oscuro y claro en /download y en todas las rutas) ───── */
-.gs-public-footer {
+html .gs-public-footer,
+html[data-download-theme="dark"] .gs-public-footer {
   margin-top: auto;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background-color: #0b0c10;
-  color: #f5f5f7;
+  border-top: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background-color: #08090d !important;
+  color: #f5f5f7 !important;
   padding: 2.75rem 1.25rem 2.1rem;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-[data-download-theme="light"] .gs-public-footer {
-  border-top: 1px solid rgba(20, 19, 18, 0.1);
-  background-color: #f1eee7;
-  color: #141312;
+html[data-download-theme="light"] .gs-public-footer {
+  border-top: 1px solid rgba(20, 19, 18, 0.1) !important;
+  background-color: #f1eee7 !important;
+  color: #141312 !important;
 }
 
 .gs-pub-footer-inner {
