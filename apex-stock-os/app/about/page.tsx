@@ -34,7 +34,7 @@ export default function AboutPage() {
         </section>
 
         <section className="border-y border-white/10 bg-white/[0.02]">
-          <div className="mx-auto grid w-full max-w-7xl gap-3 px-5 py-16 sm:px-8 md:grid-cols-2">
+          <div className="mx-auto grid w-full max-w-7xl gap-3 px-5 pt-28 pb-16 sm:px-8 md:grid-cols-2">
             {[
               {
                 icon: Workflow,

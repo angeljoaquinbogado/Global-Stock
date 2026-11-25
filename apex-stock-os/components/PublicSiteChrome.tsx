@@ -1,254 +1,456 @@
+"use client";
+
+import { useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
-import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
+import { ArrowLeft, ArrowRight, Home, Info, LifeBuoy, Menu, ShieldCheck, X } from "lucide-react";
+import { DownloadThemeToggle } from "@/components/DownloadTheme";
+import "./public-chrome.css";
+const PUBLIC_NAV_ITEMS = [
+  { label: "Inicio", href: "/download", icon: Home },
+  { label: "Quiénes somos", href: "/about", icon: Info },
+  { label: "Soporte", href: "/support", icon: LifeBuoy },
+  { label: "Seguridad y legal", href: "/legal/security", icon: ShieldCheck }
+] as const;
 
-import { DownloadLogo } from "./DownloadLogo";
-import { DownloadThemeRoot, DownloadThemeToggle } from "./DownloadTheme";
-import { Logo } from "./Logo";
-import { PublicMobileNav } from "./PublicMobileNav";
+const LEGAL_NAV_LINKS = [
+  { label: "Seguridad", href: "/legal/security" },
+  { label: "Privacidad", href: "/legal/privacy" },
+  { label: "Términos de uso", href: "/legal/terms" },
+  { label: "Cookies", href: "/legal/cookies" },
+  { label: "Soporte", href: "/support" }
+] as const;
 
-function PublicBrand({
-  compact = false,
-  downloadBrand = false
-}: {
-  compact?: boolean;
-  downloadBrand?: boolean;
-}) {
-  if (downloadBrand) {
-    if (compact) {
-      return <DownloadLogo className="h-8 w-8 shrink-0" />;
-    }
-
-    return (
-      <div className="gs-download-brand flex items-center gap-2.5 text-white">
-        <span className="grid h-8 w-8 shrink-0 place-items-center">
-          <DownloadLogo className="h-7 w-7" alt="" />
-        </span>
-        <span className="text-[16px] font-bold tracking-[-0.025em]">
-          Global Stock
-        </span>
-      </div>
-    );
-  }
-
-  if (compact) {
-    return <Logo className="h-9 w-9 shrink-0" />;
-  }
-
-  return <Logo withWordmark className="text-white" />;
-}
-
-export function PublicHeader({
-  downloadBrand = false
-}: {
-  downloadBrand?: boolean;
-}) {
+function PublicFooter() {
   return (
-    <header className="gs-public-header sticky top-0 z-50 border-b border-white/[0.045] bg-[#070708]/[0.98]">
-      <div className="mx-auto flex min-h-[68px] w-full max-w-[1180px] items-center justify-between gap-6 px-[clamp(1.125rem,4vw,2.5rem)]">
-        <Link href="/download" aria-label="Global Stock" className="shrink-0">
-          <span className="sm:hidden">
-            <PublicBrand compact downloadBrand={downloadBrand} />
-          </span>
-          <span className="hidden sm:block">
-            <PublicBrand downloadBrand={downloadBrand} />
-          </span>
-        </Link>
-
-        <nav className="gs-download-nav hidden items-center gap-7 text-[13px] font-medium text-white/52 lg:flex">
-          <Link className="transition-colors duration-150 hover:text-white" href="/download">
-            Inicio
+    <footer
+      className="gs-public-footer"
+      style={{
+        marginTop: "auto",
+        borderTop: "1px solid var(--gs-pub-border)",
+        backgroundColor: "var(--gs-pub-bg-subtle)",
+        color: "var(--gs-pub-fg)",
+        padding: "2.5rem 1.25rem 2rem"
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          gap: "2rem"
+        }}
+      >
+        <div style={{ maxWidth: 320 }}>
+          <Link
+            href="/download"
+            className="gs-download-brand"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.55rem",
+              textDecoration: "none",
+              color: "var(--gs-pub-fg)",
+              fontWeight: 700
+            }}
+          >
+            <img
+              src="/brand/global-stock-mark.svg"
+              alt=""
+              width={24}
+              height={24}
+              aria-hidden="true"
+            />
+            <span>Global Stock</span>
           </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#comparativa">
-            Ventajas
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#funciones">
-            Funciones
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#rubros">
-            Rubros
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/download#instalar">
-            Instalar
-          </Link>
-          <Link className="transition-colors duration-150 hover:text-white" href="/support">
-            Soporte
-          </Link>
-        </nav>
-
-        <div className="flex items-center gap-2">
-          {downloadBrand ? <DownloadThemeToggle /> : null}
-
-          <div className="hidden items-center gap-2 lg:flex">
-            <Link
-              href="/"
-              className="gs-download-login-action inline-flex min-h-10 items-center justify-center rounded-xl px-3 text-xs font-semibold text-white/58 transition-colors duration-150 hover:bg-white/[0.045] hover:text-white"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              href="/"
-              className="gs-download-primary-action inline-flex min-h-10 items-center justify-center rounded-xl bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.24)] transition-[background-color,transform,box-shadow] duration-150 [transition-timing-function:var(--ease-out)] hover:bg-[#a60000]"
-            >
-              Abrir Global Stock
-            </Link>
-          </div>
-
-          <PublicMobileNav />
+          <p
+            className="gs-footer-muted"
+            style={{
+              marginTop: "0.65rem",
+              fontSize: "0.875rem",
+              color: "var(--gs-pub-fg-muted)",
+              lineHeight: 1.55
+            }}
+          >
+            Gestión comercial de stock, ventas y caja en computadora y celular.
+          </p>
         </div>
-      </div>
-    </header>
-  );
-}
 
-export function PublicFooter({
-  downloadBrand = false
-}: {
-  downloadBrand?: boolean;
-}) {
-  return (
-    <footer className="gs-public-footer border-t border-white/[0.08] bg-[#08090c] text-white">
-      <div className="mx-auto w-full max-w-[1180px] px-[clamp(1.125rem,4vw,2.5rem)] py-12">
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-10">
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "2.5rem" }}>
           <div>
-            <PublicBrand downloadBrand={downloadBrand} />
-            <p className="gs-footer-muted mt-3.5 max-w-sm text-sm leading-6 text-white/68">
-              Sistema de gestión comercial para conectar inventario, punto de venta,
-              caja diaria, compras y reportes desde el celular o la computadora.
-            </p>
-          </div>
-
-          <div>
-            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
-              Secciones
-            </p>
-            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
-              <Link href="/download#inicio" className="transition-colors hover:text-white">
-                Inicio
-              </Link>
-              <Link href="/download#comparativa" className="transition-colors hover:text-white">
-                Ventajas
-              </Link>
-              <Link href="/download#funciones" className="transition-colors hover:text-white">
-                Funciones
-              </Link>
-              <Link href="/download#rubros" className="transition-colors hover:text-white">
-                Rubros
-              </Link>
-              <Link href="/download#instalar" className="transition-colors hover:text-white">
-                Instalar
-              </Link>
-              <Link href="/download#preguntas" className="transition-colors hover:text-white">
-                Preguntas frecuentes
-              </Link>
-            </div>
-          </div>
-
-          <div>
-            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+            <p
+              className="gs-footer-heading"
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                color: "var(--gs-pub-fg-muted)",
+                margin: 0
+              }}
+            >
               Plataforma
             </p>
-            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
-              <Link href="/" className="transition-colors hover:text-white">
-                Crear cuenta gratis
-              </Link>
-              <Link href="/" className="transition-colors hover:text-white">
-                Iniciar sesión
-              </Link>
-              <Link href="/about" className="transition-colors hover:text-white">
-                Quiénes somos
-              </Link>
-              <Link href="/support" className="transition-colors hover:text-white">
-                Soporte
-              </Link>
-            </div>
+            <ul
+              className="gs-footer-links"
+              style={{
+                listStyle: "none",
+                margin: "0.75rem 0 0",
+                padding: 0,
+                display: "grid",
+                gap: "0.5rem",
+                fontSize: "0.9rem"
+              }}
+            >
+              <li>
+                <Link href="/" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Crear cuenta gratis
+                </Link>
+              </li>
+              <li>
+                <Link href="/" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Iniciar sesión
+                </Link>
+              </li>
+              <li>
+                <Link href="/about" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Quiénes somos
+                </Link>
+              </li>
+              <li>
+                <Link href="/support" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Soporte
+                </Link>
+              </li>
+            </ul>
           </div>
 
           <div>
-            <p className="gs-footer-heading text-xs font-bold uppercase tracking-[0.14em] text-white/45">
+            <p
+              className="gs-footer-heading"
+              style={{
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                color: "var(--gs-pub-fg-muted)",
+                margin: 0
+              }}
+            >
               Seguridad y legal
             </p>
-            <div className="gs-footer-links mt-3.5 grid gap-2 text-sm text-white/70">
-              <Link href="/legal/security" className="transition-colors hover:text-white">
-                Seguridad
-              </Link>
-              <Link href="/legal/privacy" className="transition-colors hover:text-white">
-                Privacidad
-              </Link>
-              <Link href="/legal/terms" className="transition-colors hover:text-white">
-                Términos de uso
-              </Link>
-              <Link href="/legal/cookies" className="transition-colors hover:text-white">
-                Cookies
-              </Link>
-            </div>
+            <ul
+              className="gs-footer-links"
+              style={{
+                listStyle: "none",
+                margin: "0.75rem 0 0",
+                padding: 0,
+                display: "grid",
+                gap: "0.5rem",
+                fontSize: "0.9rem"
+              }}
+            >
+              <li>
+                <Link href="/legal/security" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Seguridad
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/privacy" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Privacidad
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/terms" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Términos de uso
+                </Link>
+              </li>
+              <li>
+                <Link href="/legal/cookies" style={{ textDecoration: "none", color: "var(--gs-pub-fg-secondary)" }}>
+                  Cookies
+                </Link>
+              </li>
+            </ul>
           </div>
         </div>
+      </div>
 
-        <div className="gs-footer-bottom mt-10 flex flex-col gap-2 border-t border-white/[0.08] pt-6 text-xs text-white/45 sm:flex-row sm:items-center sm:justify-between">
-          <p>© 2026 Global Stock. Todos los derechos reservados.</p>
-          <p>Buenos Aires, Argentina</p>
-        </div>
+      <div
+        className="gs-footer-bottom"
+        style={{
+          maxWidth: 1180,
+          margin: "2rem auto 0",
+          paddingTop: "1.25rem",
+          borderTop: "1px solid var(--gs-pub-border)",
+          fontSize: "0.8125rem",
+          color: "var(--gs-pub-fg-muted)"
+        }}
+      >
+        © {new Date().getFullYear()} Global Stock · Todos los derechos reservados.
       </div>
     </footer>
   );
 }
 
-export function PublicPage({
+export function PublicSiteChrome({
   children,
+  hideHeader = false,
   downloadBrand = false
 }: {
   children: ReactNode;
+  hideHeader?: boolean;
   downloadBrand?: boolean;
+  language?: string;
 }) {
-  if (downloadBrand) {
+  const pathname = usePathname() || "";
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isDownloadRoute = hideHeader || downloadBrand || pathname === "/download";
+
+  useEffect(() => {
+    try {
+      const saved =
+        window.localStorage.getItem("gs-download-theme") ||
+        window.localStorage.getItem("download-theme") ||
+        document.documentElement.getAttribute("data-download-theme");
+      if (saved === "light" || saved === "dark") {
+        document.documentElement.setAttribute("data-download-theme", saved);
+      } else if (!document.documentElement.getAttribute("data-download-theme")) {
+        document.documentElement.setAttribute("data-download-theme", "dark");
+      }
+    } catch {
+      // ignore storage restrictions
+    }
+  }, [pathname]);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  if (isDownloadRoute) {
     return (
-      <DownloadThemeRoot>
+      <>
         {children}
-        <PublicFooter downloadBrand />
-      </DownloadThemeRoot>
+        <PublicFooter />
+      </>
     );
   }
 
   return (
-    <div className="gs-public-shell min-h-[100dvh] min-w-0 overflow-x-clip bg-[#070708] text-white">
-      <PublicHeader />
-      {children}
+    <div className="gs-pub-shell">
+      <div className="gs-pub-nav-wrap">
+        <header className="gs-pub-nav-pill">
+          <Link href="/download" className="gs-pub-brand" aria-label="Global Stock - Inicio">
+            <img
+              src="/brand/global-stock-mark.svg"
+              alt=""
+              width={26}
+              height={26}
+              aria-hidden="true"
+            />
+            <span>Global Stock</span>
+          </Link>
+
+          <nav className="gs-pub-links" aria-label="Secciones públicas">
+            {PUBLIC_NAV_ITEMS.map((item) => {
+              const Icon = item.icon;
+              const active =
+                item.href === "/legal/security"
+                  ? pathname.startsWith("/legal")
+                  : pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`gs-pub-link ${active ? "is-active" : ""}`}
+                >
+                  <Icon size={15} aria-hidden="true" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="gs-pub-actions">
+            <DownloadThemeToggle />
+
+            <Link href="/" className="gs-pub-cta">
+              Abrir app
+              <ArrowRight size={15} aria-hidden="true" />
+            </Link>
+
+            <button
+              type="button"
+              className="gs-pub-burger"
+              aria-label={mobileOpen ? "Cerrar menú" : "Abrir menú"}
+              aria-expanded={mobileOpen}
+              onClick={() => setMobileOpen((prev) => !prev)}
+            >
+              {mobileOpen ? <X size={19} aria-hidden="true" /> : <Menu size={19} aria-hidden="true" />}
+            </button>
+          </div>
+        </header>
+
+        {mobileOpen && (
+          <>
+            <button
+              type="button"
+              className="gs-pub-backdrop"
+              aria-label="Cerrar menú lateral"
+              onClick={() => setMobileOpen(false)}
+            />
+            <aside className="gs-pub-drawer" aria-label="Menú de navegación">
+              <div className="gs-pub-drawer-head">
+                <Link href="/download" className="gs-pub-brand" onClick={() => setMobileOpen(false)}>
+                  <img
+                    src="/brand/global-stock-mark.svg"
+                    alt=""
+                    width={24}
+                    height={24}
+                    aria-hidden="true"
+                  />
+                  <span>Global Stock</span>
+                </Link>
+                <button
+                  type="button"
+                  className="gs-pub-burger"
+                  aria-label="Cerrar menú"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <X size={18} aria-hidden="true" />
+                </button>
+              </div>
+
+              <nav className="gs-pub-drawer-links" aria-label="Páginas">
+                {PUBLIC_NAV_ITEMS.map((item) => {
+                  const Icon = item.icon;
+                  const active =
+                    item.href === "/legal/security"
+                      ? pathname.startsWith("/legal")
+                      : pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`gs-pub-drawer-link ${active ? "is-active" : ""}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <Icon size={17} aria-hidden="true" />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+
+              <div className="gs-pub-drawer-theme">
+                <span>Apariencia (Claro / Oscuro)</span>
+                <DownloadThemeToggle />
+              </div>
+
+              <Link href="/" className="gs-pub-cta" style={{ display: "inline-flex", width: "100%" }}>
+                Crear cuenta o iniciar sesión
+                <ArrowRight size={15} aria-hidden="true" />
+              </Link>
+            </aside>
+          </>
+        )}
+      </div>
+
+      <div style={{ flex: 1 }}>{children}</div>
+
       <PublicFooter />
     </div>
   );
 }
 
-export function LegalArticle({
-  eyebrow,
-  title,
-  intro,
-  children
+export function PublicPage({
+  children,
+  hideHeader = false,
+  downloadBrand = false,
+  language,
+  className
 }: {
-  eyebrow: string;
-  title: string;
-  intro: string;
   children: ReactNode;
+  hideHeader?: boolean;
+  downloadBrand?: boolean;
+  language?: string;
+  className?: string;
 }) {
   return (
-    <PublicPage>
-      <main className="mx-auto w-full max-w-4xl px-5 py-14 sm:px-8 sm:py-20">
-        <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#8F0000]">
-          {eyebrow}
-        </p>
-        <h1 className="mt-4 max-w-full text-[clamp(2.25rem,5vw,3.75rem)] font-semibold leading-[1.02] tracking-[-0.055em]">
-          {title}
-        </h1>
-        <p className="mt-5 max-w-3xl text-base leading-7 text-white/62">
-          {intro}
-        </p>
-        <p className="mt-4 text-xs text-white/38">
-          Última revisión de los documentos: 12 de octubre de 2026.
-        </p>
+    <PublicSiteChrome hideHeader={hideHeader} downloadBrand={downloadBrand} language={language}>
+      {className ? <div className={className}>{children}</div> : children}
+    </PublicSiteChrome>
+  );
+}
 
-        <article className="mt-12 space-y-10 text-sm leading-7 text-white/72 [&_h2]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:tracking-[-0.03em] [&_h2]:text-white [&_strong]:font-semibold [&_strong]:text-white">
-          {children}
+export function LegalArticle({
+  title,
+  eyebrow,
+  kicker,
+  badge,
+  updated,
+  updatedAt,
+  lastUpdated,
+  intro,
+  summary,
+  description,
+  lead,
+  backHref = "/legal",
+  backLabel = "Volver al centro legal",
+  language,
+  children
+}: {
+  title?: ReactNode;
+  eyebrow?: ReactNode;
+  kicker?: ReactNode;
+  badge?: ReactNode;
+  updated?: ReactNode;
+  updatedAt?: ReactNode;
+  lastUpdated?: ReactNode;
+  intro?: ReactNode;
+  summary?: ReactNode;
+  description?: ReactNode;
+  lead?: ReactNode;
+  backHref?: string;
+  backLabel?: string;
+  language?: string;
+  children?: ReactNode;
+}) {
+  const topKicker = eyebrow ?? kicker ?? badge ?? "Seguridad y legal";
+  const updatedText = updated ?? updatedAt ?? lastUpdated;
+  const leadText = intro ?? summary ?? description ?? lead;
+
+  return (
+    <PublicSiteChrome language={language}>
+      <main className="gs-legal-wrap">
+        <Link href={backHref} className="gs-legal-back">
+          <ArrowLeft size={15} aria-hidden="true" />
+          <span>{backLabel}</span>
+        </Link>
+
+        <article className="gs-legal-card">
+          <header className="gs-legal-header">
+            <div className="gs-legal-meta-row">
+              <span className="gs-sup-kicker">{topKicker}</span>
+              {updatedText && <span className="gs-legal-updated">{updatedText}</span>}
+            </div>
+            {title && <h1 className="gs-legal-title">{title}</h1>}
+            {leadText && <p className="gs-legal-summary">{leadText}</p>}
+          </header>
+
+          <div className="gs-legal-body">{children}</div>
+
+          <nav className="gs-legal-related" aria-label="Documentos legales relacionados">
+            {LEGAL_NAV_LINKS.map((item) => (
+              <Link key={item.href} href={item.href}>
+                {item.label}
+              </Link>
+            ))}
+          </nav>
         </article>
       </main>
-    </PublicPage>
+    </PublicSiteChrome>
   );
 }

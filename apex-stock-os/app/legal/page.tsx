@@ -40,7 +40,7 @@ const cards = [
 export default function LegalHubPage() {
   return (
     <PublicPage>
-      <main className="mx-auto w-full max-w-6xl px-5 py-16 sm:px-8 sm:py-20">
+      <main className="mx-auto w-full max-w-6xl px-5 pt-28 pb-16 sm:px-8 sm:py-20">
         <p className="text-xs font-bold uppercase tracking-[0.18em] text-red-500">
           Centro legal
         </p>
