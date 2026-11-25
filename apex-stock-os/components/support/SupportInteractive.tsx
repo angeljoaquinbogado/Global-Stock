@@ -127,7 +127,6 @@ export function SupportInteractive() {
 
   return (
     <div className="gs-sup-layout">
-      {/* Dos columnas simétricas de igual altura */}
       <div className="gs-sup-grid">
         {/* Tarjeta Izquierda: Canal directo */}
         <article className="gs-sup-glass-card gs-sup-anim-1">
@@ -269,7 +268,7 @@ export function SupportInteractive() {
         </article>
       </div>
 
-      {/* Franja inferior simétrica de 3 columnas: Para responderte más rápido */}
+      {/* Franja inferior simétrica de 3 columnas */}
       <section className="gs-sup-tips-section gs-sup-anim-3" aria-labelledby="sup-tips-heading">
         <div className="gs-sup-tips-head">
           <span className="gs-sup-eyebrow">Guía rápida</span>

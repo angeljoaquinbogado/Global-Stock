@@ -81,6 +81,34 @@ export function DownloadNavbar({
   const [activeHref, setActiveHref] = useState<string>(isDownloadPage ? "#inicio" : "");
   const [hoveredHref, setHoveredHref] = useState<string | null>(null);
 
+  // Evita lag de repintado al alternar tema claro/oscuro desactivando transiciones durante 1 frame
+  useEffect(() => {
+    const root = document.documentElement;
+    let rafId = 0;
+
+    const observer = new MutationObserver((mutations) => {
+      for (const m of mutations) {
+        if (m.attributeName === "data-download-theme") {
+          root.classList.add("gs-theme-switching");
+          cancelAnimationFrame(rafId);
+          rafId = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              root.classList.remove("gs-theme-switching");
+            });
+          });
+          break;
+        }
+      }
+    });
+
+    observer.observe(root, { attributes: true, attributeFilter: ["data-download-theme"] });
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(rafId);
+      root.classList.remove("gs-theme-switching");
+    };
+  }, []);
+
   useEffect(() => {
     if (!isDownloadPage) {
       setActiveHref("");
@@ -95,7 +123,9 @@ export function DownloadNavbar({
 
     if (!elements.length) return;
 
+    let ticking = false;
     const updateActiveSection = () => {
+      ticking = false;
       const scrollMarker = window.scrollY + window.innerHeight * 0.34;
       let currentId = ids[0];
 
@@ -109,15 +139,22 @@ export function DownloadNavbar({
         currentId = ids[ids.length - 1];
       }
 
-      setActiveHref(`#${currentId}`);
+      setActiveHref((prev) => (prev === `#${currentId}` ? prev : `#${currentId}`));
+    };
+
+    const onScrollOrResize = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateActiveSection);
+      }
     };
 
     updateActiveSection();
-    window.addEventListener("scroll", updateActiveSection, { passive: true });
-    window.addEventListener("resize", updateActiveSection, { passive: true });
+    window.addEventListener("scroll", onScrollOrResize, { passive: true });
+    window.addEventListener("resize", onScrollOrResize, { passive: true });
     return () => {
-      window.removeEventListener("scroll", updateActiveSection);
-      window.removeEventListener("resize", updateActiveSection);
+      window.removeEventListener("scroll", onScrollOrResize);
+      window.removeEventListener("resize", onScrollOrResize);
     };
   }, [isDownloadPage]);
 

@@ -184,6 +184,36 @@ export default function TermsPage() {
           </a>.
         </p>
       </section>
+    
+      <h2>15. Deslinde fiscal, contable y ante ARCA (ex-AFIP)</h2>
+      <p>
+        Global Stock es una herramienta de software de gestión administrativa y operativa. No
+        constituye un estudio contable, asesoría impositiva ni un canal oficial de la Agencia de
+        Recaudación y Control Aduanero (ARCA, ex-AFIP) ni de organismos provinciales o municipales.
+        La configuración de alícuotas de IVA, Ingresos Brutos, percepciones, puntos de venta,
+        condición frente al impuesto y validez de comprobantes fiscales es responsabilidad exclusiva
+        del titular del negocio y de su profesional contable matriculado.
+      </p>
+
+      <h2>16. Naturaleza orientativa de la Inteligencia Artificial</h2>
+      <p>
+        Las respuestas, resúmenes, alertas de reposición o proyecciones generadas mediante funciones
+        de Inteligencia Artificial son resultados probabilísticos de apoyo operativo. Pueden contener
+        imprecisiones y nunca deben tomarse como única fuente para decisiones financieras,
+        impositivas, laborales o de fijación de precios sin revisión humana previa del usuario.
+      </p>
+
+      <h2>17. Gratuidad de la beta, indemnidad y alcance de responsabilidad</h2>
+      <p>
+        Durante la etapa beta gratuita en Argentina no se cobran suscripciones ni se activan cargos
+        automáticos sin aceptación previa y expresa del usuario. El usuario se compromete a
+        mantener indemne al operador frente a reclamos de terceros derivados de la carga de datos sin
+        autorización, comercialización de productos ilícitos, incumplimientos tributarios o uso
+        indebido de credenciales externas. En la máxima medida permitida por el Código Civil y
+        Comercial de la Nación y la Ley N.° 24.240, la responsabilidad total del operador por daños
+        directos comprobados no excederá el monto efectivamente abonado por el usuario en los últimos
+        doce (12) meses (o cero pesos argentinos durante el uso gratuito).
+      </p>
     </LegalArticle>
   );
 }

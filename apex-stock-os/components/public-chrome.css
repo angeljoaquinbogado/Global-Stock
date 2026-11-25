@@ -1,8 +1,58 @@
+/* ───── Optimización GPU 60 FPS para Dock y cambio de tema ───── */
+html.gs-theme-switching *,
+html.gs-theme-switching *::before,
+html.gs-theme-switching *::after {
+  transition: none !important;
+  animation: none !important;
+}
+
+.dl-nav-wrap {
+  contain: layout style;
+  transform: translateZ(0);
+}
+
+.dl-nav-pill {
+  -webkit-backdrop-filter: blur(16px) saturate(150%) !important;
+  backdrop-filter: blur(16px) saturate(150%) !important;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Evita desenfoques anidados dentro de la barra Dock para mantener 60 FPS en GPU integrada */
+.dl-dock-nav,
+.dl-dock-item {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+
+.dl-dock-item {
+  transition: background-color 0.16s ease, color 0.16s ease, transform 0.16s ease !important;
+}
+
+.dl-dock-label-clip {
+  display: inline-grid;
+  grid-template-columns: 0fr;
+  opacity: 0;
+  transition: grid-template-columns 0.2s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.16s ease !important;
+}
+
+.dl-dock-item.is-expanded .dl-dock-label-clip,
+.dl-dock-item:hover .dl-dock-label-clip,
+.dl-dock-item:focus-visible .dl-dock-label-clip {
+  grid-template-columns: 1fr;
+  opacity: 1;
+}
+
+.dl-dock-expand-label {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
 /* ───── Tokens unificados (soporta DownloadNavbar + todas las secciones públicas) ───── */
 .gs-pub-shell {
   --dl-bg: #faf9f6;
   --dl-bg-elevated: #ffffff;
-  --dl-bg-subtle: rgba(241, 238, 231, 0.72);
+  --dl-bg-subtle: rgba(241, 238, 231, 0.78);
   --dl-bg-solid-subtle: #f1eee7;
   --dl-fg: #141312;
   --dl-fg-secondary: #383530;
@@ -15,7 +65,7 @@
   --dl-accent-dot: #b91c1c;
   --dl-accent-soft: rgba(143, 0, 0, 0.08);
   --dl-accent-border: rgba(143, 0, 0, 0.28);
-  --dl-glass: rgba(255, 255, 255, 0.86);
+  --dl-glass: rgba(255, 255, 255, 0.9);
   --dl-glass-border: rgba(20, 19, 18, 0.12);
   --dl-shadow-sm: 0 2px 10px rgba(20, 19, 18, 0.045);
   --dl-shadow-md: 0 16px 40px -18px rgba(20, 19, 18, 0.12);
@@ -27,7 +77,7 @@
 
   --gs-pub-bg: #faf9f6;
   --gs-pub-bg-subtle: #f1eee7;
-  --gs-pub-surface: rgba(255, 255, 255, 0.84);
+  --gs-pub-surface: rgba(255, 255, 255, 0.88);
   --gs-pub-surface-solid: #ffffff;
   --gs-pub-fg: #121110;
   --gs-pub-fg-secondary: #2e2c28;
@@ -41,7 +91,7 @@
   --gs-pub-accent-border: rgba(143, 0, 0, 0.34);
   --gs-pub-ok-text: #116436;
   --gs-pub-ok-soft: rgba(17, 100, 54, 0.12);
-  --gs-pub-glass: rgba(255, 255, 255, 0.88);
+  --gs-pub-glass: rgba(255, 255, 255, 0.92);
   --gs-pub-glass-border: rgba(20, 19, 18, 0.13);
   --gs-pub-shadow-sm: 0 4px 14px rgba(20, 19, 18, 0.05);
   --gs-pub-shadow-md: 0 20px 46px -18px rgba(20, 19, 18, 0.14);
@@ -59,13 +109,12 @@
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: clip;
-  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 [data-download-theme="dark"] .gs-pub-shell {
   --dl-bg: #07080b;
   --dl-bg-elevated: #101217;
-  --dl-bg-subtle: rgba(20, 23, 30, 0.78);
+  --dl-bg-subtle: rgba(20, 23, 30, 0.84);
   --dl-bg-solid-subtle: #161922;
   --dl-fg: #f5f5f7;
   --dl-fg-secondary: #cfd2db;
@@ -78,7 +127,7 @@
   --dl-accent-dot: #ef4444;
   --dl-accent-soft: rgba(143, 0, 0, 0.24);
   --dl-accent-border: rgba(248, 113, 113, 0.38);
-  --dl-glass: rgba(15, 17, 24, 0.86);
+  --dl-glass: rgba(15, 17, 24, 0.9);
   --dl-glass-border: rgba(255, 255, 255, 0.14);
   --dl-shadow-sm: 0 2px 12px rgba(0, 0, 0, 0.42);
   --dl-shadow-md: 0 20px 48px -20px rgba(0, 0, 0, 0.8);
@@ -86,7 +135,7 @@
 
   --gs-pub-bg: #070709;
   --gs-pub-bg-subtle: #111216;
-  --gs-pub-surface: rgba(16, 17, 22, 0.82);
+  --gs-pub-surface: rgba(16, 17, 22, 0.88);
   --gs-pub-surface-solid: #13141a;
   --gs-pub-fg: #ffffff;
   --gs-pub-fg-secondary: #e2e4ea;
@@ -100,7 +149,7 @@
   --gs-pub-accent-border: rgba(239, 68, 68, 0.48);
   --gs-pub-ok-text: #4ade80;
   --gs-pub-ok-soft: rgba(74, 222, 128, 0.16);
-  --gs-pub-glass: rgba(15, 16, 21, 0.88);
+  --gs-pub-glass: rgba(15, 16, 21, 0.92);
   --gs-pub-glass-border: rgba(255, 255, 255, 0.16);
   --gs-pub-shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.45);
   --gs-pub-shadow-md: 0 22px 52px -20px rgba(0, 0, 0, 0.85);
@@ -116,7 +165,7 @@
 .gs-pub-footer-link {
   text-decoration: none;
   color: var(--gs-pub-fg-secondary);
-  transition: color 0.18s ease, transform 0.18s ease;
+  transition: color 0.16s ease, transform 0.16s ease;
   display: inline-block;
 }
 
@@ -132,8 +181,6 @@
 [data-download-theme="light"] .gs-pub-shell [class*="bg-neutral-9"],
 [data-download-theme="light"] .gs-pub-shell [class*="bg-black"] {
   background-color: var(--gs-pub-surface) !important;
-  -webkit-backdrop-filter: blur(22px) saturate(175%);
-  backdrop-filter: blur(22px) saturate(175%);
   border-color: var(--gs-pub-border-strong) !important;
   box-shadow: var(--gs-pub-shadow-sm);
 }
@@ -149,28 +196,28 @@
   color: var(--gs-pub-fg-secondary) !important;
 }
 
-/* ───── Animaciones de entrada ───── */
+/* ───── Animaciones GPU ligeras ───── */
 @keyframes gsRiseIn {
   from {
     opacity: 0;
-    transform: translateY(16px);
+    transform: translate3d(0, 14px, 0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translate3d(0, 0, 0);
   }
 }
 
 .gs-sup-anim-1 {
-  animation: gsRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: gsRiseIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .gs-sup-anim-2 {
-  animation: gsRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+  animation: gsRiseIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.06s both;
 }
 
 .gs-sup-anim-3 {
-  animation: gsRiseIn 0.5s cubic-bezier(0.22, 1, 0.36, 1) 0.16s both;
+  animation: gsRiseIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both;
 }
 
 /* ───── Página de Soporte Liquid Glass Simétrica ───── */
@@ -184,7 +231,7 @@
 .gs-sup-hero {
   max-width: 680px;
   margin-bottom: clamp(1.9rem, 3.5vw, 2.6rem);
-  animation: gsRiseIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: gsRiseIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .gs-sup-kicker {
@@ -194,8 +241,6 @@
   padding: 0.36rem 0.95rem;
   border-radius: 999px;
   background: var(--gs-pub-surface);
-  -webkit-backdrop-filter: blur(18px) saturate(170%);
-  backdrop-filter: blur(18px) saturate(170%);
   border: 1px solid var(--gs-pub-accent-border);
   color: var(--gs-pub-accent-text);
   font-size: 0.8125rem;
@@ -233,7 +278,6 @@
   gap: 1.35rem;
 }
 
-/* Grid 50 / 50 estrictamente simétrico */
 .gs-sup-grid {
   display: grid;
   gap: 1.35rem;
@@ -253,8 +297,8 @@
   padding: clamp(1.4rem, 3vw, 2rem);
   border-radius: 26px;
   background: var(--gs-pub-surface);
-  -webkit-backdrop-filter: blur(26px) saturate(185%);
-  backdrop-filter: blur(26px) saturate(185%);
+  -webkit-backdrop-filter: blur(16px) saturate(155%);
+  backdrop-filter: blur(16px) saturate(155%);
   border: 1px solid var(--gs-pub-glass-border);
   box-shadow: var(--gs-pub-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   display: flex;
@@ -262,13 +306,13 @@
   justify-content: space-between;
   gap: 1.35rem;
   overflow: hidden;
+  transform: translateZ(0);
   transition:
-    transform 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    border-color 0.32s ease,
-    box-shadow 0.32s ease;
+    transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
 }
 
-/* Destello especular diagonal al pasar el cursor por las tarjetas */
 .gs-sup-glass-card::before {
   content: "";
   position: absolute;
@@ -281,12 +325,12 @@
     rgba(239, 68, 68, 0.09) 54%,
     transparent 80%
   );
-  transform: translateX(-120%);
-  transition: transform 0.75s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(-120%, 0, 0);
+  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .gs-sup-glass-card:hover {
-  transform: translateY(-3px);
+  transform: translate3d(0, -3px, 0);
   border-color: var(--gs-pub-accent-border);
   box-shadow:
     var(--gs-pub-shadow-lg),
@@ -295,7 +339,7 @@
 }
 
 .gs-sup-glass-card:hover::before {
-  transform: translateX(120%);
+  transform: translate3d(120%, 0, 0);
 }
 
 .gs-sup-card-top,
@@ -338,7 +382,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  transition: border-color 0.22s ease, box-shadow 0.22s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .gs-sup-mail-pill:hover {
@@ -375,9 +419,9 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    border-color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
+    border-color 0.18s ease,
+    background-color 0.18s ease,
+    box-shadow 0.18s ease,
     transform 0.16s ease;
 }
 
@@ -385,7 +429,7 @@
   border-color: var(--gs-pub-accent-border);
   background: var(--gs-pub-accent-soft);
   box-shadow: 0 6px 18px -6px rgba(143, 0, 0, 0.5);
-  transform: translateY(-1px);
+  transform: translate3d(0, -1px, 0);
 }
 
 .gs-sup-copy-btn:active {
@@ -430,26 +474,26 @@
   cursor: pointer;
   box-shadow: var(--gs-pub-shadow-sm);
   transition:
-    border-color 0.22s ease,
-    background-color 0.22s ease,
-    box-shadow 0.22s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
     transform 0.18s ease;
 }
 
 .gs-sup-sec-btn svg {
   color: var(--gs-pub-accent-text);
-  transition: transform 0.22s ease;
+  transition: transform 0.2s ease;
 }
 
 .gs-sup-sec-btn:hover {
   border-color: var(--gs-pub-accent-border);
   background: var(--gs-pub-accent-soft);
   box-shadow: 0 10px 24px -10px rgba(143, 0, 0, 0.55);
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
 }
 
 .gs-sup-sec-btn:hover svg {
-  transform: scale(1.14) translateX(1px);
+  transform: scale(1.12);
 }
 
 .gs-sup-sec-btn:active {
@@ -461,8 +505,8 @@
   padding: clamp(1.35rem, 3vw, 1.85rem);
   border-radius: 26px;
   background: var(--gs-pub-surface);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(155%);
+  backdrop-filter: blur(16px) saturate(155%);
   border: 1px solid var(--gs-pub-glass-border);
   box-shadow: var(--gs-pub-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
@@ -496,14 +540,14 @@
   background: var(--gs-pub-bg-subtle);
   border: 1px solid var(--gs-pub-border);
   transition:
-    border-color 0.22s ease,
-    transform 0.22s ease,
-    box-shadow 0.22s ease;
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .gs-sup-tip-card:hover {
   border-color: var(--gs-pub-accent-border);
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
   box-shadow: 0 12px 26px -14px rgba(143, 0, 0, 0.45);
 }
 
@@ -566,10 +610,9 @@
   text-align: left;
   cursor: pointer;
   transition:
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    background-color 0.22s ease,
-    transform 0.16s ease;
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease;
 }
 
 .gs-lg-select-trigger:hover,
@@ -582,7 +625,7 @@
 .gs-lg-select-chevron {
   color: var(--gs-pub-accent-text);
   flex-shrink: 0;
-  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .gs-lg-select-trigger[aria-expanded="true"] .gs-lg-select-chevron {
@@ -600,23 +643,23 @@
   list-style: none;
   border-radius: 18px;
   background: var(--gs-pub-glass);
-  -webkit-backdrop-filter: blur(28px) saturate(200%);
-  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(18px) saturate(165%);
+  backdrop-filter: blur(18px) saturate(165%);
   border: 1px solid var(--gs-pub-accent-border);
   box-shadow: var(--gs-pub-shadow-lg), 0 18px 40px -16px rgba(143, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.16);
   display: grid;
   gap: 4px;
-  animation: gsGlassDropIn 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: gsGlassDropIn 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes gsGlassDropIn {
   from {
     opacity: 0;
-    transform: translateY(-6px) scale(0.985);
+    transform: translate3d(0, -6px, 0) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate3d(0, 0, 0) scale(1);
   }
 }
 
@@ -633,15 +676,15 @@
   color: var(--gs-pub-fg-secondary);
   cursor: pointer;
   transition:
-    background-color 0.18s ease,
-    color 0.18s ease,
-    transform 0.18s ease;
+    background-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
 }
 
 .gs-lg-select-option:hover {
   background: var(--gs-pub-accent-soft);
   color: var(--gs-pub-fg);
-  transform: translateX(4px);
+  transform: translate3d(4px, 0, 0);
 }
 
 .gs-lg-select-option.is-selected {
@@ -664,9 +707,9 @@
   line-height: 1.52;
   resize: vertical;
   transition:
-    border-color 0.22s ease,
-    box-shadow 0.22s ease,
-    background-color 0.22s ease;
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
 }
 
 .gs-sup-textarea::placeholder {
@@ -712,9 +755,9 @@
     0 12px 28px -10px rgba(143, 0, 0, 0.82),
     inset 0 1px 0 rgba(255, 255, 255, 0.22);
   transition:
-    transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.25s ease,
-    filter 0.2s ease;
+    transform 0.18s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.2s ease,
+    filter 0.18s ease;
 }
 
 .gs-sup-submit-btn::after {
@@ -722,17 +765,17 @@
   position: absolute;
   inset: 0;
   background: linear-gradient(110deg, transparent 25%, rgba(255, 255, 255, 0.25) 50%, transparent 75%);
-  transform: translateX(-130%);
-  transition: transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(-130%, 0, 0);
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .gs-sup-submit-btn svg {
-  transition: transform 0.22s ease;
+  transition: transform 0.2s ease;
 }
 
 .gs-sup-submit-btn:hover {
   filter: brightness(1.08);
-  transform: translateY(-2px);
+  transform: translate3d(0, -2px, 0);
   box-shadow:
     0 16px 36px -10px rgba(185, 28, 28, 0.9),
     0 0 0 3px var(--gs-pub-accent-soft),
@@ -740,11 +783,11 @@
 }
 
 .gs-sup-submit-btn:hover::after {
-  transform: translateX(130%);
+  transform: translate3d(130%, 0, 0);
 }
 
 .gs-sup-submit-btn:hover svg {
-  transform: translate(2px, -2px);
+  transform: translate3d(2px, -2px, 0);
 }
 
 .gs-sup-submit-btn:active {
@@ -780,21 +823,19 @@
   padding: 0.38rem 1rem;
   border-radius: 999px;
   background: var(--gs-pub-surface);
-  -webkit-backdrop-filter: blur(18px);
-  backdrop-filter: blur(18px);
   border: 1px solid var(--gs-pub-border-strong);
   color: var(--gs-pub-fg-secondary);
   font-size: 0.8125rem;
   font-weight: 600;
   text-decoration: none;
   margin-bottom: 1.15rem;
-  transition: border-color 0.2s ease, color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .gs-legal-back:hover {
   border-color: var(--gs-pub-accent-border);
   color: var(--gs-pub-fg);
-  transform: translateX(-2px);
+  transform: translate3d(-2px, 0, 0);
   box-shadow: 0 8px 20px -10px rgba(143, 0, 0, 0.45);
 }
 
@@ -802,11 +843,11 @@
   padding: clamp(1.6rem, 4vw, 2.85rem);
   border-radius: 26px;
   background: var(--gs-pub-surface);
-  -webkit-backdrop-filter: blur(26px) saturate(185%);
-  backdrop-filter: blur(26px) saturate(185%);
+  -webkit-backdrop-filter: blur(16px) saturate(155%);
+  backdrop-filter: blur(16px) saturate(155%);
   border: 1px solid var(--gs-pub-glass-border);
   box-shadow: var(--gs-pub-shadow-md), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  animation: gsRiseIn 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: gsRiseIn 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .gs-legal-header {
@@ -911,12 +952,12 @@
   font-weight: 600;
   color: var(--gs-pub-fg);
   text-decoration: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.18s ease, box-shadow 0.2s ease;
+  transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .gs-legal-related a:hover {
   border-color: var(--gs-pub-accent-border);
   background: var(--gs-pub-accent-soft);
-  transform: translateY(-1px);
+  transform: translate3d(0, -1px, 0);
   box-shadow: 0 8px 18px -10px rgba(143, 0, 0, 0.5);
 }

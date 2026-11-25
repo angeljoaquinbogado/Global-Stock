@@ -249,6 +249,21 @@ export default function PrivacyPage() {
           comunicarse de forma razonable cuando corresponda.
         </p>
       </section>
+    
+      <h2>15. Derechos ARCO y autoridad de control en Argentina (Ley 25.326)</h2>
+      <p>
+        Conforme a la Ley Nacional N.° 25.326 de Protección de los Datos Personales de la República
+        Argentina, toda persona titular de datos puede ejercer gratuitamente sus derechos de acceso,
+        rectificación, actualización y supresión enviando una solicitud a{" "}
+        <a href="mailto:support.globalstock@gmail.com">support.globalstock@gmail.com</a> desde el
+        correo registrado en la cuenta.
+      </p>
+      <p>
+        La <strong>Agencia de Acceso a la Información Pública (AAIP)</strong>, en su carácter de
+        Órgano de Control de la Ley N.° 25.326, tiene la atribución de atender las denuncias y
+        reclamos que interpongan quienes resulten afectados en sus derechos por incumplimiento de
+        las normas vigentes en materia de protección de datos personales.
+      </p>
     </LegalArticle>
   );
 }
