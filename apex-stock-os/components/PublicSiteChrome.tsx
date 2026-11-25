@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { DownloadNavbar } from "@/components/download/DownloadNavbar";
+import { NAV_LINKS } from "@/components/download/content";
 import "@/app/download/download.css";
 import "./public-chrome.css";
 
@@ -16,92 +17,122 @@ const LEGAL_NAV_LINKS = [
 ] as const;
 
 function PublicFooter() {
+  const pathname = usePathname() || "";
+  const isDownloadPage = pathname === "/download";
+
+  function resolveSectionHref(hashHref: string) {
+    return isDownloadPage ? hashHref : `/download${hashHref}`;
+  }
+
   return (
     <footer className="gs-public-footer">
       <div className="gs-pub-footer-inner">
-        <div className="gs-pub-footer-brand-col">
-          <Link href="/download" className="gs-pub-footer-brand">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="2" y="2" width="20" height="20" rx="6" fill="#8F0000" />
-              <path
-                d="M7 15.5L10.5 12L13 14.5L17 9.5"
-                stroke="#FFFFFF"
-                strokeWidth="2.1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M14.2 9.5H17V12.3"
-                stroke="#FFFFFF"
-                strokeWidth="2.1"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-            <span>Global Stock</span>
-          </Link>
+        {/* Columna 1: Logo y breve explicación */}
+        <div className="gs-pub-footer-col gs-pub-footer-brand-col">
+          <div className="gs-pub-footer-head-slot">
+            <Link href={isDownloadPage ? "#inicio" : "/download"} className="gs-pub-footer-brand">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="2" y="2" width="20" height="20" rx="6" fill="#8F0000" />
+                <path
+                  d="M7 15.5L10.5 12L13 14.5L17 9.5"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M14.2 9.5H17V12.3"
+                  stroke="#FFFFFF"
+                  strokeWidth="2.1"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <span>Global Stock</span>
+            </Link>
+          </div>
           <p className="gs-pub-footer-desc">
             Gestión comercial de stock, ventas y caja en computadora y celular.
           </p>
         </div>
 
-        <div className="gs-pub-footer-cols">
-          <div>
-            <p className="gs-pub-footer-heading">Plataforma</p>
-            <ul className="gs-pub-footer-list">
-              <li>
-                <Link href="/" className="gs-pub-footer-link">
-                  Crear cuenta gratis
-                </Link>
-              </li>
-              <li>
-                <Link href="/" className="gs-pub-footer-link">
-                  Iniciar sesión
-                </Link>
-              </li>
-              <li>
-                <Link href="/about" className="gs-pub-footer-link">
-                  Quiénes somos
-                </Link>
-              </li>
-              <li>
-                <Link href="/support" className="gs-pub-footer-link">
-                  Soporte
-                </Link>
-              </li>
-            </ul>
+        {/* Columna 2: Secciones (las mismas de la barra de navegación) */}
+        <div className="gs-pub-footer-col">
+          <div className="gs-pub-footer-head-slot">
+            <p className="gs-pub-footer-heading">Secciones</p>
           </div>
+          <ul className="gs-pub-footer-list">
+            {NAV_LINKS.map((item) => (
+              <li key={item.href}>
+                <Link href={resolveSectionHref(item.href)} className="gs-pub-footer-link">
+                  {item.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
 
-          <div>
-            <p className="gs-pub-footer-heading">Seguridad y legal</p>
-            <ul className="gs-pub-footer-list">
-              <li>
-                <Link href="/legal/security" className="gs-pub-footer-link">
-                  Seguridad
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/privacy" className="gs-pub-footer-link">
-                  Privacidad
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/terms" className="gs-pub-footer-link">
-                  Términos de uso
-                </Link>
-              </li>
-              <li>
-                <Link href="/legal/cookies" className="gs-pub-footer-link">
-                  Cookies
-                </Link>
-              </li>
-            </ul>
+        {/* Columna 3: Acceso y contacto */}
+        <div className="gs-pub-footer-col">
+          <div className="gs-pub-footer-head-slot">
+            <p className="gs-pub-footer-heading">Acceso y contacto</p>
           </div>
+          <ul className="gs-pub-footer-list">
+            <li>
+              <Link href="/" className="gs-pub-footer-link">
+                Crear cuenta gratis
+              </Link>
+            </li>
+            <li>
+              <Link href="/" className="gs-pub-footer-link">
+                Iniciar sesión
+              </Link>
+            </li>
+            <li>
+              <Link href="/about" className="gs-pub-footer-link">
+                Quiénes somos
+              </Link>
+            </li>
+            <li>
+              <Link href="/support" className="gs-pub-footer-link">
+                Soporte y contacto
+              </Link>
+            </li>
+          </ul>
+        </div>
+
+        {/* Columna 4: Seguridad y legal */}
+        <div className="gs-pub-footer-col">
+          <div className="gs-pub-footer-head-slot">
+            <p className="gs-pub-footer-heading">Seguridad y legal</p>
+          </div>
+          <ul className="gs-pub-footer-list">
+            <li>
+              <Link href="/legal/security" className="gs-pub-footer-link">
+                Seguridad
+              </Link>
+            </li>
+            <li>
+              <Link href="/legal/privacy" className="gs-pub-footer-link">
+                Privacidad
+              </Link>
+            </li>
+            <li>
+              <Link href="/legal/terms" className="gs-pub-footer-link">
+                Términos de uso
+              </Link>
+            </li>
+            <li>
+              <Link href="/legal/cookies" className="gs-pub-footer-link">
+                Cookies
+              </Link>
+            </li>
+          </ul>
         </div>
       </div>
 
       <div className="gs-pub-footer-bottom">
-        © {new Date().getFullYear()} Global Stock · Todos los derechos reservados.
+        <span>© {new Date().getFullYear()} Global Stock · Todos los derechos reservados.</span>
       </div>
     </footer>
   );
@@ -121,21 +152,45 @@ export function PublicSiteChrome({
   const isDownloadRoute = hideHeader || downloadBrand || pathname === "/download";
 
   useEffect(() => {
-    try {
-      const saved =
-        window.localStorage.getItem("gs-download-theme") ||
-        window.localStorage.getItem("download-theme") ||
-        document.documentElement.getAttribute("data-download-theme");
-      const resolved = saved === "light" || saved === "dark" ? saved : "dark";
-      document.documentElement.setAttribute("data-download-theme", resolved);
-      document.querySelectorAll("[data-download-theme]").forEach((el) => {
-        if (el !== document.documentElement) {
-          el.setAttribute("data-download-theme", resolved);
+    const syncTheme = () => {
+      try {
+        const innerThemed = document.querySelector("body [data-download-theme]");
+        const innerVal = innerThemed?.getAttribute("data-download-theme");
+        const saved =
+          window.localStorage.getItem("gs-download-theme") ||
+          window.localStorage.getItem("download-theme");
+        const rootVal = document.documentElement.getAttribute("data-download-theme");
+
+        const resolved =
+          saved === "light" || saved === "dark"
+            ? saved
+            : innerVal === "light" || innerVal === "dark"
+              ? innerVal
+              : rootVal === "light" || rootVal === "dark"
+                ? rootVal
+                : "light";
+
+        if (document.documentElement.getAttribute("data-download-theme") !== resolved) {
+          document.documentElement.setAttribute("data-download-theme", resolved);
         }
-      });
-    } catch {
-      // ignore storage restrictions
-    }
+        document.querySelectorAll("[data-download-theme]").forEach((el) => {
+          if (el !== document.documentElement && el.getAttribute("data-download-theme") !== resolved) {
+            el.setAttribute("data-download-theme", resolved);
+          }
+        });
+      } catch {
+        // ignore storage restrictions
+      }
+    };
+
+    syncTheme();
+    const observer = new MutationObserver(syncTheme);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      subtree: true,
+      attributeFilter: ["data-download-theme"]
+    });
+    return () => observer.disconnect();
   }, [pathname]);
 
   if (isDownloadRoute) {
