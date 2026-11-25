@@ -13,13 +13,12 @@ import {
   Layers,
   LifeBuoy,
   Menu,
-  Moon,
   ShieldCheck,
   Sparkles,
   Store,
-  Sun,
   X
 } from "lucide-react";
+import { DownloadThemeToggle } from "@/components/DownloadThemeToggle";
 import { NAV_LINKS } from "./content";
 
 const DOCK_ICONS = {
@@ -69,68 +68,8 @@ function DefaultBrandMark() {
   );
 }
 
-function NavbarThemeButton() {
-  const [theme, setTheme] = useState<"dark" | "light">("light");
-
-  useEffect(() => {
-    const root = document.documentElement;
-    let initial: "dark" | "light" = "light";
-
-    try {
-      const stored =
-        window.localStorage.getItem("gs-download-theme") ||
-        window.localStorage.getItem("download-theme");
-      if (stored === "light" || stored === "dark") {
-        initial = stored;
-      } else {
-        const attr = root.getAttribute("data-download-theme");
-        if (attr === "light" || attr === "dark") initial = attr;
-      }
-    } catch {
-      // ignore storage errors
-    }
-
-    root.setAttribute("data-download-theme", initial);
-    setTheme(initial);
-  }, []);
-
-  function toggleTheme() {
-    const nextTheme: "dark" | "light" = theme === "dark" ? "light" : "dark";
-    const root = document.documentElement;
-    root.classList.add("gs-theme-switching");
-    root.setAttribute("data-download-theme", nextTheme);
-    setTheme(nextTheme);
-
-    try {
-      window.localStorage.setItem("gs-download-theme", nextTheme);
-      window.localStorage.setItem("download-theme", nextTheme);
-    } catch {
-      // ignore storage errors
-    }
-
-    window.setTimeout(() => {
-      root.classList.remove("gs-theme-switching");
-    }, 60);
-  }
-
-  const isDark = theme === "dark";
-
-  return (
-    <button
-      type="button"
-      onClick={toggleTheme}
-      className="dl-icon-btn dl-theme-btn"
-      aria-label={isDark ? "Cambiar a tema claro" : "Cambiar a tema oscuro"}
-      title={isDark ? "Tema claro" : "Tema oscuro"}
-    >
-      {isDark ? <Sun size={17} aria-hidden="true" /> : <Moon size={17} aria-hidden="true" />}
-    </button>
-  );
-}
-
 export function DownloadNavbar({
-  brand,
-  themeToggle
+  brand
 }: {
   brand?: ReactNode;
   themeToggle?: ReactNode;
@@ -209,7 +148,6 @@ export function DownloadNavbar({
   }
 
   const brandContent = brand ?? <DefaultBrandMark />;
-  const themeControl = themeToggle ?? <NavbarThemeButton />;
 
   return (
     <div className="dl-nav-wrap">
@@ -261,7 +199,7 @@ export function DownloadNavbar({
         </nav>
 
         <div className="dl-nav-actions">
-          {themeControl}
+          <DownloadThemeToggle />
 
           <Link href="/" className="dl-btn-primary dl-nav-cta">
             Abrir app

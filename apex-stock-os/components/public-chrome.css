@@ -21,7 +21,35 @@ html.gs-theme-switching *::after {
 .dl-theme-btn {
   display: inline-grid !important;
   place-items: center !important;
-  flex-shrink: 0;
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  border-radius: 999px !important;
+  border: 1px solid var(--dl-border-strong, rgba(20, 19, 18, 0.16)) !important;
+  background: var(--dl-bg-subtle, rgba(241, 238, 231, 0.85)) !important;
+  color: var(--dl-fg, #141312) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: transform 0.16s ease, border-color 0.16s ease, background-color 0.16s ease !important;
+}
+
+.dl-theme-btn:hover {
+  border-color: var(--dl-accent-border, rgba(143, 0, 0, 0.35)) !important;
+  background: var(--dl-accent-soft, rgba(143, 0, 0, 0.09)) !important;
+  transform: scale(1.05);
+}
+
+.dl-theme-btn:active {
+  transform: scale(0.95);
+}
+
+[data-download-theme="dark"] .dl-theme-btn,
+html[data-download-theme="dark"] .dl-theme-btn {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background: rgba(24, 27, 36, 0.88) !important;
+  color: #f5f5f7 !important;
 }
 
 /* Evita desenfoques anidados dentro de la barra Dock para mantener 60 FPS */
