@@ -1210,32 +1210,25 @@ export function BusinessWorkspace({
   const [hoveredSidebarModule, setHoveredSidebarModule] = useState<string | null>(null);
   const sidebarExpanded = sidebarPinned || sidebarHovered;
 
-  useEffect(() => {
-    return () => {
-      if (sidebarHoverTimerRef.current !== null) {
-        window.clearTimeout(sidebarHoverTimerRef.current);
-      }
-    };
+  useEffect(() => () => {
+    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
   }, []);
 
   function handleSidebarMouseEnter() {
-    if (sidebarHoverTimerRef.current !== null) {
-      window.clearTimeout(sidebarHoverTimerRef.current);
-    }
+    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
     sidebarHoverTimerRef.current = window.setTimeout(() => {
       setSidebarHovered(true);
       sidebarHoverTimerRef.current = null;
-    }, 110);
+    }, 100);
   }
 
   function handleSidebarMouseLeave() {
-    if (sidebarHoverTimerRef.current !== null) {
-      window.clearTimeout(sidebarHoverTimerRef.current);
-      sidebarHoverTimerRef.current = null;
-    }
+    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
+    sidebarHoverTimerRef.current = null;
     setSidebarHovered(false);
     setHoveredSidebarModule(null);
   }
+  
   const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
   useEffect(() => {
     try {
@@ -3775,18 +3768,15 @@ export function BusinessWorkspace({
             <button
               type="button"
               onClick={() => setSidebarPinned(true)}
-              aria-label={language === "es" ? "Expandir y fijar men? lateral" : "Expand and pin sidebar"}
-              title={language === "es" ? "Expandir men?" : "Expand menu"}
+              aria-label={language === "es" ? "Expandir y fijar menú lateral" : "Expand and pin sidebar"}
+              title={language === "es" ? "Expandir menú" : "Expand menu"}
               aria-expanded={false}
               className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.08]"
             >
               <span className="pointer-events-none grid place-items-center transition-all duration-200 ease-out group-hover:scale-75 group-hover:opacity-0">
                 <Logo className="h-8 w-8" />
               </span>
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 grid scale-75 place-items-center text-[var(--apex-text)] opacity-0 transition-all duration-200 ease-out group-hover:scale-100 group-hover:opacity-100"
-              >
+              <span aria-hidden="true" className="pointer-events-none absolute inset-0 grid scale-75 place-items-center text-[var(--apex-text)] opacity-0 transition-all duration-200 ease-out group-hover:scale-100 group-hover:opacity-100">
                 <PanelLeft size={19} strokeWidth={1.8} />
               </span>
             </button>
@@ -3804,36 +3794,15 @@ export function BusinessWorkspace({
               <button
                 type="button"
                 onClick={() => {
-                  if (sidebarPinned) {
-                    setSidebarPinned(false);
-                    setSidebarHovered(false);
-                  } else {
-                    setSidebarPinned(true);
-                  }
+                  if (sidebarPinned) { setSidebarPinned(false); setSidebarHovered(false); }
+                  else { setSidebarPinned(true); }
                 }}
-                aria-label={
-                  sidebarPinned
-                    ? (language === "es" ? "Contraer men? lateral" : "Collapse sidebar")
-                    : (language === "es" ? "Fijar men? lateral abierto" : "Pin sidebar open")
-                }
-                title={
-                  sidebarPinned
-                    ? (language === "es" ? "Contraer men?" : "Collapse menu")
-                    : (language === "es" ? "Fijar men? abierto" : "Pin menu open")
-                }
+                aria-label={sidebarPinned ? (language === "es" ? "Contraer menú lateral" : "Collapse sidebar") : (language === "es" ? "Fijar menú abierto" : "Pin sidebar open")}
+                title={sidebarPinned ? (language === "es" ? "Contraer menú" : "Collapse menu") : (language === "es" ? "Fijar menú abierto" : "Pin menu open")}
                 aria-pressed={sidebarPinned}
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300 ${
-                  sidebarPinned
-                    ? "border-gray-200 bg-gray-100 text-[var(--apex-text)] dark:border-white/15 dark:bg-white/10"
-                    : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white"
-                }`}
+                className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300 ${sidebarPinned ? "border-gray-200 bg-gray-100 text-[var(--apex-text)] dark:border-white/15 dark:bg-white/10" : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white"}`}
               >
-                <motion.span
-                  aria-hidden="true"
-                  animate={{ rotate: sidebarPinned ? 180 : 0 }}
-                  transition={{ type: "spring", stiffness: 340, damping: 30 }}
-                  className="grid place-items-center"
-                >
+                <motion.span aria-hidden="true" animate={{ rotate: sidebarPinned ? 180 : 0 }} transition={{ type: "spring", stiffness: 340, damping: 30 }} className="grid place-items-center">
                   <PanelLeft size={18} strokeWidth={1.8} />
                 </motion.span>
               </button>
@@ -3846,26 +3815,15 @@ export function BusinessWorkspace({
             id="business-sidebar-nav"
             ref={sidebarNavRef}
             tabIndex={0}
-            onKeyDown={(event) => {
-              if (!scrollSidebarByKeyboard(event.key)) return;
-              event.preventDefault();
-            }}
+            onKeyDown={(event) => { if (!scrollSidebarByKeyboard(event.key)) return; event.preventDefault(); }}
             className={`gs-sidebar-nav h-full min-w-0 overflow-y-auto px-1 pt-1 outline-none ${!sidebarExpanded ? "flex flex-col items-center space-y-1 py-3" : ""}`}
           >
             <div className={`w-full min-w-0 pb-4 ${!sidebarExpanded ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
-                  .map((id) =>
-                    modules.find((module) => module.id === id)
-                  )
-                  .filter(
-                    (
-                      item
-                    ): item is (typeof modules)[number] =>
-                      Boolean(item)
-                  );
-
+                  .map((id) => modules.find((module) => module.id === id))
+                  .filter((item): item is (typeof modules)[number] => Boolean(item));
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
@@ -3881,7 +3839,6 @@ export function BusinessWorkspace({
                     <div className={`min-w-0 space-y-0.5 ${!sidebarExpanded ? "flex flex-col items-center" : ""}`}>
                       {groupItems.map(({ id, icon: Icon }) => {
                         const active = activeModule === id;
-
                         return (
                           <button
                             key={id}
@@ -3890,37 +3847,19 @@ export function BusinessWorkspace({
                             onMouseEnter={() => setHoveredSidebarModule(id)}
                             onMouseLeave={() => setHoveredSidebarModule(null)}
                             aria-label={labels.nav[id]}
-                            className={
-                              "group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (!sidebarExpanded ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " +
-                              ((hoveredSidebarModule ? hoveredSidebarModule === id : active)
-                                ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white"
-                                : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")
-                            }
+                            className={"group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (!sidebarExpanded ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white" : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")}
                           >
-                            <span
-                              aria-hidden="true"
-                              className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")}
-                            />
+                            <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")} />
                             <Icon size={18} strokeWidth={1.6} className="shrink-0" />
                             <AnimatePresence initial={false}>
                               {sidebarExpanded && (
-                                <motion.span
-                                  key="nav-label"
-                                  initial={{ opacity: 0 }}
-                                  animate={{ opacity: 1 }}
-                                  exit={{ opacity: 0 }}
-                                  transition={{ duration: reduceMotion ? 0 : 0.14 }}
-                                  className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap"
-                                >
+                                <motion.span key="nav-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14 }} className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap">
                                   {labels.nav[id]}
                                 </motion.span>
                               )}
                             </AnimatePresence>
                             {!sidebarExpanded && (
-                              <span
-                                aria-hidden="true"
-                                className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
-                              >
+                              <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                                 {labels.nav[id]}
                               </span>
                             )}
@@ -3935,30 +3874,17 @@ export function BusinessWorkspace({
                           onMouseEnter={() => setHoveredSidebarModule(id)}
                           onMouseLeave={() => setHoveredSidebarModule(null)}
                         >
-                          <span
-                            aria-hidden="true"
-                            className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + (hoveredSidebarModule === id ? "scale-y-100" : "scale-y-0")}
-                          />
+                          <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + (hoveredSidebarModule === id ? "scale-y-100" : "scale-y-0")} />
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" className="shrink-0" />
                           <AnimatePresence initial={false}>
                             {sidebarExpanded && (
-                              <motion.span
-                                key="legal-label"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: reduceMotion ? 0 : 0.14 }}
-                                className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap"
-                              >
+                              <motion.span key="legal-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14 }} className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap">
                                 {legalLinkLabels[language][id]}
                               </motion.span>
                             )}
                           </AnimatePresence>
                           {!sidebarExpanded && (
-                            <span
-                              aria-hidden="true"
-                              className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100"
-                            >
+                            <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                               {legalLinkLabels[language][id]}
                             </span>
                           )}
@@ -3975,15 +3901,9 @@ export function BusinessWorkspace({
         <div className={`mt-auto w-full min-w-0 space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800 ${!sidebarExpanded ? "px-0" : "px-1"}`}>
           {sidebarExpanded && (
             <div className="overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
-              <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">
-                {labels.businessSummary}
-              </p>
-              <p className="mt-2 truncate text-sm font-semibold">
-                {businessName || labels.businessSummary}
-              </p>
-              <p className="mt-1 truncate text-[11px] text-[var(--apex-muted)]">
-                {metrics.inventoryUnits} {labels.units}
-              </p>
+              <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">{labels.businessSummary}</p>
+              <p className="mt-2 truncate text-sm font-semibold">{businessName || labels.businessSummary}</p>
+              <p className="mt-1 truncate text-[11px] text-[var(--apex-muted)]">{metrics.inventoryUnits} {labels.units}</p>
               {!demoMode && (
                 <p className="mt-1 truncate text-[10px] font-semibold uppercase tracking-[0.08em] text-[var(--apex-muted)]">
                   {language === "es" ? "Rol" : "Role"}: {memberRole}
