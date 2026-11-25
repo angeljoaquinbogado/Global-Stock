@@ -1204,30 +1204,9 @@ export function BusinessWorkspace({
   const reduceMotion = useReducedMotion();
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
-  const [sidebarPinned, setSidebarPinned] = useState(false);
-  const [sidebarHovered, setSidebarHovered] = useState(false);
-  const sidebarHoverTimerRef = useRef<number | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [hoveredSidebarModule, setHoveredSidebarModule] = useState<string | null>(null);
-  const sidebarExpanded = sidebarPinned || sidebarHovered;
 
-  useEffect(() => () => {
-    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
-  }, []);
-
-  function handleSidebarMouseEnter() {
-    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
-    sidebarHoverTimerRef.current = window.setTimeout(() => {
-      setSidebarHovered(true);
-      sidebarHoverTimerRef.current = null;
-    }, 100);
-  }
-
-  function handleSidebarMouseLeave() {
-    if (sidebarHoverTimerRef.current !== null) window.clearTimeout(sidebarHoverTimerRef.current);
-    sidebarHoverTimerRef.current = null;
-    setSidebarHovered(false);
-    setHoveredSidebarModule(null);
-  }
   
   const [workspaceAccent, setWorkspaceAccent] = useState<WorkspaceAccent>("red");
   useEffect(() => {
@@ -3755,20 +3734,18 @@ export function BusinessWorkspace({
   }
 
   return (
-    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarExpanded ? "250px minmax(0, 1fr)" : "84px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[84px_minmax(0,1fr)]">
+    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "84px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[84px_minmax(0,1fr)]">
       <motion.aside
-        onMouseEnter={handleSidebarMouseEnter}
-        onMouseLeave={handleSidebarMouseLeave}
-        animate={{ width: sidebarExpanded ? 250 : 84 }}
+        animate={{ width: sidebarCollapsed ? 84 : 250 }}
         transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }}
-        className={`relative sticky top-0 z-30 hidden h-screen min-w-0 overflow-visible border-r border-gray-200 bg-[var(--apex-surface)] py-5 dark:border-white/10 lg:flex lg:flex-col ${sidebarExpanded ? "px-4" : "items-center px-2"}`}
+        className={`relative sticky top-0 z-30 hidden h-screen min-w-0 overflow-visible border-r border-gray-200 bg-[var(--apex-surface)] py-5 dark:border-white/10 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}
       >
-        <div className={`mb-4 flex h-11 w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarExpanded ? "justify-between gap-2 px-2" : "justify-center px-0"}`}>
-          {!sidebarExpanded ? (
+        <div className={`mb-4 flex h-11 w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "justify-center px-0" : "justify-between gap-2 px-2"}`}>
+          {sidebarCollapsed ? (
             <button
               type="button"
-              onClick={() => setSidebarPinned(true)}
-              aria-label={language === "es" ? "Expandir y fijar menú lateral" : "Expand and pin sidebar"}
+              onClick={() => setSidebarCollapsed(false)}
+              aria-label={language === "es" ? "Expandir menú lateral" : "Expand sidebar"}
               title={language === "es" ? "Expandir menú" : "Expand menu"}
               aria-expanded={false}
               className="group relative grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-transparent bg-transparent text-[var(--apex-text)] transition-colors duration-200 hover:bg-gray-100/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-border)] dark:hover:bg-white/[0.08]"
@@ -3793,16 +3770,13 @@ export function BusinessWorkspace({
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  if (sidebarPinned) { setSidebarPinned(false); setSidebarHovered(false); }
-                  else { setSidebarPinned(true); }
-                }}
-                aria-label={sidebarPinned ? (language === "es" ? "Contraer menú lateral" : "Collapse sidebar") : (language === "es" ? "Fijar menú abierto" : "Pin sidebar open")}
-                title={sidebarPinned ? (language === "es" ? "Contraer menú" : "Collapse menu") : (language === "es" ? "Fijar menú abierto" : "Pin menu open")}
-                aria-pressed={sidebarPinned}
-                className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition-colors duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300 ${sidebarPinned ? "border-gray-200 bg-gray-100 text-[var(--apex-text)] dark:border-white/15 dark:bg-white/10" : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white"}`}
+                onClick={() => setSidebarCollapsed(true)}
+                aria-label={language === "es" ? "Contraer menú lateral" : "Collapse sidebar"}
+                title={language === "es" ? "Contraer menú" : "Collapse menu"}
+                aria-expanded={true}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-gray-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-gray-300 dark:hover:border-white/15 dark:hover:bg-white/[0.06] dark:hover:text-white"
               >
-                <motion.span aria-hidden="true" animate={{ rotate: sidebarPinned ? 180 : 0 }} transition={{ type: "spring", stiffness: 340, damping: 30 }} className="grid place-items-center">
+                <motion.span aria-hidden="true" animate={{ rotate: 180 }} transition={{ type: "spring", stiffness: 340, damping: 30 }} className="grid place-items-center">
                   <PanelLeft size={18} strokeWidth={1.8} />
                 </motion.span>
               </button>
@@ -3816,9 +3790,9 @@ export function BusinessWorkspace({
             ref={sidebarNavRef}
             tabIndex={0}
             onKeyDown={(event) => { if (!scrollSidebarByKeyboard(event.key)) return; event.preventDefault(); }}
-            className={`gs-sidebar-nav h-full min-w-0 overflow-y-auto px-1 pt-1 outline-none ${!sidebarExpanded ? "flex flex-col items-center space-y-1 py-3" : ""}`}
+            className={`gs-sidebar-nav h-full min-w-0 overflow-y-auto px-1 pt-1 outline-none ${sidebarCollapsed ? "flex flex-col items-center space-y-1 py-3" : ""}`}
           >
-            <div className={`w-full min-w-0 pb-4 ${!sidebarExpanded ? "flex flex-col items-center space-y-1" : ""}`}>
+            <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
                 const groupItems = group.modules
                   .filter((id) => visibleModuleIds.has(id))
@@ -3827,8 +3801,8 @@ export function BusinessWorkspace({
                 if (!groupItems.length && group.id !== "legal") return null;
 
                 return (
-                  <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${!sidebarExpanded ? "space-y-1 border-t-0 pb-1 pt-1 first:pt-0" : ""}`}>
-                    {sidebarExpanded ? (
+                  <section key={group.id} className={`w-full min-w-0 border-t border-gray-100 pb-3 pt-3 first:border-t-0 first:pt-0 dark:border-gray-800 last:pb-0 ${sidebarCollapsed ? "space-y-1 border-t-0 pb-1 pt-1 first:pt-0" : ""}`}>
+                    {!sidebarCollapsed ? (
                       <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: reduceMotion ? 0 : 0.15, delay: reduceMotion ? 0 : 0.06 }} className="min-h-9 truncate px-3 py-2 text-xs font-semibold leading-5 tracking-[-0.01em] text-[var(--apex-text)]" style={{ fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, sans-serif' }}>
                         {navigationGroupLabels[language][group.id]}
                       </motion.p>
@@ -3836,7 +3810,7 @@ export function BusinessWorkspace({
                       <span aria-hidden="true" className="mx-auto mb-1 block h-1 w-1 rounded-full bg-[var(--apex-text)]/60" />
                     )}
 
-                    <div className={`min-w-0 space-y-0.5 ${!sidebarExpanded ? "flex flex-col items-center" : ""}`}>
+                    <div className={`min-w-0 space-y-0.5 ${sidebarCollapsed ? "flex flex-col items-center" : ""}`}>
                       {groupItems.map(({ id, icon: Icon }) => {
                         const active = activeModule === id;
                         return (
@@ -3847,19 +3821,19 @@ export function BusinessWorkspace({
                             onMouseEnter={() => setHoveredSidebarModule(id)}
                             onMouseLeave={() => setHoveredSidebarModule(null)}
                             aria-label={labels.nav[id]}
-                            className={"group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (!sidebarExpanded ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white" : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")}
+                            className={"group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white" : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")}
                           >
                             <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")} />
                             <Icon size={18} strokeWidth={1.6} className="shrink-0" />
                             <AnimatePresence initial={false}>
-                              {sidebarExpanded && (
+                              {!sidebarCollapsed && (
                                 <motion.span key="nav-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14 }} className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap">
                                   {labels.nav[id]}
                                 </motion.span>
                               )}
                             </AnimatePresence>
-                            {!sidebarExpanded && (
-                              <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+                            {sidebarCollapsed && (
+                              <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                                 {labels.nav[id]}
                               </span>
                             )}
@@ -3870,21 +3844,21 @@ export function BusinessWorkspace({
                         <a
                           key={id}
                           href={href}
-                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:bg-white/[0.06] ${!sidebarExpanded ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`}
+                          className={`group relative flex min-w-0 items-center text-[13px] font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:bg-white/[0.06] ${sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center rounded-xl p-0" : "min-h-10 w-full gap-3 rounded-xl px-3 py-2"}`}
                           onMouseEnter={() => setHoveredSidebarModule(id)}
                           onMouseLeave={() => setHoveredSidebarModule(null)}
                         >
                           <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + (hoveredSidebarModule === id ? "scale-y-100" : "scale-y-0")} />
                           <Icon size={18} strokeWidth={1.6} aria-hidden="true" className="shrink-0" />
                           <AnimatePresence initial={false}>
-                            {sidebarExpanded && (
+                            {!sidebarCollapsed && (
                               <motion.span key="legal-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14 }} className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap">
                                 {legalLinkLabels[language][id]}
                               </motion.span>
                             )}
                           </AnimatePresence>
-                          {!sidebarExpanded && (
-                            <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+                          {sidebarCollapsed && (
+                            <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                               {legalLinkLabels[language][id]}
                             </span>
                           )}
@@ -3898,8 +3872,8 @@ export function BusinessWorkspace({
           </nav>
         </div>
 
-        <div className={`mt-auto w-full min-w-0 space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800 ${!sidebarExpanded ? "px-0" : "px-1"}`}>
-          {sidebarExpanded && (
+        <div className={`mt-auto w-full min-w-0 space-y-3 border-t border-gray-100 pt-4 dark:border-gray-800 ${sidebarCollapsed ? "px-0" : "px-1"}`}>
+          {!sidebarCollapsed && (
             <div className="overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-3">
               <p className="truncate text-[10px] font-bold uppercase tracking-[0.12em] text-[var(--apex-muted)]">{labels.businessSummary}</p>
               <p className="mt-2 truncate text-sm font-semibold">{businessName || labels.businessSummary}</p>
@@ -3916,10 +3890,10 @@ export function BusinessWorkspace({
             type="button"
             onClick={onSignOut}
             aria-label={labels.signOut}
-            className={`flex min-h-10 items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:border-white/10 dark:hover:bg-white/[0.06] ${!sidebarExpanded ? "mx-auto h-10 w-10 justify-center p-0" : "w-full overflow-hidden whitespace-nowrap"}`}
+            className={`flex min-h-10 items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left text-sm font-semibold text-[var(--apex-muted)] transition-colors duration-200 hover:border-gray-200 hover:bg-gray-50 hover:text-[var(--apex-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--apex-accent)] dark:hover:border-white/10 dark:hover:bg-white/[0.06] ${sidebarCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full overflow-hidden whitespace-nowrap"}`}
           >
             <LogOut size={18} strokeWidth={1.6} className="shrink-0" />
-            {sidebarExpanded && <span className="truncate">{labels.signOut}</span>}
+            {!sidebarCollapsed && <span className="truncate">{labels.signOut}</span>}
           </button>
         </div>
       </motion.aside>
