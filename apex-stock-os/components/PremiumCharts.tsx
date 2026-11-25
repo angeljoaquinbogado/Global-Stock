@@ -223,11 +223,16 @@ const copy: Record<
 
 function tooltipStyle() {
   return {
-    borderRadius: 18,
-    border: "1px solid var(--apex-border)",
-    background: "var(--apex-surface-strong)",
-    color: "var(--apex-text)",
-    boxShadow: "0 18px 55px rgba(0,0,0,.22)"
+    borderRadius: 16,
+    border: "1px solid rgba(255, 255, 255, 0.14)",
+    background: "rgba(20, 20, 22, 0.92)",
+    color: "#f5f5f7",
+    backdropFilter: "blur(14px)",
+    boxShadow: "0 16px 38px rgba(0, 0, 0, 0.32)",
+    padding: "10px 14px",
+    fontSize: 12,
+    fontWeight: 600,
+    zIndex: 60
   };
 }
 

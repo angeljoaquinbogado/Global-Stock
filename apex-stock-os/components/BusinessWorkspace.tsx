@@ -1205,6 +1205,17 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  /* gs-preload-modules */
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      void import("./PremiumCharts");
+      void import("./FiscalDocumentsCenter");
+      void import("./OperationsCenter");
+      void import("./WorkspaceAccountPanel");
+      void import("./NotesHub");
+    }, 900);
+    return () => window.clearTimeout(timer);
+  }, []);
   const [hoveredSidebarModule, setHoveredSidebarModule] = useState<string | null>(null);
 
   
@@ -3734,7 +3745,7 @@ export function BusinessWorkspace({
   }
 
   return (
-    <motion.main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent) }} animate={{ gridTemplateColumns: sidebarCollapsed ? "84px minmax(0, 1fr)" : "250px minmax(0, 1fr)" }} transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }} className="gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:grid-cols-[84px_minmax(0,1fr)]">
+    <main data-workspace-accent={workspaceAccent} style={{ ...workspaceAccentVars(workspaceAccent), gridTemplateColumns: undefined }} className={`gs-app-shell min-h-screen w-full min-w-0 overflow-x-clip bg-[var(--apex-bg)] text-[var(--apex-text)] lg:grid lg:transition-[grid-template-columns] lg:duration-300 lg:ease-[cubic-bezier(0.22,1,0.36,1)] ${sidebarCollapsed ? "lg:grid-cols-[84px_minmax(0,1fr)]" : "lg:grid-cols-[250px_minmax(0,1fr)]"}`}>
       <motion.aside
         animate={{ width: sidebarCollapsed ? 84 : 250 }}
         transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }}
@@ -3833,7 +3844,7 @@ export function BusinessWorkspace({
                               )}
                             </AnimatePresence>
                             {sidebarCollapsed && (
-                              <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+                              <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[90] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-xl border border-white/15 bg-[#171717]/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                                 {labels.nav[id]}
                               </span>
                             )}
@@ -3858,7 +3869,7 @@ export function BusinessWorkspace({
                             )}
                           </AnimatePresence>
                           {sidebarCollapsed && (
-                            <span aria-hidden="true" className="pointer-events-none fixed left-[92px] z-[90] translate-x-1 whitespace-nowrap rounded-lg border border-white/10 bg-[#171717] px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-xl transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
+                            <span aria-hidden="true" className="pointer-events-none absolute left-[calc(100%+12px)] top-1/2 z-[90] -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-xl border border-white/15 bg-[#171717]/95 px-3 py-1.5 text-xs font-semibold text-white opacity-0 shadow-[0_12px_30px_rgba(0,0,0,0.28)] backdrop-blur-md transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-visible:translate-x-0 group-focus-visible:opacity-100">
                               {legalLinkLabels[language][id]}
                             </span>
                           )}
@@ -3899,7 +3910,7 @@ export function BusinessWorkspace({
       </motion.aside>
 
       <section className="min-w-0 pb-28 lg:pb-0">
-        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/95 backdrop-blur-lg">
+        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/80 backdrop-blur-xl backdrop-saturate-150 transition-colors duration-200">
           <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:px-8">
             <div className="min-w-0 lg:hidden">
               <Logo withWordmark />
@@ -4569,7 +4580,7 @@ export function BusinessWorkspace({
           activeModule
         }}
       />
-    </motion.main>
+    </main>
   );
 }
 

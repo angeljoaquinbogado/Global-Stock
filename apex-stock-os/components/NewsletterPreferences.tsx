@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BellRing, CheckCircle2, Mail, XCircle } from "lucide-react";
 import { getSupabaseBrowserClient } from "@/lib/supabase";
 
-export function NewsletterPreferences() {
+export function NewsletterPreferences({ demoMode = false }: { demoMode?: boolean }) {
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [subscribed,setSubscribed]=useState(false);
@@ -15,10 +15,11 @@ export function NewsletterPreferences() {
   useEffect(()=>{
     let live=true;
     void (async()=>{
+      if(demoMode){if(live){setEmail("demo@globalstock.app");setLoading(false);}return;}
       const client=getSupabaseBrowserClient();
       if(!client)return;
       const {data:auth,error:authError}=await client.auth.getUser();
-      if(authError||!auth.user?.email)throw new Error("No pudimos comprobar tu correo.");
+      if(authError||!auth.user?.email){if(live)setLoading(false);return;}
       const {data,error:readError}=await client.from("global_stock_newsletter_preferences")
         .select("subscribed").eq("user_id",auth.user.id).maybeSingle();
       if(readError)throw readError;
