@@ -1205,6 +1205,17 @@ export function BusinessWorkspace({
 
   const [activeModule, setActiveModule] = useState<ModuleId>("overview");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
+  type WorkspaceScale = "starter" | "commerce" | "enterprise";
+  const [workspaceScale, setWorkspaceScale] = useState<WorkspaceScale>(() => {
+    if (typeof window === "undefined") return "enterprise";
+    const saved = window.localStorage.getItem("global-stock-workspace-scale-v1");
+    return saved === "starter" || saved === "commerce" || saved === "enterprise" ? saved : "enterprise";
+  });
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem("global-stock-workspace-scale-v1", workspaceScale);
+    }
+  }, [workspaceScale]);
   /* gs-preload-modules */
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -2640,12 +2651,20 @@ export function BusinessWorkspace({
   const money = (value: number) =>
     formatMoney(value * currencyRate, currency, locale);
 
+  const scaleAllowedModules: Record<WorkspaceScale, ReadonlySet<ModuleId>> = {
+    starter: new Set(["overview", "pos", "cash", "inventory", "activities", "documents", "notes", "account", "settings"]),
+    commerce: new Set(["overview", "pos", "cash", "online", "inventory", "charts", "purchases", "suppliers", "activities", "documents", "notes", "arca", "account", "settings"]),
+    enterprise: new Set(["overview", "pos", "cash", "online", "inventory", "charts", "purchases", "suppliers", "activities", "documents", "notes", "operations", "arca", "account", "settings"])
+  };
+
   const visibleModules = useMemo(
     () =>
-      modules.filter(({ id }) =>
-        canAccessModule(id, memberRole, demoMode)
+      modules.filter(
+        ({ id }) =>
+          canAccessModule(id, memberRole, demoMode) &&
+          scaleAllowedModules[workspaceScale].has(id)
       ),
-    [demoMode, memberRole]
+    [demoMode, memberRole, workspaceScale]
   );
 
   const visibleModuleIds = useMemo(
@@ -4283,6 +4302,8 @@ export function BusinessWorkspace({
 
             {activeModule === "settings" && (
               <SettingsModule
+                  workspaceScale={workspaceScale}
+                  setWorkspaceScale={setWorkspaceScale}
                 labels={labels}
                 language={language}
                 currency={currency}
@@ -5942,7 +5963,9 @@ function SettingsModule({
   setBusinessCountry,
   setBusinessDescription,
   saveBusinessName,
-  locale
+  locale,
+  workspaceScale,
+  setWorkspaceScale,
 }: {
   labels: (typeof copy)[LanguageCode];
   language: LanguageCode;
@@ -5957,6 +5980,8 @@ function SettingsModule({
   setBusinessDescription: (value: string) => void;
   saveBusinessName: () => void;
   locale: string;
+  workspaceScale: "starter" | "commerce" | "enterprise";
+  setWorkspaceScale: (scale: "starter" | "commerce" | "enterprise") => void;
 }) {
   const [businessCategoryId, setBusinessCategoryId] = useState(() =>
     typeof window === "undefined" ? "almacen" :
@@ -6139,6 +6164,68 @@ function SettingsModule({
           >
             {settingsCopy.save}
           </button>
+        </section>
+
+        <section className="apex-card p-5 xl:col-span-2" aria-label="Perfil operativo del negocio">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h3 className="text-sm font-semibold">
+                {language === "es" ? "Perfil operativo del negocio" : "Business operational profile"}
+              </h3>
+              <p className="mt-1 text-xs leading-5 text-[var(--apex-muted)]">
+                {language === "es"
+                  ? "Adaptá las herramientas visibles según el tamaño de tu operación sin perder tus datos."
+                  : "Adapt visible tools to your operation size without losing any data."}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {(
+              [
+                {
+                  id: "starter",
+                  title: language === "es" ? "Emprendedor / Kiosco" : "Starter / Kiosk",
+                  desc: language === "es" ? "Caja rápida, stock esencial, gastos y agenda sin menús complejos." : "Fast POS, essential stock, expenses, and agenda without clutter."
+                },
+                {
+                  id: "commerce",
+                  title: language === "es" ? "Comercio / Tienda" : "Commerce / Store",
+                  desc: language === "es" ? "Suma proveedores, reposición, gráficos, tienda online y facturación ARCA." : "Adds suppliers, restocking, analytics, online store, and invoicing."
+                },
+                {
+                  id: "enterprise",
+                  title: language === "es" ? "Empresa / Multi-sucursal" : "Enterprise / Multi-branch",
+                  desc: language === "es" ? "Todas las funciones activas, múltiples locales, roles y auditoría." : "All features active, multiple branches, roles, and audit logs."
+                }
+              ] as const
+            ).map((mode) => {
+              const selected = workspaceScale === mode.id;
+              return (
+                <button
+                  key={mode.id}
+                  type="button"
+                  onClick={() => setWorkspaceScale(mode.id)}
+                  aria-pressed={selected}
+                  className={`rounded-2xl border p-4 text-left transition-all duration-200 ${
+                    selected
+                      ? "border-[var(--apex-accent)] bg-[var(--apex-accent-soft)] shadow-sm"
+                      : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)] hover:border-gray-300 dark:hover:border-white/20"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold">{mode.title}</span>
+                    <span
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        selected ? "bg-[var(--apex-accent)]" : "bg-[var(--apex-border)]"
+                      }`}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-xs leading-5 text-[var(--apex-muted)]">{mode.desc}</p>
+                </button>
+              );
+            })}
+          </div>
         </section>
 
         <div className="xl:col-span-2">
