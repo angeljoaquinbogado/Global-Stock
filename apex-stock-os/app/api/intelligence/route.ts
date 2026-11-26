@@ -145,6 +145,17 @@ export async function POST(request: Request) {
     );
   }
 
+  // Bloquea spam de caracteres repetidos o relleno sin sentido para evitar quema de tokens
+  if (/(.)\1{35,}/.test(message) || message.split(/\s+/).some((w) => w.length > 120)) {
+    return NextResponse.json(
+      {
+        code: "INVALID_MESSAGE_PATTERN",
+        error: "The message format is not valid."
+      },
+      { status: 400, headers: noStoreHeaders() }
+    );
+  }
+
   // Use the caller's JWT for revocable consent and the database-backed
   // quota. An in-memory rate limit alone is not shared across Vercel instances.
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -206,11 +217,28 @@ export async function POST(request: Request) {
   }
 
   try {
+    const safeHistory = Array.isArray(body.history)
+      ? body.history
+          .slice(-10)
+          .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
+          .map((m) => ({ role: m.role, content: m.content.trim().slice(0, 900) }))
+      : [];
+
+    const rawRuntime = body.runtime ?? {};
+    const serializedContext = JSON.stringify(rawRuntime.appContext ?? {});
+    const safeRuntime = {
+      ...rawRuntime,
+      appContext:
+        serializedContext.length > 24_000
+          ? { businessId: rawRuntime.appContext?.businessId, truncated: true }
+          : rawRuntime.appContext
+    };
+
     const answer = await generateIntelligenceAnswer({
       snapshot,
-      message,
-      history: Array.isArray(body.history) ? body.history.slice(-20) : [],
-      runtime: body.runtime ?? {}
+      message: message.slice(0, 1500),
+      history: safeHistory,
+      runtime: safeRuntime
     });
 
     return NextResponse.json(

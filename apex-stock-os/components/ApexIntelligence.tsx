@@ -427,6 +427,7 @@ export function ApexIntelligence({
   const endRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const lastTouchSendRef = useRef(0);
+  const lastSentRef = useRef<{ text: string; at: number }>({ text: "", at: 0 });
 
   useEffect(() => setMounted(true), []);
 
@@ -678,7 +679,11 @@ export function ApexIntelligence({
 
   async function ask(message: string) {
     const text = message.trim();
-    if (!text || pending || text.length > 4000) return;
+    if (!text || pending || text.length > 1500) return;
+    const nowTs = Date.now();
+    if (nowTs - lastSentRef.current.at < 2000) return;
+    if (lastSentRef.current.text.toLowerCase() === text.toLowerCase() && nowTs - lastSentRef.current.at < 15000) return;
+    lastSentRef.current = { text, at: nowTs };
     if (!demoMode && aiConsentLoading) {
       setAiConsentError("Todavía estamos comprobando el permiso. Probá de nuevo en un momento.");
       return;
@@ -1105,7 +1110,7 @@ export function ApexIntelligence({
                   value={input}
                   onChange={(event) => setInput(event.target.value)}
                   onKeyDown={handleKeyDown}
-                  maxLength={4000}
+                  maxLength={1500}
                   rows={1}
                   enterKeyHint="send"
                   placeholder={copy.placeholder}
