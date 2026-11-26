@@ -4587,6 +4587,8 @@ export function BusinessWorkspace({
         products={products}
         onUpdateProducts={setProducts}
         onNavigateModule={(moduleId) => setActiveModule(moduleId as ModuleId)}
+        activeCart={cart}
+        onReplaceCart={setCart}
         currency={snapshot.currency}
         locale={snapshot.locale}
         accent={workspaceAccent}

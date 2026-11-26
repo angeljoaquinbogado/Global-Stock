@@ -6,10 +6,16 @@ import {
   Command,
   Download,
   FileSpreadsheet,
+  MessageCircle,
+  PauseCircle,
   Percent,
+  PlayCircle,
+  Printer,
   Search,
   Sparkles,
+  Trash2,
   Upload,
+  UserCheck,
   X
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -18,12 +24,31 @@ import { formatMoney } from "@/lib/analytics";
 import type { Product } from "@/lib/types";
 import { WORKSPACE_ACCENTS, type WorkspaceAccent } from "@/lib/workspace-accent";
 
-type HubTab = "search" | "bulk-price" | "csv-import";
+type HubTab = "search" | "parked" | "credit" | "labels" | "bulk-price" | "csv-import";
+
+type ParkedTicket = {
+  id: string;
+  label: string;
+  createdAt: string;
+  items: Array<{ productId: string; name: string; quantity: number; price: number }>;
+  total: number;
+};
+
+type CreditAccount = {
+  id: string;
+  name: string;
+  phone: string;
+  balance: number;
+  limit: number;
+  updatedAt: string;
+};
 
 type OperationsCommandHubProps = {
   products: Product[];
   onUpdateProducts: (updater: (current: Product[]) => Product[]) => void;
   onNavigateModule: (moduleId: string) => void;
+  activeCart?: Record<string, number>;
+  onReplaceCart?: (nextCart: Record<string, number>) => void;
   currency: string;
   locale: string;
   accent?: WorkspaceAccent;
@@ -43,6 +68,9 @@ const QUICK_NAV_ITEMS = [
   { id: "settings", label: "Configuración y perfil operativo", hint: "Kiosco / Comercio / Empresa" }
 ];
 
+const PARKED_STORAGE_KEY = "global-stock-parked-tickets-v1";
+const CREDIT_STORAGE_KEY = "global-stock-fiado-ledger-v1";
+
 function applyRounding(value: number, step: number): number {
   if (step <= 0) return Math.round(value * 100) / 100;
   return Math.round(value / step) * step;
@@ -52,6 +80,8 @@ export function OperationsCommandHub({
   products,
   onUpdateProducts,
   onNavigateModule,
+  activeCart = {},
+  onReplaceCart,
   currency,
   locale,
   accent = "red"
@@ -62,16 +92,41 @@ export function OperationsCommandHub({
   const [query, setQuery] = useState("");
   const [feedback, setFeedback] = useState("");
 
-  // Estado de actualizacion masiva de precios
+  // Ventas en espera
+  const [parkedTickets, setParkedTickets] = useState<ParkedTicket[]>([]);
+  const [parkLabel, setParkLabel] = useState("");
+
+  // Cuenta corriente / Fiado
+  const [creditAccounts, setCreditAccounts] = useState<CreditAccount[]>([]);
+  const [clientName, setClientName] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAmount, setClientAmount] = useState("");
+  const [clientLimit, setClientLimit] = useState("100000");
+
+  // Etiquetas de gondola
+  const [selectedLabelIds, setSelectedLabelIds] = useState<string[]>([]);
+
+  // Actualizacion masiva de precios
   const [selectedCategory, setSelectedCategory] = useState("ALL");
   const [adjustMode, setAdjustMode] = useState<"percent" | "fixed">("percent");
   const [adjustValue, setAdjustValue] = useState("10");
   const [roundStep, setRoundStep] = useState<number>(10);
 
-  // Estado de importacion CSV
+  // Importacion CSV
   const [csvText, setCsvText] = useState(
     "Nombre,Categoria,Costo,Precio,Stock,Minimo\nYerba Mate 1kg,Almacen,2400,3600,24,8\nCafe Molido 500g,Almacen,4100,6200,14,5"
   );
+
+  useEffect(() => {
+    try {
+      const savedParked = window.localStorage.getItem(PARKED_STORAGE_KEY);
+      if (savedParked) setParkedTickets(JSON.parse(savedParked));
+      const savedCredit = window.localStorage.getItem(CREDIT_STORAGE_KEY);
+      if (savedCredit) setCreditAccounts(JSON.parse(savedCredit));
+    } catch {
+      // Ignora almacenamiento corrupto
+    }
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -85,6 +140,149 @@ export function OperationsCommandHub({
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open]);
+
+  function saveParked(next: ParkedTicket[]) {
+    setParkedTickets(next);
+    try {
+      window.localStorage.setItem(PARKED_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+  }
+
+  function saveCredits(next: CreditAccount[]) {
+    setCreditAccounts(next);
+    try {
+      window.localStorage.setItem(CREDIT_STORAGE_KEY, JSON.stringify(next));
+    } catch {}
+  }
+
+  const activeCartSummary = useMemo(() => {
+    const entries = Object.entries(activeCart).filter(([, qty]) => qty > 0);
+    const items = entries
+      .map(([key, qty]) => {
+        const productId = key.split("::")[0];
+        const prod = products.find((p) => p.id === productId);
+        if (!prod) return null;
+        return { productId: prod.id, name: prod.name, quantity: qty, price: prod.price };
+      })
+      .filter((x): x is NonNullable<typeof x> => x !== null);
+    const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    return { items, total };
+  }, [activeCart, products]);
+
+  function handleParkCurrentCart() {
+    if (!activeCartSummary.items.length) {
+      setFeedback("No hay productos cargados en el carrito actual de Caja para pausar.");
+      return;
+    }
+    const ticket: ParkedTicket = {
+      id: crypto.randomUUID(),
+      label: parkLabel.trim() || `Cliente en espera #${parkedTickets.length + 1}`,
+      createdAt: new Date().toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }),
+      items: activeCartSummary.items,
+      total: activeCartSummary.total
+    };
+    saveParked([ticket, ...parkedTickets]);
+    setParkLabel("");
+    if (onReplaceCart) onReplaceCart({});
+    setFeedback(`Venta "${ticket.label}" guardada en espera y carrito liberado para el siguiente cliente.`);
+  }
+
+  function handleResumeParked(ticket: ParkedTicket) {
+    if (!onReplaceCart) return;
+    const nextCart: Record<string, number> = {};
+    for (const item of ticket.items) {
+      nextCart[item.productId] = (nextCart[item.productId] || 0) + item.quantity;
+    }
+    onReplaceCart(nextCart);
+    saveParked(parkedTickets.filter((t) => t.id !== ticket.id));
+    onNavigateModule("cash");
+    setOpen(false);
+  }
+
+  function handleAddCreditMovement(type: "charge" | "payment") {
+    const name = clientName.trim();
+    const amount = Number(clientAmount.replace(",", "."));
+    if (!name || !Number.isFinite(amount) || amount <= 0) {
+      setFeedback("Ingresá nombre del cliente y un monto válido mayor a 0.");
+      return;
+    }
+    const existing = creditAccounts.find((c) => c.name.toLowerCase() === name.toLowerCase());
+    if (existing) {
+      const nextBalance = Math.max(0, existing.balance + (type === "charge" ? amount : -amount));
+      const updated = creditAccounts.map((c) =>
+        c.id === existing.id
+          ? {
+              ...c,
+              phone: clientPhone.trim() || c.phone,
+              balance: nextBalance,
+              updatedAt: new Date().toLocaleDateString(locale)
+            }
+          : c
+      );
+      saveCredits(updated);
+      setFeedback(
+        type === "charge"
+          ? `Se sumaron ${formatMoney(amount, currency, locale)} al fiado de ${existing.name}. Saldo: ${formatMoney(nextBalance, currency, locale)}.`
+          : `Pago registrado para ${existing.name}. Saldo restante: ${formatMoney(nextBalance, currency, locale)}.`
+      );
+    } else {
+      const created: CreditAccount = {
+        id: crypto.randomUUID(),
+        name,
+        phone: clientPhone.trim(),
+        balance: type === "charge" ? amount : 0,
+        limit: Math.max(0, Number(clientLimit) || 100000),
+        updatedAt: new Date().toLocaleDateString(locale)
+      };
+      saveCredits([created, ...creditAccounts]);
+      setFeedback(`Cliente "${name}" agregado a Cuenta Corriente con saldo ${formatMoney(created.balance, currency, locale)}.`);
+    }
+    setClientAmount("");
+  }
+
+  function handleSendWhatsappReminder(account: CreditAccount) {
+    const cleanPhone = account.phone.replace(/[^\d]/g, "");
+    const text = encodeURIComponent(
+      `Hola ${account.name}! Te compartimos el resumen de tu cuenta corriente: saldo pendiente actual de ${formatMoney(account.balance, currency, locale)}. ¡Muchas gracias!`
+    );
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone}?text=${text}`
+      : `https://wa.me/?text=${text}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  }
+
+  function handlePrintShelfLabels() {
+    const chosen = products.filter((p) =>
+      selectedLabelIds.length ? selectedLabelIds.includes(p.id) : true
+    ).slice(0, 24);
+    if (!chosen.length) {
+      setFeedback("No hay productos para generar etiquetas.");
+      return;
+    }
+    const win = window.open("", "_blank", "width=900,height=700");
+    if (!win) {
+      setFeedback("Permití ventanas emergentes para imprimir las etiquetas.");
+      return;
+    }
+    const cardsHtml = chosen
+      .map(
+        (p) => `
+        <div style="border:1.5px solid #111;border-radius:10px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;page-break-inside:avoid;">
+          <div style="font-size:11px;text-transform:uppercase;color:#555;font-weight:700;">${p.category || "General"}</div>
+          <div style="font-size:15px;font-weight:800;margin:4px 0 8px;line-height:1.2;">${p.name}</div>
+          <div style="font-size:24px;font-weight:900;letter-spacing:-0.02em;">${formatMoney(p.price, currency, locale)}</div>
+          <div style="margin-top:8px;padding-top:6px;border-top:1px dashed #999;font-family:monospace;font-size:12px;letter-spacing:2px;">*${p.barcode || p.id.slice(0, 10)}*</div>
+        </div>`
+      )
+      .join("");
+
+    win.document.write(`<!doctype html><html><head><title>Etiquetas de Góndola - Global Stock</title></head>
+      <body style="font-family:system-ui,-apple-system,sans-serif;padding:20px;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;">${cardsHtml}</div>
+        <script>window.onload = () => { window.print(); };</script>
+      </body></html>`);
+    win.document.close();
+  }
 
   const categories = useMemo(() => {
     const set = new Set<string>();
@@ -282,6 +480,15 @@ export function OperationsCommandHub({
     reader.readAsText(file, "utf-8");
   }
 
+  const tabs: Array<{ id: HubTab; label: string; icon: React.ReactNode }> = [
+    { id: "search", label: "Buscar", icon: <Search size={13} /> },
+    { id: "parked", label: `En espera (${parkedTickets.length})`, icon: <PauseCircle size={13} /> },
+    { id: "credit", label: `Fiado (${creditAccounts.length})`, icon: <UserCheck size={13} /> },
+    { id: "labels", label: "Etiquetas", icon: <Printer size={13} /> },
+    { id: "bulk-price", label: "Precios", icon: <Percent size={13} /> },
+    { id: "csv-import", label: "CSV", icon: <FileSpreadsheet size={13} /> }
+  ];
+
   return (
     <>
       <button
@@ -306,7 +513,7 @@ export function OperationsCommandHub({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[230] flex items-start justify-center bg-black/55 p-3 pt-[max(24px,8vh)] backdrop-blur-sm sm:p-6"
+            className="fixed inset-0 z-[230] flex items-start justify-center bg-black/55 p-3 pt-[max(20px,6vh)] backdrop-blur-sm sm:p-6"
             onMouseDown={(event) => {
               if (event.currentTarget === event.target) setOpen(false);
             }}
@@ -316,7 +523,7 @@ export function OperationsCommandHub({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.97, y: 10 }}
               transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-              className="flex max-h-[84dvh] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)] shadow-[0_32px_90px_rgba(0,0,0,.38)]"
+              className="flex max-h-[86dvh] w-full max-w-3xl flex-col overflow-hidden rounded-[28px] border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)] shadow-[0_32px_90px_rgba(0,0,0,.38)]"
             >
               <div className="flex items-center justify-between border-b border-[var(--apex-border)] px-5 py-4">
                 <div className="flex items-center gap-2.5">
@@ -329,7 +536,7 @@ export function OperationsCommandHub({
                   <div>
                     <h2 className="text-sm font-bold">Centro de Operaciones Rápidas</h2>
                     <p className="text-[11px] text-[var(--apex-muted)]">
-                      Navegación instantánea, ajuste masivo de precios, CSV y exportación contable
+                      Ventas en espera, fiado/WhatsApp, etiquetas de góndola, precios masivos y CSV
                     </p>
                   </div>
                 </div>
@@ -343,57 +550,26 @@ export function OperationsCommandHub({
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-2 border-b border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-2.5">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTab("search");
-                    setFeedback("");
-                  }}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    tab === "search"
-                      ? "text-white"
-                      : "border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)]"
-                  }`}
-                  style={tab === "search" ? { backgroundColor: accentColors.main } : undefined}
-                >
-                  <Search size={13} />
-                  Buscar y navegar
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTab("bulk-price");
-                    setFeedback("");
-                  }}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    tab === "bulk-price"
-                      ? "text-white"
-                      : "border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)]"
-                  }`}
-                  style={tab === "bulk-price" ? { backgroundColor: accentColors.main } : undefined}
-                >
-                  <Percent size={13} />
-                  Precios masivos
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    setTab("csv-import");
-                    setFeedback("");
-                  }}
-                  className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
-                    tab === "csv-import"
-                      ? "text-white"
-                      : "border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)]"
-                  }`}
-                  style={tab === "csv-import" ? { backgroundColor: accentColors.main } : undefined}
-                >
-                  <FileSpreadsheet size={13} />
-                  Importar CSV
-                </button>
+              <div className="flex flex-wrap items-center gap-1.5 border-b border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-2.5">
+                {tabs.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => {
+                      setTab(item.id);
+                      setFeedback("");
+                    }}
+                    className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                      tab === item.id
+                        ? "text-white"
+                        : "border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-text)]"
+                    }`}
+                    style={tab === item.id ? { backgroundColor: accentColors.main } : undefined}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </button>
+                ))}
 
                 <button
                   type="button"
@@ -483,6 +659,218 @@ export function OperationsCommandHub({
                           </button>
                         ))}
                       </div>
+                    </div>
+                  </div>
+                )}
+
+                {tab === "parked" && (
+                  <div className="space-y-4">
+                    <div className="rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                          <p className="text-xs font-bold">Carrito activo en Caja</p>
+                          <p className="text-[11px] text-[var(--apex-muted)]">
+                            {activeCartSummary.items.length
+                              ? `${activeCartSummary.items.length} ítem(s) · Total: ${formatMoney(activeCartSummary.total, currency, locale)}`
+                              : "El carrito de Caja está vacío en este momento."}
+                          </p>
+                        </div>
+                        <div className="flex flex-1 items-center gap-2 sm:max-w-xs">
+                          <input
+                            type="text"
+                            value={parkLabel}
+                            onChange={(e) => setParkLabel(e.target.value)}
+                            placeholder="Ej. Mesa 3 / Juan..."
+                            className="apex-input w-full px-3 py-1.5 text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={handleParkCurrentCart}
+                            className="shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold text-white transition hover:brightness-110"
+                            style={{ backgroundColor: accentColors.main }}
+                          >
+                            Pausar venta
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {parkedTickets.length === 0 ? (
+                      <p className="py-6 text-center text-xs text-[var(--apex-muted)]">
+                        No hay ventas pausadas. Cuando un cliente se olvide algo en mostrador, pausá su carrito acá para seguir cobrando sin perder los ítems.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {parkedTickets.map((ticket) => (
+                          <div
+                            key={ticket.id}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3"
+                          >
+                            <div>
+                              <div className="text-xs font-bold">
+                                {ticket.label}{" "}
+                                <span className="ml-1.5 text-[11px] font-normal text-[var(--apex-muted)]">
+                                  ({ticket.createdAt})
+                                </span>
+                              </div>
+                              <div className="mt-0.5 text-[11px] text-[var(--apex-muted)]">
+                                {ticket.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold tabular-nums">
+                                {formatMoney(ticket.total, currency, locale)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleResumeParked(ticket)}
+                                className="flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-bold text-white"
+                                style={{ backgroundColor: accentColors.main }}
+                              >
+                                <PlayCircle size={13} />
+                                Retomar
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => saveParked(parkedTickets.filter((t) => t.id !== ticket.id))}
+                                aria-label="Eliminar ticket en espera"
+                                className="grid h-8 w-8 place-items-center rounded-xl border border-[var(--apex-border)] text-[var(--apex-muted)] hover:text-red-500"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {tab === "credit" && (
+                  <div className="space-y-4">
+                    <div className="grid gap-2.5 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] p-4 sm:grid-cols-4">
+                      <input
+                        type="text"
+                        value={clientName}
+                        onChange={(e) => setClientName(e.target.value)}
+                        placeholder="Cliente (ej. Carlos Pérez)"
+                        className="apex-input px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="text"
+                        value={clientPhone}
+                        onChange={(e) => setClientPhone(e.target.value)}
+                        placeholder="WhatsApp (ej. 54911...)"
+                        className="apex-input px-3 py-2 text-xs"
+                      />
+                      <input
+                        type="number"
+                        value={clientAmount}
+                        onChange={(e) => setClientAmount(e.target.value)}
+                        placeholder="Monto ($)"
+                        className="apex-input px-3 py-2 text-xs tabular-nums"
+                      />
+                      <div className="flex gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => handleAddCreditMovement("charge")}
+                          className="flex-1 rounded-xl px-2.5 py-2 text-[11px] font-bold text-white"
+                          style={{ backgroundColor: accentColors.main }}
+                        >
+                          + Fiar
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAddCreditMovement("payment")}
+                          className="flex-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-2.5 py-2 text-[11px] font-bold"
+                        >
+                          - Pago
+                        </button>
+                      </div>
+                    </div>
+
+                    {creditAccounts.length === 0 ? (
+                      <p className="py-5 text-center text-xs text-[var(--apex-muted)]">
+                        Registrá saldos fiados o pagos parciales de tus clientes y enviá el resumen por WhatsApp en un clic.
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {creditAccounts.map((acc) => (
+                          <div
+                            key={acc.id}
+                            className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3"
+                          >
+                            <div>
+                              <div className="text-xs font-bold">{acc.name}</div>
+                              <div className="text-[11px] text-[var(--apex-muted)]">
+                                {acc.phone || "Sin teléfono"} · Actualizado: {acc.updatedAt}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-extrabold tabular-nums">
+                                Saldo: {formatMoney(acc.balance, currency, locale)}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => handleSendWhatsappReminder(acc)}
+                                className="flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500"
+                              >
+                                <MessageCircle size={13} />
+                                WhatsApp
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {tab === "labels" && (
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-[var(--apex-muted)]">
+                        Seleccioná los productos que querés imprimir (si no marcás ninguno, se imprimen hasta los primeros 24).
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handlePrintShelfLabels}
+                        className="flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold text-white"
+                        style={{ backgroundColor: accentColors.main }}
+                      >
+                        <Printer size={14} />
+                        Imprimir etiquetas ({selectedLabelIds.length || Math.min(24, products.length)})
+                      </button>
+                    </div>
+
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      {products.slice(0, 30).map((p) => {
+                        const checked = selectedLabelIds.includes(p.id);
+                        return (
+                          <label
+                            key={p.id}
+                            className="flex cursor-pointer items-center justify-between rounded-xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-2 text-xs"
+                          >
+                            <span className="flex items-center gap-2 truncate pr-2">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() =>
+                                  setSelectedLabelIds((prev) =>
+                                    prev.includes(p.id)
+                                      ? prev.filter((id) => id !== p.id)
+                                      : [...prev, p.id]
+                                  )
+                                }
+                              />
+                              <span className="truncate font-semibold">{p.name}</span>
+                            </span>
+                            <span className="shrink-0 font-bold tabular-nums">
+                              {formatMoney(p.price, currency, locale)}
+                            </span>
+                          </label>
+                        );
+                      })}
                     </div>
                   </div>
                 )}
