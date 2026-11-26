@@ -4007,7 +4007,20 @@ export function BusinessWorkspace({
                   />
                 </div>
               )}
-              <button
+                            <button
+                type="button"
+                data-advanced-only="true"
+                onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
+                title="Centro de operaciones rápidas (Ctrl + K)"
+                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
+              >
+                <span className="h-2 w-2 rounded-full bg-[var(--apex-accent)]" />
+                <span>Acciones</span>
+                <kbd className="rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)]">
+                  Ctrl+K
+                </kbd>
+              </button>
+<button
                 type="button"
                 onClick={onToggleTheme}
                 className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"

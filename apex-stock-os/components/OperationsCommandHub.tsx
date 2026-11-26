@@ -531,8 +531,6 @@ export function OperationsCommandHub({
 
   return (
     <>
-      null
-
       <AnimatePresence>
         {open && (
           <motion.div
