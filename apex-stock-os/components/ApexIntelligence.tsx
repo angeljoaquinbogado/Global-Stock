@@ -343,7 +343,38 @@ function localBusinessAnswer({
     return answers[language];
   }
 
-  const wantsAlerts =
+  const wantsPurchasePlan =
+    /\b(comprar|compra|compras|pedir|pedido|reponer|reposicion|abastecer|cuanto debo|cuantos productos)\b/.test(text);
+
+  if (wantsPurchasePlan && language === "es") {
+    const products = snapshot.products ?? [];
+    const candidates = products
+      .map((p) => {
+        const stock = Number(p.stock ?? 0);
+        const minStock = Number(p.minStock ?? 0);
+        const cost = Number(p.cost ?? 0);
+        const targetStock = Math.max(minStock * 2, minStock + 5);
+        const suggestedQty = stock <= minStock ? Math.max(1, targetStock - stock) : 0;
+        return { name: p.name, stock, minStock, cost, suggestedQty, estCost: suggestedQty * cost };
+      })
+      .filter((item) => item.suggestedQty > 0)
+      .sort((a, b) => b.suggestedQty - a.suggestedQty);
+
+    if (!candidates.length) {
+      return "Con los datos cargados hoy no necesitás comprar mercadería urgente: todos los productos están por encima de su stock mínimo.";
+    }
+
+    const totalUnits = candidates.reduce((acc, item) => acc + item.suggestedQty, 0);
+    const totalEstCost = candidates.reduce((acc, item) => acc + item.estCost, 0);
+    const lines = candidates.slice(0, 8).map(
+      (item) =>
+        `• ${item.name}: pedir ${item.suggestedQty} u. (actual: ${item.stock} u., mínimo: ${item.minStock} u.${item.estCost > 0 ? `, est. ${money(item.estCost)}` : ""})`
+    );
+
+    return `Plan de compra sugerido (${candidates.length} productos, ${totalUnits} unidades en total${totalEstCost > 0 ? `, inversión estimada: ${money(totalEstCost)}` : ""}):\n${lines.join("\n")}`;
+  }
+
+    const wantsAlerts =
     /\b(alerta|alertas|critico|criticos|reponer|reposicion|faltante|faltantes|bajo|agotado|agotados|resumen|estado|como estoy|como vamos)\b/.test(text);
 
   if (wantsAlerts && language === "es") {
@@ -1065,6 +1096,7 @@ export function ApexIntelligence({
                   ? [
                       { label: "Resumen", q: "Resumen del negocio" },
                       { label: "Stock y alertas", q: "Qué alertas de stock tengo?" },
+                      { label: "¿Cuánto comprar?", q: "Cuántos productos debo comprar?" },
                       { label: "Ganancia y margen", q: "Cuál es mi ganancia y margen?" },
                       { label: "Mejor día", q: "Cuál fue el mejor día?" }
                     ]
