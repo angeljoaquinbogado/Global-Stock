@@ -5331,7 +5331,7 @@ function PosModule({
           )}
         </section>
 
-        <aside className="apex-card h-fit p-5 xl:sticky xl:top-24">
+        <aside className="apex-card h-fit p-5 xl:sticky xl:top-24 overflow-x-hidden">
           <h2 className="text-lg font-semibold">{cashMode ? cashLabels.checkout : labels.cart}</h2>
           {cashMode && <p className="mt-2 text-xs text-[var(--apex-muted)]">{cartLines.reduce((sum, line) => sum + line.quantity, 0)} {cashLabels.items}</p>}
 

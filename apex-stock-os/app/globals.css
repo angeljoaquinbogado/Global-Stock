@@ -3468,3 +3468,31 @@ html[data-simple-mode="true"] [data-advanced-only="true"] {
 .dark [class*="text-[var(--apex-muted)]"] {
   color: #cbd5e1 !important;
 }
+
+
+/* Welcome animation & sidebar stability */
+@keyframes welcomeEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.welcome-enter-anim {
+  animation: welcomeEntrance 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+aside svg,
+aside [data-lucide] {
+  flex-shrink: 0;
+  transform: none !important;
+}
+
+aside a,
+aside button {
+  overflow-x: hidden;
+}
