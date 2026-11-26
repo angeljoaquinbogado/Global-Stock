@@ -3453,3 +3453,18 @@ html[data-simple-mode="true"] {
 html[data-simple-mode="true"] [data-advanced-only="true"] {
   display: none !important;
 }
+
+
+/* Dark mode contrast polish */
+.dark .text-slate-400,
+.dark .text-slate-500,
+.dark .text-gray-400,
+.dark .text-gray-500,
+.dark .text-zinc-400,
+.dark .text-zinc-500 {
+  color: #cbd5e1 !important;
+}
+
+.dark [class*="text-[var(--apex-muted)]"] {
+  color: #cbd5e1 !important;
+}

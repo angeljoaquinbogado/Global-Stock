@@ -531,24 +531,7 @@ export function OperationsCommandHub({
 
   return (
     <>
-      {variant === "header" ? (
-        <button
-          type="button"
-          data-advanced-only="true"
-          onClick={() => {
-            setFeedback("");
-            setOpen(true);
-          }}
-          title="Centro de operaciones rápidas (Ctrl + K)"
-          className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
-        >
-          <Command size={14} style={{ color: accentColors.main }} />
-          <span className="hidden md:inline">Operaciones</span>
-          <kbd className="hidden rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)] sm:inline">
-            Ctrl+K
-          </kbd>
-        </button>
-      ) : null}
+      null
 
       <AnimatePresence>
         {open && (
