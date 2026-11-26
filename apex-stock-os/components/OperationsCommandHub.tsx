@@ -137,8 +137,17 @@ export function OperationsCommandHub({
         setOpen(false);
       }
     };
+    const onOpenCredit = () => {
+      setTab("credit");
+      setFeedback("");
+      setOpen(true);
+    };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener("global-stock:open-credit", onOpenCredit);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("global-stock:open-credit", onOpenCredit);
+    };
   }, [open]);
 
   function saveParked(next: ParkedTicket[]) {
