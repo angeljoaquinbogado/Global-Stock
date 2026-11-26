@@ -68,6 +68,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 
 import { AnimatedHomeDashboard } from "./AnimatedHomeDashboard";
 import { ApexIntelligence } from "./ApexIntelligence";
+import { OperationsCommandHub } from "./OperationsCommandHub";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
 import { StockQuantityCell } from "./StockQuantityCell";
@@ -4582,6 +4583,14 @@ export function BusinessWorkspace({
         )}
       </AnimatePresence>
 
+      <OperationsCommandHub
+        products={products}
+        onUpdateProducts={setProducts}
+        onNavigateModule={(moduleId) => setActiveModule(moduleId as ModuleId)}
+        currency={snapshot.currency}
+        locale={snapshot.locale}
+        accent={workspaceAccent}
+      />
       <ApexIntelligence
         snapshot={snapshot}
         accent={workspaceAccent}
