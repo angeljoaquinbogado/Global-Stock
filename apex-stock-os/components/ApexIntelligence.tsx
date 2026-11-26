@@ -343,7 +343,23 @@ function localBusinessAnswer({
     return answers[language];
   }
 
-  if ((wantsBest || wantsWorst) && snapshot.trend.length) {
+  const wantsAlerts =
+    /\b(alerta|alertas|critico|criticos|reponer|reposicion|faltante|faltantes|bajo|agotado|agotados|resumen|estado|como estoy|como vamos)\b/.test(text);
+
+  if (wantsAlerts && language === "es") {
+    const lowOrOut = (snapshot.products ?? []).filter(
+      (p) => typeof p.stock === "number" && typeof p.minStock === "number" && p.stock <= p.minStock
+    );
+    const topAlerts = lowOrOut.slice(0, 6).map(
+      (p) => `• ${p.name}: ${p.stock} u. (mínimo ${p.minStock})`
+    );
+    const alertsText = topAlerts.length
+      ? `Productos a revisar:\n${topAlerts.join("\n")}`
+      : "No hay productos por debajo del stock mínimo en este momento.";
+    return `Resumen actual:\n• Ingresos: ${money(metrics.revenue)} | Ganancia bruta: ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% margen)\n• Inventario: ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} stock bajo, ${metrics.outOfStockCount} sin stock)\n${alertsText}`;
+  }
+
+    if ((wantsBest || wantsWorst) && snapshot.trend.length) {
     const point = [...snapshot.trend].sort((a, b) =>
       wantsWorst ? a.profit - b.profit : b.profit - a.profit
     )[0];
@@ -427,10 +443,6 @@ export function ApexIntelligence({
   }, [mounted, supportsHover, autoRevealCancelled, open]);
 
   function activateLauncher() {
-    if (!launcherExpanded) {
-      setLauncherExpanded(true);
-      return;
-    }
     setOpen(true);
   }
 
@@ -1048,6 +1060,32 @@ export function ApexIntelligence({
               onSubmit={submit}
               className="shrink-0 border-t border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 pb-[max(12px,env(safe-area-inset-bottom))] pt-3 sm:p-3"
             >
+                            <div className="mb-2 flex flex-wrap gap-1.5 px-0.5">
+                {(language === "es"
+                  ? [
+                      { label: "Resumen", q: "Resumen del negocio" },
+                      { label: "Stock y alertas", q: "Qué alertas de stock tengo?" },
+                      { label: "Ganancia y margen", q: "Cuál es mi ganancia y margen?" },
+                      { label: "Mejor día", q: "Cuál fue el mejor día?" }
+                    ]
+                  : [
+                      { label: "Summary", q: "Business summary" },
+                      { label: "Stock alerts", q: "What stock alerts do I have?" },
+                      { label: "Profit & margin", q: "What is my profit and margin?" },
+                      { label: "Best day", q: "What was the best day?" }
+                    ]
+                ).map((chip) => (
+                  <button
+                    key={chip.label}
+                    type="button"
+                    disabled={pending}
+                    onClick={() => void ask(chip.q)}
+                    className="rounded-full border border-[var(--apex-border)] bg-[var(--apex-bg)] px-2.5 py-1 text-[11px] font-medium text-[var(--apex-text)] transition hover:border-[var(--apex-accent)] hover:text-[var(--apex-accent)] disabled:opacity-45"
+                  >
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
               <div className="mb-2 px-1 text-[10px] leading-4 text-[var(--apex-muted)]">
                 {copy.contextHint}
               </div>
