@@ -224,6 +224,14 @@ function localBusinessAnswer({
     dateStyle: "full"
   }).format(now);
 
+  // 0. Identidad del sistema ("q es global stock", "que es esta app", "para que sirve global stock")
+  if (/\b(que es global stock|q es global stock|que es esta app|q es esta app|para que sirve global stock|como funciona global stock)\b/.test(text)) {
+    if (language === "es") {
+      return "Global Stock es un sistema operativo de gestión comercial todo-en-uno diseñado para acompañar desde un emprendimiento o kiosco hasta comercios y empresas con múltiples sucursales.\n\nDesde un mismo lugar podés:\n- Cobrar en mostrador con Caja / POS y escáner de códigos de barras.\n- Controlar inventario en Almacén, alertas de stock mínimo y reposición a proveedores.\n- Emitir comprobantes electrónicos en ARCA, sincronizar Tienda Online y seguir ventas, costos y márgenes en Gráficos.\n- Analizar tus números en tiempo real conmigo (Global Intelligence).\n\n¿Querés que te muestre cómo empezar o revisamos algún módulo en particular?";
+    }
+    return "Global Stock is an all-in-one business management platform for POS, inventory, restocking, electronic invoicing, online store sync, and live analytics.";
+  }
+
   // 1. Preguntas sobre que sabe crear / hacer / capacidades (incluye abreviaturas como "q sabes crear")
   if (
     /\b(sabes crear|podes crear|que creas|que haces|q haces|q sabes|que sabes|para que servis|que podes hacer|capaz de responder|responder todo|como funcionas|quien sos|sos una ia|inteligencia artificial|ayudarme|conversar)\b/.test(text)
@@ -394,7 +402,7 @@ function localBusinessAnswer({
     if (/\b(caja|pos|vender|venta|cobrar|ticket|carrito|efectivo|transferencia|qr)\b/.test(text)) {
       return "Para cobrar rápido en Caja:\n1. Entrá a Caja y buscá por nombre, código o escaneá con la cámara o el celular emparejado.\n2. Ajustá cantidades o descuentos y elegí el medio de cobro (Efectivo, Transferencia, Débito o Crédito).\n3. Al confirmar, el stock se descuenta solo y queda registrado en Actividad y Gráficos.\n\n¿Querés ver cómo vincular el teléfono como lector remoto?";
     }
-    if (/\b(almacen|agregar producto|cargar producto|nuevo producto|codigo de barras|editar precio|stock)\b/.test(text) && !/\b(cuanto|unidades|tengo)\b/.test(text)) {
+    if (/\b(almacen|agregar producto|cargar producto|nuevo producto|codigo de barras|editar precio|gestionar stock|cargar stock)\b/.test(text) && !/\b(cuanto|unidades|tengo|global stock)\b/.test(text)) {
       return "Para cargar y organizar productos en Almacén:\n1. Entrá a Almacén y tocá Nuevo producto (podés escanear el código de barras para completar datos más rápido).\n2. Definí costo, precio de venta, stock inicial y stock mínimo para activar alertas automáticas.\n3. Podés ajustar cantidades desde la tabla o registrar compras en Reposición.\n\n¿Qué rubro trabajás o cuántos productos pensás cargar?";
     }
     if (/\b(tienda online|ecommerce|mercado libre|tiendanube|shopify|sincronizar)\b/.test(text)) {
