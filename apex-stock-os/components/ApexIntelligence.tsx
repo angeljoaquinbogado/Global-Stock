@@ -287,6 +287,20 @@ function localBusinessAnswer({
     return answers[language];
   }
 
+  if ((wantsBest || wantsWorst) && snapshot.trend.length) {
+    const point = [...snapshot.trend].sort((a, b) =>
+      wantsWorst ? a.profit - b.profit : b.profit - a.profit
+    )[0];
+    const answers: Record<UiLanguage, string> = {
+      es: `El ${wantsWorst ? "día más débil" : "mejor día"} del período cargado es ${point.label}, con ${money(point.profit)} de ganancia bruta.`,
+      en: `The ${wantsWorst ? "weakest" : "best"} day in the loaded period is ${point.label}, with ${money(point.profit)} in gross profit.`,
+      pt: `O ${wantsWorst ? "dia mais fraco" : "melhor dia"} do período carregado é ${point.label}, com ${money(point.profit)} de lucro bruto.`,
+      fr: `Le ${wantsWorst ? "jour le plus faible" : "meilleur jour"} de la période chargée est ${point.label}, avec ${money(point.profit)} de bénéfice brut.`,
+      de: `Der ${wantsWorst ? "schwächste" : "beste"} Tag im geladenen Zeitraum ist ${point.label} mit ${money(point.profit)} Bruttogewinn.`
+    };
+    return answers[language];
+  }
+
   if (wantsDate) {
     const answers: Record<UiLanguage, string> = {
       es: `Hoy es ${formattedDate}.`,
@@ -388,20 +402,6 @@ function localBusinessAnswer({
       ? `Productos a revisar:\n${topAlerts.join("\n")}`
       : "No hay productos por debajo del stock mínimo en este momento.";
     return `Resumen actual:\n• Ingresos: ${money(metrics.revenue)} | Ganancia bruta: ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% margen)\n• Inventario: ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} stock bajo, ${metrics.outOfStockCount} sin stock)\n${alertsText}`;
-  }
-
-    if ((wantsBest || wantsWorst) && snapshot.trend.length) {
-    const point = [...snapshot.trend].sort((a, b) =>
-      wantsWorst ? a.profit - b.profit : b.profit - a.profit
-    )[0];
-    const answers: Record<UiLanguage, string> = {
-      es: `El ${wantsWorst ? "día más débil" : "mejor día"} del período cargado es ${point.label}, con ${money(point.profit)} de ganancia bruta.`,
-      en: `The ${wantsWorst ? "weakest" : "best"} day in the loaded period is ${point.label}, with ${money(point.profit)} in gross profit.`,
-      pt: `O ${wantsWorst ? "dia mais fraco" : "melhor dia"} do período carregado é ${point.label}, com ${money(point.profit)} de lucro bruto.`,
-      fr: `Le ${wantsWorst ? "jour le plus faible" : "meilleur jour"} de la période chargée est ${point.label}, avec ${money(point.profit)} de bénéfice brut.`,
-      de: `Der ${wantsWorst ? "schwächste" : "beste"} Tag im geladenen Zeitraum ist ${point.label} mit ${money(point.profit)} Bruttogewinn.`
-    };
-    return answers[language];
   }
 
   return null;
