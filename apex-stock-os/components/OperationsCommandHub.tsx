@@ -506,6 +506,7 @@ export function OperationsCommandHub({
           setFeedback("");
           setOpen(true);
         }}
+        data-advanced-only="true"
         title="Centro de operaciones rápidas (Ctrl + K)"
         className="fixed bottom-[calc(154px+env(safe-area-inset-bottom,0px))] right-4 z-40 flex h-11 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] shadow-[0_10px_28px_rgba(0,0,0,.14)] backdrop-blur-xl transition hover:border-[var(--apex-accent)] lg:bottom-[88px] lg:right-6"
       >

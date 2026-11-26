@@ -3445,14 +3445,11 @@ textarea:focus-visible {
   scrollbar-color: rgba(128, 128, 128, 0.25) transparent;
 }
 
-
-/* Modo Facil: letra grande, botones comodos y lectura clara */
+/* Modo Facil: lectura ampliada y botones comodos sin alterar layout */
 html[data-simple-mode="true"] {
-  font-size: 18px;
+  font-size: 17px;
 }
 
-html[data-simple-mode="true"] button,
-html[data-simple-mode="true"] input,
-html[data-simple-mode="true"] select {
-  min-height: 44px;
+html[data-simple-mode="true"] [data-advanced-only="true"] {
+  display: none !important;
 }

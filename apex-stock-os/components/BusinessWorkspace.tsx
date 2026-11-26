@@ -69,7 +69,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AnimatedHomeDashboard } from "./AnimatedHomeDashboard";
 import { ApexIntelligence } from "./ApexIntelligence";
 import { OperationsCommandHub } from "./OperationsCommandHub";
-import { SimpleModeGuide } from "./SimpleModeGuide";
+import { SimpleModeSettingsCard } from "./SimpleModeGuide";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
 import { StockQuantityCell } from "./StockQuantityCell";
@@ -4583,12 +4583,6 @@ export function BusinessWorkspace({
           </motion.div>
         )}
       </AnimatePresence>
-
-      <SimpleModeGuide
-        snapshot={snapshot}
-        onNavigateModule={(moduleId) => setActiveModule(moduleId as ModuleId)}
-        accent={workspaceAccent}
-      />
       <OperationsCommandHub
         products={products}
         onUpdateProducts={setProducts}
