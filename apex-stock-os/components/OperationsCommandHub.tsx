@@ -52,6 +52,7 @@ type OperationsCommandHubProps = {
   currency: string;
   locale: string;
   accent?: WorkspaceAccent;
+  variant?: "header" | "floating";
 };
 
 const QUICK_NAV_ITEMS = [
@@ -84,7 +85,8 @@ export function OperationsCommandHub({
   onReplaceCart,
   currency,
   locale,
-  accent = "red"
+  accent = "red",
+  variant = "header"
 }: OperationsCommandHubProps) {
   const accentColors = WORKSPACE_ACCENTS[accent];
   const [open, setOpen] = useState(false);
@@ -123,15 +125,14 @@ export function OperationsCommandHub({
       if (savedParked) setParkedTickets(JSON.parse(savedParked));
       const savedCredit = window.localStorage.getItem(CREDIT_STORAGE_KEY);
       if (savedCredit) setCreditAccounts(JSON.parse(savedCredit));
-    } catch {
-      // Ignora almacenamiento corrupto
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
         event.preventDefault();
+        setFeedback("");
         setOpen((prev) => !prev);
       } else if (event.key === "Escape" && open) {
         setOpen(false);
@@ -142,11 +143,17 @@ export function OperationsCommandHub({
       setFeedback("");
       setOpen(true);
     };
+    const onOpenHub = () => {
+      setFeedback("");
+      setOpen(true);
+    };
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("global-stock:open-credit", onOpenCredit);
+    window.addEventListener("global-stock:open-hub", onOpenHub);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener("global-stock:open-credit", onOpenCredit);
+      window.removeEventListener("global-stock:open-hub", onOpenHub);
     };
   }, [open]);
 
@@ -180,7 +187,7 @@ export function OperationsCommandHub({
 
   function handleParkCurrentCart() {
     if (!activeCartSummary.items.length) {
-      setFeedback("No hay productos cargados en el carrito actual de Caja para pausar.");
+      setFeedback("Cargá primero al menos un producto en Caja para poder pausar la venta.");
       return;
     }
     const ticket: ParkedTicket = {
@@ -193,7 +200,7 @@ export function OperationsCommandHub({
     saveParked([ticket, ...parkedTickets]);
     setParkLabel("");
     if (onReplaceCart) onReplaceCart({});
-    setFeedback(`Venta "${ticket.label}" guardada en espera y carrito liberado para el siguiente cliente.`);
+    setFeedback(`Venta "${ticket.label}" guardada en espera y carrito liberado.`);
   }
 
   function handleResumeParked(ticket: ParkedTicket) {
@@ -244,7 +251,7 @@ export function OperationsCommandHub({
         updatedAt: new Date().toLocaleDateString(locale)
       };
       saveCredits([created, ...creditAccounts]);
-      setFeedback(`Cliente "${name}" agregado a Cuenta Corriente con saldo ${formatMoney(created.balance, currency, locale)}.`);
+      setFeedback(`Cliente "${name}" agregado con saldo ${formatMoney(created.balance, currency, locale)}.`);
     }
     setClientAmount("");
   }
@@ -261,9 +268,9 @@ export function OperationsCommandHub({
   }
 
   function handlePrintShelfLabels() {
-    const chosen = products.filter((p) =>
-      selectedLabelIds.length ? selectedLabelIds.includes(p.id) : true
-    ).slice(0, 24);
+    const chosen = products
+      .filter((p) => (selectedLabelIds.length ? selectedLabelIds.includes(p.id) : true))
+      .slice(0, 24);
     if (!chosen.length) {
       setFeedback("No hay productos para generar etiquetas.");
       return;
@@ -323,11 +330,35 @@ export function OperationsCommandHub({
     );
   }, [query]);
 
-  const affectedCount = useMemo(() => {
+  const affectedProducts = useMemo(() => {
     return products.filter(
       (p) => selectedCategory === "ALL" || (p.category || "").trim() === selectedCategory
-    ).length;
+    );
   }, [products, selectedCategory]);
+
+  const previewSample = useMemo(() => {
+    const sample = affectedProducts[0];
+    if (!sample) return null;
+    const numeric = Number(adjustValue.replace(",", "."));
+    if (!Number.isFinite(numeric)) return { name: sample.name, before: sample.price, after: sample.price };
+    const rawNext =
+      adjustMode === "percent" ? sample.price * (1 + numeric / 100) : sample.price + numeric;
+    return {
+      name: sample.name,
+      before: sample.price,
+      after: Math.max(0, applyRounding(rawNext, roundStep))
+    };
+  }, [affectedProducts, adjustValue, adjustMode, roundStep]);
+
+  const parsedCsvRowCount = useMemo(() => {
+    const lines = csvText
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+    if (!lines.length) return 0;
+    const startIdx = lines[0].toLowerCase().startsWith("nombre") ? 1 : 0;
+    return Math.max(0, lines.length - startIdx);
+  }, [csvText]);
 
   function handleBulkPriceApply() {
     const numeric = Number(adjustValue.replace(",", "."));
@@ -355,7 +386,7 @@ export function OperationsCommandHub({
     );
 
     setFeedback(
-      `Precios actualizados en ${affectedCount} producto(s) (${adjustMode === "percent" ? `${numeric > 0 ? "+" : ""}${numeric}%` : `${numeric > 0 ? "+" : ""}${formatMoney(numeric, currency, locale)}`}).`
+      `Precios actualizados en ${affectedProducts.length} producto(s).`
     );
   }
 
@@ -500,22 +531,24 @@ export function OperationsCommandHub({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => {
-          setFeedback("");
-          setOpen(true);
-        }}
-        data-advanced-only="true"
-        title="Centro de operaciones rápidas (Ctrl + K)"
-        className="fixed bottom-[calc(154px+env(safe-area-inset-bottom,0px))] right-4 z-40 flex h-11 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] shadow-[0_10px_28px_rgba(0,0,0,.14)] backdrop-blur-xl transition hover:border-[var(--apex-accent)] lg:bottom-[88px] lg:right-6"
-      >
-        <Command size={14} style={{ color: accentColors.main }} />
-        <span className="hidden sm:inline">Acciones rápidas</span>
-        <kbd className="rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)]">
-          Ctrl+K
-        </kbd>
-      </button>
+      {variant === "header" ? (
+        <button
+          type="button"
+          data-advanced-only="true"
+          onClick={() => {
+            setFeedback("");
+            setOpen(true);
+          }}
+          title="Centro de operaciones rápidas (Ctrl + K)"
+          className="inline-flex h-10 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
+        >
+          <Command size={14} style={{ color: accentColors.main }} />
+          <span className="hidden md:inline">Operaciones</span>
+          <kbd className="hidden rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)] sm:inline">
+            Ctrl+K
+          </kbd>
+        </button>
+      ) : null}
 
       <AnimatePresence>
         {open && (
@@ -545,7 +578,7 @@ export function OperationsCommandHub({
                   </span>
                   <div>
                     <h2 className="text-sm font-bold">Centro de Operaciones Rápidas</h2>
-                    <p className="text-[11px] text-[var(--apex-muted)]">
+                    <p className="text-[12px] text-[var(--apex-muted)]">
                       Ventas en espera, fiado/WhatsApp, etiquetas de góndola, precios masivos y CSV
                     </p>
                   </div>
@@ -616,7 +649,7 @@ export function OperationsCommandHub({
                     </div>
 
                     <div>
-                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--apex-muted)]">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--apex-muted)]">
                         Módulos y accesos directos
                       </p>
                       <div className="grid gap-2 sm:grid-cols-2">
@@ -632,7 +665,7 @@ export function OperationsCommandHub({
                           >
                             <div className="min-w-0 pr-2">
                               <div className="truncate text-xs font-bold">{item.label}</div>
-                              <div className="truncate text-[11px] text-[var(--apex-muted)]">
+                              <div className="truncate text-[12px] text-[var(--apex-muted)]">
                                 {item.hint}
                               </div>
                             </div>
@@ -643,7 +676,7 @@ export function OperationsCommandHub({
                     </div>
 
                     <div>
-                      <p className="mb-2 text-[11px] font-bold uppercase tracking-wider text-[var(--apex-muted)]">
+                      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-[var(--apex-muted)]">
                         Productos en inventario ({products.length})
                       </p>
                       <div className="space-y-1.5">
@@ -659,7 +692,7 @@ export function OperationsCommandHub({
                           >
                             <div className="min-w-0">
                               <span className="font-semibold">{p.name}</span>
-                              <span className="ml-2 text-[11px] text-[var(--apex-muted)]">
+                              <span className="ml-2 text-[12px] text-[var(--apex-muted)]">
                                 {p.category} · Stock: {p.stock} u.
                               </span>
                             </div>
@@ -679,7 +712,7 @@ export function OperationsCommandHub({
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div>
                           <p className="text-xs font-bold">Carrito activo en Caja</p>
-                          <p className="text-[11px] text-[var(--apex-muted)]">
+                          <p className="text-[12px] text-[var(--apex-muted)]">
                             {activeCartSummary.items.length
                               ? `${activeCartSummary.items.length} ítem(s) · Total: ${formatMoney(activeCartSummary.total, currency, locale)}`
                               : "El carrito de Caja está vacío en este momento."}
@@ -719,11 +752,11 @@ export function OperationsCommandHub({
                             <div>
                               <div className="text-xs font-bold">
                                 {ticket.label}{" "}
-                                <span className="ml-1.5 text-[11px] font-normal text-[var(--apex-muted)]">
+                                <span className="ml-1.5 text-[12px] font-normal text-[var(--apex-muted)]">
                                   ({ticket.createdAt})
                                 </span>
                               </div>
-                              <div className="mt-0.5 text-[11px] text-[var(--apex-muted)]">
+                              <div className="mt-0.5 text-[12px] text-[var(--apex-muted)]">
                                 {ticket.items.map((i) => `${i.quantity}x ${i.name}`).join(", ")}
                               </div>
                             </div>
@@ -777,14 +810,14 @@ export function OperationsCommandHub({
                         type="number"
                         value={clientAmount}
                         onChange={(e) => setClientAmount(e.target.value)}
-                        placeholder="Monto ($)"
+                        placeholder={`Monto (${currency})`}
                         className="apex-input px-3 py-2 text-xs tabular-nums"
                       />
                       <div className="flex gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleAddCreditMovement("charge")}
-                          className="flex-1 rounded-xl px-2.5 py-2 text-[11px] font-bold text-white"
+                          className="flex-1 rounded-xl px-2.5 py-2 text-xs font-bold text-white"
                           style={{ backgroundColor: accentColors.main }}
                         >
                           + Fiar
@@ -792,7 +825,7 @@ export function OperationsCommandHub({
                         <button
                           type="button"
                           onClick={() => handleAddCreditMovement("payment")}
-                          className="flex-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-2.5 py-2 text-[11px] font-bold"
+                          className="flex-1 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-2.5 py-2 text-xs font-bold"
                         >
                           - Pago
                         </button>
@@ -812,7 +845,7 @@ export function OperationsCommandHub({
                           >
                             <div>
                               <div className="text-xs font-bold">{acc.name}</div>
-                              <div className="text-[11px] text-[var(--apex-muted)]">
+                              <div className="text-[12px] text-[var(--apex-muted)]">
                                 {acc.phone || "Sin teléfono"} · Actualizado: {acc.updatedAt}
                               </div>
                             </div>
@@ -840,7 +873,7 @@ export function OperationsCommandHub({
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-[var(--apex-muted)]">
-                        Seleccioná los productos que querés imprimir (si no marcás ninguno, se imprimen hasta los primeros 24).
+                        Marcá los productos que querés imprimir o dejá sin marcar para imprimir hasta los primeros 24.
                       </p>
                       <button
                         type="button"
@@ -849,7 +882,9 @@ export function OperationsCommandHub({
                         style={{ backgroundColor: accentColors.main }}
                       >
                         <Printer size={14} />
-                        Imprimir etiquetas ({selectedLabelIds.length || Math.min(24, products.length)})
+                        {selectedLabelIds.length
+                          ? `Imprimir (${selectedLabelIds.length})`
+                          : `Imprimir (hasta ${Math.min(24, products.length)})`}
                       </button>
                     </div>
 
@@ -945,9 +980,20 @@ export function OperationsCommandHub({
                       </label>
                     </div>
 
+                    {previewSample && (
+                      <div className="rounded-xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-2.5 text-xs text-[var(--apex-muted)]">
+                        Vista previa en <strong className="text-[var(--apex-text)]">{previewSample.name}</strong>:{" "}
+                        <span className="tabular-nums">{formatMoney(previewSample.before, currency, locale)}</span>{" "}
+                        →{" "}
+                        <strong className="tabular-nums text-[var(--apex-text)]">
+                          {formatMoney(previewSample.after, currency, locale)}
+                        </strong>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-4 py-3">
                       <span className="text-xs text-[var(--apex-muted)]">
-                        Productos alcanzados: <strong className="text-[var(--apex-text)]">{affectedCount}</strong>
+                        Productos alcanzados: <strong className="text-[var(--apex-text)]">{affectedProducts.length}</strong>
                       </span>
                       <button
                         type="button"
@@ -965,7 +1011,7 @@ export function OperationsCommandHub({
                   <div className="space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-[var(--apex-muted)]">
-                        Formato: <strong>Nombre, Categoría, Costo, Precio, Stock, Mínimo</strong>. Si el nombre ya existe, suma el stock y actualiza precios.
+                        Formato: <strong>Nombre, Categoría, Costo, Precio, Stock, Mínimo</strong>. Filas detectadas: <strong>{parsedCsvRowCount}</strong>.
                       </p>
                       <label className="flex cursor-pointer items-center gap-1.5 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-bg)] px-3 py-1.5 text-xs font-semibold hover:border-[var(--apex-accent)]">
                         <Upload size={13} />

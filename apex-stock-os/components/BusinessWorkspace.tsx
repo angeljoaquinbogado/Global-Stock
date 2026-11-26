@@ -4592,6 +4592,7 @@ export function BusinessWorkspace({
         currency={snapshot.currency}
         locale={snapshot.locale}
         accent={workspaceAccent}
+        variant="header"
       />
       <ApexIntelligence
         snapshot={snapshot}
