@@ -222,15 +222,33 @@ function localBusinessAnswer({
     dateStyle: "full"
   }).format(now);
 
-  // 1. Saludos y charla inicial
-  if (/^(hola|buenas|buen dia|buenos dias|buenas tardes|buenas noches|hello|hi|hey|ola|bonjour|hallo)\b/.test(text) && text.split(/\s+/).length <= 5) {
+  // 1. Charla natural sobre la propia IA, capacidades o conversacion abierta
+  if (
+    /\b(hablar normal|capaz de responder|responder todo|que sabes hacer|que podes hacer|como funcionas|quien sos|sos una ia|inteligencia artificial|ayudarme|conversar)\b/.test(text)
+  ) {
     if (language === "es") {
-      return `¡Hola! Soy **Global Intelligence**, tu copiloto operativo.\n\nHoy tenés **${products.length} productos** cargados (${metrics.inventoryUnits} unidades), **${money(metrics.revenue)}** en ingresos y un margen bruto de **${metrics.marginPct.toFixed(1)}%**.\n\nPodés preguntarme sobre tus números, qué comprar, precios de un producto específico, cómo usar cualquier módulo de la app (Caja, ARCA, Almacén, Tienda Online) o pedir ideas para mejorar tus ventas. ¿Con qué arrancamos?`;
+      return demoMode
+        ? `Sí, podés hablar conmigo con total naturalidad. Ahora mismo estamos en modo demo, así que analizo en tiempo real los datos que tenés cargados acá (${products.length} productos, ${money(metrics.revenue)} en ingresos y ${metrics.marginPct.toFixed(1)}% de margen) y te guío con cualquier módulo de Global Stock.\n\nCuando iniciás sesión en una cuenta real con la IA conectada, también mantenemos conversaciones abiertas sobre proveedores, impuestos, precios o decisiones comerciales.\n\nContame, ¿qué estás evaluando o qué querés resolver hoy en tu negocio?`
+        : `Sí, podés hablar conmigo con total naturalidad. Combino los datos reales de tu negocio (${products.length} productos, ${money(metrics.revenue)} en ingresos y ${metrics.marginPct.toFixed(1)}% de margen) con análisis abierto para ayudarte a tomar decisiones, calcular precios, revisar stock o usar cualquier herramienta de Global Stock.\n\n¿Qué tenés en mente hoy?`;
     }
-    return "Hello! I am Global Intelligence, your business copilot. Ask me anything about your stock, sales, margins, pricing, or how to use any module in Global Stock.";
+    return "Yes, you can talk to me naturally. I combine your live business data with practical guidance on pricing, inventory, sales, and every Global Stock module. What would you like to work on?";
   }
 
-  // 2. Plan de compra / reposicion
+  // 2. Saludos y cortesias naturales
+  if (/^(hola|buenas|buen dia|buenos dias|buenas tardes|buenas noches|hello|hi|hey|ola|bonjour|hallo)\b/.test(text) && text.split(/\s+/).length <= 5) {
+    if (language === "es") {
+      return `Hola, ¿cómo va? Tengo a la vista tus ${products.length} productos (${metrics.inventoryUnits} unidades) y un margen bruto actual del ${metrics.marginPct.toFixed(1)}%.\n\nPodés preguntarme por ventas, stock bajo, cuánto conviene comprar, precios de un producto puntual o cómo resolver algo en la app. ¿Qué necesitas ver?`;
+    }
+    return "Hi! I can help with your inventory, sales, margins, restocking, or how to use any module in Global Stock. What do you need?";
+  }
+
+  if (/^(gracias|muchas gracias|genial|perfecto|joya|buenisimo|ok|dale|listo)\b/.test(text) && text.split(/\s+/).length <= 5) {
+    return language === "es"
+      ? "De nada. Cuando quieras revisar otro número, simular un precio o ver qué conviene reponer, avisame."
+      : "You're welcome. Let me know whenever you want to check another metric or scenario.";
+  }
+
+  // 3. Plan de compra / reposicion
   if (/\b(comprar|compra|compras|pedir|pedido|reponer|reposicion|abastecer|cuanto debo|cuantos productos)\b/.test(text)) {
     const candidates = products
       .map((p) => {
@@ -246,7 +264,7 @@ function localBusinessAnswer({
 
     if (!candidates.length) {
       return language === "es"
-        ? "Hoy no tenés productos por debajo del stock mínimo. Si querés que armemos una compra preventiva para temporada alta o un proveedor puntual, decime qué categoría o rubro querés reforzar y lo calculamos."
+        ? "Con el stock actual no tenés reposiciones urgentes: todos los productos están por encima del mínimo. Si querés preparar una compra por temporada o por proveedor, decime qué categoría querés reforzar y lo calculamos."
         : "No products are below minimum stock right now. Let me know if you want to plan a preventive restock.";
     }
 
@@ -254,44 +272,44 @@ function localBusinessAnswer({
     const totalEstCost = candidates.reduce((acc, item) => acc + item.estCost, 0);
     const lines = candidates.slice(0, 8).map(
       (item) =>
-        `• **${item.name}**: pedir **${item.suggestedQty} u.** (actual: ${item.stock} u. / mín: ${item.minStock} u.${item.estCost > 0 ? ` · est. ${money(item.estCost)}` : ""})`
+        `- ${item.name}: pedir ${item.suggestedQty} u. (actual: ${item.stock} u., mínimo: ${item.minStock} u.${item.estCost > 0 ? `, est. ${money(item.estCost)}` : ""})`
     );
 
     return language === "es"
-      ? `Plan de compra sugerido (**${candidates.length} productos**, **${totalUnits} unidades**${totalEstCost > 0 ? `, inversión estimada: **${money(totalEstCost)}**` : ""}):\n${lines.join("\n")}\n\n¿Querés que prioricemos los que dejan mayor margen o armemos el pedido desde el módulo **Reposición**?`
+      ? `Plan de compra sugerido (${candidates.length} productos, ${totalUnits} unidades${totalEstCost > 0 ? `, inversión estimada: ${money(totalEstCost)}` : ""}):\n${lines.join("\n")}\n\nSi querés, podemos priorizar los que dejan mayor margen o cargar el pedido en Reposición.`
       : `Suggested purchase plan (${candidates.length} products, ${totalUnits} units):\n${lines.join("\n")}`;
   }
 
-  // 3. Mejor o peor dia (priorizado antes de fecha)
+  // 4. Mejor o peor dia
   if ((/\b(mejor|best|melhor|meilleur|beste)\b/.test(text) || /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text)) && snapshot.trend.length) {
     const wantsWorst = /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text);
     const point = [...snapshot.trend].sort((a, b) =>
       wantsWorst ? a.profit - b.profit : b.profit - a.profit
     )[0];
     if (language === "es") {
-      return `El **${wantsWorst ? "día más débil" : "mejor día"}** del período cargado es **${point.label}**, con **${money(point.profit)}** de ganancia bruta (ingresos: ${money(point.revenue)} | costos: ${money(point.cost)}).\n\n${wantsWorst ? "Para levantar días flojos como ese, conviene lanzar un combo rápido o promo por tiempo limitado en **Caja**." : "Podés replicar lo que funcionó ese día revisando los productos más vendidos en **Gráficos**."}`;
+      return `El ${wantsWorst ? "día más débil" : "mejor día"} del período cargado fue ${point.label}, con ${money(point.profit)} de ganancia bruta (ingresos: ${money(point.revenue)} | costos: ${money(point.cost)}).\n\n${wantsWorst ? "Para levantar días flojos como ese, sirve armar un combo rápido o promo puntual desde Caja." : "Podés revisar en Gráficos qué categorías impulsaron ese pico para repetirlo."}`;
     }
     return `The ${wantsWorst ? "weakest" : "best"} day is ${point.label} with ${money(point.profit)} gross profit.`;
   }
 
-  // 4. Alertas / resumen / estado general
+  // 5. Alertas / resumen / estado general
   if (/\b(alerta|alertas|critico|criticos|faltante|faltantes|bajo|agotado|agotados|resumen|estado|como estoy|como vamos|panorama)\b/.test(text)) {
     const lowOrOut = products.filter(
       (p) => typeof p.stock === "number" && typeof p.minStock === "number" && p.stock <= p.minStock
     );
     const topAlerts = lowOrOut.slice(0, 6).map(
-      (p) => `• **${p.name}**: ${p.stock} u. (mínimo ${p.minStock} u.)`
+      (p) => `- ${p.name}: ${p.stock} u. (mínimo ${p.minStock} u.)`
     );
     const alertsText = topAlerts.length
       ? `Productos a revisar:\n${topAlerts.join("\n")}`
       : "No hay productos por debajo del stock mínimo.";
 
     if (language === "es") {
-      return `Estado general del negocio:\n• **Ingresos:** ${money(metrics.revenue)} | **Ganancia bruta:** ${money(metrics.grossProfit)} (**${metrics.marginPct.toFixed(1)}%** margen)\n• **Inventario:** ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} stock bajo, ${metrics.outOfStockCount} agotados)\n${alertsText}\n\n¿Querés que analicemos cómo subir el margen o cómo reponer los faltantes?`;
+      return `Estado general del negocio:\n- Ingresos: ${money(metrics.revenue)} | Ganancia bruta: ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% de margen)\n- Inventario: ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} con stock bajo, ${metrics.outOfStockCount} agotados)\n${alertsText}\n\n¿Querés que revisemos cómo mejorar el margen o qué conviene reponer primero?`;
     }
   }
 
-  // 5. Consulta por producto especifico cargado en inventario
+  // 6. Consulta por producto especifico cargado en inventario
   const matchedProduct = products.find((p) => {
     const cleanName = normalizeIntent(p.name || "");
     return cleanName.length >= 3 && text.includes(cleanName);
@@ -309,75 +327,75 @@ function localBusinessAnswer({
           ? "Stock bajo"
           : "Stock saludable";
 
-    return `Ficha rápida de **${matchedProduct.name}**:\n• **Stock actual:** ${matchedProduct.stock} u. (mínimo: ${matchedProduct.minStock} u. · ${statusLabel})\n• **Precio de venta:** ${money(price)} | **Costo:** ${money(cost)}\n• **Ganancia por unidad:** ${money(unitProfit)} (**${unitMargin}%** margen)\n\n¿Querés calcular cuánto ganarías vendiendo un lote de este producto o ajustar su precio?`;
+    return `Ficha de ${matchedProduct.name}:\n- Stock actual: ${matchedProduct.stock} u. (mínimo: ${matchedProduct.minStock} u. · ${statusLabel})\n- Precio de venta: ${money(price)} | Costo: ${money(cost)}\n- Ganancia por unidad: ${money(unitProfit)} (${unitMargin}% de margen)\n\nSi querés simular otro precio o calcular cuánto rinde vender un lote, decime y lo vemos.`;
   }
 
-  // 6. Guias de uso de la app (como hacer X en Global Stock)
+  // 7. Guias de uso de la app
   if (language === "es") {
     if (/\b(arca|afip|factura|facturar|facturacion|monotributo|responsable inscripto|comprobante fiscal|cae)\b/.test(text)) {
-      return "Para emitir facturas electrónicas en **ARCA**:\n1. Abrí el módulo **ARCA** desde el menú lateral.\n2. Verificá que tu CUIT, punto de venta y condición fiscal estén cargados en **Configuración / ARCA**.\n3. Elegí tipo de comprobante (Factura A, B o C), cargá los ítems o traelos desde una venta y revisá el borrador antes de confirmar.\n\n¿Necesitás ayuda con una factura B, A o nota de crédito?";
+      return "Para emitir facturas electrónicas en ARCA:\n1. Abrí el módulo ARCA desde el menú lateral.\n2. Verificá que tu CUIT, punto de venta y condición fiscal estén cargados en Configuración > ARCA.\n3. Elegí el tipo de comprobante (Factura A, B o C), cargá los ítems o traelos desde una venta y revisá el borrador antes de confirmar.\n\n¿Necesitás emitir una factura B, A o nota de crédito?";
     }
     if (/\b(caja|pos|vender|venta|cobrar|ticket|carrito|efectivo|transferencia|qr)\b/.test(text)) {
-      return "Para cobrar rápido en **Caja / POS**:\n1. Entrá a **Caja** y buscá por nombre, código o escaneá con la cámara/lector remoto.\n2. Ajustá cantidades o descuentos y elegí el medio de cobro (Efectivo, Transferencia, Débito o Crédito).\n3. Al confirmar, el stock se descuenta automáticamente y queda registrado en **Actividad** y **Gráficos**.\n\n¿Querés que veamos cómo emparejar el celular como escáner remoto para la caja?";
+      return "Para cobrar rápido en Caja:\n1. Entrá a Caja y buscá por nombre, código o escaneá con la cámara o el celular emparejado.\n2. Ajustá cantidades o descuentos y elegí el medio de cobro (Efectivo, Transferencia, Débito o Crédito).\n3. Al confirmar, el stock se descuenta solo y queda registrado en Actividad y Gráficos.\n\n¿Querés ver cómo vincular el teléfono como lector remoto?";
     }
     if (/\b(almacen|agregar producto|cargar producto|nuevo producto|codigo de barras|editar precio|stock)\b/.test(text) && !/\b(cuanto|unidades|tengo)\b/.test(text)) {
-      return "Para gestionar tus productos en **Almacén**:\n1. Abrí **Almacén** y tocá **Nuevo producto** (podés escanear el código de barras para autocompletar datos).\n2. Definí costo, precio de venta, stock actual y stock mínimo para recibir alertas automáticas.\n3. Podés editar cantidades directo desde la tabla o registrar ingresos de mercadería en **Reposición**.\n\n¿Cuántos productos aproximados vas a cargar o qué rubro trabajás?";
+      return "Para cargar y organizar productos en Almacén:\n1. Entrá a Almacén y tocá Nuevo producto (podés escanear el código de barras para completar datos más rápido).\n2. Definí costo, precio de venta, stock inicial y stock mínimo para activar alertas automáticas.\n3. Podés ajustar cantidades desde la tabla o registrar compras en Reposición.\n\n¿Qué rubro trabajás o cuántos productos pensás cargar?";
     }
     if (/\b(tienda online|ecommerce|mercado libre|tiendanube|shopify|sincronizar)\b/.test(text)) {
-      return "Desde **Tienda Online** podés vincular tus canales digitales para centralizar catálogo, pedidos y stock en un solo lugar sin vender productos sin existencias.\n\n¿Qué plataforma de venta online usás o pensás conectar?";
+      return "Desde Tienda Online podés conectar tus canales digitales para sincronizar catálogo, pedidos y stock en un solo lugar sin vender sin existencias.\n\n¿Qué plataforma de venta online usás o pensás conectar?";
     }
     if (/\b(sucursal|sucursales|empleado|empleados|rol|roles|permiso|permisos|kiosco|empresa|perfil)\b/.test(text)) {
-      return "Global Stock se adapta al tamaño de tu operación:\n• En **Configuración -> Perfil operativo del negocio** podés elegir entre **Emprendedor / Kiosco**, **Comercio / Tienda** o **Empresa / Multi-sucursal**.\n• En **Negocios** podés administrar sucursales, transferencias de stock y roles de equipo (Dueño, Encargado, Cajero, Depósito).\n\n¿Qué tamaño de equipo o cantidad de locales manejás hoy?";
+      return "Global Stock se adapta al tamaño de tu operación:\n- En Configuración > Perfil operativo del negocio elegís entre Emprendedor / Kiosco, Comercio / Tienda o Empresa / Multi-sucursal.\n- En Negocios administrás sucursales, transferencias de stock y roles de equipo (Dueño, Encargado, Cajero, Depósito).\n\n¿Cuántas personas o locales manejás hoy?";
     }
     if (/\b(dolar|cotizacion|moneda|peso|euro|real|fx|cambio)\b/.test(text)) {
-      return "Podés consultar cotizaciones actualizadas y cambiar la moneda de visualización desde **Cotizaciones** (o en **Configuración -> Centro cambiario FX**), manteniendo precisión interna en todos los cálculos.\n\n¿Necesitás convertir un monto o fijar precios de referencia en dólares?";
+      return "Podés consultar cotizaciones actualizadas y cambiar la moneda de visualización desde Cotizaciones o en Configuración > Centro cambiario FX, manteniendo precisión interna en todos los cálculos.\n\n¿Necesitás convertir un monto o fijar precios de referencia en dólares?";
     }
     if (/\b(vender mas|aumentar ventas|mejorar margen|estrategia|consejo|recomenda|idea|ideas|promocion|promo)\b/.test(text)) {
       const topMargin = [...products]
         .filter((p) => p.price > 0)
         .sort((a, b) => (b.price - b.cost) / b.price - (a.price - a.cost) / a.price)[0];
       const highlight = topMargin
-        ? `Tu producto con mejor margen hoy es **${topMargin.name}** (${(((topMargin.price - topMargin.cost) / topMargin.price) * 100).toFixed(1)}%).`
+        ? `Hoy tu producto con mejor margen es ${topMargin.name} (${(((topMargin.price - topMargin.cost) / topMargin.price) * 100).toFixed(1)}%).`
         : "";
-      return `3 acciones concretas para mejorar tu resultado esta semana:\n1. **Combos con productos estrella:** agrupá un producto de alta rotación con uno de alto margen ${highlight}\n2. **Reposición inteligente:** evitá perder ventas reponiendo los ${metrics.lowStockCount + metrics.outOfStockCount} productos en alerta antes del pico semanal.\n3. **Revisión de costos:** chequeá en **Gráficos** si algún producto quedó con margen menor al 20% tras aumentos de proveedor.\n\n¿Querés que analicemos algún producto o categoría en particular?`;
+      return `Tres ideas prácticas para mejorar tu resultado esta semana:\n1. Armar combos mezclando un producto de alta rotación con uno de buen margen. ${highlight}\n2. Reponer a tiempo los ${metrics.lowStockCount + metrics.outOfStockCount} productos en alerta para no perder ventas en mostrador.\n3. Revisar en Gráficos si algún artículo quedó con margen bajo tras aumentos de proveedor.\n\n¿Querés que analicemos algún producto o categoría puntual?`;
     }
   }
 
-  // 7. Metricas puntuales (fecha, ganancia, ingresos, margen, stock)
+  // 8. Metricas puntuales
   if (/\b(hoy|fecha|today|date|hoje|heute)\b/.test(text) && !/\b(ganancia|ventas|ingresos|profit|revenue)\b/.test(text)) {
     return language === "es"
-      ? `Hoy es **${formattedDate}**. ¿Querés que revisemos cómo vienen las ventas, el stock crítico o algún pendiente de hoy?`
+      ? `Hoy es ${formattedDate}. ¿Querés que revisemos cómo vienen las ventas, el stock crítico o algún pendiente?`
       : `Today is ${formattedDate}.`;
   }
 
   if (/\b(gane|ganancia|ganancias|beneficio|beneficios|profit|lucro|gewinn)\b/.test(text)) {
     return language === "es"
-      ? `La **ganancia bruta acumulada** es **${money(metrics.grossProfit)}** sobre ingresos de **${money(metrics.revenue)}** (margen bruto promedio: **${metrics.marginPct.toFixed(1)}%**).\n\n*Nota:* Como los gastos fijos externos (alquiler, servicios, sueldos) pueden no estar cargados en Comprobantes, si me decís cuánto tenés de gastos fijos mensuales te calculo tu **ganancia neta real** ahora mismo.`
+      ? `La ganancia bruta acumulada es ${money(metrics.grossProfit)} sobre ingresos de ${money(metrics.revenue)} (margen bruto promedio: ${metrics.marginPct.toFixed(1)}%).\n\nSi tenés gastos fijos externos (alquiler, servicios, sueldos) que todavía no cargaste en Comprobantes, decime el monto aproximado y calculamos tu ganancia neta real.`
       : `Gross profit is ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% margin).`;
   }
 
   if (/\b(ingreso|ingresos|ventas|facturacion|revenue|sales|receita|umsatz)\b/.test(text)) {
     return language === "es"
-      ? `Los **ingresos acumulados** son **${money(metrics.revenue)}** con una ganancia bruta de **${money(metrics.grossProfit)}**.\n\n¿Querés que veamos cuál fue el mejor día o cuánto necesitás vender para alcanzar una meta específica?`
+      ? `Los ingresos acumulados son ${money(metrics.revenue)}, con una ganancia bruta de ${money(metrics.grossProfit)}.\n\n¿Querés ver cuál fue el mejor día o calcular cuánto necesitás vender para llegar a una meta?`
       : `Total revenue is ${money(metrics.revenue)}.`;
   }
 
   if (/\b(margen|margin|margem|marge)\b/.test(text)) {
     return language === "es"
-      ? `Tu **margen bruto promedio** es **${metrics.marginPct.toFixed(1)}%**. Si me decís el costo y precio de un producto nuevo (o el margen objetivo que buscás), te ayudo a calcular el precio de venta ideal.`
+      ? `Tu margen bruto promedio es ${metrics.marginPct.toFixed(1)}%. Si me pasás el costo y precio de un producto (o el margen que buscás ganar), calculamos el precio ideal.`
       : `Your gross margin is ${metrics.marginPct.toFixed(1)}%.`;
   }
 
   if (/\b(stock|inventario|unidades|inventory|estoque|bestand)\b/.test(text)) {
     const alerts = metrics.lowStockCount + metrics.outOfStockCount;
     return language === "es"
-      ? `Tenés **${metrics.inventoryUnits} unidades** distribuidas en **${products.length} productos**, con **${alerts} alertas** (${metrics.lowStockCount} con stock bajo y ${metrics.outOfStockCount} sin stock).\n\n¿Querés que te arme el listado exacto de cuánto comprar de cada uno?`
+      ? `Tenés ${metrics.inventoryUnits} unidades distribuidas en ${products.length} productos, con ${alerts} alertas (${metrics.lowStockCount} con stock bajo y ${metrics.outOfStockCount} sin stock).\n\n¿Querés que te arme el detalle de cuánto pedir de cada uno?`
       : `You have ${metrics.inventoryUnits} units across ${products.length} products (${alerts} alerts).`;
   }
 
-  // 8. Fallback conversacional inteligente en demo (nunca deja al cliente sin respuesta ni solucion)
+  // 9. Fallback natural en demo (sin asteriscos ni plantillas rigidas)
   if (demoMode && language === "es") {
-    return `Entiendo tu consulta sobre **"${message.trim()}"**.\n\nCon los datos que tengo cargados ahora mismo en el sistema veo **${products.length} productos** (${metrics.inventoryUnits} unidades), ingresos por **${money(metrics.revenue)}** y margen de **${metrics.marginPct.toFixed(1)}%**, pero ese dato puntual todavía no está registrado en la base.\n\nPara darte una respuesta exacta:\n• Contame acá mismo los datos o el escenario que querés evaluar y lo calculamos juntos paso a paso.\n• O cargalo en **Almacén**, **Caja** o **Comprobantes** para que quede guardado en tu operación.\n\n¿Qué información tenés a mano sobre esto para que lo resolvamos?`;
+    return `Buena pregunta. Ahora mismo en el modo demo tengo acceso a los números cargados de este negocio (${products.length} productos, ${money(metrics.revenue)} en ingresos y ${metrics.marginPct.toFixed(1)}% de margen), pero ese detalle puntual no figura en la base de prueba.\n\nSi me contás los datos o el caso concreto acá en el chat, lo analizamos y calculamos juntos; y si lo querés dejar registrado en el sistema, podés cargarlo desde Almacén, Caja o Comprobantes. ¿Qué escenario querés evaluar?`;
   }
 
   return null;
@@ -1055,7 +1073,7 @@ export function ApexIntelligence({
                   style={message.role === "user" ? { backgroundColor: accentColors.main } : undefined}
                 >
                   <div className="whitespace-pre-wrap break-words">
-                    {message.content}
+                    {message.content.replace(/\*\*(.*?)\*\*/g, "$1")}
                   </div>
                 </motion.div>
               ))}
