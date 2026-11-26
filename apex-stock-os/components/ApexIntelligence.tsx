@@ -203,165 +203,35 @@ function normalizeIntent(value: string) {
 function localBusinessAnswer({
   message,
   snapshot,
-  now
+  now,
+  demoMode = false
 }: {
   message: string;
   snapshot: BusinessSnapshot;
   now: Date;
-}) {
+  demoMode?: boolean;
+}): string | null {
   const language = languageFromLocale(snapshot.locale);
   const text = normalizeIntent(message);
   const metrics = calculateMetrics(snapshot);
   const money = (value: number) =>
     formatMoney(value, snapshot.currency, snapshot.locale);
 
-  const wantsGreeting =
-    /^(hola|buenas|hello|hi|hey|ola|bonjour|salut|hallo|guten tag)\b/.test(text);
-
-  if (wantsGreeting) {
-    const answers: Record<UiLanguage, string> = {
-      es: "Hola. Estoy listo para ayudarte con stock, ventas, margen, compras y el resto de los datos cargados en Global Stock.",
-      en: "Hello. I’m ready to help with inventory, sales, margins, purchases and the rest of the data loaded in Global Stock.",
-      pt: "Olá. Estou pronto para ajudar com estoque, vendas, margens, compras e os demais dados carregados no Global Stock.",
-      fr: "Bonjour. Je suis prêt à vous aider avec le stock, les ventes, les marges, les achats et les autres données chargées dans Global Stock.",
-      de: "Hallo. Ich kann dir mit Bestand, Verkäufen, Margen, Einkäufen und den übrigen in Global Stock geladenen Daten helfen."
-    };
-    return answers[language];
-  }
-
-  const wantsDate =
-    /\b(hoy|dia|fecha|today|date|hoje|jour|date|heute|datum)\b/.test(text);
-  const wantsProfit =
-    /\b(gane|ganancia|ganancias|beneficio|beneficios|profit|profits|lucro|ganho|ganhei|benefice|gewinn|verdient)\b/.test(text);
-  const wantsRevenue =
-    /\b(ingreso|ingresos|ventas|facturacion|revenue|sales|receita|vendas|chiffre|umsatz)\b/.test(text);
-  const wantsMargin =
-    /\b(margen|margin|margem|marge)\b/.test(text);
-  const wantsStock =
-    /\b(stock|inventario|inventory|estoque|bestand)\b/.test(text);
-  const wantsUnits =
-    /\b(unidades|units|unitades|unidades|einheiten)\b/.test(text);
-  const wantsBest =
-    /\b(mejor|best|melhor|meilleur|beste)\b/.test(text);
-  const wantsWorst =
-    /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text);
-
-  const weekdayKey = normalizeIntent(
-    new Intl.DateTimeFormat(snapshot.locale, {
-      weekday: "short"
-    }).format(now)
-  ).slice(0, 3);
-
-  const todayPoint = snapshot.trend.find(
-    (point) => normalizeIntent(point.label).slice(0, 3) === weekdayKey
-  );
-
+  const products = snapshot.products ?? [];
   const formattedDate = new Intl.DateTimeFormat(snapshot.locale, {
     dateStyle: "full"
   }).format(now);
 
-  if (wantsDate && wantsProfit) {
-    if (todayPoint) {
-      const profit =
-        Number.isFinite(todayPoint.profit)
-          ? todayPoint.profit
-          : todayPoint.revenue - todayPoint.cost;
-
-      const answers: Record<UiLanguage, string> = {
-        es: `Hoy es ${formattedDate}. La ganancia bruta registrada para hoy es ${money(profit)} (ingresos ${money(todayPoint.revenue)} menos costos ${money(todayPoint.cost)}).`,
-        en: `Today is ${formattedDate}. Recorded gross profit for today is ${money(profit)} (revenue ${money(todayPoint.revenue)} minus costs ${money(todayPoint.cost)}).`,
-        pt: `Hoje é ${formattedDate}. O lucro bruto registrado hoje é ${money(profit)} (receita ${money(todayPoint.revenue)} menos custos ${money(todayPoint.cost)}).`,
-        fr: `Nous sommes le ${formattedDate}. Le bénéfice brut enregistré aujourd’hui est de ${money(profit)} (revenus ${money(todayPoint.revenue)} moins coûts ${money(todayPoint.cost)}).`,
-        de: `Heute ist ${formattedDate}. Der erfasste Bruttogewinn für heute beträgt ${money(profit)} (Umsatz ${money(todayPoint.revenue)} minus Kosten ${money(todayPoint.cost)}).`
-      };
-      return answers[language];
+  // 1. Saludos y charla inicial
+  if (/^(hola|buenas|buen dia|buenos dias|buenas tardes|buenas noches|hello|hi|hey|ola|bonjour|hallo)\b/.test(text) && text.split(/\s+/).length <= 5) {
+    if (language === "es") {
+      return `¡Hola! Soy **Global Intelligence**, tu copiloto operativo.\n\nHoy tenés **${products.length} productos** cargados (${metrics.inventoryUnits} unidades), **${money(metrics.revenue)}** en ingresos y un margen bruto de **${metrics.marginPct.toFixed(1)}%**.\n\nPodés preguntarme sobre tus números, qué comprar, precios de un producto específico, cómo usar cualquier módulo de la app (Caja, ARCA, Almacén, Tienda Online) o pedir ideas para mejorar tus ventas. ¿Con qué arrancamos?`;
     }
-
-    const answers: Record<UiLanguage, string> = {
-      es: `Hoy es ${formattedDate}. Todavía no hay un punto de ventas identificado para hoy en los datos cargados, así que no voy a inventar una ganancia diaria.`,
-      en: `Today is ${formattedDate}. There is no sales point identified for today in the loaded data yet, so I will not invent a daily profit figure.`,
-      pt: `Hoje é ${formattedDate}. Ainda não há um ponto de vendas identificado para hoje nos dados carregados, então não vou inventar um lucro diário.`,
-      fr: `Nous sommes le ${formattedDate}. Aucune donnée de vente n’est identifiée pour aujourd’hui dans les données chargées, donc je n’inventerai pas de bénéfice quotidien.`,
-      de: `Heute ist ${formattedDate}. Für heute ist in den geladenen Daten noch kein Verkaufspunkt vorhanden, daher erfinde ich keinen Tagesgewinn.`
-    };
-    return answers[language];
+    return "Hello! I am Global Intelligence, your business copilot. Ask me anything about your stock, sales, margins, pricing, or how to use any module in Global Stock.";
   }
 
-  if ((wantsBest || wantsWorst) && snapshot.trend.length) {
-    const point = [...snapshot.trend].sort((a, b) =>
-      wantsWorst ? a.profit - b.profit : b.profit - a.profit
-    )[0];
-    const answers: Record<UiLanguage, string> = {
-      es: `El ${wantsWorst ? "día más débil" : "mejor día"} del período cargado es ${point.label}, con ${money(point.profit)} de ganancia bruta.`,
-      en: `The ${wantsWorst ? "weakest" : "best"} day in the loaded period is ${point.label}, with ${money(point.profit)} in gross profit.`,
-      pt: `O ${wantsWorst ? "dia mais fraco" : "melhor dia"} do período carregado é ${point.label}, com ${money(point.profit)} de lucro bruto.`,
-      fr: `Le ${wantsWorst ? "jour le plus faible" : "meilleur jour"} de la période chargée est ${point.label}, avec ${money(point.profit)} de bénéfice brut.`,
-      de: `Der ${wantsWorst ? "schwächste" : "beste"} Tag im geladenen Zeitraum ist ${point.label} mit ${money(point.profit)} Bruttogewinn.`
-    };
-    return answers[language];
-  }
-
-  if (wantsDate) {
-    const answers: Record<UiLanguage, string> = {
-      es: `Hoy es ${formattedDate}.`,
-      en: `Today is ${formattedDate}.`,
-      pt: `Hoje é ${formattedDate}.`,
-      fr: `Nous sommes le ${formattedDate}.`,
-      de: `Heute ist ${formattedDate}.`
-    };
-    return answers[language];
-  }
-
-  if (wantsProfit) {
-    const answers: Record<UiLanguage, string> = {
-      es: `La ganancia bruta acumulada en el período cargado es ${money(metrics.grossProfit)}. No la llamo ganancia neta porque Global Stock no tiene todos los gastos del negocio cargados.`,
-      en: `Gross profit for the loaded period is ${money(metrics.grossProfit)}. I am not calling it net profit because Global Stock does not have every business expense recorded.`,
-      pt: `O lucro bruto acumulado no período carregado é ${money(metrics.grossProfit)}. Não é lucro líquido porque o Global Stock não tem todas as despesas do negócio registradas.`,
-      fr: `Le bénéfice brut cumulé sur la période chargée est de ${money(metrics.grossProfit)}. Ce n’est pas un bénéfice net, car toutes les dépenses ne sont pas enregistrées.`,
-      de: `Der Bruttogewinn im geladenen Zeitraum beträgt ${money(metrics.grossProfit)}. Das ist kein Nettogewinn, da nicht alle Betriebsausgaben erfasst sind.`
-    };
-    return answers[language];
-  }
-
-  if (wantsRevenue) {
-    const answers: Record<UiLanguage, string> = {
-      es: `Los ingresos acumulados del período cargado son ${money(metrics.revenue)}.`,
-      en: `Revenue for the loaded period is ${money(metrics.revenue)}.`,
-      pt: `A receita acumulada do período carregado é ${money(metrics.revenue)}.`,
-      fr: `Le chiffre d’affaires cumulé sur la période chargée est de ${money(metrics.revenue)}.`,
-      de: `Der Umsatz im geladenen Zeitraum beträgt ${money(metrics.revenue)}.`
-    };
-    return answers[language];
-  }
-
-  if (wantsMargin) {
-    const answers: Record<UiLanguage, string> = {
-      es: `El margen bruto promedio del período cargado es ${metrics.marginPct.toFixed(1)}%.`,
-      en: `Gross margin for the loaded period is ${metrics.marginPct.toFixed(1)}%.`,
-      pt: `A margem bruta do período carregado é ${metrics.marginPct.toFixed(1)}%.`,
-      fr: `La marge brute sur la période chargée est de ${metrics.marginPct.toFixed(1)}%.`,
-      de: `Die Bruttomarge im geladenen Zeitraum beträgt ${metrics.marginPct.toFixed(1)}%.`
-    };
-    return answers[language];
-  }
-
-  if (wantsStock || wantsUnits) {
-    const alerts = metrics.lowStockCount + metrics.outOfStockCount;
-    const answers: Record<UiLanguage, string> = {
-      es: `Tenés ${metrics.inventoryUnits} unidades en inventario y ${alerts} alertas de stock (${metrics.lowStockCount} con stock bajo y ${metrics.outOfStockCount} sin stock).`,
-      en: `You have ${metrics.inventoryUnits} inventory units and ${alerts} stock alerts (${metrics.lowStockCount} low-stock and ${metrics.outOfStockCount} out-of-stock).`,
-      pt: `Você tem ${metrics.inventoryUnits} unidades em estoque e ${alerts} alertas (${metrics.lowStockCount} com estoque baixo e ${metrics.outOfStockCount} sem estoque).`,
-      fr: `Vous avez ${metrics.inventoryUnits} unités en stock et ${alerts} alertes (${metrics.lowStockCount} en stock faible et ${metrics.outOfStockCount} en rupture).`,
-      de: `Du hast ${metrics.inventoryUnits} Einheiten im Bestand und ${alerts} Warnungen (${metrics.lowStockCount} niedrig, ${metrics.outOfStockCount} ausverkauft).`
-    };
-    return answers[language];
-  }
-
-  const wantsPurchasePlan =
-    /\b(comprar|compra|compras|pedir|pedido|reponer|reposicion|abastecer|cuanto debo|cuantos productos)\b/.test(text);
-
-  if (wantsPurchasePlan && language === "es") {
-    const products = snapshot.products ?? [];
+  // 2. Plan de compra / reposicion
+  if (/\b(comprar|compra|compras|pedir|pedido|reponer|reposicion|abastecer|cuanto debo|cuantos productos)\b/.test(text)) {
     const candidates = products
       .map((p) => {
         const stock = Number(p.stock ?? 0);
@@ -375,33 +245,139 @@ function localBusinessAnswer({
       .sort((a, b) => b.suggestedQty - a.suggestedQty);
 
     if (!candidates.length) {
-      return "Con los datos cargados hoy no necesitás comprar mercadería urgente: todos los productos están por encima de su stock mínimo.";
+      return language === "es"
+        ? "Hoy no tenés productos por debajo del stock mínimo. Si querés que armemos una compra preventiva para temporada alta o un proveedor puntual, decime qué categoría o rubro querés reforzar y lo calculamos."
+        : "No products are below minimum stock right now. Let me know if you want to plan a preventive restock.";
     }
 
     const totalUnits = candidates.reduce((acc, item) => acc + item.suggestedQty, 0);
     const totalEstCost = candidates.reduce((acc, item) => acc + item.estCost, 0);
     const lines = candidates.slice(0, 8).map(
       (item) =>
-        `• ${item.name}: pedir ${item.suggestedQty} u. (actual: ${item.stock} u., mínimo: ${item.minStock} u.${item.estCost > 0 ? `, est. ${money(item.estCost)}` : ""})`
+        `• **${item.name}**: pedir **${item.suggestedQty} u.** (actual: ${item.stock} u. / mín: ${item.minStock} u.${item.estCost > 0 ? ` · est. ${money(item.estCost)}` : ""})`
     );
 
-    return `Plan de compra sugerido (${candidates.length} productos, ${totalUnits} unidades en total${totalEstCost > 0 ? `, inversión estimada: ${money(totalEstCost)}` : ""}):\n${lines.join("\n")}`;
+    return language === "es"
+      ? `Plan de compra sugerido (**${candidates.length} productos**, **${totalUnits} unidades**${totalEstCost > 0 ? `, inversión estimada: **${money(totalEstCost)}**` : ""}):\n${lines.join("\n")}\n\n¿Querés que prioricemos los que dejan mayor margen o armemos el pedido desde el módulo **Reposición**?`
+      : `Suggested purchase plan (${candidates.length} products, ${totalUnits} units):\n${lines.join("\n")}`;
   }
 
-    const wantsAlerts =
-    /\b(alerta|alertas|critico|criticos|reponer|reposicion|faltante|faltantes|bajo|agotado|agotados|resumen|estado|como estoy|como vamos)\b/.test(text);
+  // 3. Mejor o peor dia (priorizado antes de fecha)
+  if ((/\b(mejor|best|melhor|meilleur|beste)\b/.test(text) || /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text)) && snapshot.trend.length) {
+    const wantsWorst = /\b(peor|debil|worst|weakest|pior|faible|schwach)\b/.test(text);
+    const point = [...snapshot.trend].sort((a, b) =>
+      wantsWorst ? a.profit - b.profit : b.profit - a.profit
+    )[0];
+    if (language === "es") {
+      return `El **${wantsWorst ? "día más débil" : "mejor día"}** del período cargado es **${point.label}**, con **${money(point.profit)}** de ganancia bruta (ingresos: ${money(point.revenue)} | costos: ${money(point.cost)}).\n\n${wantsWorst ? "Para levantar días flojos como ese, conviene lanzar un combo rápido o promo por tiempo limitado en **Caja**." : "Podés replicar lo que funcionó ese día revisando los productos más vendidos en **Gráficos**."}`;
+    }
+    return `The ${wantsWorst ? "weakest" : "best"} day is ${point.label} with ${money(point.profit)} gross profit.`;
+  }
 
-  if (wantsAlerts && language === "es") {
-    const lowOrOut = (snapshot.products ?? []).filter(
+  // 4. Alertas / resumen / estado general
+  if (/\b(alerta|alertas|critico|criticos|faltante|faltantes|bajo|agotado|agotados|resumen|estado|como estoy|como vamos|panorama)\b/.test(text)) {
+    const lowOrOut = products.filter(
       (p) => typeof p.stock === "number" && typeof p.minStock === "number" && p.stock <= p.minStock
     );
     const topAlerts = lowOrOut.slice(0, 6).map(
-      (p) => `• ${p.name}: ${p.stock} u. (mínimo ${p.minStock})`
+      (p) => `• **${p.name}**: ${p.stock} u. (mínimo ${p.minStock} u.)`
     );
     const alertsText = topAlerts.length
       ? `Productos a revisar:\n${topAlerts.join("\n")}`
-      : "No hay productos por debajo del stock mínimo en este momento.";
-    return `Resumen actual:\n• Ingresos: ${money(metrics.revenue)} | Ganancia bruta: ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% margen)\n• Inventario: ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} stock bajo, ${metrics.outOfStockCount} sin stock)\n${alertsText}`;
+      : "No hay productos por debajo del stock mínimo.";
+
+    if (language === "es") {
+      return `Estado general del negocio:\n• **Ingresos:** ${money(metrics.revenue)} | **Ganancia bruta:** ${money(metrics.grossProfit)} (**${metrics.marginPct.toFixed(1)}%** margen)\n• **Inventario:** ${metrics.inventoryUnits} unidades (${metrics.lowStockCount} stock bajo, ${metrics.outOfStockCount} agotados)\n${alertsText}\n\n¿Querés que analicemos cómo subir el margen o cómo reponer los faltantes?`;
+    }
+  }
+
+  // 5. Consulta por producto especifico cargado en inventario
+  const matchedProduct = products.find((p) => {
+    const cleanName = normalizeIntent(p.name || "");
+    return cleanName.length >= 3 && text.includes(cleanName);
+  });
+
+  if (matchedProduct && language === "es") {
+    const price = Number(matchedProduct.price ?? 0);
+    const cost = Number(matchedProduct.cost ?? 0);
+    const unitProfit = price - cost;
+    const unitMargin = price > 0 ? ((unitProfit / price) * 100).toFixed(1) : "0.0";
+    const statusLabel =
+      matchedProduct.stock <= 0
+        ? "Agotado"
+        : matchedProduct.stock <= matchedProduct.minStock
+          ? "Stock bajo"
+          : "Stock saludable";
+
+    return `Ficha rápida de **${matchedProduct.name}**:\n• **Stock actual:** ${matchedProduct.stock} u. (mínimo: ${matchedProduct.minStock} u. · ${statusLabel})\n• **Precio de venta:** ${money(price)} | **Costo:** ${money(cost)}\n• **Ganancia por unidad:** ${money(unitProfit)} (**${unitMargin}%** margen)\n\n¿Querés calcular cuánto ganarías vendiendo un lote de este producto o ajustar su precio?`;
+  }
+
+  // 6. Guias de uso de la app (como hacer X en Global Stock)
+  if (language === "es") {
+    if (/\b(arca|afip|factura|facturar|facturacion|monotributo|responsable inscripto|comprobante fiscal|cae)\b/.test(text)) {
+      return "Para emitir facturas electrónicas en **ARCA**:\n1. Abrí el módulo **ARCA** desde el menú lateral.\n2. Verificá que tu CUIT, punto de venta y condición fiscal estén cargados en **Configuración / ARCA**.\n3. Elegí tipo de comprobante (Factura A, B o C), cargá los ítems o traelos desde una venta y revisá el borrador antes de confirmar.\n\n¿Necesitás ayuda con una factura B, A o nota de crédito?";
+    }
+    if (/\b(caja|pos|vender|venta|cobrar|ticket|carrito|efectivo|transferencia|qr)\b/.test(text)) {
+      return "Para cobrar rápido en **Caja / POS**:\n1. Entrá a **Caja** y buscá por nombre, código o escaneá con la cámara/lector remoto.\n2. Ajustá cantidades o descuentos y elegí el medio de cobro (Efectivo, Transferencia, Débito o Crédito).\n3. Al confirmar, el stock se descuenta automáticamente y queda registrado en **Actividad** y **Gráficos**.\n\n¿Querés que veamos cómo emparejar el celular como escáner remoto para la caja?";
+    }
+    if (/\b(almacen|agregar producto|cargar producto|nuevo producto|codigo de barras|editar precio|stock)\b/.test(text) && !/\b(cuanto|unidades|tengo)\b/.test(text)) {
+      return "Para gestionar tus productos en **Almacén**:\n1. Abrí **Almacén** y tocá **Nuevo producto** (podés escanear el código de barras para autocompletar datos).\n2. Definí costo, precio de venta, stock actual y stock mínimo para recibir alertas automáticas.\n3. Podés editar cantidades directo desde la tabla o registrar ingresos de mercadería en **Reposición**.\n\n¿Cuántos productos aproximados vas a cargar o qué rubro trabajás?";
+    }
+    if (/\b(tienda online|ecommerce|mercado libre|tiendanube|shopify|sincronizar)\b/.test(text)) {
+      return "Desde **Tienda Online** podés vincular tus canales digitales para centralizar catálogo, pedidos y stock en un solo lugar sin vender productos sin existencias.\n\n¿Qué plataforma de venta online usás o pensás conectar?";
+    }
+    if (/\b(sucursal|sucursales|empleado|empleados|rol|roles|permiso|permisos|kiosco|empresa|perfil)\b/.test(text)) {
+      return "Global Stock se adapta al tamaño de tu operación:\n• En **Configuración -> Perfil operativo del negocio** podés elegir entre **Emprendedor / Kiosco**, **Comercio / Tienda** o **Empresa / Multi-sucursal**.\n• En **Negocios** podés administrar sucursales, transferencias de stock y roles de equipo (Dueño, Encargado, Cajero, Depósito).\n\n¿Qué tamaño de equipo o cantidad de locales manejás hoy?";
+    }
+    if (/\b(dolar|cotizacion|moneda|peso|euro|real|fx|cambio)\b/.test(text)) {
+      return "Podés consultar cotizaciones actualizadas y cambiar la moneda de visualización desde **Cotizaciones** (o en **Configuración -> Centro cambiario FX**), manteniendo precisión interna en todos los cálculos.\n\n¿Necesitás convertir un monto o fijar precios de referencia en dólares?";
+    }
+    if (/\b(vender mas|aumentar ventas|mejorar margen|estrategia|consejo|recomenda|idea|ideas|promocion|promo)\b/.test(text)) {
+      const topMargin = [...products]
+        .filter((p) => p.price > 0)
+        .sort((a, b) => (b.price - b.cost) / b.price - (a.price - a.cost) / a.price)[0];
+      const highlight = topMargin
+        ? `Tu producto con mejor margen hoy es **${topMargin.name}** (${(((topMargin.price - topMargin.cost) / topMargin.price) * 100).toFixed(1)}%).`
+        : "";
+      return `3 acciones concretas para mejorar tu resultado esta semana:\n1. **Combos con productos estrella:** agrupá un producto de alta rotación con uno de alto margen ${highlight}\n2. **Reposición inteligente:** evitá perder ventas reponiendo los ${metrics.lowStockCount + metrics.outOfStockCount} productos en alerta antes del pico semanal.\n3. **Revisión de costos:** chequeá en **Gráficos** si algún producto quedó con margen menor al 20% tras aumentos de proveedor.\n\n¿Querés que analicemos algún producto o categoría en particular?`;
+    }
+  }
+
+  // 7. Metricas puntuales (fecha, ganancia, ingresos, margen, stock)
+  if (/\b(hoy|fecha|today|date|hoje|heute)\b/.test(text) && !/\b(ganancia|ventas|ingresos|profit|revenue)\b/.test(text)) {
+    return language === "es"
+      ? `Hoy es **${formattedDate}**. ¿Querés que revisemos cómo vienen las ventas, el stock crítico o algún pendiente de hoy?`
+      : `Today is ${formattedDate}.`;
+  }
+
+  if (/\b(gane|ganancia|ganancias|beneficio|beneficios|profit|lucro|gewinn)\b/.test(text)) {
+    return language === "es"
+      ? `La **ganancia bruta acumulada** es **${money(metrics.grossProfit)}** sobre ingresos de **${money(metrics.revenue)}** (margen bruto promedio: **${metrics.marginPct.toFixed(1)}%**).\n\n*Nota:* Como los gastos fijos externos (alquiler, servicios, sueldos) pueden no estar cargados en Comprobantes, si me decís cuánto tenés de gastos fijos mensuales te calculo tu **ganancia neta real** ahora mismo.`
+      : `Gross profit is ${money(metrics.grossProfit)} (${metrics.marginPct.toFixed(1)}% margin).`;
+  }
+
+  if (/\b(ingreso|ingresos|ventas|facturacion|revenue|sales|receita|umsatz)\b/.test(text)) {
+    return language === "es"
+      ? `Los **ingresos acumulados** son **${money(metrics.revenue)}** con una ganancia bruta de **${money(metrics.grossProfit)}**.\n\n¿Querés que veamos cuál fue el mejor día o cuánto necesitás vender para alcanzar una meta específica?`
+      : `Total revenue is ${money(metrics.revenue)}.`;
+  }
+
+  if (/\b(margen|margin|margem|marge)\b/.test(text)) {
+    return language === "es"
+      ? `Tu **margen bruto promedio** es **${metrics.marginPct.toFixed(1)}%**. Si me decís el costo y precio de un producto nuevo (o el margen objetivo que buscás), te ayudo a calcular el precio de venta ideal.`
+      : `Your gross margin is ${metrics.marginPct.toFixed(1)}%.`;
+  }
+
+  if (/\b(stock|inventario|unidades|inventory|estoque|bestand)\b/.test(text)) {
+    const alerts = metrics.lowStockCount + metrics.outOfStockCount;
+    return language === "es"
+      ? `Tenés **${metrics.inventoryUnits} unidades** distribuidas en **${products.length} productos**, con **${alerts} alertas** (${metrics.lowStockCount} con stock bajo y ${metrics.outOfStockCount} sin stock).\n\n¿Querés que te arme el listado exacto de cuánto comprar de cada uno?`
+      : `You have ${metrics.inventoryUnits} units across ${products.length} products (${alerts} alerts).`;
+  }
+
+  // 8. Fallback conversacional inteligente en demo (nunca deja al cliente sin respuesta ni solucion)
+  if (demoMode && language === "es") {
+    return `Entiendo tu consulta sobre **"${message.trim()}"**.\n\nCon los datos que tengo cargados ahora mismo en el sistema veo **${products.length} productos** (${metrics.inventoryUnits} unidades), ingresos por **${money(metrics.revenue)}** y margen de **${metrics.marginPct.toFixed(1)}%**, pero ese dato puntual todavía no está registrado en la base.\n\nPara darte una respuesta exacta:\n• Contame acá mismo los datos o el escenario que querés evaluar y lo calculamos juntos paso a paso.\n• O cargalo en **Almacén**, **Caja** o **Comprobantes** para que quede guardado en tu operación.\n\n¿Qué información tenés a mano sobre esto para que lo resolvamos?`;
   }
 
   return null;
@@ -735,7 +711,8 @@ export function ApexIntelligence({
       const localAnswer = localBusinessAnswer({
         message: text,
         snapshot,
-        now
+        now,
+        demoMode
       });
 
       if (localAnswer) {
@@ -850,10 +827,10 @@ export function ApexIntelligence({
           payload.code === "AUTH_NOT_CONFIGURED")
       ) {
         const localAnswer = localBusinessAnswer({
-          message: text,
-          snapshot,
-          now
-        });
+        message: text,
+        snapshot,
+        now
+      });
 
         if (localAnswer) {
           setStatus("local");
