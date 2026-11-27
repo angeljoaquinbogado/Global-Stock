@@ -3946,26 +3946,6 @@ export function BusinessWorkspace({
               >
                 {labels.nav[activeModule]}
               </motion.p>
-              {activeModule === "overview" && (
-                <WelcomeTypewriterBanner
-                  message={(() => {
-                    const g = welcomeLabels[language].greeting.toLowerCase();
-                    const who = signedInName ? `, ${signedInName}` : "";
-                    if (language === "es") return `Hola${who}, ${g} a Global Stock`;
-                    if (language === "en") return `Hi${who}, ${g} to Global Stock`;
-                    if (language === "pt") return `Olá${who}, ${g} ao Global Stock`;
-                    if (language === "fr") return `Bonjour${who}, ${g} sur Global Stock`;
-                    return `Hallo${who}, ${g} bei Global Stock`;
-                  })()}
-                  badgeText={
-                    demoMode
-                      ? welcomeLabels[language].demo
-                      : cloudBusinessId && memberRoleReady
-                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
-                        : undefined
-                  }
-                />
-              )}
             </div>
 
             <div className="hidden min-w-0 lg:block">
@@ -3985,26 +3965,6 @@ export function BusinessWorkspace({
               >
                 {labels.nav[activeModule]}
               </motion.h1>
-              {activeModule === "overview" && (
-                <WelcomeTypewriterBanner
-                  message={(() => {
-                    const g = welcomeLabels[language].greeting.toLowerCase();
-                    const who = signedInName ? `, ${signedInName}` : "";
-                    if (language === "es") return `Hola${who}, ${g} a Global Stock`;
-                    if (language === "en") return `Hi${who}, ${g} to Global Stock`;
-                    if (language === "pt") return `Olá${who}, ${g} ao Global Stock`;
-                    if (language === "fr") return `Bonjour${who}, ${g} sur Global Stock`;
-                    return `Hallo${who}, ${g} bei Global Stock`;
-                  })()}
-                  badgeText={
-                    demoMode
-                      ? welcomeLabels[language].demo
-                      : cloudBusinessId && memberRoleReady
-                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
-                        : undefined
-                  }
-                />
-              )}
             </div>
 
             <div className="ml-auto flex items-center gap-2">
@@ -4026,14 +3986,12 @@ export function BusinessWorkspace({
                 type="button"
                 data-advanced-only="true"
                 onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
-                title="Centro de operaciones rápidas (Ctrl + K)"
+                title="Centro de operaciones rápidas"
                 className="liquid-glass-pill inline-flex h-10 shrink-0 whitespace-nowrap items-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
               >
                 <Command size={14} className="shrink-0" style={{ color: "var(--apex-accent)" }} />
                 <span className="hidden sm:inline font-bold tracking-tight">Acciones</span>
-                <kbd className="rounded-md border border-[var(--apex-border)] bg-[var(--apex-bg)]/90 px-1.5 py-0.5 text-[10px] font-extrabold text-[var(--apex-muted)]">
-                  Ctrl+K
-                </kbd>
+                
               </button>
 <button
                 type="button"
@@ -4066,7 +4024,38 @@ export function BusinessWorkspace({
               className="min-w-0"
             >
             {activeModule === "overview" && (
-              <OverviewModule
+              <>
+                <WelcomeTypewriterBanner
+                  prefix={
+                    language === "es"
+                      ? "Hola"
+                      : language === "en"
+                        ? "Hi"
+                        : language === "pt"
+                          ? "Olá"
+                          : language === "fr"
+                            ? "Bonjour"
+                            : "Hallo"
+                  }
+                  userSegment={signedInName ? `, ${signedInName}` : ""}
+                  demoFallbackName={demoMode ? "Ángel" : ""}
+                  suffix={(() => {
+                    const g = welcomeLabels[language].greeting.toLowerCase();
+                    if (language === "es") return `, ${g} a Global Stock`;
+                    if (language === "en") return `, ${g} to Global Stock`;
+                    if (language === "pt") return `, ${g} ao Global Stock`;
+                    if (language === "fr") return `, ${g} sur Global Stock`;
+                    return `, ${g} bei Global Stock`;
+                  })()}
+                  subtitle={
+                    demoMode
+                      ? `${welcomeLabels[language].greeting} · ${welcomeLabels[language].demo}`
+                      : cloudBusinessId && memberRoleReady
+                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                        : undefined
+                  }
+                />
+                <OverviewModule
                 dark={dark}
                 language={language}
                 workspaceAccent={workspaceAccent}
@@ -4091,6 +4080,7 @@ export function BusinessWorkspace({
                   )
                 }
               />
+              </>
             )}
 
             {activeModule === "cash" && (
