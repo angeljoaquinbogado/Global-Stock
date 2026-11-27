@@ -4,6 +4,7 @@ import { ApexSelect } from "@/components/ui/ApexSelect";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
+  Sparkles,
   Activity as ActivityIcon,
   BarChart3,
   Landmark,
@@ -4012,11 +4013,29 @@ export function BusinessWorkspace({
                 data-advanced-only="true"
                 onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
                 title="Centro de operaciones rápidas (Ctrl + K)"
-                className="inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
+                className="liquid-glass-pill inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
               >
                 <span className="h-2 w-2 rounded-full bg-[var(--apex-accent)]" />
                 <span>Acciones</span>
                 <kbd className="rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)]">
+                  Ctrl+K
+                </kbd>
+              </button>
+              <button
+                type="button"
+                data-advanced-only="true"
+                onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
+                title="Centro de operaciones rápidas (Ctrl + K)"
+                className="liquid-glass-pill inline-flex h-11 shrink-0 items-center gap-2.5 rounded-full px-3.5 text-xs font-semibold"
+              >
+                <span
+                  className="grid h-6 w-6 place-items-center rounded-full text-white shadow-sm"
+                  style={{ backgroundColor: "var(--apex-accent)" }}
+                >
+                  <Sparkles size={13} />
+                </span>
+                <span className="font-bold tracking-tight">Acciones</span>
+                <kbd className="rounded-full border border-[var(--apex-border)] bg-[var(--apex-bg)]/80 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-[var(--apex-muted)]">
                   Ctrl+K
                 </kbd>
               </button>
@@ -4428,7 +4447,7 @@ export function BusinessWorkspace({
                 <button
                   type="button"
                   onClick={() => setMoreOpen(false)}
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)]"
+                  className="liquid-glass-pill grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] text-[var(--apex-muted)]"
                   aria-label={labels.close}
                 >
                   <X size={16} />
@@ -4555,7 +4574,7 @@ export function BusinessWorkspace({
                     scannerRef.current?.stop();
                     setScannerOpen(false);
                   }}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                  className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
                   aria-label={labels.close}
                 >
                   <X size={18} />
@@ -4590,7 +4609,7 @@ export function BusinessWorkspace({
               duration: 0.18,
               ease: [0.23, 1, 0.32, 1]
             }}
-            className="fixed bottom-28 left-1/2 z-[140] rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
+            className="liquid-glass-pill fixed bottom-28 left-1/2 z-[140] rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-4 py-2 text-xs font-semibold shadow-xl lg:bottom-6"
           >
             {notice}
           </motion.div>

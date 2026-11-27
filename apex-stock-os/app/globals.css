@@ -3496,3 +3496,99 @@ aside a,
 aside button {
   overflow-x: hidden;
 }
+
+
+/* iOS 26 Liquid Glass Design System */
+:root {
+  --lg-glass-bg: rgba(255, 255, 255, 0.72);
+  --lg-glass-bg-strong: rgba(255, 255, 255, 0.86);
+  --lg-glass-border: rgba(15, 23, 42, 0.10);
+  --lg-glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.85), inset 0 -1px 0 0 rgba(15, 23, 42, 0.04);
+  --lg-glass-shadow: 0 12px 32px -10px rgba(15, 23, 42, 0.10), 0 2px 6px -1px rgba(15, 23, 42, 0.05);
+  --lg-text-primary: #0b1220;
+  --lg-text-secondary: #334155;
+}
+
+.dark {
+  --lg-glass-bg: rgba(18, 24, 33, 0.68);
+  --lg-glass-bg-strong: rgba(22, 29, 40, 0.84);
+  --lg-glass-border: rgba(255, 255, 255, 0.13);
+  --lg-glass-specular: inset 0 1px 0 0 rgba(255, 255, 255, 0.22), inset 0 -1px 0 0 rgba(0, 0, 0, 0.35);
+  --lg-glass-shadow: 0 16px 38px -12px rgba(0, 0, 0, 0.55), 0 2px 8px -1px rgba(0, 0, 0, 0.35);
+  --lg-text-primary: #f8fafc;
+  --lg-text-secondary: #cbd5e1;
+}
+
+.liquid-glass-surface {
+  background: var(--lg-glass-bg);
+  backdrop-filter: blur(24px) saturate(190%);
+  -webkit-backdrop-filter: blur(24px) saturate(190%);
+  border: 1px solid var(--lg-glass-border);
+  box-shadow: var(--lg-glass-specular), var(--lg-glass-shadow);
+}
+
+.liquid-glass-pill {
+  background: var(--lg-glass-bg-strong);
+  backdrop-filter: blur(20px) saturate(185%);
+  -webkit-backdrop-filter: blur(20px) saturate(185%);
+  border: 1px solid var(--lg-glass-border);
+  box-shadow: var(--lg-glass-specular), 0 6px 18px -6px rgba(15, 23, 42, 0.12);
+  color: var(--lg-text-primary);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease, background-color 0.2s ease;
+}
+
+.liquid-glass-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--apex-accent);
+  box-shadow: var(--lg-glass-specular), 0 10px 24px -6px rgba(15, 23, 42, 0.18);
+}
+
+.liquid-glass-pill:active {
+  transform: scale(0.98);
+}
+
+.liquid-glass-card {
+  background: var(--lg-glass-bg);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  border: 1px solid var(--lg-glass-border);
+  box-shadow: var(--lg-glass-specular), var(--lg-glass-shadow);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s ease, box-shadow 0.25s ease;
+}
+
+.liquid-glass-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--apex-accent) 42%, var(--lg-glass-border));
+}
+
+@keyframes welcomeGlassReveal {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.welcome-glass-banner {
+  animation: welcomeGlassReveal 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Legibilidad garantizada en claro y oscuro */
+.dark [class*="text-[var(--apex-muted)]"] {
+  color: #cbd5e1 !important;
+}
+
+html:not(.dark) [class*="text-[var(--apex-muted)]"] {
+  color: #475569 !important;
+}
+
+.apex-kpi-value,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.025em;
+}
