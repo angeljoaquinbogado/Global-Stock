@@ -3951,7 +3951,7 @@ export function BusinessWorkspace({
                   initial={{ opacity: 0, y: 8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="liquid-glass-pill mt-2 inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl px-3.5 py-1.5"
+                  className="liquid-glass-pill mt-2 inline-flex max-w-full whitespace-nowrap items-center gap-2 rounded-full px-3.5 py-1.5"
                 >
                   <span className="relative flex h-2 w-2 shrink-0">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -3997,7 +3997,7 @@ export function BusinessWorkspace({
                   initial={{ opacity: 0, y: 8, scale: 0.97 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="liquid-glass-pill mt-2 inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl px-3.5 py-1.5"
+                  className="liquid-glass-pill mt-2 inline-flex max-w-full whitespace-nowrap items-center gap-2 rounded-full px-3.5 py-1.5"
                 >
                   <span className="relative flex h-2 w-2 shrink-0">
                     <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
@@ -4035,45 +4035,14 @@ export function BusinessWorkspace({
                   />
                 </div>
               )}
-                            <button
-                type="button"
-                data-advanced-only="true"
-                onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
-                title="Centro de operaciones rápidas (Ctrl + K)"
-                className="liquid-glass-pill inline-flex h-10 shrink-0 items-center gap-2 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3.5 text-xs font-semibold text-[var(--apex-text)] transition hover:border-[var(--apex-accent)]"
-              >
-                <span className="h-2 w-2 rounded-full bg-[var(--apex-accent)]" />
-                <span>Acciones</span>
-                <kbd className="rounded bg-[var(--apex-bg)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--apex-muted)]">
-                  Ctrl+K
-                </kbd>
-              </button>
               <button
                 type="button"
                 data-advanced-only="true"
                 onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
                 title="Centro de operaciones rápidas (Ctrl + K)"
-                className="liquid-glass-pill inline-flex h-11 shrink-0 items-center gap-2.5 rounded-full px-3.5 text-xs font-semibold"
+                className="liquid-glass-pill inline-flex h-10 shrink-0 whitespace-nowrap items-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
               >
-                <span
-                  className="grid h-6 w-6 place-items-center rounded-full text-white shadow-sm"
-                  style={{ backgroundColor: "var(--apex-accent)" }}
-                >
-                  <Sparkles size={13} />
-                </span>
-                <span className="font-bold tracking-tight">Acciones</span>
-                <kbd className="rounded-full border border-[var(--apex-border)] bg-[var(--apex-bg)]/80 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-[var(--apex-muted)]">
-                  Ctrl+K
-                </kbd>
-              </button>
-              <button
-                type="button"
-                data-advanced-only="true"
-                onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
-                title="Centro de operaciones rápidas (Ctrl + K)"
-                className="liquid-glass-pill inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
-              >
-                <Command size={14} style={{ color: "var(--apex-accent)" }} />
+                <Command size={14} className="shrink-0" style={{ color: "var(--apex-accent)" }} />
                 <span className="hidden sm:inline font-bold tracking-tight">Acciones</span>
                 <kbd className="rounded-md border border-[var(--apex-border)] bg-[var(--apex-bg)]/90 px-1.5 py-0.5 text-[10px] font-extrabold text-[var(--apex-muted)]">
                   Ctrl+K
