@@ -71,6 +71,7 @@ import { getSupabaseBrowserClient } from "@/lib/supabase";
 import { AnimatedHomeDashboard } from "./AnimatedHomeDashboard";
 import { ApexIntelligence } from "./ApexIntelligence";
 import { OperationsCommandHub } from "./OperationsCommandHub";
+import { WelcomeTypewriterBanner } from "./WelcomeTypewriterBanner";
 import { SimpleModeSettingsCard } from "./SimpleModeGuide";
 import { NewsletterPreferences } from "./NewsletterPreferences";
 import { BusinessTypePicker } from "./BusinessTypePicker";
@@ -3946,31 +3947,24 @@ export function BusinessWorkspace({
                 {labels.nav[activeModule]}
               </motion.p>
               {activeModule === "overview" && (
-                <motion.div
-                  key={`welcome-${language}-${demoMode ? "demo" : memberRole}`}
-                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="liquid-glass-pill mt-2 inline-flex max-w-full whitespace-nowrap items-center gap-2 rounded-full px-3.5 py-1.5"
-                >
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  <span className="truncate text-xs font-bold tracking-tight text-[var(--apex-text)] sm:text-[13px]">
-                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
-                  </span>
-                  {(demoMode || (cloudBusinessId && memberRoleReady)) && (
-                    <>
-                      <span className="h-3.5 w-px shrink-0 bg-[var(--apex-border)]" />
-                      <span className="truncate rounded-full bg-[var(--apex-bg)]/85 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--apex-muted)]">
-                        {demoMode
-                          ? welcomeLabels[language].demo
-                          : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
-                      </span>
-                    </>
-                  )}
-                </motion.div>
+                <WelcomeTypewriterBanner
+                  message={(() => {
+                    const g = welcomeLabels[language].greeting.toLowerCase();
+                    const who = signedInName ? `, ${signedInName}` : "";
+                    if (language === "es") return `Hola${who}, ${g} a Global Stock`;
+                    if (language === "en") return `Hi${who}, ${g} to Global Stock`;
+                    if (language === "pt") return `Olá${who}, ${g} ao Global Stock`;
+                    if (language === "fr") return `Bonjour${who}, ${g} sur Global Stock`;
+                    return `Hallo${who}, ${g} bei Global Stock`;
+                  })()}
+                  badgeText={
+                    demoMode
+                      ? welcomeLabels[language].demo
+                      : cloudBusinessId && memberRoleReady
+                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                        : undefined
+                  }
+                />
               )}
             </div>
 
@@ -3992,31 +3986,24 @@ export function BusinessWorkspace({
                 {labels.nav[activeModule]}
               </motion.h1>
               {activeModule === "overview" && (
-                <motion.div
-                  key={`welcome-${language}-${demoMode ? "demo" : memberRole}`}
-                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-                  className="liquid-glass-pill mt-2 inline-flex max-w-full whitespace-nowrap items-center gap-2 rounded-full px-3.5 py-1.5"
-                >
-                  <span className="relative flex h-2 w-2 shrink-0">
-                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-                  </span>
-                  <span className="truncate text-xs font-bold tracking-tight text-[var(--apex-text)] sm:text-[13px]">
-                    {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
-                  </span>
-                  {(demoMode || (cloudBusinessId && memberRoleReady)) && (
-                    <>
-                      <span className="h-3.5 w-px shrink-0 bg-[var(--apex-border)]" />
-                      <span className="truncate rounded-full bg-[var(--apex-bg)]/85 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--apex-muted)]">
-                        {demoMode
-                          ? welcomeLabels[language].demo
-                          : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
-                      </span>
-                    </>
-                  )}
-                </motion.div>
+                <WelcomeTypewriterBanner
+                  message={(() => {
+                    const g = welcomeLabels[language].greeting.toLowerCase();
+                    const who = signedInName ? `, ${signedInName}` : "";
+                    if (language === "es") return `Hola${who}, ${g} a Global Stock`;
+                    if (language === "en") return `Hi${who}, ${g} to Global Stock`;
+                    if (language === "pt") return `Olá${who}, ${g} ao Global Stock`;
+                    if (language === "fr") return `Bonjour${who}, ${g} sur Global Stock`;
+                    return `Hallo${who}, ${g} bei Global Stock`;
+                  })()}
+                  badgeText={
+                    demoMode
+                      ? welcomeLabels[language].demo
+                      : cloudBusinessId && memberRoleReady
+                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                        : undefined
+                  }
+                />
               )}
             </div>
 
