@@ -4,6 +4,7 @@ import { ApexSelect } from "@/components/ui/ApexSelect";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
+  Command,
   Sparkles,
   Activity as ActivityIcon,
   BarChart3,
@@ -3945,18 +3946,31 @@ export function BusinessWorkspace({
                 {labels.nav[activeModule]}
               </motion.p>
               {activeModule === "overview" && (
-                <div className="mt-1 min-w-0">
-                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
+                <motion.div
+                  key={`welcome-${language}-${demoMode ? "demo" : memberRole}`}
+                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="liquid-glass-pill mt-2 inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl px-3.5 py-1.5"
+                >
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="truncate text-xs font-bold tracking-tight text-[var(--apex-text)] sm:text-[13px]">
                     {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
-                  </p>
+                  </span>
                   {(demoMode || (cloudBusinessId && memberRoleReady)) && (
-                    <p className="truncate text-[10px] text-[var(--apex-muted)]">
-                      {demoMode
-                        ? welcomeLabels[language].demo
-                        : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
-                    </p>
+                    <>
+                      <span className="h-3.5 w-px shrink-0 bg-[var(--apex-border)]" />
+                      <span className="truncate rounded-full bg-[var(--apex-bg)]/85 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--apex-muted)]">
+                        {demoMode
+                          ? welcomeLabels[language].demo
+                          : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
+                      </span>
+                    </>
                   )}
-                </div>
+                </motion.div>
               )}
             </div>
 
@@ -3978,18 +3992,31 @@ export function BusinessWorkspace({
                 {labels.nav[activeModule]}
               </motion.h1>
               {activeModule === "overview" && (
-                <div className="mt-1 min-w-0">
-                  <p className="truncate text-[10px] font-medium text-[var(--apex-text)]">
+                <motion.div
+                  key={`welcome-${language}-${demoMode ? "demo" : memberRole}`}
+                  initial={{ opacity: 0, y: 8, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                  className="liquid-glass-pill mt-2 inline-flex max-w-full flex-wrap items-center gap-2 rounded-2xl px-3.5 py-1.5"
+                >
+                  <span className="relative flex h-2 w-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+                  </span>
+                  <span className="truncate text-xs font-bold tracking-tight text-[var(--apex-text)] sm:text-[13px]">
                     {welcomeLabels[language].greeting}{signedInName ? `, ${signedInName}` : ""}
-                  </p>
+                  </span>
                   {(demoMode || (cloudBusinessId && memberRoleReady)) && (
-                    <p className="truncate text-[10px] text-[var(--apex-muted)]">
-                      {demoMode
-                        ? welcomeLabels[language].demo
-                        : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
-                    </p>
+                    <>
+                      <span className="h-3.5 w-px shrink-0 bg-[var(--apex-border)]" />
+                      <span className="truncate rounded-full bg-[var(--apex-bg)]/85 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--apex-muted)]">
+                        {demoMode
+                          ? welcomeLabels[language].demo
+                          : `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`}
+                      </span>
+                    </>
                   )}
-                </div>
+                </motion.div>
               )}
             </div>
 
@@ -4036,6 +4063,19 @@ export function BusinessWorkspace({
                 </span>
                 <span className="font-bold tracking-tight">Acciones</span>
                 <kbd className="rounded-full border border-[var(--apex-border)] bg-[var(--apex-bg)]/80 px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-[var(--apex-muted)]">
+                  Ctrl+K
+                </kbd>
+              </button>
+              <button
+                type="button"
+                data-advanced-only="true"
+                onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
+                title="Centro de operaciones rápidas (Ctrl + K)"
+                className="liquid-glass-pill inline-flex h-10 shrink-0 items-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
+              >
+                <Command size={14} style={{ color: "var(--apex-accent)" }} />
+                <span className="hidden sm:inline font-bold tracking-tight">Acciones</span>
+                <kbd className="rounded-md border border-[var(--apex-border)] bg-[var(--apex-bg)]/90 px-1.5 py-0.5 text-[10px] font-extrabold text-[var(--apex-muted)]">
                   Ctrl+K
                 </kbd>
               </button>
