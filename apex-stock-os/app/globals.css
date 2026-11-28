@@ -3654,18 +3654,19 @@ main .tabular-nums {
   border-color: color-mix(in srgb, var(--apex-accent) 36%, var(--apex-border));
 }
 
-/* Primera tarjeta KPI destacada en color de acento (sin pintar el wrapper externo) */
-.gs-exec-metrics > :first-child {
+/* Primera tarjeta KPI destacada en color de acento (contraste nitido en iconos y textos) */
+html body .gs-exec-metrics > :first-child {
   background: transparent !important;
   box-shadow: none !important;
 }
 
-.apex-kpi-featured,
-.gs-exec-metrics > :first-child .gs-exec-kpi, .gs-exec-metrics > :first-child.gs-exec-kpi {
+html body .apex-kpi-featured,
+html body .gs-exec-metrics > :first-child .gs-exec-kpi,
+html body .gs-exec-metrics > :first-child.gs-exec-kpi {
   background: linear-gradient(
     145deg,
     var(--apex-accent) 0%,
-    color-mix(in srgb, var(--apex-accent) 70%, #071912) 100%
+    color-mix(in srgb, var(--apex-accent) 68%, #061811) 100%
   ) !important;
   border-color: transparent !important;
   border-radius: 18px !important;
@@ -3673,12 +3674,21 @@ main .tabular-nums {
   box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--apex-accent) 52%, transparent) !important;
 }
 
-.apex-kpi-featured *,
-.gs-exec-metrics > :first-child .gs-exec-kpi, .gs-exec-metrics > :first-child.gs-exec-kpi * {
+html body .apex-kpi-featured *,
+html body .gs-exec-metrics > :first-child .gs-exec-kpi *,
+html body .gs-exec-metrics > :first-child.gs-exec-kpi * {
   color: #ffffff !important;
 }
 
-.apex-kpi-featured [class*="text-[var(--apex-muted)]"],
-.gs-exec-metrics > :first-child .gs-exec-kpi, .gs-exec-metrics > :first-child.gs-exec-kpi [class*="text-[var(--apex-muted)]"] {
-  color: rgba(255, 255, 255, 0.82) !important;
+html body .apex-kpi-featured [class*="text-[var(--apex-muted)]"],
+html body .gs-exec-metrics > :first-child .gs-exec-kpi [class*="text-[var(--apex-muted)]"],
+html body .gs-exec-metrics > :first-child.gs-exec-kpi [class*="text-[var(--apex-muted)]"] {
+  color: rgba(255, 255, 255, 0.86) !important;
+}
+
+html body .apex-kpi-featured svg, html body .apex-kpi-featured svg *,
+html body .gs-exec-metrics > :first-child .gs-exec-kpi svg, html body .gs-exec-metrics > :first-child .gs-exec-kpi svg *,
+html body .gs-exec-metrics > :first-child.gs-exec-kpi svg, html body .gs-exec-metrics > :first-child.gs-exec-kpi svg * {
+  color: #ffffff !important;
+  stroke: currentColor !important;
 }
