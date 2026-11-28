@@ -106,9 +106,13 @@ function CountUp({
   compact?: boolean; delay?: number
 }) {
   const reduced = useReducedMotion();
-  const [shown, setShown] = useState(reduced ? value : 0);
+  const [shown, setShown] = useState(value);
   useEffect(() => {
-    if (reduced) return;
+    if (reduced || value === 0) {
+      setShown(value);
+      return;
+    }
+    setShown(0);
     let raf = 0;
     let start: number | null = null;
     const ms = 820;
@@ -117,12 +121,17 @@ function CountUp({
       const raw = Math.min(1, Math.max(0, (now - start - delay) / ms));
       const eased = 1 - Math.pow(1 - raw, 3);
       setShown(value * eased);
-      if (raw < 1) raf = window.requestAnimationFrame(tick);
+      if (raw < 1) {
+        raf = window.requestAnimationFrame(tick);
+      } else {
+        setShown(value);
+      }
     }
     raf = window.requestAnimationFrame(tick);
     return () => window.cancelAnimationFrame(raf);
   }, [value, reduced, delay]);
-  return <span className={compact ? "gs-exec-figure gs-exec-figure--compact" : "gs-exec-figure"}>{format(shown)}</span>;
+  const displayValue = reduced ? value : shown;
+  return <span className={compact ? "gs-exec-figure gs-exec-figure--compact" : "gs-exec-figure"}>{format(displayValue)}</span>;
 }
 
 function FadeIn({ children, delay = 0, className = "" }: {
