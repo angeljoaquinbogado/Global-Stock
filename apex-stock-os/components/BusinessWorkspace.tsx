@@ -3773,7 +3773,7 @@ export function BusinessWorkspace({
       <motion.aside
         animate={{ width: sidebarCollapsed ? 84 : 250 }}
         transition={{ type: "spring", stiffness: 340, damping: 32, mass: 0.8 }}
-        className={`relative sticky top-0 z-30 hidden h-screen min-w-0 overflow-visible border-r border-gray-200 bg-[var(--apex-surface)] py-5 dark:border-white/10 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}
+        className={`relative sticky top-0 z-30 hidden h-screen min-w-0 overflow-x-hidden overflow-y-visible border-r border-gray-200 bg-[var(--apex-surface)] py-5 dark:border-white/10 lg:flex lg:flex-col ${sidebarCollapsed ? "items-center px-2" : "px-4"}`}
       >
         <div className={`mb-4 flex h-11 w-full shrink-0 items-center border-b border-gray-100 pb-4 dark:border-white/10 ${sidebarCollapsed ? "justify-center px-0" : "justify-between gap-2 px-2"}`}>
           {sidebarCollapsed ? (
@@ -3825,7 +3825,7 @@ export function BusinessWorkspace({
             ref={sidebarNavRef}
             tabIndex={0}
             onKeyDown={(event) => { if (!scrollSidebarByKeyboard(event.key)) return; event.preventDefault(); }}
-            className={`gs-sidebar-nav h-full min-w-0 overflow-y-auto px-1 pt-1 outline-none ${sidebarCollapsed ? "flex flex-col items-center space-y-1 py-3" : ""}`}
+            className={`gs-sidebar-nav h-full w-full min-w-0 overflow-x-hidden overflow-y-auto px-1 pt-1 outline-none ${sidebarCollapsed ? "flex flex-col items-center space-y-1 py-3" : ""}`}
           >
             <div className={`w-full min-w-0 pb-4 ${sidebarCollapsed ? "flex flex-col items-center space-y-1" : ""}`}>
               {navigationGroups.map((group) => {
@@ -3859,7 +3859,7 @@ export function BusinessWorkspace({
                             className={"group relative flex min-h-10 min-w-0 items-center gap-3 rounded-xl px-3 py-2 text-left text-[13px] font-semibold transition-colors duration-200 " + (sidebarCollapsed ? "mx-auto h-10 w-10 shrink-0 justify-center p-0" : "w-full") + " " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "bg-gray-100/80 text-gray-800 dark:bg-white/10 dark:text-white" : "text-[var(--apex-muted)] hover:bg-gray-50 hover:text-[var(--apex-text)] dark:hover:bg-white/[0.06]")}
                           >
                             <span aria-hidden="true" className={"pointer-events-none absolute right-0 top-1/2 h-3/4 w-[3px] -translate-y-1/2 origin-center rounded-l-full bg-black transition-transform duration-200 ease-out dark:bg-white " + ((hoveredSidebarModule ? hoveredSidebarModule === id : active) ? "scale-y-100" : "scale-y-0")} />
-                            <Icon size={18} strokeWidth={1.6} className="shrink-0" />
+                            <Icon size={18} strokeWidth={1.6} className="h-[18px] w-[18px] shrink-0" />
                             <AnimatePresence initial={false}>
                               {!sidebarCollapsed && (
                                 <motion.span key="nav-label" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: reduceMotion ? 0 : 0.14 }} className="min-w-0 flex-1 overflow-hidden truncate whitespace-nowrap">
@@ -4049,7 +4049,7 @@ export function BusinessWorkspace({
                   })()}
                   badgeText={
                     demoMode
-                      ? `${welcomeLabels[language].greeting} · ${welcomeLabels[language].demo}`
+                      ? welcomeLabels[language].demo
                       : cloudBusinessId && memberRoleReady
                         ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
                         : undefined
