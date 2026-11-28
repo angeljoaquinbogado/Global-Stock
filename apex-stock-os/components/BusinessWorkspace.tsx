@@ -4014,17 +4014,7 @@ export function BusinessWorkspace({
         </header>
 
         <div className="mx-auto w-full min-w-0 max-w-[1500px] px-4 py-5 sm:px-6 lg:px-6 xl:px-8 lg:py-7">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.div
-              key={activeModule}
-              initial={reduceMotion ? false : { opacity: 0, y: 8, filter: "blur(5px)" }}
-              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, filter: "blur(5px)" }}
-              transition={{ duration: reduceMotion ? 0 : 0.20, ease: "easeOut" }}
-              className="min-w-0"
-            >
-            {activeModule === "overview" && (
-              <>
+          <div className={activeModule === "overview" ? "block" : "hidden"}>
                 <WelcomeTypewriterBanner
                   greetingWord={
                     language === "es"
@@ -4057,6 +4047,18 @@ export function BusinessWorkspace({
                           : undefined
                   }
                 />
+          </div>
+          <AnimatePresence mode="popLayout" initial={false}>
+            <motion.div
+              key={activeModule}
+              initial={reduceMotion ? false : { opacity: 0, y: 8, filter: "blur(5px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, filter: "blur(5px)" }}
+              transition={{ duration: reduceMotion ? 0 : 0.20, ease: "easeOut" }}
+              className="min-w-0"
+            >
+            {activeModule === "overview" && (
+              <>
                 <OverviewModule
                 dark={dark}
                 language={language}
