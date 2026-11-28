@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
 type WelcomeTypewriterBannerProps = {
@@ -18,8 +18,6 @@ export function WelcomeTypewriterBanner({
   secondLine,
   badgeText
 }: WelcomeTypewriterBannerProps) {
-  const prefersReducedMotion = useReducedMotion();
-
   const displayName = useMemo(() => {
     const clean = userSegment.replace(/^,\s*/, "").trim();
     if (clean) return clean;
@@ -31,69 +29,69 @@ export function WelcomeTypewriterBanner({
     [greetingWord, displayName]
   );
 
-  const [line1Count, setLine1Count] = useState<number>(() =>
-    prefersReducedMotion ? firstLine.length : 0
-  );
-  const [line2Count, setLine2Count] = useState<number>(() =>
-    prefersReducedMotion ? secondLine.length : 0
-  );
-  const [phase, setPhase] = useState<"line1" | "line2" | "done">(() =>
-    prefersReducedMotion ? "done" : "line1"
-  );
+  const [line1Count, setLine1Count] = useState(0);
+  const [line2Count, setLine2Count] = useState(0);
+  const [phase, setPhase] = useState<"line1" | "line2" | "done">("line1");
 
   useEffect(() => {
-    if (prefersReducedMotion) {
-      setLine1Count(firstLine.length);
-      setLine2Count(secondLine.length);
-      setPhase("done");
-      return;
-    }
-
-    setLine1Count(0);
-    setLine2Count(0);
-    setPhase("line1");
-
     let cancelled = false;
-    let timerId: number | undefined;
-    let idx1 = 0;
-    let idx2 = 0;
+    let intervalId: number | undefined;
+    let timeoutId: number | undefined;
 
-    const typeLine2 = () => {
-      if (cancelled) return;
-      setPhase("line2");
-      timerId = window.setInterval(() => {
-        if (cancelled) return;
-        idx2 += 1;
-        setLine2Count(idx2);
-        if (idx2 >= secondLine.length) {
-          if (timerId !== undefined) window.clearInterval(timerId);
-          setPhase("done");
-        }
-      }, 28);
-    };
-
-    const startTimeout = window.setTimeout(() => {
-      if (cancelled) return;
-      timerId = window.setInterval(() => {
-        if (cancelled) return;
-        idx1 += 1;
-        setLine1Count(idx1);
-        if (idx1 >= firstLine.length) {
-          if (timerId !== undefined) window.clearInterval(timerId);
-          timerId = window.setTimeout(typeLine2, 240);
-        }
-      }, 34);
-    }, 220);
-
-    return () => {
-      cancelled = true;
-      window.clearTimeout(startTimeout);
-      if (timerId !== undefined) {
-        window.clearInterval(timerId);
-        window.clearTimeout(timerId);
+    const clearIntervalIfNeeded = () => {
+      if (intervalId !== undefined) {
+        window.clearInterval(intervalId);
+        intervalId = undefined;
       }
     };
-  }, [firstLine, secondLine, prefersReducedMotion]);
+
+    const startCycle = () => {
+      if (cancelled) return;
+      let index1 = 0;
+      let index2 = 0;
+      setLine1Count(0);
+      setLine2Count(0);
+      setPhase("line1");
+
+      timeoutId = window.setTimeout(() => {
+        if (cancelled) return;
+        intervalId = window.setInterval(() => {
+          if (cancelled) return;
+          index1 += 1;
+          setLine1Count(index1);
+          if (index1 >= firstLine.length) {
+            clearIntervalIfNeeded();
+            timeoutId = window.setTimeout(() => {
+              if (cancelled) return;
+              setPhase("line2");
+              intervalId = window.setInterval(() => {
+                if (cancelled) return;
+                index2 += 1;
+                setLine2Count(index2);
+                if (index2 >= secondLine.length) {
+                  clearIntervalIfNeeded();
+                  setPhase("done");
+                  timeoutId = window.setTimeout(() => {
+                    if (cancelled) return;
+                    setLine1Count(0);
+                    setLine2Count(0);
+                    timeoutId = window.setTimeout(startCycle, 260);
+                  }, 1400);
+                }
+              }, 28);
+            }, 240);
+          }
+        }, 34);
+      }, 220);
+    };
+
+    startCycle();
+    return () => {
+      cancelled = true;
+      clearIntervalIfNeeded();
+      if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+    };
+  }, [firstLine, secondLine]);
 
   const prefixPart = displayName ? `${greetingWord}, ` : `${greetingWord}!`;
   const typedPrefix = firstLine.slice(0, Math.min(line1Count, prefixPart.length));
