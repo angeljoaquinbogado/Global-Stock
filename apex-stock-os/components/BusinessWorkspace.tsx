@@ -4191,7 +4191,7 @@ export function BusinessWorkspace({
                 dark={dark}
                 accent={workspaceAccent}
                 products={products}
-                data={localizedTrend}
+                data={metrics.revenue <= 0 ? localizedTrend.map((point) => ({ ...point, revenue: 0, cost: 0, profit: 0 })) : localizedTrend}
                 money={money}
                 currency={currency}
                 locale={locale}
