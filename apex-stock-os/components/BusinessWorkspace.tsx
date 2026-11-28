@@ -4048,11 +4048,13 @@ export function BusinessWorkspace({
                     return `${welcomeLabels[language].greeting} bei Global Stock.`;
                   })()}
                   badgeText={
-                    memberRoleReady
+                    cloudBusinessId && memberRoleReady
                       ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
-                      : demoMode
-                        ? welcomeLabels[language].demo
-                        : undefined
+                      : memberRoleReady
+                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                        : demoMode
+                          ? welcomeLabels[language].demo
+                          : undefined
                   }
                 />
                 <OverviewModule
