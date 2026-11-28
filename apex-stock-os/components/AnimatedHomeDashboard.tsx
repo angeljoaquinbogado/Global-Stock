@@ -156,12 +156,12 @@ function KpiCard({ label, value, format, icon, tint, delay }: {
 }
 
 function RevenueBars({
-  rows, money, label
-}: {rows:TrendRow[],money:(n:number)=>string,label:string}) {
+  rows, money, label, hasSales
+}: {rows:TrendRow[],money:(n:number)=>string,label:string,hasSales:boolean}) {
   const reduced = useReducedMotion();
   const [selected, setSelected] = useState<number | null>(null);
   const max = Math.max(1,...rows.map(row => Math.max(0, row.revenue)));
-  const hasData = rows.some(row => row.revenue > 0);
+  const hasData = hasSales && rows.some(row => row.revenue > 0);
   return (
     <div className="gs-exec-chart" data-testid="exec-revenue-chart">
       {hasData ? (
@@ -212,21 +212,23 @@ function RevenueBars({
 function MarginGauge({ margin, label, noData }: {margin:number|null,label:string,noData:string}) {
   const reduced = useReducedMotion();
   const safePct = Math.max(0,Math.min(100,margin??0));
+  const hasPositiveMargin = margin !== null && safePct > 0;
   return (
     <div className="gs-exec-gauge">
       <svg viewBox="0 0 200 128" role="img"
         aria-label={margin===null?noData:label+": "+margin.toFixed(1)+"%"}>
         <path d="M 20 107 A 80 80 0 0 1 180 107" fill="none" stroke="var(--home-gauge-track)" strokeWidth="14" strokeLinecap="round"/>
-        <motion.path d="M 20 107 A 80 80 0 0 1 180 107" fill="none" stroke="var(--home-accent)" strokeWidth="14"
-          strokeLinecap="round" pathLength={1} strokeDasharray="1 1"
-          initial={reduced ? false : {pathLength:0}}
-          animate={{pathLength:safePct/100}}
-          transition={{duration:reduced?0:1.1,delay:reduced?0:.3,ease:[.22,1,.36,1]}}/>
-        <circle cx="100" cy="107" r="0" strokeWidth="0" />
+        {hasPositiveMargin && (
+          <motion.path d="M 20 107 A 80 80 0 0 1 180 107" fill="none" stroke="var(--home-accent)" strokeWidth="14"
+            strokeLinecap="round"
+            initial={reduced ? {pathLength:safePct/100} : {pathLength:0}}
+            animate={{pathLength:safePct/100}}
+            transition={{duration:reduced?0:1.1,delay:reduced?0:.3,ease:[.22,1,.36,1]}}/>
+        )}
       </svg>
       <div className="gs-exec-gauge__center">
-        <CountUp value={margin??0}
-          format={n=>margin===null?"—":new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(n)+"%"}
+        <CountUp value={hasPositiveMargin ? safePct : 0}
+          format={n=>new Intl.NumberFormat("es-AR",{maximumFractionDigits:1}).format(n)+"%"}
           compact />
         <span>{label}</span>
       </div>
@@ -246,7 +248,7 @@ export function AnimatedHomeDashboard({
   ),[language]);
   const numeric=(n:number)=>countFormat.format(Math.round(n));
   const margin=showFinancials&&metrics.revenue>0?metrics.marginPct:null;
-  const chartHasData=chartData.some(row=>row.revenue>0);
+  const chartHasData=showFinancials&&metrics.revenue>0&&chartData.some(row=>row.revenue>0);
   const financials=showFinancials? [
     {label:labels.revenue,value:metrics.revenue,format:money,icon:<TrendingUp size={20}/>},
     {label:labels.inventoryCost,value:metrics.inventoryCost,format:money,icon:<Layers3 size={20}/>},
@@ -299,7 +301,7 @@ export function AnimatedHomeDashboard({
               {t.view}<ArrowRight size={14}/>
             </button>}
           </div>
-          <RevenueBars rows={chartData} money={money} label={chartHasData?t.chart:t.noData}/>
+          <RevenueBars rows={chartData} money={money} hasSales={chartHasData} label={chartHasData?t.chart:t.noData}/>
           <div className="gs-exec-panel__footer">
             <span className="gs-exec-dot" aria-hidden="true"/>
             <span>{showFinancials?labels.revenue:labels.stock}</span>
