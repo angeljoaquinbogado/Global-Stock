@@ -4064,7 +4064,7 @@ export function BusinessWorkspace({
                 onAccentChange={chooseWorkspaceAccent}
                 labels={labels}
                 metrics={metrics}
-                chartData={localizedTrend}
+                chartData={metrics.revenue <= 0 ? localizedTrend.map((point) => ({ ...point, revenue: 0, cost: 0, profit: 0 })) : localizedTrend}
                 money={money}
                 currency={currency}
                 locale={locale}
