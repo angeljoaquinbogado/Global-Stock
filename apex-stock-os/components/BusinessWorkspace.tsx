@@ -4045,7 +4045,7 @@ export function BusinessWorkspace({
                     if (language === "en") return `${g} to Global Stock.`;
                     if (language === "pt") return `${g} ao Global Stock.`;
                     if (language === "fr") return `${g} sur Global Stock.`;
-                    return `${g} bei Global Stock.`;
+                    return `${welcomeLabels[language].greeting} bei Global Stock.`;
                   })()}
                   badgeText={
                     demoMode
