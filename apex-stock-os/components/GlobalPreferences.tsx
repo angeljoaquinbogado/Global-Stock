@@ -464,9 +464,9 @@ function HeaderPreferences({
             setOpen(current => hover ? kind : current === kind ? null : kind);
           }}
           className={
-            "flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] " +
-            "bg-[var(--apex-surface-strong)] px-3 text-[var(--apex-text)] shadow-sm transition-[border-color,background-color] " +
-            "hover:border-[var(--apex-accent)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
+            "liquid-glass-pill flex h-11 min-w-0 touch-manipulation items-center justify-center gap-2 rounded-xl px-3 text-[var(--apex-text)] " +
+            "transition-[border-color,background-color] hover:border-[var(--apex-accent)] " +
+            "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
           }>
           <span className="text-[var(--apex-accent)]">{icon}</span>
           <span className="text-xs font-bold">{main}</span>
