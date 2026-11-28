@@ -344,7 +344,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
             aria-controls={deviceMenuOpen ? "gs-install-device-options" : undefined}
             className="liquid-glass-pill !border-[var(--apex-accent)] !bg-[var(--apex-accent)] inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-xl px-3.5 text-xs font-semibold text-white shadow-sm transition-[filter,transform] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
           >
-            <Download size={15}/>
+            <Download size={15} style={{ color: "var(--apex-accent)" }}/>
             <span className="hidden sm:inline">{labels.install}</span>
             <motion.span animate={{rotate: deviceMenuOpen ? 180 : 0}} transition={{duration:.18}}>
               <ChevronDown size={13}/>
@@ -422,7 +422,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
         className="gs-download-primary-action inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[#8F0000] bg-[#8F0000] px-4 text-xs font-semibold text-white shadow-[0_8px_24px_rgba(143,0,0,.2)] transition-[background-color,box-shadow,transform] duration-150 ease-out hover:bg-[#8F0000] hover:shadow-[0_10px_30px_rgba(143,0,0,.28)] active:scale-[.98]"
         aria-label={labels.install}
       >
-        <Download size={15} />
+        <Download size={15} style={{ color: "var(--apex-accent)" }} />
         <span className="hidden sm:inline">{labels.install}</span>
       </button>
       )}
@@ -471,7 +471,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
                   ref={closeRef}
                   type="button"
                   onClick={() => setShowHelp(false)}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-white/[0.04] text-white/75 transition-colors duration-150 hover:bg-white/[0.08] hover:text-white"
+                  className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-full border border-white/12 /[0.04] text-[var(--apex-text)]/75 transition-colors duration-150 hover:/[0.08] hover:text-[var(--apex-text)]"
                   aria-label={labels.close}
                 >
                   <X size={15} />
@@ -492,7 +492,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
                     onClick={() => void launchNativeInstall()}
                     className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-2xl border border-[#8F0000] bg-[#8F0000] px-4 text-sm font-semibold text-white shadow-[0_10px_28px_rgba(143,0,0,.22)] transition hover:bg-[#8F0000]"
                   >
-                    <Download size={15} />
+                    <Download size={15} style={{ color: "var(--apex-accent)" }} />
                     {labels.installNow}
                   </button>
                 </div>
