@@ -3515,30 +3515,49 @@ aside button {
 }
 
 .liquid-glass-pill {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, rgba(255, 255, 255, 0.62) 100%) !important;
-  backdrop-filter: blur(24px) saturate(195%);
-  -webkit-backdrop-filter: blur(24px) saturate(195%);
-  border: 1px solid rgba(15, 23, 42, 0.11) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.96), inset 0 0 0 1px rgba(255, 255, 255, 0.42), 0 8px 20px -6px rgba(15, 23, 42, 0.12);
+  border-radius: 14px !important;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--apex-bg) 58%, rgba(255, 255, 255, 0.36)) 0%,
+    color-mix(in srgb, var(--apex-bg) 74%, rgba(255, 255, 255, 0.16)) 100%
+  ) !important;
+  backdrop-filter: blur(26px) saturate(185%);
+  -webkit-backdrop-filter: blur(26px) saturate(185%);
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.62),
+    inset 0 -1px 0 0 rgba(15, 23, 42, 0.04),
+    0 6px 16px -6px rgba(15, 23, 42, 0.10);
   color: var(--apex-text) !important;
-  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease;
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.2s ease, box-shadow 0.22s ease, background 0.2s ease;
 }
 
 .dark .liquid-glass-pill {
-  background: linear-gradient(180deg, rgba(32, 41, 56, 0.78) 0%, rgba(18, 24, 34, 0.62) 100%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.26), inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 10px 26px -6px rgba(0, 0, 0, 0.55);
+  background: linear-gradient(
+    180deg,
+    rgba(30, 41, 59, 0.48) 0%,
+    rgba(15, 23, 42, 0.34) 100%
+  ) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.20),
+    inset 0 -1px 0 0 rgba(0, 0, 0, 0.30),
+    0 8px 22px -6px rgba(0, 0, 0, 0.48);
   color: var(--apex-text) !important;
 }
 
 .liquid-glass-pill:hover {
   transform: translateY(-1px);
   border-color: var(--apex-accent) !important;
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.95), 0 12px 24px -6px rgba(15, 23, 42, 0.18);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.72),
+    0 10px 20px -6px rgba(15, 23, 42, 0.14);
 }
 
 .dark .liquid-glass-pill:hover {
-  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.32), 0 12px 28px -6px rgba(0, 0, 0, 0.65);
+  box-shadow:
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.26),
+    0 10px 24px -6px rgba(0, 0, 0, 0.58);
 }
 
 .liquid-glass-pill:active {

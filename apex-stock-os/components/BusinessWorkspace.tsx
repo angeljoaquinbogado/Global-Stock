@@ -3987,7 +3987,7 @@ export function BusinessWorkspace({
                 data-advanced-only="true"
                 onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
                 title="Centro de operaciones rápidas"
-                className="liquid-glass-pill inline-flex h-11 shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
+                className="liquid-glass-pill inline-flex h-11 shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-2xl px-3.5 text-xs font-semibold text-[var(--apex-text)]"
               >
                 <Command size={14} className="shrink-0" style={{ color: "var(--apex-accent)" }} />
                 <span className="hidden sm:inline font-bold tracking-tight">Acciones</span>

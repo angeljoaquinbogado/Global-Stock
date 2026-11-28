@@ -471,7 +471,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
                   ref={closeRef}
                   type="button"
                   onClick={() => setShowHelp(false)}
-                  className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-full border border-white/12 /[0.04] text-[var(--apex-text)]/75 transition-colors duration-150 hover:/[0.08] hover:text-[var(--apex-text)]"
+                  className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-2xl border border-white/12 /[0.04] text-[var(--apex-text)]/75 transition-colors duration-150 hover:/[0.08] hover:text-[var(--apex-text)]"
                   aria-label={labels.close}
                 >
                   <X size={15} />

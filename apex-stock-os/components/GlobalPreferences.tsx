@@ -254,7 +254,7 @@ export function GlobalPreferences({
               <button
                 type="button"
                 onClick={() => setOpen(null)}
-                className="grid h-11 w-11 place-items-center rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                className="grid h-11 w-11 place-items-center rounded-2xl border border-[var(--apex-border)] liquid-glass-pill"
                 aria-label={labels.close}
               >
                 <X size={16} />
@@ -350,7 +350,7 @@ function ChoiceButton({
         "flex min-h-[62px] touch-manipulation items-center gap-3 rounded-[20px] border px-4 py-3 text-left transition-colors duration-150 active:scale-[.985] " +
         (selected
           ? "border-[#8F0000]/35 bg-[#8F0000]/10"
-          : "border-[var(--apex-border)] bg-[var(--apex-surface-strong)]")
+          : "border-[var(--apex-border)] liquid-glass-pill")
       }
     >
       <span
@@ -370,7 +370,7 @@ function ChoiceButton({
         </span>
       </span>
       {selected && (
-        <span className="grid h-7 w-7 place-items-center rounded-full bg-[#8F0000] text-white">
+        <span className="grid h-7 w-7 place-items-center rounded-2xl bg-[#8F0000] text-white">
           <Check size={14} />
         </span>
       )}
@@ -396,7 +396,7 @@ function PreferenceButton({
       type="button"
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] px-3 shadow-sm transition-colors duration-150 hover:bg-[var(--apex-bg)] active:scale-[.975]"
+      className="flex h-11 min-w-0 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-border)] liquid-glass-pill px-3 shadow-sm transition-colors duration-150 hover:bg-[var(--apex-bg)] active:scale-[.975]"
     >
       <span className="text-[#8F0000]">{icon}</span>
       <span className="text-xs font-bold">{primary}</span>
@@ -485,7 +485,7 @@ function HeaderPreferences({
               animate={{opacity:1, y:0, scaleY:1}}
               exit={{opacity:0, y:-7, scaleY:.96}}
               transition={{type:"spring",stiffness:355,damping:30,mass:.72}}
-              className="absolute right-0 top-[calc(100%+8px)] z-[100] w-[242px] origin-top-right overflow-hidden rounded-2xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] p-1.5 text-[var(--apex-text)] shadow-[0_18px_55px_rgba(0,0,0,.15)]">
+              className="absolute right-0 top-[calc(100%+8px)] z-[100] w-[242px] origin-top-right overflow-hidden rounded-2xl border border-[var(--apex-border)] liquid-glass-pill p-1.5 text-[var(--apex-text)] shadow-[0_18px_55px_rgba(0,0,0,.15)]">
               <p className="px-3 pb-2 pt-2 text-[10px] font-bold uppercase tracking-[.1em] text-[var(--apex-muted)]">
                 {kind === "language" ? labels.language : labels.currency}
               </p>
