@@ -40,7 +40,7 @@ const texts = {
   es: {
     title: "Control de inventario", subtitle: "Tu stock, ordenado y con información útil para cada producto.",
     products: "Productos", units: "Unidades", alerts: "Stock bajo", expiring: "Por vencer", expired: "Vencidos",
-    all: "Todos", low: "Bajo", out: "Agotado", status: "Estado",
+    all: "Todos", low: "Bajo", out: "Agotado", available: "Disponible", status: "Estado",
     find: "Buscar nombre, código, SKU, lote o proveedor", sort: "Ordenar por", name: "Nombre",
     stockAsc: "Menor stock", soon: "Vencimiento próximo", latest: "Últimos actualizados",
     product: "Producto", category: "Categoría", supplier: "Proveedor", cost: "Costo", price: "Precio",
@@ -68,7 +68,7 @@ const texts = {
   en: {
     title:"Inventory control",subtitle:"Organized stock with useful details for every item.",
     products:"Products",units:"Units",alerts:"Low stock",expiring:"Expiring soon",expired:"Expired",
-    all:"All",low:"Low",out:"Out of stock",status:"Status",find:"Search name, barcode, SKU, lot or supplier",
+    all:"All",low:"Low",out:"Out of stock",available:"In stock",status:"Status",find:"Search name, barcode, SKU, lot or supplier",
     sort:"Sort by",name:"Name",stockAsc:"Lowest stock",soon:"Earliest expiry",latest:"Recently updated",
     product:"Product",category:"Category",supplier:"Supplier",cost:"Cost",price:"Price",
     stock:"Stock",min:"Minimum",actions:"Details",details:"Product details",edit:"Edit",open:"Open details",none:"No products match these filters.",unknown:"Unknown",
@@ -90,7 +90,7 @@ const texts = {
   pt: {
     title:"Controle de estoque",subtitle:"Estoque organizado com os dados de cada produto.",
     products:"Produtos",units:"Unidades",alerts:"Estoque baixo",expiring:"Próximos do vencimento",expired:"Vencidos",
-    all:"Todos",low:"Baixo",out:"Esgotado",status:"Estado",find:"Buscar nome, código, SKU, lote ou fornecedor",
+    all:"Todos",low:"Baixo",out:"Esgotado",available:"Disponível",status:"Estado",find:"Buscar nome, código, SKU, lote ou fornecedor",
     sort:"Ordenar por",name:"Nome",stockAsc:"Menor estoque",soon:"Vencimento próximo",latest:"Mais recentes",
     product:"Produto",category:"Categoria",supplier:"Fornecedor",cost:"Custo",price:"Preço",
     stock:"Estoque",min:"Mínimo",actions:"Detalhes",details:"Ficha do produto",edit:"Editar",open:"Abrir ficha",none:"Nenhum produto encontrado.",unknown:"Sem dados",
@@ -112,7 +112,7 @@ const texts = {
   fr: {
     title:"Gestion des stocks",subtitle:"Suivez votre stock et les données de chaque article.",
     products:"Produits",units:"Unités",alerts:"Stock faible",expiring:"Expiration proche",expired:"Expirés",
-    all:"Tous",low:"Faible",out:"Rupture",status:"État",find:"Chercher nom, code, SKU, lot ou fournisseur",
+    all:"Tous",low:"Faible",out:"Rupture",available:"Disponible",status:"État",find:"Chercher nom, code, SKU, lot ou fournisseur",
     sort:"Trier par",name:"Nom",stockAsc:"Stock croissant",soon:"Expiration proche",latest:"Dernières modifications",
     product:"Produit",category:"Catégorie",supplier:"Fournisseur",cost:"Coût",price:"Prix",stock:"Stock",
     min:"Minimum",actions:"Détails",details:"Fiche produit",edit:"Modifier",open:"Ouvrir la fiche",none:"Aucun produit trouvé.",unknown:"Inconnu",
@@ -135,7 +135,7 @@ const texts = {
   de: {
     title:"Bestandskontrolle",subtitle:"Lagerbestand und wichtige Produktdaten im Überblick.",
     products:"Produkte",units:"Einheiten",alerts:"Geringer Bestand",expiring:"Bald ablaufend",expired:"Abgelaufen",
-    all:"Alle",low:"Niedrig",out:"Ausverkauft",status:"Status",find:"Name, Barcode, SKU, Charge oder Lieferant suchen",
+    all:"Alle",low:"Niedrig",out:"Ausverkauft",available:"Verfügbar",status:"Status",find:"Name, Barcode, SKU, Charge oder Lieferant suchen",
     sort:"Sortieren",name:"Name",stockAsc:"Niedrigster Bestand",soon:"Ablaufdatum",latest:"Zuletzt geändert",
     product:"Produkt",category:"Kategorie",supplier:"Lieferant",cost:"Kosten",price:"Preis",
     stock:"Bestand",min:"Minimum",actions:"Details",details:"Produktdetails",edit:"Bearbeiten",open:"Details öffnen",none:"Keine passenden Produkte.",unknown:"Unbekannt",
@@ -156,6 +156,24 @@ const texts = {
     yes:"Ja",no:"Nein",empty:"—"
   }
 } as const;
+
+const categoryTones = ["emerald", "sky", "amber", "violet", "rose", "indigo"] as const;
+type CategoryTone = (typeof categoryTones)[number];
+
+function categoryTone(category?: string): CategoryTone {
+  const clean = (category ?? "").trim().toLocaleLowerCase();
+  if (!clean) return "indigo";
+  if (/bebida|agua|jugo|gaseosa|drink|beverage/.test(clean)) return "sky";
+  if (/golosina|dulce|snack|panader|sweet|bakery/.test(clean)) return "amber";
+  if (/almac|comida|alimento|food|grocery/.test(clean)) return "emerald";
+  if (/limpieza|higiene|farmacia|salud|clean|health/.test(clean)) return "violet";
+  if (/carne|congelad|lacteo|lácteo|fresco|dairy|frozen/.test(clean)) return "rose";
+  let hash = 0;
+  for (let i = 0; i < clean.length; i += 1) {
+    hash = (hash * 31 + clean.charCodeAt(i)) >>> 0;
+  }
+  return categoryTones[hash % categoryTones.length];
+}
 
 function localDay() {
   const d = new Date();
@@ -341,13 +359,14 @@ export function InventoryControlCenter({
         {label:t.expired,value:number.format(expired),icon:<ShieldAlert size={18}/>,target:"expired" as Filter}
       ].map(item=><button type="button" key={item.target} onClick={()=>setFilter(item.target)}
         aria-pressed={filter===item.target}
+        data-tone={item.target}
         className="gs-warehouse-stat group">
         <span className="gs-warehouse-stat__icon">{item.icon}</span>
         <span><span className="gs-warehouse-stat__label">{item.label}</span><strong className="gs-warehouse-stat__number">{item.value}</strong></span>
         <ChevronRight size={15} className="ml-auto opacity-40 transition-transform group-hover:translate-x-0.5"/>
       </button>)}
     </div>
-    <section className="apex-card overflow-hidden p-0">
+    <section className="apex-card gs-warehouse-shell overflow-hidden p-0">
       <div className="flex flex-wrap items-center justify-between gap-2.5 border-b border-[var(--apex-border)] px-4 py-4 sm:px-5">
         <div className="min-w-0">
           <h2 className="text-[15px] font-bold tracking-tight">{t.title}</h2>
@@ -355,7 +374,7 @@ export function InventoryControlCenter({
         </div>
         {readOnly && <span className="rounded-full border border-[var(--apex-border)] px-3 py-1.5 text-xs">{t.readOnly}</span>}
       </div>
-      <div className="grid gap-3 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_190px_200px]">
+      <div className="gs-warehouse-toolbar grid gap-3 px-4 py-4 sm:px-5 lg:grid-cols-[minmax(0,1fr)_190px_200px]">
         <label className="relative min-w-0">
           <Search size={17} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--apex-muted)]"/>
           <input className="apex-input gs-warehouse-search pl-11" value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.find} aria-label={t.find}/>
@@ -395,29 +414,49 @@ export function InventoryControlCenter({
               const days=expiryState(product,businessType);
               const expFlag=product.stock>0 && days!==null && days<0;
               const soonFlag=product.stock>0 && days!==null && days>=0 && days<=30;
-              return <tr key={product.id} className="gs-warehouse-row">
+              const tone = categoryTone(product.category);
+              const initials = product.name.trim().slice(0, 2).toUpperCase() || "PR";
+              return <tr key={product.id} data-stock-state={stockStatus} className="gs-warehouse-row">
                 <td>
-                  <button type="button" className="group max-w-[240px] text-left" onClick={()=>setSelectedId(product.id)}>
-                    <span className="block truncate text-[13px] font-semibold group-hover:text-[var(--apex-accent)]">{product.name}</span>
-                    <span className="mt-1 block truncate text-[11px] text-[var(--apex-muted)]">{product.inventoryDetails?.sku || product.barcode || t.empty}</span>
+                  <button type="button" className="gs-warehouse-product group max-w-[260px] text-left" onClick={()=>setSelectedId(product.id)}>
+                    <span className={"gs-warehouse-avatar gs-warehouse-avatar--" + tone} aria-hidden="true">{initials}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate text-[13px] font-semibold group-hover:text-[var(--apex-accent)]">{product.name}</span>
+                      <span className="gs-warehouse-sku mt-1 inline-block max-w-full truncate">{product.inventoryDetails?.sku || product.barcode || t.empty}</span>
+                    </span>
                   </button>
                 </td>
-                <td className="text-[12px] text-[var(--apex-muted)]">{product.category || t.empty}</td>
-                <td className="text-[12px]">{product.supplier || t.empty}</td>
-                <td className="text-[12px] tabular-nums">{product.costKnown===false ? t.empty : money(product.cost)}</td>
-                <td className="text-[12px] font-semibold tabular-nums">{money(product.price)}</td>
+                <td>
+                  {product.category
+                    ? <span className={"gs-warehouse-cat gs-warehouse-cat--" + tone}>{product.category}</span>
+                    : <span className="text-[12px] text-[var(--apex-muted)]">{t.empty}</span>}
+                </td>
+                <td>
+                  {product.supplier
+                    ? <span className="gs-warehouse-supplier">{product.supplier}</span>
+                    : <span className="text-[12px] text-[var(--apex-muted)]">{t.empty}</span>}
+                </td>
+                <td>
+                  <span className="gs-warehouse-cost tabular-nums">{product.costKnown===false ? t.empty : money(product.cost)}</span>
+                </td>
+                <td>
+                  <span className="gs-warehouse-price tabular-nums">{money(product.price)}</span>
+                </td>
                 <td>
                   {readOnly ? <b className="text-sm tabular-nums">{number.format(product.stock)}</b>
                     : <StockQuantityCell productId={product.id} stock={product.stock} onSetStock={onUpdateStock} onAddStock={onAddStock}/>}
                 </td>
-                <td className="text-[12px] tabular-nums">{number.format(product.minStock)}</td>
                 <td>
-                  <div className="flex max-w-36 flex-col items-start gap-1.5">
+                  <span className="gs-warehouse-min tabular-nums">{number.format(product.minStock)}</span>
+                </td>
+                <td>
+                  <div className="flex max-w-40 flex-col items-start gap-1.5">
                     <span className={"gs-warehouse-chip " + (stockStatus==="out"?"gs-warehouse-chip--danger":stockStatus==="low"?"gs-warehouse-chip--warning":"gs-warehouse-chip--ok")}>
-                      {stockStatus==="out"?t.out:stockStatus==="low"?t.low:"OK"}
+                      <i className="gs-warehouse-chip__dot" aria-hidden="true" />
+                      {stockStatus==="out"?t.out:stockStatus==="low"?t.low:t.available}
                     </span>
-                    {expFlag&&<span className="gs-warehouse-chip gs-warehouse-chip--danger">{t.expiredTag}</span>}
-                    {soonFlag&&<span className="gs-warehouse-chip gs-warehouse-chip--warning">{t.soonTag} · {days}d</span>}
+                    {expFlag&&<span className="gs-warehouse-chip gs-warehouse-chip--danger"><i className="gs-warehouse-chip__dot" aria-hidden="true" />{t.expiredTag}</span>}
+                    {soonFlag&&<span className="gs-warehouse-chip gs-warehouse-chip--warning"><i className="gs-warehouse-chip__dot" aria-hidden="true" />{t.soonTag} · {days}d</span>}
                   </div>
                 </td>
                 <td className="text-right">
