@@ -71,12 +71,6 @@ export function WelcomeTypewriterBanner({
                 if (index2 >= secondLine.length) {
                   clearIntervalIfNeeded();
                   setPhase("done");
-                  timeoutId = window.setTimeout(() => {
-                    if (cancelled) return;
-                    setLine1Count(0);
-                    setLine2Count(0);
-                    timeoutId = window.setTimeout(startCycle, 260);
-                  }, 1400);
                 }
               }, 28);
             }, 240);
