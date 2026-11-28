@@ -69,7 +69,7 @@ export function WelcomeTypewriterBanner({
           if (timerId !== undefined) window.clearInterval(timerId);
           setPhase("done");
         }
-      }, 32);
+      }, 28);
     };
 
     const startTimeout = window.setTimeout(() => {
@@ -82,7 +82,7 @@ export function WelcomeTypewriterBanner({
           if (timerId !== undefined) window.clearInterval(timerId);
           timerId = window.setTimeout(typeLine2, 240);
         }
-      }, 38);
+      }, 34);
     }, 220);
 
     return () => {
@@ -112,7 +112,7 @@ export function WelcomeTypewriterBanner({
       style={{ borderColor: "var(--apex-accent)" }}
       aria-label={`${firstLine} ${secondLine}`}
     >
-      <div className="min-h-[2.85em] font-mono text-[13px] leading-[1.45] tracking-[-0.01em] sm:text-[14.5px]">
+      <div className="min-h-[2.85em] font-sans text-[13px] leading-[1.5] tracking-[-0.015em] sm:text-[14.5px]">
         <div className="font-semibold text-[var(--apex-text)]">
           <span>{typedPrefix}</span>
           {typedNameAndBang && (
