@@ -342,7 +342,7 @@ export function InstallAppButton({ language, variant = "default" }: InstallAppBu
             aria-haspopup="menu"
             aria-expanded={deviceMenuOpen}
             aria-controls={deviceMenuOpen ? "gs-install-device-options" : undefined}
-            className="inline-flex h-11 touch-manipulation items-center gap-2 rounded-xl border border-[var(--apex-accent)] bg-[var(--apex-accent)] px-3.5 text-xs font-semibold text-white shadow-sm transition-[filter,transform] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
+            className="liquid-glass-pill !border-[var(--apex-accent)] !bg-[var(--apex-accent)] inline-flex h-11 touch-manipulation items-center justify-center gap-2 rounded-xl px-3.5 text-xs font-semibold text-white shadow-sm transition-[filter,transform] hover:brightness-110 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--apex-accent)]"
           >
             <Download size={15}/>
             <span className="hidden sm:inline">{labels.install}</span>
