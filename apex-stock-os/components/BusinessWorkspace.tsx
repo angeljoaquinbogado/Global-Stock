@@ -3934,7 +3934,7 @@ export function BusinessWorkspace({
       </motion.aside>
 
       <section className="min-w-0 pb-28 lg:pb-0">
-        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-surface)]/80 backdrop-blur-xl backdrop-saturate-150 transition-colors duration-200">
+        <header className="sticky top-0 z-40 border-b border-[var(--apex-border)] bg-[var(--apex-bg)] backdrop-saturate-150 transition-colors duration-200">
           <div className="flex items-center justify-between gap-3 px-4 pb-3 pt-[max(12px,env(safe-area-inset-top))] sm:px-6 lg:px-8">
             <div className="min-w-0 lg:hidden">
               <Logo withWordmark />
