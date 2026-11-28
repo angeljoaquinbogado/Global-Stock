@@ -3586,3 +3586,89 @@ aside button {
 html:not(.dark) [class*="text-[var(--apex-muted)]"] {
   color: #475569 !important;
 }
+
+
+/* Video-Inspired Gray Stone Palette & Compact Scale */
+:root {
+  --apex-bg: #eef1f0;
+  --apex-surface: #f7f9f8;
+  --apex-surface-strong: #ffffff;
+  --apex-border: rgba(15, 23, 42, 0.08);
+  --apex-text: #11181c;
+  --apex-muted: #5b6662;
+}
+
+.dark {
+  --apex-bg: #0b0f13;
+  --apex-surface: #12171d;
+  --apex-surface-strong: #171e26;
+  --apex-border: rgba(255, 255, 255, 0.09);
+  --apex-text: #f1f5f9;
+  --apex-muted: #94a3b8;
+}
+
+body {
+  background-color: var(--apex-bg);
+  color: var(--apex-text);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.28s ease, color 0.25s ease;
+}
+
+/* Escala mas compacta y equilibrada (evita titulos y KPIs gigantes) */
+main h1 {
+  font-size: clamp(1.35rem, 1.8vw, 1.62rem) !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.028em !important;
+}
+
+main h2 {
+  font-size: clamp(1.05rem, 1.35vw, 1.22rem) !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.02em !important;
+}
+
+main .tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+/* Tarjetas refinadas sobre fondo gris piedra */
+.apex-card,
+.liquid-glass-card {
+  background: var(--apex-surface-strong);
+  border: 1px solid var(--apex-border);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03), 0 8px 24px -14px rgba(15, 23, 42, 0.09);
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s ease, box-shadow 0.22s ease, background-color 0.25s ease;
+}
+
+.dark .apex-card,
+.dark .liquid-glass-card {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 12px 28px -14px rgba(0, 0, 0, 0.55);
+}
+
+.apex-card:hover,
+.liquid-glass-card:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--apex-accent) 36%, var(--apex-border));
+}
+
+/* Primera tarjeta KPI destacada en color de acento */
+.apex-kpi-featured,
+.gs-exec-metrics > :first-child {
+  background: linear-gradient(145deg, var(--apex-accent) 0%, color-mix(in srgb, var(--apex-accent) 72%, #071912) 100%) !important;
+  border-color: transparent !important;
+  color: #ffffff !important;
+  box-shadow: 0 14px 30px -12px color-mix(in srgb, var(--apex-accent) 55%, transparent) !important;
+}
+
+.apex-kpi-featured *,
+.gs-exec-metrics > :first-child * {
+  color: #ffffff !important;
+}
+
+.apex-kpi-featured [class*="text-[var(--apex-muted)]"],
+.gs-exec-metrics > :first-child [class*="text-[var(--apex-muted)]"] {
+  color: rgba(255, 255, 255, 0.80) !important;
+}
