@@ -3987,7 +3987,7 @@ export function BusinessWorkspace({
                 data-advanced-only="true"
                 onClick={() => window.dispatchEvent(new CustomEvent("global-stock:open-hub"))}
                 title="Centro de operaciones rápidas"
-                className="liquid-glass-pill inline-flex h-10 shrink-0 whitespace-nowrap items-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
+                className="liquid-glass-pill inline-flex h-11 shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-full px-3.5 text-xs font-semibold text-[var(--apex-text)]"
               >
                 <Command size={14} className="shrink-0" style={{ color: "var(--apex-accent)" }} />
                 <span className="hidden sm:inline font-bold tracking-tight">Acciones</span>
@@ -3996,7 +3996,7 @@ export function BusinessWorkspace({
 <button
                 type="button"
                 onClick={onToggleTheme}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]"
+                className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-xl"
                 aria-label={labels.theme}
               >
                 {dark ? <Sun size={16} /> : <Moon size={16} />}
@@ -4004,7 +4004,7 @@ export function BusinessWorkspace({
               <button
                 type="button"
                 onClick={() => setMoreOpen(true)}
-                className="grid h-11 w-11 place-items-center rounded-xl border border-[var(--apex-border)] bg-[var(--apex-surface-strong)] lg:hidden"
+                className="liquid-glass-pill grid h-11 w-11 place-items-center rounded-xl lg:hidden"
                 aria-label={labels.more}
               >
                 <Menu size={17} />
@@ -4048,10 +4048,10 @@ export function BusinessWorkspace({
                     return `${welcomeLabels[language].greeting} bei Global Stock.`;
                   })()}
                   badgeText={
-                    demoMode
-                      ? welcomeLabels[language].demo
-                      : cloudBusinessId && memberRoleReady
-                        ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                    memberRoleReady
+                      ? `${welcomeLabels[language].role}: ${workspaceRoleLabels[language][memberRole] ?? memberRole}`
+                      : demoMode
+                        ? welcomeLabels[language].demo
                         : undefined
                   }
                 />
