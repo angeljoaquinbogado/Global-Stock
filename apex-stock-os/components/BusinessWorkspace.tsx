@@ -4026,7 +4026,7 @@ export function BusinessWorkspace({
             {activeModule === "overview" && (
               <>
                 <WelcomeTypewriterBanner
-                  prefix={
+                  greetingWord={
                     language === "es"
                       ? "Hola"
                       : language === "en"
@@ -4039,15 +4039,15 @@ export function BusinessWorkspace({
                   }
                   userSegment={signedInName ? `, ${signedInName}` : ""}
                   demoFallbackName={demoMode ? "Ángel" : ""}
-                  suffix={(() => {
-                    const g = welcomeLabels[language].greeting.toLowerCase();
-                    if (language === "es") return `, ${g} a Global Stock`;
-                    if (language === "en") return `, ${g} to Global Stock`;
-                    if (language === "pt") return `, ${g} ao Global Stock`;
-                    if (language === "fr") return `, ${g} sur Global Stock`;
-                    return `, ${g} bei Global Stock`;
+                  secondLine={(() => {
+                    const g = welcomeLabels[language].greeting;
+                    if (language === "es") return `${g} a Global Stock.`;
+                    if (language === "en") return `${g} to Global Stock.`;
+                    if (language === "pt") return `${g} ao Global Stock.`;
+                    if (language === "fr") return `${g} sur Global Stock.`;
+                    return `${g} bei Global Stock.`;
                   })()}
-                  subtitle={
+                  badgeText={
                     demoMode
                       ? `${welcomeLabels[language].greeting} · ${welcomeLabels[language].demo}`
                       : cloudBusinessId && memberRoleReady

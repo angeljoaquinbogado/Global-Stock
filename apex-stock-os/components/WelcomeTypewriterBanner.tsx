@@ -4,123 +4,157 @@ import { motion, useReducedMotion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
 type WelcomeTypewriterBannerProps = {
-  prefix: string;
+  greetingWord: string;
   userSegment: string;
   demoFallbackName?: string;
-  suffix: string;
-  subtitle?: string;
+  secondLine: string;
+  badgeText?: string;
 };
 
 export function WelcomeTypewriterBanner({
-  prefix,
+  greetingWord,
   userSegment,
   demoFallbackName = "",
-  suffix,
-  subtitle
+  secondLine,
+  badgeText
 }: WelcomeTypewriterBannerProps) {
   const prefersReducedMotion = useReducedMotion();
 
-  const resolvedUserSegment = useMemo(() => {
-    if (userSegment.trim()) return userSegment;
-    return demoFallbackName.trim() ? `, ${demoFallbackName.trim()}` : "";
+  const displayName = useMemo(() => {
+    const clean = userSegment.replace(/^,\s*/, "").trim();
+    if (clean) return clean;
+    return demoFallbackName.trim();
   }, [userSegment, demoFallbackName]);
 
-  const fullText = useMemo(
-    () => `${prefix}${resolvedUserSegment}${suffix}`,
-    [prefix, resolvedUserSegment, suffix]
+  const firstLine = useMemo(
+    () => (displayName ? `${greetingWord}, ${displayName}!` : `${greetingWord}!`),
+    [greetingWord, displayName]
   );
 
-  const [visibleCount, setVisibleCount] = useState<number>(() =>
-    prefersReducedMotion ? fullText.length : 0
+  const [line1Count, setLine1Count] = useState<number>(() =>
+    prefersReducedMotion ? firstLine.length : 0
   );
-  const [done, setDone] = useState<boolean>(() => Boolean(prefersReducedMotion));
+  const [line2Count, setLine2Count] = useState<number>(() =>
+    prefersReducedMotion ? secondLine.length : 0
+  );
+  const [phase, setPhase] = useState<"line1" | "line2" | "done">(() =>
+    prefersReducedMotion ? "done" : "line1"
+  );
 
   useEffect(() => {
     if (prefersReducedMotion) {
-      setVisibleCount(fullText.length);
-      setDone(true);
+      setLine1Count(firstLine.length);
+      setLine2Count(secondLine.length);
+      setPhase("done");
       return;
     }
 
-    setVisibleCount(0);
-    setDone(false);
+    setLine1Count(0);
+    setLine2Count(0);
+    setPhase("line1");
 
-    let index = 0;
-    let intervalId: number | undefined;
+    let cancelled = false;
+    let timerId: number | undefined;
+    let idx1 = 0;
+    let idx2 = 0;
 
-    const startDelay = window.setTimeout(() => {
-      intervalId = window.setInterval(() => {
-        index += 1;
-        setVisibleCount(index);
-        if (index >= fullText.length) {
-          if (intervalId !== undefined) window.clearInterval(intervalId);
-          setDone(true);
+    const typeLine2 = () => {
+      if (cancelled) return;
+      setPhase("line2");
+      timerId = window.setInterval(() => {
+        if (cancelled) return;
+        idx2 += 1;
+        setLine2Count(idx2);
+        if (idx2 >= secondLine.length) {
+          if (timerId !== undefined) window.clearInterval(timerId);
+          setPhase("done");
         }
-      }, 24);
-    }, 80);
+      }, 32);
+    };
+
+    const startTimeout = window.setTimeout(() => {
+      if (cancelled) return;
+      timerId = window.setInterval(() => {
+        if (cancelled) return;
+        idx1 += 1;
+        setLine1Count(idx1);
+        if (idx1 >= firstLine.length) {
+          if (timerId !== undefined) window.clearInterval(timerId);
+          timerId = window.setTimeout(typeLine2, 240);
+        }
+      }, 38);
+    }, 220);
 
     return () => {
-      window.clearTimeout(startDelay);
-      if (intervalId !== undefined) window.clearInterval(intervalId);
+      cancelled = true;
+      window.clearTimeout(startTimeout);
+      if (timerId !== undefined) {
+        window.clearInterval(timerId);
+        window.clearTimeout(timerId);
+      }
     };
-  }, [fullText, prefersReducedMotion]);
+  }, [firstLine, secondLine, prefersReducedMotion]);
 
-  const nameOnly = resolvedUserSegment.replace(/^,\s*/, "");
-  const nameStart = nameOnly ? prefix.length + 2 : -1;
-  const nameEnd = nameOnly ? nameStart + nameOnly.length : -1;
-
-  const beforeName =
-    nameStart >= 0
-      ? fullText.slice(0, Math.min(visibleCount, nameStart))
-      : fullText.slice(0, visibleCount);
-  const typedName =
-    nameStart >= 0 && visibleCount > nameStart
-      ? fullText.slice(nameStart, Math.min(visibleCount, nameEnd))
+  const prefixPart = displayName ? `${greetingWord}, ` : `${greetingWord}!`;
+  const typedPrefix = firstLine.slice(0, Math.min(line1Count, prefixPart.length));
+  const typedNameAndBang =
+    displayName && line1Count > prefixPart.length
+      ? firstLine.slice(prefixPart.length, line1Count)
       : "";
-  const afterName =
-    nameEnd >= 0 && visibleCount > nameEnd ? fullText.slice(nameEnd, visibleCount) : "";
+  const typedSecondLine = secondLine.slice(0, line2Count);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 4 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="mb-5 flex flex-col gap-1.5 px-1"
-      aria-label={fullText}
+      transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      className="mb-4 flex flex-wrap items-center justify-between gap-3 border-l-2 pl-3.5 py-0.5 transition-colors duration-300"
+      style={{ borderColor: "var(--apex-accent)" }}
+      aria-label={`${firstLine} ${secondLine}`}
     >
-      {subtitle && (
-        <div className="flex items-center gap-2">
-          <span className="relative flex h-2 w-2 shrink-0">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-          </span>
-          <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-[var(--apex-accent)]">
-            {subtitle}
-          </span>
+      <div className="min-h-[2.85em] font-mono text-[13px] leading-[1.45] tracking-[-0.01em] sm:text-[14.5px]">
+        <div className="font-semibold text-[var(--apex-text)]">
+          <span>{typedPrefix}</span>
+          {typedNameAndBang && (
+            <span
+              className="font-bold transition-colors duration-300"
+              style={{ color: "var(--apex-accent)" }}
+            >
+              {typedNameAndBang}
+            </span>
+          )}
+          {phase === "line1" && (
+            <span
+              aria-hidden="true"
+              className="ml-[1px] inline-block h-[1.05em] w-[1.5px] translate-y-[2px] animate-pulse"
+              style={{ backgroundColor: "var(--apex-accent)" }}
+            />
+          )}
         </div>
-      )}
 
-      <h2 className="text-xl font-extrabold tracking-[-0.03em] text-[var(--apex-text)] sm:text-2xl md:text-[28px] md:leading-[1.15]">
-        <span>{beforeName}</span>
-        {typedName && (
+        <div className="font-medium text-[var(--apex-muted)]">
+          <span>{typedSecondLine}</span>
+          {phase !== "line1" && (
+            <span
+              aria-hidden="true"
+              className={`ml-[1px] inline-block h-[1.05em] w-[1.5px] translate-y-[2px] transition-opacity duration-700 ${
+                phase === "done" ? "opacity-0" : "animate-pulse opacity-100"
+              }`}
+              style={{ backgroundColor: "var(--apex-accent)" }}
+            />
+          )}
+        </div>
+      </div>
+
+      {badgeText && (
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--apex-border)] bg-[var(--apex-surface-strong)]/80 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--apex-muted)] backdrop-blur-md">
           <span
-            className="bg-clip-text text-transparent"
-            style={{
-              backgroundImage:
-                "linear-gradient(135deg, var(--apex-accent) 0%, color-mix(in srgb, var(--apex-accent) 62%, #f59e0b) 100%)"
-            }}
-          >
-            {typedName}
-          </span>
-        )}
-        <span>{afterName}</span>
-        <span
-          aria-hidden="true"
-          className={`ml-1 inline-block h-[0.9em] w-[2.5px] translate-y-[2px] rounded-full bg-[var(--apex-accent)] transition-opacity duration-500 ${
-            done ? "opacity-0" : "animate-pulse opacity-100"
-          }`}
-        />
-      </h2>
+            className="h-1.5 w-1.5 rounded-full transition-colors duration-300"
+            style={{ backgroundColor: "var(--apex-accent)" }}
+          />
+          {badgeText}
+        </span>
+      )}
     </motion.div>
   );
 }
